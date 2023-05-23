@@ -1,3 +1,36 @@
+from typing import Protocol
+from numpy.typing import NDArray
+
+class Camera(Protocol):
+    def calibration() -> None: 
+        ...
+
+    def get_image() -> NDArray:
+        ...
+
+class Projector(Protocol):
+    def calibration() -> None:
+        ...
+
+    def project(NDArray) -> None:
+        ...
+
+class Cam2Proj(Protocol):
+    def registration():
+        ...
+
+    def transform(NDArray) -> NDArray:
+        ...
+
+class Tracker(Protocol):
+    def track(NDArray) -> NDArray:
+        ...
+
+class Stimulus(Protocol):
+    def update(NDArray) -> NDArray:
+        ...
+
+
 # 1. Connect hardware ----------------------------------------------------------
 
 ## 1.1 Camera . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
