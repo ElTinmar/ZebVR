@@ -1,4 +1,4 @@
-import devices.lightcrafter_4500.usb_protocol as lcr
+from .usb_protocol import lcr
 import time
 
 def configure():
