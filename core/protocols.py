@@ -1,6 +1,6 @@
-from typing import Protocol
+from typing import Protocol, Tuple
 from numpy.typing import NDArray
-from .dataclasses import Tracking
+from .dataclasses import Tr
 
 class Camera(Protocol):
     def calibration() -> None:
@@ -13,9 +13,10 @@ class Camera(Protocol):
         """
         ...
 
-    def get_image() -> NDArray:
+    def get_image() -> Tuple[NDArray, bool]:
         """
-        Output the next image from the camera
+        Output a boolean if there is an image, 
+        and the next image from the camera
         """
         ...
 
