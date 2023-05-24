@@ -1,10 +1,10 @@
 from core.VR import VR
 from devices.camera.dummycam import FromFile, RandomCam
+from core.abstractclasses import Projector
 
 cam_opts = {"ROI_height": 128, "ROI_width": 256}
 camera = RandomCam(**cam_opts)
-
-projector = 
+projector = Projector(monitor_id = 1)
 background = 
 cam2proj = 
 tracker = 
