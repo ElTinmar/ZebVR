@@ -1,4 +1,4 @@
-from core.protocols import Camera, Projector, Background, Cam2Proj, Tracker, Stimulus
+from .protocols import Camera, Projector, Background, Cam2Proj, Tracker, Stimulus
 class VR:
     def __init__(
         self,
@@ -29,10 +29,12 @@ class VR:
         self.cam2proj.registration()
 
     def run(self):
-        while True:
-            image = self.camera.get_image()
-            self.background.add_image(image)
-            background_image = self.background.get_background() 
-            tracking = self.tracker.track(image-background_image)
-            stim_image = self.stimulus.create_stim_image(tracking)
-            self.projector.project(stim_image)
+        keepgoing = True
+        while keepgoing:
+            image, keepgoing = self.camera.get_image()
+            if keepgoing:
+                self.background.add_image(image)
+                background_image = self.background.get_background() 
+                tracking = self.tracker.track(image-background_image)
+                stim_image = self.stimulus.create_stim_image(tracking)
+                self.projector.project(stim_image)
