@@ -1,5 +1,27 @@
 from typing import Protocol
 from numpy.typing import NDArray
+from dataclasses import dataclass
+
+@dataclass
+class EyeTracking:
+    left_eye_angle: float
+    right_eye_angle: float
+
+@dataclass
+class BodyTracking:
+    centroid: NDArray
+    heading: NDArray
+
+@dataclass 
+class TailTracking:
+    tail_points: NDArray
+    tail_angles: NDArray
+
+@dataclass
+class Tracking:
+    body: BodyTracking
+    eyes: EyeTracking
+    tail: TailTracking
 
 class Camera(Protocol):
     def calibration() -> None:
@@ -65,7 +87,7 @@ class Cam2Proj(Protocol):
         ...
 
 class Tracker(Protocol):
-    def track(NDArray) -> NDArray:
+    def track(NDArray) -> Tracking:
         """
         Input: image from the camera,
         Output: position/orientation parameters
@@ -73,35 +95,48 @@ class Tracker(Protocol):
         ...
 
 class Stimulus(Protocol):
-    def create_stim_image(NDArray) -> NDArray:
+    def create_stim_image(Tracking) -> NDArray:
         """
         Input: fish position/orientation parameters from the Tracker,
         Output: corresponding stimulus image
         """
         ...
 
+class VR:
+    def __init__(
+        self,
+        camera: Camera, 
+        projector: Projector,
+        background: Background,
+        cam2proj: Cam2Proj,
+        tracker: Tracker,
+        stimulus: Stimulus,
+    ) -> None:
+        
+        self.camera = camera
+        self.projector = projector
+        self.background = background
+        self.cam2proj = cam2proj
+        self.tracker = tracker
+        self.stimulus = stimulus
 
-# 1. Connect hardware ----------------------------------------------------------
+        self.calibration()
+        self.registration()
+        self.run()
 
-## 1.1 Camera . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+    def calibration(self):
+        self.camera.calibration()
+        self.projector.calibration()
 
-## 1.2 Projector . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+    def registration(self):
+        self.cam2proj.registration()
 
-# 2. Calibration ---------------------------------------------------------------
-
-## 2.1 Camera . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
-
-## 2.2 Projector . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
-
-# 3. Registration between camera and projector ---------------------------------
-
-# 4. Estimate background -------------------------------------------------------
-
-# 5. Tracking ------------------------------------------------------------------
-
-# 6. Stimulation protocol ------------------------------------------------------
-
-# 7. Multiprocessing pipeline --------------------------------------------------
-
-# 8. Run experiment ------------------------------------------------------------
+    def run(self):
+        while True:
+            image = self.camera.get_image()
+            self.background.add_image(image)
+            background_image = self.background.get_background() 
+            tracking = self.tracker.track(image-background_image)
+            stim_image = self.stimulus.create_stim_image(tracking)
+            self.projector.project(stim_image)
 
