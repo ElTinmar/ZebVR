@@ -1,6 +1,9 @@
 from core.VR import VR
+from devices.camera.dummycam import FromFile, RandomCam
 
-camera = 
+cam_opts = {"ROI_height": 128, "ROI_width": 256}
+camera = RandomCam(**cam_opts)
+
 projector = 
 background = 
 cam2proj = 
