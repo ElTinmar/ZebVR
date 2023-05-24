@@ -1,8 +1,15 @@
 from typing import Protocol, Tuple
 from numpy.typing import NDArray
-from .dataclasses import Tr
+from .dataclasses import Tracking
+from .abstractclasses import CameraData
 
 class Camera(Protocol):
+    def start_acquisition() -> None:
+        ...
+
+    def stop_acquisition() -> None:
+        ...
+
     def calibration() -> None:
         """
         Take picture of a checkerboard pattern with known world dimensions,
@@ -13,7 +20,7 @@ class Camera(Protocol):
         """
         ...
 
-    def get_image() -> Tuple[NDArray, bool]:
+    def fetch() -> Tuple[CameraData, bool]:
         """
         Output a boolean if there is an image, 
         and the next image from the camera

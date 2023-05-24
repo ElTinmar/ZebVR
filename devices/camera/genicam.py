@@ -1,8 +1,8 @@
+from core.abstractclasses import CameraData, Camera
 from harvesters.core import Harvester
 import json
-from devices.camera.camera import Camera, BufferAdapter
 
-class BufferHarvesters(BufferAdapter):
+class DataHarvesters(CameraData):
     def __init__(self, buffer):
         self._buffer = buffer
 
@@ -12,19 +12,19 @@ class BufferHarvesters(BufferAdapter):
     def get_timestamp(self):
         return self._buffer.timestamp
 
-    def queue(self):
+    def reallocate(self):
         """This is important to allow the camera to reuse the buffer"""
         self._buffer.queue()
 
 class GenicamHarvesters(Camera):
-    def __init__(self, ini_file, gentl_producer):
+    def __init__(self, gentl_producer, **kwargs):
         """
         Open camera using the GenICam/GenTL API
         Inputs:
             gentl_producer: *.cti file from camera vendor     
         """
 
-        super().__init__(ini_file)
+        super().__init__(**kwargs)
         self._h = Harvester()
         self._h.add_file(gentl_producer)
         self._h.update()
@@ -39,22 +39,9 @@ class GenicamHarvesters(Camera):
         print("Selecting camera:")
         print(json.dumps(self._h.device_info_list[self._camera_index]))
 
-        # TODO
-        # dir(ia.remote_device.node_map) returns available GenICam feature nodes
-        # use this to check that the properties you are trying to set exist
-        # check also the GenICam SFNC for standard names
-
         self._imAcq = self._h.create(self._camera_index)
         self._imAcq.num_buffers = self._num_buffers
         node_map = self._imAcq.remote_device.node_map
-
-        def configure_node(self,node,value):
-            # check node mode: available, not implemented, not available, ...
-            # check node type: int, bool, enum, ...
-            # check allowed range for the node, or enum states
-            # set the value
-            # get the value to check if it worked
-            pass
 
         node_map.Width.value = self._width
         node_map.Height.value = self._height
@@ -66,8 +53,6 @@ class GenicamHarvesters(Camera):
         node_map.Gain.value = self._gain
         node_map.ExposureTime.value = self._exposure_time
 
-        # TODO print settings
-
     def start_acquisition(self):
         self._imAcq.start()
 
@@ -77,7 +62,7 @@ class GenicamHarvesters(Camera):
     def fetch(self):
         # TODO check that it is passed by reference and there is no copy
         # and that the buffer is not destroyed at the end of the function
-        buf = BufferHarvesters(self._imAcq.fetch())
+        buf = DataHarvesters(self._imAcq.fetch())
         return buf
     
     def __del__(self):

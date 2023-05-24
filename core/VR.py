@@ -1,4 +1,5 @@
 from .protocols import Camera, Projector, Background, Cam2Proj, Tracker, Stimulus
+
 class VR:
     def __init__(
         self,
@@ -7,7 +8,7 @@ class VR:
         background: Background,
         cam2proj: Cam2Proj,
         tracker: Tracker,
-        stimulus: Stimulus,
+        stimulus: Stimulus
     ) -> None:
         
         self.camera = camera
@@ -29,12 +30,18 @@ class VR:
         self.cam2proj.registration()
 
     def run(self):
+        self.camera.start_acquisition()
+
         keepgoing = True
         while keepgoing:
-            image, keepgoing = self.camera.get_image()
+            data, keepgoing = self.camera.fetch()
             if keepgoing:
+                image = data.get_img()
                 self.background.add_image(image)
                 background_image = self.background.get_background() 
                 tracking = self.tracker.track(image-background_image)
                 stim_image = self.stimulus.create_stim_image(tracking)
                 self.projector.project(stim_image)
+                data.reallocate()
+
+        self.camera.stop_acquisition()
