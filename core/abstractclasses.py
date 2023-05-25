@@ -50,16 +50,16 @@ class Camera(ABC):
 
         self.logger = logging.getLogger('Camera')
 
-    def start_acquisition() -> None:
+    def start_acquisition(self) -> None:
         pass
 
-    def stop_acquisition() -> None:
+    def stop_acquisition(self) -> None:
         pass
 
     def get_resolution(self) -> Tuple[int,int]:
         return (self.ROI_width, self.ROI_height)
 
-    def calibration() -> None:
+    def calibration(self) -> None:
         """
         Take picture of a checkerboard pattern with known world dimensions,
         correct image distortions and get mm/px.
@@ -69,7 +69,7 @@ class Camera(ABC):
         """
         ...
 
-    def fetch() -> Tuple[CameraData, bool]:
+    def fetch(self) -> Tuple[CameraData, bool]:
         """
         Output a boolean if there is an image, 
         and the next image from the camera
