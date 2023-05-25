@@ -6,6 +6,7 @@ import math
 from scipy.interpolate import splprep, splev
 from core.abstractclasses import Tracker
 from tracking.body.body_tracker import BodyTracker
+import cv2
 
 class TailTracker(Tracker):
     def __init__(
@@ -17,7 +18,10 @@ class TailTracker(Tracker):
         ksize: int = 10,
         arc_angle_deg: float = 150,
         n_pts_interp: int = 40,
-        n_pts_arc: int = 20
+        n_pts_arc: int = 20,
+        alpha: int = 100,
+        color_heading: tuple = (0,0,1),
+        color_tail: tuple = (1,0,1)
     ) -> None:
         
         super().__init__()
@@ -31,6 +35,18 @@ class TailTracker(Tracker):
         self.arc_angle_deg = arc_angle_deg
         self.n_pts_interp = n_pts_interp
         self.n_pts_arc = n_pts_arc
+
+        # tracking
+        self.skeleton = None
+        self.skeleton_interp = None
+        self.fish_centroid = None
+        self.principal_components = None
+        self.fish_mask = None
+
+        # overlay parameters
+        self.alpha = alpha
+        self.color_heading = color_heading 
+        self.color_tail = color_tail 
 
     def track(self, image: NDArray) -> List[NDArray]:
 
@@ -70,7 +86,47 @@ class TailTracker(Tracker):
             tck, _ = splprep(skeleton.T)
             new_points = splev(np.linspace(0,1,self.n_pts_interp), tck)
             skeleton_interp = np.array([new_points[0],new_points[1]])
+            
+            self.skeleton = skeleton
+            self.skeleton_interp = skeleton_interp.T
+            self.fish_centroid = fish_centroid
+            self.principal_components = principal_components
+            self.fish_mask = fish_mask
 
             return [skeleton, skeleton_interp.T, fish_centroid, principal_components, fish_mask]
         else:
+            self.skeleton = None
+            self.skeleton_interp = None
+            self.fish_centroid = None
+            self.principal_components = None
+            self.fish_mask = None
+            
             return [None, None, None, None, None]
+        
+    def tracking_overlay(self, image: NDArray) -> NDArray:
+        
+        overlay = np.zeros(
+            (image.shape[0],image.shape[1],3), 
+            dtype=np.single
+        )
+        
+        if self.fish_centroid is not None:
+            pt1 = self.fish_centroid
+            pt2 = self.fish_centroid + self.alpha*self.principal_components[:,0]
+            overlay = cv2.line(
+                overlay,
+                pt1.astype(np.int32),
+                pt2.astype(np.int32),
+                self.color_heading
+            )
+
+            if self.skeleton_interp is not None:
+                for pt1, pt2 in zip(self.skeleton_interp[:-1,],self.skeleton_interp[1:,]):
+                    overlay = cv2.line(
+                        overlay,
+                        pt1.astype(np.int32),
+                        pt2.astype(np.int32),
+                        self.color_tail
+                    )
+        
+        return overlay
