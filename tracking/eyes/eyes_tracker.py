@@ -1,7 +1,7 @@
 from typing import List 
 import numpy as np
 from numpy.typing import NDArray
-from utils.conncomp_filter import bwareafilter
+from tracking.utils.conncomp_filter import bwareafilter
 from skimage.measure import label, regionprops
 from core.abstractclasses import Tracker
 from tracking.body.body_tracker import BodyTracker

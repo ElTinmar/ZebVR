@@ -2,7 +2,7 @@ from typing import List
 import numpy as np
 from numpy.typing import NDArray
 from sklearn.decomposition import PCA
-from utils.conncomp_filter import bwareaopen
+from tracking.utils.conncomp_filter import bwareaopen
 from core.abstractclasses import Tracker
 
 class BodyTracker(Tracker):
