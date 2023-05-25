@@ -56,6 +56,9 @@ class Camera(ABC):
     def stop_acquisition() -> None:
         pass
 
+    def get_resolution(self) -> Tuple[int,int]:
+        return (self.ROI_width, self.ROI_height)
+
     def calibration() -> None:
         """
         Take picture of a checkerboard pattern with known world dimensions,
