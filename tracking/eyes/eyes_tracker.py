@@ -57,39 +57,42 @@ class EyesTracker(Tracker):
 
         [fish_centroid, principal_components, fish_mask] = self.body_tracker.track(image)
 
-        eye_mask = bwareafilter(
-            image >= self.threshold_eye_intensity, 
-            min_size = self.threshold_eye_area_min, 
-            max_size = self.threshold_eye_area_max
-        )
+        if fish_centroid is not None:
+            eye_mask = bwareafilter(
+                image >= self.threshold_eye_intensity, 
+                min_size = self.threshold_eye_area_min, 
+                max_size = self.threshold_eye_area_max
+            )
 
-        label_img = label(eye_mask)
-        regions = regionprops(label_img) # regionprops returns coordinates as (row, col) 
+            label_img = label(eye_mask)
+            regions = regionprops(label_img) # regionprops returns coordinates as (row, col) 
 
-        blob_centroids = np.zeros((len(regions),2),dtype=np.float64)
-        for i,blob in enumerate(regions):
-            # (row,col) to (x,y) coordinates  
-            blob_centroids[i,:] = [blob.centroid[1], blob.centroid[0]]
+            blob_centroids = np.zeros((len(regions),2),dtype=np.float64)
+            for i,blob in enumerate(regions):
+                # (row,col) to (x,y) coordinates  
+                blob_centroids[i,:] = [blob.centroid[1], blob.centroid[0]]
 
-        # project coordinates to principal component space
-        centroids_pc = (blob_centroids - fish_centroid) @ principal_components
+            # project coordinates to principal component space
+            centroids_pc = (blob_centroids - fish_centroid) @ principal_components
 
-        # find the eyes TODO remove magic numbers and put as parameters
-        left_eye_index = np.squeeze(
-            np.argwhere(np.logical_and(centroids_pc[:,0] > 10, centroids_pc[:,1] < -5))
-        )
-        right_eye_index = np.squeeze(
-            np.argwhere(np.logical_and(centroids_pc[:,0] > 10, centroids_pc[:,1] > 5))
-        )
-        left_eye = EyesTracker.get_eye_prop(
-            regions, 
-            left_eye_index, 
-            principal_components
-        )
-        right_eye = EyesTracker.get_eye_prop(
-            regions, 
-            right_eye_index, 
-            principal_components
-        )
+            # find the eyes TODO remove magic numbers and put as parameters
+            left_eye_index = np.squeeze(
+                np.argwhere(np.logical_and(centroids_pc[:,0] > 10, centroids_pc[:,1] < -5))
+            )
+            right_eye_index = np.squeeze(
+                np.argwhere(np.logical_and(centroids_pc[:,0] > 10, centroids_pc[:,1] > 5))
+            )
+            left_eye = EyesTracker.get_eye_prop(
+                regions, 
+                left_eye_index, 
+                principal_components
+            )
+            right_eye = EyesTracker.get_eye_prop(
+                regions, 
+                right_eye_index, 
+                principal_components
+            )
         
-        return [left_eye, right_eye, eye_mask, fish_centroid, principal_components, fish_mask]
+            return [left_eye, right_eye, eye_mask, fish_centroid, principal_components, fish_mask]
+        else:
+            return [None, None, None, None, None, None]
