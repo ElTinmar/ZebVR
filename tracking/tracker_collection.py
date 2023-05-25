@@ -1,7 +1,3 @@
-from .body import BodyTracker
-from .eyes import EyesTracker
-from .tail import TailTracker 
-from .prey import PreyTracker 
 from core.abstractclasses import Tracker
 from numpy.typing import NDArray
 from typing import List
@@ -15,7 +11,7 @@ class TrackerCollection(Tracker):
         
         self.tracker_list = tracker_list
 
-    def track(self, image: NDArray) -> NDArray:
+    def track(self, image: NDArray) -> List[NDArray]:
         tracking = [] 
         for tracker in self.tracker_list:
             tracking.append(tracker.track(image))
