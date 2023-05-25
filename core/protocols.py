@@ -1,6 +1,5 @@
-from typing import Protocol, Tuple
+from typing import Protocol, Tuple, List
 from numpy.typing import NDArray
-from .dataclasses import Tracking
 from .abstractclasses import CameraData
 
 class Camera(Protocol):
@@ -74,7 +73,7 @@ class Cam2Proj(Protocol):
         ...
 
 class Tracker(Protocol):
-    def track(NDArray) -> Tracking:
+    def track(NDArray) -> List[NDArray]:
         """
         Input: image from the camera,
         Output: position/orientation parameters
@@ -82,7 +81,7 @@ class Tracker(Protocol):
         ...
 
 class Stimulus(Protocol):
-    def create_stim_image(Tracking) -> NDArray:
+    def create_stim_image(List[NDArray]) -> NDArray:
         """
         Input: fish position/orientation parameters from the Tracker,
         Output: corresponding stimulus image
