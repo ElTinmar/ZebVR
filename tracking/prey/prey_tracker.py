@@ -1,36 +1,36 @@
-from typing import Tuple 
+from typing import List 
 import numpy as np
 from numpy.typing import NDArray
-import cv2
 from utils.conncomp_filter import bwareafilter
 from skimage.measure import label, regionprops
+from core.abstractclasses import Tracker
 
-def prey_tracker(
-        frame: NDArray,
+class PreyTracker(Tracker):
+    def __init__(
+        self,
         threshold_prey_intensity: float,
         threshold_prey_area_min: int,
-        threshold_prey_area_max: int,
-        ) -> Tuple[NDArray, NDArray]:
-    """
-    Track the left and right eyes for a single fish
-    Input: 
-        frame: single precision, grayscale image as numpy array
-    Output:
-        (left,right): angle in radians for the left and right eye
-        with respect to the anteroposterior axis 
-    """
+        threshold_prey_area_max: int
+    ) -> None:
+        
+        super().__init__()
+        self.threshold_prey_intensity = threshold_prey_intensity
+        self.threshold_prey_area_min = threshold_prey_area_min  
+        self.threshold_prey_area_max = threshold_prey_area_max 
 
-    prey_mask = bwareafilter(
-        frame >= threshold_prey_intensity, 
-        min_size = threshold_prey_area_min, 
-        max_size = threshold_prey_area_max
-    )
+    def track(self, image: NDArray) -> List[NDArray]:
 
-    label_img = label(prey_mask)
-    regions = regionprops(label_img)
+        prey_mask = bwareafilter(
+            image >= self.threshold_prey_intensity, 
+            min_size = self.threshold_prey_area_min, 
+            max_size = self.threshold_prey_area_max
+        )
 
-    prey_centroids = np.empty((len(regions),2),dtype=np.float32)
-    for i,blob in enumerate(regions):
-        prey_centroids[i,:] = [blob.centroid[1], blob.centroid[0]] 
+        label_img = label(prey_mask)
+        regions = regionprops(label_img)
 
-    return (prey_centroids, prey_mask)
+        prey_centroids = np.empty((len(regions),2),dtype=np.float32)
+        for i,blob in enumerate(regions):
+            prey_centroids[i,:] = [blob.centroid[1], blob.centroid[0]] 
+
+        return [prey_centroids, prey_mask]
