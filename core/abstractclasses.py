@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from numpy.typing import NDArray
-from typing import Tuple
+from typing import Tuple, List
 import logging
 
 class CameraData(ABC):
@@ -75,7 +75,7 @@ class Camera(ABC):
     
 class Tracker(ABC):
     @abstractmethod
-    def track(self, image: NDArray) -> NDArray:
+    def track(self, image: NDArray) -> List[NDArray]:
         """
         Extract parameters (position/orientation) 
         of objects from an image
