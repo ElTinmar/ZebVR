@@ -8,6 +8,7 @@ from tracking.tail.tail_tracker import TailTracker
 from tracking.prey.prey_tracker import PreyTracker
 from tracking.tracker_collection import TrackerCollection 
 from registration.registration_cam2proj import Cam2ProjReg
+from visual_stimuli.phototaxis import Phototaxis 
 
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
@@ -59,6 +60,6 @@ prey_tracker = PreyTracker(
 full_tracker = TrackerCollection([eyes_tracker, tail_tracker, prey_tracker])
 tracker = full_tracker
 
-stimulus = None
+stimulus = Phototaxis(projector)
 
 VirtualReality = VR(camera, projector, background, cam2proj, tracker, stimulus)
