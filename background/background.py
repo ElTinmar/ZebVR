@@ -21,4 +21,8 @@ class Background:
         """
         Outputs a background image
         """
-        return stats.mode(self.image_store, axis=2, keepdims=False).mode
+        if len(self.image_store) == 1:
+            res = self.image_store[0]
+        else:
+            res = stats.mode(self.image_store, axis=0, keepdims=False).mode
+        return res
