@@ -7,18 +7,16 @@ from numpy.typing import NDArray
 from typing import List
 
 
-class TrackerCollection:
+class TrackerCollection(Tracker):
     def __init__(
         self,
         tracker_list: List[Tracker],
     ) -> None:
         
-        self.trackers
+        self.tracker_list = tracker_list
 
-    def track(self, image: NDArray) -> Tracking:
-        if self.body_tracker:
-        body_tracking = self.body_tracker.track(image)
-        eyes_tracking = self.eyes_tracker.track(image)
-        tail_tracking = self.tail_tracker.track(image)
-        prey_tracking = self.prey_tracker.track(image)
-        return
+    def track(self, image: NDArray) -> NDArray:
+        tracking = [] 
+        for tracker in self.tracker_list:
+            tracking.append(tracker.track(image))
+        return tracking
