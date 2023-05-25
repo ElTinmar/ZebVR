@@ -18,7 +18,7 @@ camera = FromFile(
 
 projector = CVProjector(monitor_id = 1)
 
-background = Background(num_images = 500, every_n_image = 100)
+background = Background(num_images = 100, every_n_image = 10)
 
 cam2proj = Cam2ProjReg(
     camera, 
