@@ -6,7 +6,9 @@ import logging
 
 class Data(CameraData):
     def __init__(self, image, timestamp):
-        self.image = image
+        # transform image to single precision
+        ui_info = np.iinfo(image.dtype)
+        self.image = image.astype(np.float32) / ui_info.max
         self.timestamp = timestamp
 
     def get_img(self):

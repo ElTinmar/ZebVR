@@ -30,9 +30,9 @@ class Cam2ProjReg:
         self.dot_intensity = dot_intensity
         self.ksize = ksize
 
-        cv2.namedWindow('registration')
-
     def registration(self) -> List[NDArray]:
+
+        cv2.namedWindow('registration')
 
         proj_size = self.projector.get_resolution()
         (width,height) = self.camera.get_resolution()
@@ -64,7 +64,6 @@ class Cam2ProjReg:
                 for frame in range(self.num_frames_per_pt):
                     data, res = self.camera.fetch()
                     img_data = data.get_img()
-                    img_data = img_data.astype(np.single)/255 
                     image = image + img_data/self.num_frames_per_pt
                     data.reallocate()
 
@@ -83,6 +82,8 @@ class Cam2ProjReg:
                 count += 1
 
         self.camera.stop_acquisition()
+
+        cv2.destroyWindow('registration')
 
         # Use homogeneous coordinates to get affine transform
         coords_proj = np.append(
@@ -105,6 +106,3 @@ class Cam2ProjReg:
             Affine_cam2proj = np.eye(3)
 
         return Affine_cam2proj, Affine_proj2cam
-
-    def __del__(self):
-        cv2.destroyWindow('registration')
