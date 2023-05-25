@@ -74,7 +74,6 @@ class Cam2ProjReg:
 
                 # show detected points
                 detected_spot = cv2.circle(image,(x_cam,y_cam),10,0,1)
-                print(detected_spot)
                 cv2.imshow('registration', detected_spot)
                 cv2.waitKey(1)
                 
