@@ -83,3 +83,8 @@ class Tracker(ABC):
         Extract parameters (position/orientation) 
         of objects from an image
         """
+
+    def tracking_overlay(self, image: NDArray) -> NDArray:
+        """
+        Return overlay image to visualize tracking parameters
+        """

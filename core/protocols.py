@@ -90,6 +90,12 @@ class Tracker(Protocol):
         """
         ...
 
+    def tracking_overlay(self, image: NDArray) -> NDArray:
+        """
+        Return overlay image to visualize tracking parameters
+        """
+        ...
+
 class Stimulus(Protocol):
     def create_stim_image(self, parameters: List[NDArray]) -> NDArray:
         """
