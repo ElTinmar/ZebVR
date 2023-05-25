@@ -2,6 +2,7 @@ from screeninfo import get_monitors
 from numpy.typing import NDArray
 import cv2
 import numpy as np
+from typing import Tuple
 
 class CVProjector:
     def __init__(self, monitor_id=1) -> None:
@@ -35,7 +36,7 @@ class CVProjector:
         checkerboard = ((xv // num_pixels) + (yv // num_pixels)) % 2
         checkerboard = 255*checkerboard.astype(np.uint8)
         cv2.imshow('projector', checkerboard)
-        cv2.waitKey(0)
+        cv2.waitKey(1)
 
         # TODO do the actual calibration
 
@@ -44,7 +45,10 @@ class CVProjector:
         Input image to project
         """
         cv2.imshow('projector', image)
-        cv2.waitKey(0)
+        cv2.waitKey(1)
+
+    def get_resolution(self) -> Tuple[int, int]:
+        return (self.win_width, self.win_height)
 
     def __del__(self):
-        cv2.destroyAllWindows()
+        cv2.destroyWindow('projector')
