@@ -41,7 +41,7 @@ class EyesTracker(Tracker):
     
     @staticmethod
     def get_eye_prop(regions, eye_ind, principal_components) -> List[NDArray]:
-        if eye_ind.size > 0:
+        if eye_ind.size == 1:
             eye_dir = EyesTracker.ellipse_direction(regions[eye_ind].inertia_tensor)
             eye_angle = EyesTracker.angle_between_vectors(eye_dir,principal_components[:,0])
             # (row,col) to (x,y) coordinates 
