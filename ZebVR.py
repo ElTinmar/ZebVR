@@ -10,9 +10,9 @@ from tracking.tracker_collection import TrackerCollection
 from registration.registration_cam2proj import Cam2ProjReg
 
 camera = FromFile(
-    video_file='toy_data/behavior_2000.avi',
-    ROI_height=1088,
-    ROI_width=1088
+    video_file = 'toy_data/behavior_2000.avi',
+    ROI_height = 1088,
+    ROI_width = 1088
 )
 
 projector = CVProjector(monitor_id = 1)
