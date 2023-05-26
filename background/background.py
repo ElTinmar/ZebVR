@@ -2,6 +2,7 @@ from collections import deque
 from scipy import stats
 from numpy.typing import NDArray
 import cv2
+import numpy as np
 
 class Background:
     def __init__(self, num_images = 500, every_n_image = 100) -> None:
@@ -24,6 +25,8 @@ class Background:
             else:
                 # that seems to be slow
                 self.background = stats.mode(self.image_store, axis=0, keepdims=False).mode
+                #self.background = np.median(self.image_store, axis=0)
+                #self.background = np.mean(self.image_store, axis=0)
         self.counter += 1
 
     def get_background(self) -> NDArray:
