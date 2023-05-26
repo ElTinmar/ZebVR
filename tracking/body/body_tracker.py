@@ -5,6 +5,7 @@ from sklearn.decomposition import PCA
 from tracking.utils.conncomp_filter import bwareaopen
 from core.abstractclasses import Tracker
 import cv2
+from core.dataclasses import BodyTracking
 
 class BodyTracker(Tracker):
     def __init__(
@@ -18,14 +19,13 @@ class BodyTracker(Tracker):
         super().__init__()
         self.threshold_body_intensity = threshold_body_intensity
         self.threshold_body_area = threshold_body_area
-        self.centroid = None
-        self.principal_components = None
-        self.fish_mask = None
+
+        self.curr_tracking = None
 
         self.alpha = alpha
         self.color_heading = color_heading
 
-    def track(self, image: NDArray) -> List[NDArray]:
+    def track(self, image: NDArray) -> BodyTracking:
 
         # threshold and remove small objects 
         fish_mask = bwareaopen(
@@ -35,12 +35,7 @@ class BodyTracker(Tracker):
         blob_coordinates = np.argwhere(fish_mask) #  (row, col) coordinates
 
         if blob_coordinates.size == 0:
-            # nothing was detected above threshold
-            self.centroid = None
-            self.principal_components = None
-            self.fish_mask = None
-
-            return [None, None, None]
+            return None
         else:
             # (row,col) to (x,y) coordinates
             blob_coordinates = blob_coordinates[:,[1, 0]]
@@ -59,11 +54,13 @@ class BodyTracker(Tracker):
                 principal_components[:,1] = - principal_components[:,1]
 
             # store to generate overlay
-            self.centroid = centroid
-            self.principal_components = principal_components
-            self.fish_mask = fish_mask
+            self.curr_tracking = BodyTracking(
+                centroid = centroid,
+                heading = principal_components,
+                fish_mask = fish_mask
+            )
 
-            return [centroid, principal_components, fish_mask]
+            return self.curr_tracking 
     
     def tracking_overlay(self, image: NDArray) -> NDArray:
 
@@ -72,9 +69,9 @@ class BodyTracker(Tracker):
             dtype=np.single
         )
         
-        if self.fish_centroid is not None:
-            pt1 = self.fish_centroid
-            pt2 = self.fish_centroid + self.alpha*self.principal_components[:,0]
+        if self.curr_tracking is not None:
+            pt1 = self.curr_tracking.centroid
+            pt2 = self.curr_tracking.centroid + self.alpha*self.curr_tracking.heading[:,0]
             overlay = cv2.line(
                 overlay,
                 pt1.astype(np.int32),

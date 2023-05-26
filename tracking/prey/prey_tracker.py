@@ -5,6 +5,7 @@ from tracking.utils.conncomp_filter import bwareafilter
 from skimage.measure import label, regionprops
 from core.abstractclasses import Tracker
 import cv2
+from core.dataclasses import PreyTracking
 
 class PreyTracker(Tracker):
     def __init__(
@@ -20,14 +21,14 @@ class PreyTracker(Tracker):
         self.threshold_prey_intensity = threshold_prey_intensity
         self.threshold_prey_area_min = threshold_prey_area_min  
         self.threshold_prey_area_max = threshold_prey_area_max 
-        self.prey_centroids = None
-        self.prey_mask = None
+
+        self.curr_tracking = None 
 
         # overlay parameters
         self.circle_radius = circle_radius
         self.circle_color = circle_color
 
-    def track(self, image: NDArray) -> List[NDArray]:
+    def track(self, image: NDArray) -> PreyTracking:
 
         prey_mask = bwareafilter(
             image >= self.threshold_prey_intensity, 
@@ -42,10 +43,12 @@ class PreyTracker(Tracker):
         for i,blob in enumerate(regions):
             prey_centroids[i,:] = [blob.centroid[1], blob.centroid[0]] 
 
-        self.prey_centroids = prey_centroids
-        self.prey_mask = prey_mask
+        self.curr_tracking = PreyTracking(
+            prey_centroids = prey_centroids,
+            prey_mask = prey_mask
+        )
 
-        return [prey_centroids, prey_mask]
+        return self.curr_tracking
     
     def tracking_overlay(self, image: NDArray) -> NDArray:
 
@@ -54,7 +57,7 @@ class PreyTracker(Tracker):
             dtype=np.single
         )
 
-        for prey_loc in self.prey_centroids:
+        for prey_loc in self.curr_tracking.prey_centroids:
             overlay = cv2.circle(
                 overlay, 
                 prey_loc.astype(np.int32),

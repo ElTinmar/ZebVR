@@ -5,6 +5,8 @@ from tracking.utils.conncomp_filter import bwareafilter
 from skimage.measure import label, regionprops
 from core.abstractclasses import Tracker
 from tracking.body.body_tracker import BodyTracker
+from core.dataclasses import EyeTracking, EyeParam
+
 import cv2
 
 class EyesTracker(Tracker):
@@ -31,12 +33,7 @@ class EyesTracker(Tracker):
             threshold_body_area
         )
 
-        self.left_eye = None
-        self.right_eye = None
-        self.eye_mask = None
-        self.fish_centroid = None
-        self.principal_components = None
-        self.fish_mask = None
+        self.curr_tracking = None
 
         self.alpha = alpha
         self.beta = beta
@@ -59,7 +56,7 @@ class EyesTracker(Tracker):
         return np.array(np.arccos(np.dot(v1_unit,v2_unit)))
     
     @staticmethod
-    def get_eye_prop(regions, eye_ind, principal_components) -> List[NDArray]:
+    def get_eye_prop(regions, eye_ind, principal_components) -> EyeParam:
         if eye_ind.size == 1:
             eye_dir = EyesTracker.ellipse_direction(regions[eye_ind].inertia_tensor)
             eye_angle = EyesTracker.angle_between_vectors(eye_dir,principal_components[:,0])
@@ -68,15 +65,20 @@ class EyesTracker(Tracker):
                 [regions[eye_ind].centroid[1], 
                  regions[eye_ind].centroid[0]]
             )
-            return [eye_dir, eye_angle, eye_centroid]
+            res = EyeParam(
+                direction = eye_dir, 
+                angle = eye_angle, 
+                centroid = eye_centroid
+            )
+            return res
         else:
-            return [None, None, None]
+            return None
 
-    def track(self, image: NDArray) -> List[NDArray]:
+    def track(self, image: NDArray) -> EyeTracking:
 
-        [fish_centroid, principal_components, fish_mask] = self.body_tracker.track(image)
+        body_tracking = self.body_tracker.track(image)
 
-        if fish_centroid is not None:
+        if body_tracking is not None:
             eye_mask = bwareafilter(
                 image >= self.threshold_eye_intensity, 
                 min_size = self.threshold_eye_area_min, 
@@ -92,7 +94,7 @@ class EyesTracker(Tracker):
                 blob_centroids[i,:] = [blob.centroid[1], blob.centroid[0]]
 
             # project coordinates to principal component space
-            centroids_pc = (blob_centroids - fish_centroid) @ principal_components
+            centroids_pc = (blob_centroids - body_tracking.centroid) @ body_tracking.heading
 
             # find the eyes TODO remove magic numbers and put as parameters
             left_eye_index = np.squeeze(
@@ -104,31 +106,24 @@ class EyesTracker(Tracker):
             left_eye = EyesTracker.get_eye_prop(
                 regions, 
                 left_eye_index, 
-                principal_components
+                body_tracking.heading
             )
             right_eye = EyesTracker.get_eye_prop(
                 regions, 
                 right_eye_index, 
-                principal_components
+                body_tracking.heading
             )
 
-            self.left_eye = left_eye
-            self.right_eye = right_eye
-            self.eye_mask = eye_mask
-            self.fish_centroid = fish_centroid
-            self.principal_components = principal_components
-            self.fish_mask = fish_mask
+            self.curr_tracking = EyeTracking(
+                left_eye = left_eye,
+                right_eye = right_eye,
+                eye_mask = eye_mask,
+                body = body_tracking
+            )
 
-            return [left_eye, right_eye, eye_mask, fish_centroid, principal_components, fish_mask]
+            return self.curr_tracking
         else:
-            self.left_eye = None
-            self.right_eye = None
-            self.eye_mask = None
-            self.fish_centroid = None
-            self.principal_components = None
-            self.fish_mask = None
-
-            return [None, None, None, None, None, None]
+            return None
 
     def tracking_overlay(self, image: NDArray) -> NDArray:
 
@@ -137,10 +132,11 @@ class EyesTracker(Tracker):
             dtype=np.single
         )
 
-        if self.fish_centroid is not None:
+        if self.curr_tracking is not None:
 
-            pt1 = self.fish_centroid
-            pt2 = self.fish_centroid + self.alpha*self.principal_components[:,0]
+            pt1 = self.curr_tracking.body.centroid
+            pt2 = self.curr_tracking.body.centroid + \
+                self.alpha * self.curr_tracking.body.heading[:,0]
             overlay = cv2.line(
                 overlay,
                 pt1.astype(np.int32),
@@ -148,16 +144,16 @@ class EyesTracker(Tracker):
                 self.color_heading
             )
 
-            if self.left_eye[0] is not None:
-                pt1 = self.left_eye[2]
-                pt2 = pt1 + self.beta*self.left_eye[0]
+            if self.curr_tracking.left_eye is not None:
+                pt1 = self.curr_tracking.left_eye.centroid
+                pt2 = pt1 + self.beta * self.curr_tracking.left_eye.direction
                 overlay = cv2.line(
                     overlay,
                     pt1.astype(np.int32),
                     pt2.astype(np.int32),
                     self.color_eye_left
                 )
-                pt2 = pt1 - self.beta*self.left_eye[0]
+                pt2 = pt1 - self.beta * self.curr_tracking.left_eye.direction
                 overlay = cv2.line(
                     overlay,
                     pt1.astype(np.int32),
@@ -165,16 +161,16 @@ class EyesTracker(Tracker):
                     self.color_eye_left
                 )
 
-            if self.right_eye[0] is not None:
-                pt1 = self.right_eye[2]
-                pt2 = pt1 + self.beta*self.right_eye[0]
+            if self.curr_tracking.right_eye is not None:
+                pt1 = self.curr_tracking.right_eye.centroid
+                pt2 = pt1 + self.beta * self.curr_tracking.right_eye.direction
                 overlay = cv2.line(
                     overlay,
                     pt1.astype(np.int32),
                     pt2.astype(np.int32),
                     self.color_eye_right
                 )
-                pt2 = pt1 - self.beta*self.right_eye[0]
+                pt2 = pt1 - self.beta * self.curr_tracking.right_eye.direction
                 overlay = cv2.line(
                     overlay,
                     pt1.astype(np.int32),

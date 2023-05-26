@@ -7,6 +7,7 @@ from scipy.interpolate import splprep, splev
 from core.abstractclasses import Tracker
 from tracking.body.body_tracker import BodyTracker
 import cv2
+from core.dataclasses import TailTracking
 
 class TailTracker(Tracker):
     def __init__(
@@ -37,30 +38,30 @@ class TailTracker(Tracker):
         self.n_pts_arc = n_pts_arc
 
         # tracking
-        self.skeleton = None
-        self.skeleton_interp = None
-        self.fish_centroid = None
-        self.principal_components = None
-        self.fish_mask = None
+        self.curr_tracking = None
 
         # overlay parameters
         self.alpha = alpha
         self.color_heading = color_heading 
         self.color_tail = color_tail 
 
-    def track(self, image: NDArray) -> List[NDArray]:
+    def track(self, image: NDArray) -> TailTracking:
 
-        [fish_centroid, principal_components, fish_mask] = self.body_tracker.track(image)
+        body_tracking = self.body_tracker.track(image)
 
-        if fish_centroid is not None:
+        if body_tracking is not None:
             # apply a gaussian filter
             arc_rad = math.radians(self.arc_angle_deg)/2
             frame_blurred = cv2.boxFilter(image, -1, (self.ksize, self.ksize))
             spacing = float(self.tail_length) / self.n_tail_points
             # why the minus sign ?
-            start_angle = math.pi + np.arctan2(-principal_components[1,0],principal_components[0,0]) 
+            start_angle = math.pi + \
+                np.arctan2(
+                    -body_tracking.heading[1,0],
+                    body_tracking.heading[0,0]
+                ) 
             arc = np.linspace(-arc_rad, arc_rad, self.n_pts_arc) + start_angle
-            x, y = fish_centroid
+            x, y = body_tracking.centroid
             points = [[x, y]]
             for j in range(self.n_tail_points):
                 try:
@@ -87,21 +88,15 @@ class TailTracker(Tracker):
             new_points = splev(np.linspace(0,1,self.n_pts_interp), tck)
             skeleton_interp = np.array([new_points[0],new_points[1]])
             
-            self.skeleton = skeleton
-            self.skeleton_interp = skeleton_interp.T
-            self.fish_centroid = fish_centroid
-            self.principal_components = principal_components
-            self.fish_mask = fish_mask
+            self.curr_tracking = TailTracking(
+                tail_points = skeleton,
+                tail_points_interp = skeleton_interp.T,
+                body = body_tracking
+            )
 
-            return [skeleton, skeleton_interp.T, fish_centroid, principal_components, fish_mask]
+            return self.curr_tracking
         else:
-            self.skeleton = None
-            self.skeleton_interp = None
-            self.fish_centroid = None
-            self.principal_components = None
-            self.fish_mask = None
-            
-            return [None, None, None, None, None]
+            return None
         
     def tracking_overlay(self, image: NDArray) -> NDArray:
         
@@ -110,9 +105,10 @@ class TailTracker(Tracker):
             dtype=np.single
         )
         
-        if self.fish_centroid is not None:
-            pt1 = self.fish_centroid
-            pt2 = self.fish_centroid + self.alpha*self.principal_components[:,0]
+        if self.curr_tracking is not None:
+            pt1 = self.curr_tracking.body.centroid
+            pt2 = self.curr_tracking.body.centroid + \
+                self.alpha * self.curr_tracking.body.heading[:,0]
             overlay = cv2.line(
                 overlay,
                 pt1.astype(np.int32),
@@ -120,13 +116,16 @@ class TailTracker(Tracker):
                 self.color_heading
             )
 
-            if self.skeleton_interp is not None:
-                for pt1, pt2 in zip(self.skeleton_interp[:-1,],self.skeleton_interp[1:,]):
-                    overlay = cv2.line(
-                        overlay,
-                        pt1.astype(np.int32),
-                        pt2.astype(np.int32),
-                        self.color_tail
-                    )
+            tail_segments = zip(
+                self.curr_tracking.tail_points_interp[:-1,],
+                self.curr_tracking.tail_points_interp[1:,]
+            )
+            for pt1, pt2 in tail_segments:
+                overlay = cv2.line(
+                    overlay,
+                    pt1.astype(np.int32),
+                    pt2.astype(np.int32),
+                    self.color_tail
+                )
         
         return overlay
