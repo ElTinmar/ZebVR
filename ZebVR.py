@@ -57,7 +57,7 @@ prey_tracker = PreyTracker(
     threshold_prey_area_min = 15,
     threshold_prey_area_max = 100
 )
-full_tracker = TrackerCollection([eyes_tracker, tail_tracker, prey_tracker])
+full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey_tracker])
 tracker = full_tracker
 
 stimulus = Phototaxis(projector)
