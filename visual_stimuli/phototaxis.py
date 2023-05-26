@@ -15,7 +15,10 @@ class Phototaxis:
         xv, yv = np.meshgrid(range(width), range(height), indexing='xy')
         img = np.zeros((height,width), dtype=np.single)
         if parameters.body is not None:
-            img = 1.0*((xv * parameters.body.heading[0,1] + yv * parameters.body.heading[1,1]) > 0)
+            img = 1.0*(
+                (xv * parameters.body.heading[0,1] - parameters.body.centroid[0] + \
+                 yv * parameters.body.heading[1,1] - parameters.body.centroid[1]) > 0
+            )
         return img
 
     
