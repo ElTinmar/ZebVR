@@ -2,6 +2,8 @@ from numpy.typing import NDArray
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+# https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html
+
 class GeometricDistortion(ABC):
     pass
 
@@ -19,8 +21,10 @@ class LinearIntensity(IntensityDistortion):
 
 @dataclass
 class BarrelPincushionParam(GeometricDistortion):
+    # https://en.wikipedia.org/wiki/Distortion_(optics)
     K: NDArray
     P: NDArray
+    C: NDArray
 
 @dataclass
 class CylindricalParam(GeometricDistortion):
