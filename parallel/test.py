@@ -37,7 +37,7 @@ class Test:
 
         if self.input_info is not None:
             self.input_socket = self.context.socket(self.input_info.socket_type)
-            self.input_socket.bind(self.input_info.address)
+            self.input_socket.connect(self.input_info.address)
         else:
             self.input_socket = None
 
@@ -56,26 +56,32 @@ class Test:
             self.output_socket.close()
 
     def _loop(self):
-        
+        print('loop started')
+
         self.configure_zmq()
 
         while self.keepgoing:
             # receive data
-            input_data = self.input_socket.recv_serialized()
+            if self.input_socket is not None:
+                input_data = self.input_socket.recv_pyobj()
 
-            # do work
-            results = self.worker.work(input_data)
+                # do work
+                results = self.worker.work(input_data)
+            else:
+                results = self.worker.work()
 
             # send data
-            self.output_socket.send_serialized(results)
+            if self.input_socket is not None:
+                self.output_socket.send_pyobj(results)
 
+        print('loop over')
         self.clean_zmq()
 
     def start(self):
         # start the loop in a separate process
         self.keepgoing = True
         self.process = Process(target = self._loop)
-        self.process.run()
+        self.process.start()
         
     def stop(self):
         # stop the loop
@@ -95,12 +101,12 @@ if __name__ == '__main__':
 
         def work(self, image: NDArray) -> None:
             cv2.imshow(image)
-            cv2.waitKey(0)
+            cv2.waitKey(1)
              
     cam = Cam()
     disp = Display() 
     cam_out = SocketInfo(address="tcp://*:5555", socket_type=zmq.PUSH)
-    display_in = SocketInfo(address="tcp://*:5555", socket_type=zmq.PULL)
+    display_in = SocketInfo(address="tcp://localhost:5555", socket_type=zmq.PULL)
 
     t0 = Test(input_info=None, output_info=cam_out,worker=cam)
     t1 = Test(input_info=display_in, output_info=None, worker=disp)
@@ -108,7 +114,7 @@ if __name__ == '__main__':
     t1.start()
     t0.start()
 
-    time.pause(10)
+    time.sleep(10)
 
     t0.stop()
     t1.stop()
