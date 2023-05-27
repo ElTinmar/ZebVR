@@ -6,21 +6,22 @@ import numpy as np
 from numpy.typing import NDArray
 import cv2
 import time
+from abc import ABC
 
 @dataclass
 class SocketInfo:
     address : str = None
     socket_type: int = None
 
-class Worker(Protocol):
+class Worker(ABC):
     def pre_loop(self):
-        ...
+        pass
 
     def post_loop(self):
-        ...
+        pass
 
     def work(*args, **kwargs) -> Any:
-        ...
+        pass
 
 class Test:
     def __init__(
@@ -100,7 +101,7 @@ if __name__ == '__main__':
 
     class Cam(Worker):
         def work(self) -> NDArray:
-            return np.random.rand(1000,1000)
+            return np.random.rand(512,512)
 
     class Display(Worker):
         def pre_loop(self):
@@ -110,7 +111,6 @@ if __name__ == '__main__':
             cv2.destroyWindow('Display')
 
         def work(self, image: NDArray) -> None:
-            print(image.shape)
             cv2.imshow('Display',image)
             cv2.waitKey(1)
              
