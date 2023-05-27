@@ -100,8 +100,12 @@ class Test:
 if __name__ == '__main__':
 
     class Cam(Worker):
+        def __init__(self):
+            self.counter = 0
+
         def work(self) -> NDArray:
-            return np.random.rand(512,512)
+            self.counter += 1
+            return (self.counter, np.random.rand(512, 512))
 
     class Display(Worker):
         def pre_loop(self):
@@ -110,8 +114,9 @@ if __name__ == '__main__':
         def post_loop(self):
             cv2.destroyWindow('Display')
 
-        def work(self, image: NDArray) -> None:
-            cv2.imshow('Display',image)
+        def work(self, data: dict) -> None:
+            print(data[0])
+            cv2.imshow('Display',data[1])
             cv2.waitKey(1)
              
     cam = Cam()
@@ -121,11 +126,17 @@ if __name__ == '__main__':
 
     t0 = Test(input_info=None, output_info=cam_out,worker=cam)
     t1 = Test(input_info=display_in, output_info=None, worker=disp)
+    t2 = Test(input_info=display_in, output_info=None, worker=disp)
+    t3 = Test(input_info=display_in, output_info=None, worker=disp)
 
     t1.start()
+    t2.start()
+    t3.start()
     t0.start()
 
     time.sleep(10)
 
     t0.stop()
     t1.stop()
+    t2.stop()
+    t3.stop()
