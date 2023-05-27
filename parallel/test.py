@@ -13,11 +13,16 @@ class SocketInfo:
     socket_type: int = None
 
 class Worker(Protocol):
+    def pre_loop(self):
+        ...
+
+    def post_loop(self):
+        ...
+
     def work(*args, **kwargs) -> Any:
         ...
 
 class Test:
-
     def __init__(
         self, 
         input_info: SocketInfo, 
@@ -59,6 +64,7 @@ class Test:
         print('loop started')
 
         self.configure_zmq()
+        self.worker.pre_loop()
 
         while self.keepgoing:
             # receive data
@@ -67,14 +73,16 @@ class Test:
 
                 # do work
                 results = self.worker.work(input_data)
+
             else:
                 results = self.worker.work()
 
             # send data
-            if self.input_socket is not None:
+            if self.output_socket is not None:
                 self.output_socket.send_pyobj(results)
 
         print('loop over')
+        self.worker.post_loop()
         self.clean_zmq()
 
     def start(self):
@@ -92,15 +100,18 @@ if __name__ == '__main__':
 
     class Cam(Worker):
         def work(self) -> NDArray:
-            return np.random.rand(100,100)
+            return np.random.rand(1000,1000)
 
     class Display(Worker):
-        def __init__(self) -> None:
-            super().__init__()
+        def pre_loop(self):
             cv2.namedWindow('Display')
 
+        def post_loop(self):
+            cv2.destroyWindow('Display')
+
         def work(self, image: NDArray) -> None:
-            cv2.imshow(image)
+            print(image.shape)
+            cv2.imshow('Display',image)
             cv2.waitKey(1)
              
     cam = Cam()
