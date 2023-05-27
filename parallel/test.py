@@ -4,6 +4,8 @@ from typing import Protocol, Any
 from dataclasses import dataclass
 import numpy as np
 from numpy.typing import NDArray
+import cv2
+import time
 
 @dataclass
 class SocketInfo:
@@ -80,16 +82,33 @@ class Test:
         self.keepgoing = False
         self.process.join()
 
-if __name__ = '__main__':
+if __name__ == '__main__':
 
-    class Ventilator(Worker):
+    class Cam(Worker):
         def work(self) -> NDArray:
             return np.random.rand(100,100)
 
-    class Ventilated(Worker):
-        def work(self, image: NDArray) -> float:
-            return np.mean(image)
+    class Display(Worker):
+        def __init__(self) -> None:
+            super().__init__()
+            cv2.namedWindow('Display')
+
+        def work(self, image: NDArray) -> None:
+            cv2.imshow(image)
+            cv2.waitKey(0)
              
-    ventilator_out = SocketInfo(address="tcp://*:5555", socket_type=zmq.PUSH)
-    ventilator_in = SocketInfo(address="tcp://*:5555", socket_type=zmq.PULL)
-    ventilated_out = SocketInfo()
+    cam = Cam()
+    disp = Display() 
+    cam_out = SocketInfo(address="tcp://*:5555", socket_type=zmq.PUSH)
+    display_in = SocketInfo(address="tcp://*:5555", socket_type=zmq.PULL)
+
+    t0 = Test(input_info=None, output_info=cam_out,worker=cam)
+    t1 = Test(input_info=display_in, output_info=None, worker=disp)
+
+    t1.start()
+    t0.start()
+
+    time.pause(10)
+
+    t0.stop()
+    t1.stop()
