@@ -31,6 +31,11 @@ class Display(ZMQWorker):
 cam = Camera()
 display = Display()
 
+dagstr = [
+    (cam,display,5555,(512,512),np.single),
+    (cam,display,5555,(512,512),np.single)
+]
+
 src = ZMQDataProcessingNode(
     input_info = None,
     output_info = DataInfo(
