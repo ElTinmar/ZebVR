@@ -80,7 +80,8 @@ class Test:
 
             # send data
             if self.output_socket is not None:
-                self.output_socket.send_pyobj(results)
+                if results is not None:
+                    self.output_socket.send_pyobj(results)
 
         print('loop over')
         self.worker.post_loop()
@@ -125,6 +126,7 @@ if __name__ == '__main__':
     display_in = SocketInfo(address="tcp://localhost:5555", socket_type=zmq.PULL)
 
     t0 = Test(input_info=None, output_info=cam_out,worker=cam)
+    
     t1 = Test(input_info=display_in, output_info=None, worker=disp)
     t2 = Test(input_info=display_in, output_info=None, worker=disp)
     t3 = Test(input_info=display_in, output_info=None, worker=disp)
