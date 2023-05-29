@@ -44,8 +44,8 @@ frame_info = DataInfo(
     dtype=np.single
 )
 timestamp_info = DataInfo(
-        shape=(1,),
-        dtype=np.int64
+    shape=(1,),
+    dtype=np.int64
 )
 cam = Camera(
     input_info = None, 

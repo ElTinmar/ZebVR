@@ -152,6 +152,8 @@ class ZMQDataProcessingDAG:
                 id = edge_dict['port']
             )
 
+            # NOTE There is some black magic going on here,
+            # maybe make that more explicit ?
             if src not in self.nodes:
                 self.nodes.append(src)
             if dst not in self.nodes:
@@ -164,6 +166,6 @@ class ZMQDataProcessingDAG:
             n.start()
 
     def stop(self):
-        # TODO: maybe you should start from the root make your way to the leaves
+        # TODO: maybe you should start from the root and make your way to the leaves
         for n in self.nodes:
             n.stop()
