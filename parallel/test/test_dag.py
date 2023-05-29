@@ -1,8 +1,8 @@
-from parallel.dag import *
+from parallel.dag import ZMQDataProcessingDAG, ZMQDataProcessingNode, DataInfo
 import numpy as np
 import cv2
 import time
-from numpy.typing import NDArray, ArrayLike
+from typing import Any
 
 class Camera(ZMQDataProcessingNode):
     def __init__(self, *args, **kwargs):
@@ -62,7 +62,7 @@ display_1 = Display(
     output_info = None
 )
 
-dagstr = [
+dagstr0 = [
     {
         'src': cam,
         'dst': display_0,
@@ -75,7 +75,28 @@ dagstr = [
     }
 ]
 
-dag = ZMQDataProcessingDAG(dagstr)
+dagstr1 = [
+    {
+        'src': cam,
+        'dst': display_0,
+        'port': 5555
+    },
+    {
+        'src': cam,
+        'dst': display_1,
+        'port': 5556
+    }
+]
+
+dagstr2 = [
+    {
+        'src': cam,
+        'dst': display_0,
+        'port': 5555
+    }
+]
+
+dag = ZMQDataProcessingDAG(dagstr2)
 
 dag.start()
 time.sleep(10)
