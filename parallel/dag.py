@@ -1,16 +1,18 @@
 import zmq
-from multiprocessing import Process
+from multiprocessing import Process, Event
 from typing import Any, List
 from dataclasses import dataclass
-from numpy.typing import NDArray, DTypeLike
+from numpy.typing import DTypeLike, ArrayLike
 from abc import ABC, abstractmethod
 
 @dataclass
 class DataInfo:
-    shape: NDArray
+    shape: ArrayLike
     dtype: DTypeLike
 
     def __eq__(self, __value: object) -> bool:
+        if __value is None:
+            return False
         return (self.shape == __value.shape) and (self.dtype == __value.dtype)
 
 class IncompatibleData(Exception):
@@ -21,13 +23,21 @@ class ZMQSocketInfo:
     address : str = None
     socket_type: int = None
 
-class ZMQWorker(ABC):
-    def __init__(self) -> None:
+class ZMQDataProcessingNode(ABC):
+    def __init__(
+            self, 
+            input_info: List[DataInfo], 
+            output_info: List[DataInfo]
+        ) -> None:
         super().__init__()
-        self.outsock_info = None
-        self.insock_info = None
+        self.input_info = input_info
+        self.output_info = output_info
+        self.outsock_info = []
+        self.insock_info = []
+        self.input_socket = []
+        self.output_socket = []
         self.process = None
-        self.keepgoing = False
+        self.stop_loop = Event()
 
     @abstractmethod
     def pre_loop(self) -> None:
@@ -42,70 +52,61 @@ class ZMQWorker(ABC):
         pass
     
     def set_outsock_info(self, outsock_info: ZMQSocketInfo) -> None:
-        self.outsock_info = outsock_info
+        if outsock_info not in self.outsock_info:
+            self.outsock_info.append(outsock_info)
 
     def set_insock_info(self, insock_info: ZMQSocketInfo) -> None:
-        self.insock_info = insock_info
+        if insock_info not in self.insock_info:
+            self.insock_info.append(insock_info)
 
     def configure_zmq(self):
         self.context = zmq.Context()
-        if self.insock_info is not None:
-            self.input_socket = self.context.socket(self.insock_info.socket_type)
-            self.input_socket.connect(self.insock_info.address)
-        else:
-            self.input_socket = None
 
-        if self.outsock_info is not None:
-            self.output_socket = self.context.socket(self.outsock_info.socket_type)
-            self.output_socket.bind(self.outsock_info.address)
-        else:
-            self.output_socket = None
+        for isock in self.insock_info:
+            socket = self.context.socket(isock.socket_type)
+            socket.connect(isock.address)
+            self.input_socket.append(socket)
+
+        for osock in self.outsock_info:
+            socket = self.context.socket(osock.socket_type)
+            socket.bind(osock.address)
+            self.output_socket.append(socket)
 
     def clean_zmq(self):
-        if self.input_socket is not None:
-            self.input_socket.close()
-        if self.output_socket is not None:
-            self.output_socket.close()
+        for sock in self.input_socket:
+            sock.close()
+        for sock in self.output_socket:
+            sock.close()
 
     def _loop(self):
         self.configure_zmq()
         self.pre_loop()
 
-        while self.keepgoing:
+        while not self.stop_loop.is_set():
             # receive data
-            if self.input_socket is not None:
-                input_data = self.input_socket.recv_pyobj()
+            input_data = []
+            for sock in self.input_socket:
+                input_data.append(sock.recv_pyobj())
 
-                # do work
-                results = self.work(input_data)
-
-            else:
-                results = self.work()
+            # do work
+            results = self.work(input_data)
 
             # send data
-            if self.output_socket is not None:
-                if results is not None:
-                    self.output_socket.send_pyobj(results)
+            for sock in self.output_socket:
+                sock.send_pyobj(results)
 
         self.post_loop()
         self.clean_zmq()
 
     def start(self):
         # start the loop in a separate process
-        self.keepgoing = True
         self.process = Process(target = self._loop)
         self.process.start()
         
     def stop(self):
         # stop the loop
-        self.keepgoing = False
+        self.stop_loop.set()
         self.process.join()
-
-@dataclass
-class ZMQDataProcessingNode:
-    input_info: DataInfo
-    output_info: DataInfo
-    worker: ZMQWorker
 
 class ZMQDataProcessingEdge:
     def __init__(
@@ -133,25 +134,36 @@ class ZMQDataProcessingEdge:
             socket_type = zmq.PULL
         )
 
-        # update ZMQWorkers
-        self.src_node.worker.set_outsock_info(self.src_socket_info)
-        self.dst_node.worker.set_insock_info(self.dst_socket_info)
+        # update nodes
+        self.src_node.set_outsock_info(self.src_socket_info)
+        self.dst_node.set_insock_info(self.dst_socket_info)
 
-class DataProcessingDAG:
-    def __init__(
-            self, 
-            nodes: List[ZMQDataProcessingNode], 
-            edges: List[ZMQDataProcessingEdge]
-        ) -> None:
-        self.nodes = nodes
-        self.edges = edges
+class ZMQDataProcessingDAG:
+    def __init__(self, dag_str: List[dict]):
+        self.nodes = []
+        self.edges = []
+        for edge_dict in dag_str:
+            src = edge_dict['src']
+            dst = edge_dict['dst']
+
+            edge = ZMQDataProcessingEdge(
+                src_node = src,
+                dst_node = dst,
+                id = edge_dict['port']
+            )
+
+            if src not in self.nodes:
+                self.nodes.append(src)
+            if dst not in self.nodes:
+                self.nodes.append(dst)
+            self.edges.append(edge)
 
     def start(self):
         # TODO: maybe you should start from the leaves and climb up to the root
         for n in self.nodes:
-            n.worker.start()
+            n.start()
 
     def stop(self):
         # TODO: maybe you should start from the root make your way to the leaves
         for n in self.nodes:
-            n.worker.stop()
+            n.stop()
