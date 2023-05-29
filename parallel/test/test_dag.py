@@ -31,6 +31,9 @@ class Display(ZMQDataProcessingNode):
         cv2.destroyWindow(self.name)
 
     def work(self, data: Any) -> Any:
+        # TODO socket ID depends on how you build the graph,
+        # that's not ideal. Maybe use dict with names instead
+        # of lists ?
         socket_id = 0
         print(f'{self.name} received frame {data[socket_id][0]}')
         cv2.imshow(self.name,data[socket_id][1])
@@ -59,8 +62,6 @@ display_1 = Display(
     output_info = None
 )
 
-# TODO parse this JSON representation of the DAG
-# to build the graph automatically
 dagstr = [
     {
         'src': cam,
@@ -78,4 +79,6 @@ dag = ZMQDataProcessingDAG(dagstr)
 
 dag.start()
 time.sleep(10)
+
+# TODO make it stop cleanly
 dag.stop()
