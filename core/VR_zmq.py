@@ -3,62 +3,93 @@ import cv2
 from tracking.utils.im2gray import im2gray
 from tracking.utils.im2float import im2single
 from parallel.dag import ZMQDataProcessingDAG, ZMQDataProcessingNode, DataInfo
+import time
 
+dag = [
+    {
+        'src': camera,
+        'dst': background,
+        'port': 5555,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
+    },
+    {
+        'src': background,
+        'dst': tracker_0,
+        'port': 5556,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
+    },
+    {
+        'src': background,
+        'dst': tracker_1,
+        'port': 5556,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
+    },
+    {
+        'src': background,
+        'dst': tracker_2,
+        'port': 5556,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
+    },
+    {
+        'src': tracker_0,
+        'dst': overlay,
+        'port': 5557,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
+    },
+    {
+        'src': tracker_1,
+        'dst': overlay,
+        'port': 5557,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
+    },
+    {
+        'src': tracker_2,
+        'dst': overlay,
+        'port': 5557,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
+    },
+    {
+        'src': tracker_0,
+        'dst': stimulus,
+        'port': 5558,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
+    },
+    {
+        'src': tracker_1,
+        'dst': stimulus,
+        'port': 5558,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
+    },
+    {
+        'src': tracker_2,
+        'dst': stimulus,
+        'port': 5558,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
+    },
+    {
+        'src': stimulus,
+        'dst': projector,
+        'port': 5559,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
+    }
+]
 
-class VR:
-    def __init__(
-        self,
-        camera: Camera, 
-        projector: Projector,
-        background: Background,
-        cam2proj: Cam2Proj,
-        tracker: Tracker,
-        stimulus: Stimulus
-    ) -> None:
-        
-        self.camera = camera
-        self.projector = projector
-        self.background = background
-        self.cam2proj = cam2proj
-        self.tracker = tracker
-        self.stimulus = stimulus
+camera.calibration()
+projector.calibration()
+cam2proj.registration()
 
-        self.calibration()
-        self.registration()
-        self.run()
-
-
-    def calibration(self):
-        self.camera.calibration()
-        self.projector.calibration()
-
-    def registration(self):
-        self.cam2proj.registration()
-
-    def run(self):
-
-        cv2.namedWindow('VR')
-        self.camera.start_acquisition()
-
-        keepgoing = True
-        while keepgoing:
-            data, keepgoing = self.camera.fetch()
-            if keepgoing:
-                image = data.get_img()
-                self.background.add_image(image)
-                background_image = self.background.get_background() 
-                back_sub = abs(image - background_image)
-                tracking = self.tracker.track(back_sub)
-                overlay = self.tracker.tracking_overlay(back_sub)
-                stim_image = self.stimulus.create_stim_image(tracking)
-                self.projector.project(stim_image)
-                data.reallocate()
-                
-                for c in range(overlay.shape[2]):
-                    overlay[:,:,c] = overlay[:,:,c] + image
-
-                cv2.imshow('VR', overlay)
-                cv2.waitKey(1)
-
-        self.camera.stop_acquisition()
-        cv2.destroyWindow('VR')
+VR = ZMQDataProcessingDAG(dag)
+VR.start()
+time.sleep(120)
+VR.stop()
