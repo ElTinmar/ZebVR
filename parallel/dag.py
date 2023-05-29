@@ -22,6 +22,7 @@ class IncompatibleData(Exception):
 class ZMQSocketInfo:
     address : str = None
     socket_type: int = None
+    flag: int = None
 
 class ZMQDataProcessingNode(ABC):
     def __init__(
@@ -80,28 +81,37 @@ class ZMQDataProcessingNode(ABC):
             sock.close()
         for sock in self.output_socket:
             sock.close()
+        self.context.destroy()
 
     def _loop(self):
         self.configure_zmq()
         self.pre_loop()
 
-        try:
-            while not self.stop_loop.is_set():
-                # receive data
-                input_data = []
-                for sock in self.input_socket:
-                    input_data.append(sock.recv_pyobj())
+        while not self.stop_loop.is_set():
+            # receive data
+            input_data = []
+            try:
+                for sock, info in zip(self.input_socket,self.insock_info):
+                    if info.flag is not None:
+                        input_data.append(sock.recv_pyobj(flags = info.flag))
+                    else:
+                        input_data.append(sock.recv_pyobj())
+            except zmq.error.Again:
+                print('receive timeout, shutting down')
+                break
 
-                # do work
-                results = self.work(input_data)
+            # do work
+            results = self.work(input_data)
 
-                # send data
-                for sock in self.output_socket:
-                    sock.send_pyobj(results)
-        except zmq.error.Again:
-            print('receive timeout, shutting down')
-        except Exception:
-            raise
+            # send data
+            try:
+                for sock, info in zip(self.output_socket, self.outsock_info):
+                    if info.flag is not None:
+                        sock.send_pyobj(results, flags = info.flag)
+                    else:
+                        sock.send_pyobj(results)
+            except zmq.ZMQError:
+                print('Send queue is full, message was discarded')
 
         self.post_loop()
         self.clean_zmq()
@@ -121,7 +131,9 @@ class ZMQDataProcessingEdge:
             self, 
             src_node: ZMQDataProcessingNode,
             dst_node: ZMQDataProcessingNode,
-            id: int,
+            port: int,
+            send_flag: int = None,
+            recv_flag: int = None
         ) -> None:
 
         if src_node.output_info != dst_node.input_info:
@@ -129,17 +141,21 @@ class ZMQDataProcessingEdge:
         
         self.src_node = src_node
         self.dst_node = dst_node
-        self.id = id
+        self.port = port
+        self.send_flag = send_flag
+        self.recv_flag = recv_flag
 
         # create zmq socket info
         self.src_socket_info = ZMQSocketInfo(
-            address = f'tcp://*:{id}',
-            socket_type = zmq.PUSH
+            address = f'tcp://*:{port}',
+            socket_type = zmq.PUSH,
+            flag = send_flag
         )
 
         self.dst_socket_info = ZMQSocketInfo(
-            address = f'tcp://localhost:{id}',
-            socket_type = zmq.PULL
+            address = f'tcp://localhost:{port}',
+            socket_type = zmq.PULL,
+            flag = recv_flag
         )
 
         # update nodes
@@ -157,7 +173,9 @@ class ZMQDataProcessingDAG:
             edge = ZMQDataProcessingEdge(
                 src_node = src,
                 dst_node = dst,
-                id = edge_dict['port']
+                port = edge_dict['port'],
+                send_flag = edge_dict['send_flag'],
+                recv_flag = edge_dict['recv_flag'],
             )
 
             # NOTE There is some black magic going on here,

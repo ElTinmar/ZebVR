@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import time
 from typing import Any
+import zmq
 
 class Camera(ZMQDataProcessingNode):
     def __init__(self, *args, **kwargs):
@@ -66,12 +67,16 @@ dagstr0 = [
     {
         'src': cam,
         'dst': display_0,
-        'port': 5555
+        'port': 5555,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
     },
     {
         'src': cam,
         'dst': display_1,
-        'port': 5555
+        'port': 5555,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
     }
 ]
 
@@ -79,12 +84,16 @@ dagstr1 = [
     {
         'src': cam,
         'dst': display_0,
-        'port': 5555
+        'port': 5555,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
     },
     {
         'src': cam,
         'dst': display_1,
-        'port': 5556
+        'port': 5556,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
     }
 ]
 
@@ -92,11 +101,13 @@ dagstr2 = [
     {
         'src': cam,
         'dst': display_0,
-        'port': 5555
+        'port': 5555,
+        'send_flag': zmq.NOBLOCK,
+        'recv_flag': None
     }
 ]
 
-dag = ZMQDataProcessingDAG(dagstr2)
+dag = ZMQDataProcessingDAG(dagstr0)
 
 dag.start()
 time.sleep(10)
