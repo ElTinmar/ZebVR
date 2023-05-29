@@ -79,6 +79,4 @@ dag = ZMQDataProcessingDAG(dagstr)
 
 dag.start()
 time.sleep(10)
-
-# TODO make it stop cleanly
 dag.stop()

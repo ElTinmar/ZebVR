@@ -27,7 +27,8 @@ class ZMQDataProcessingNode(ABC):
     def __init__(
             self, 
             input_info: List[DataInfo], 
-            output_info: List[DataInfo]
+            output_info: List[DataInfo],
+            recv_timeout_s = 1
         ) -> None:
         super().__init__()
         self.input_info = input_info
@@ -38,6 +39,7 @@ class ZMQDataProcessingNode(ABC):
         self.output_socket = []
         self.process = None
         self.stop_loop = Event()
+        self.recv_timeout_s = recv_timeout_s
 
     @abstractmethod
     def pre_loop(self) -> None:
@@ -61,6 +63,7 @@ class ZMQDataProcessingNode(ABC):
 
     def configure_zmq(self):
         self.context = zmq.Context()
+        self.context.setsockopt(zmq.RCVTIMEO,self.recv_timeout_s*1000)
 
         for isock in self.insock_info:
             socket = self.context.socket(isock.socket_type)
@@ -82,18 +85,23 @@ class ZMQDataProcessingNode(ABC):
         self.configure_zmq()
         self.pre_loop()
 
-        while not self.stop_loop.is_set():
-            # receive data
-            input_data = []
-            for sock in self.input_socket:
-                input_data.append(sock.recv_pyobj())
+        try:
+            while not self.stop_loop.is_set():
+                # receive data
+                input_data = []
+                for sock in self.input_socket:
+                    input_data.append(sock.recv_pyobj())
 
-            # do work
-            results = self.work(input_data)
+                # do work
+                results = self.work(input_data)
 
-            # send data
-            for sock in self.output_socket:
-                sock.send_pyobj(results)
+                # send data
+                for sock in self.output_socket:
+                    sock.send_pyobj(results)
+        except zmq.error.Again:
+            print('No data available, shutting down')
+        except Exception:
+            raise
 
         self.post_loop()
         self.clean_zmq()
