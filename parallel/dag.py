@@ -99,7 +99,7 @@ class ZMQDataProcessingNode(ABC):
                 for sock in self.output_socket:
                     sock.send_pyobj(results)
         except zmq.error.Again:
-            print('No data available, shutting down')
+            print('receive timeout, shutting down')
         except Exception:
             raise
 
