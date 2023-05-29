@@ -1,9 +1,17 @@
 from .protocols import Camera, Projector, Background, Cam2Proj, Tracker, Stimulus
-import cv2
-from tracking.utils.im2gray import im2gray
-from tracking.utils.im2float import im2single
 from parallel.dag import ZMQDataProcessingDAG, ZMQDataProcessingNode, DataInfo
 import time
+import zmq
+
+camera = None
+background = None
+tracker_0 = None
+tracker_1 = None
+tracker_2 = None
+overlay = None
+stimulus = None
+projector = None
+cam2proj = None
 
 dag = [
     {
