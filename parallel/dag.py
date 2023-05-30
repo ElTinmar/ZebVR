@@ -6,19 +6,6 @@ from numpy.typing import DTypeLike, ArrayLike
 from abc import ABC, abstractmethod
 
 @dataclass
-class DataInfo:
-    shape: ArrayLike
-    dtype: DTypeLike
-
-    def __eq__(self, __value: object) -> bool:
-        if __value is None:
-            return False
-        return (self.shape == __value.shape) and (self.dtype == __value.dtype)
-
-class IncompatibleData(Exception):
-    pass
-
-@dataclass
 class ZMQSocketInfo:
     address : str = None
     socket_type: int = None
@@ -27,13 +14,9 @@ class ZMQSocketInfo:
 class ZMQDataProcessingNode(ABC):
     def __init__(
             self, 
-            input_info: List[DataInfo], 
-            output_info: List[DataInfo],
             recv_timeout_s = 1
         ) -> None:
         super().__init__()
-        self.input_info = input_info
-        self.output_info = output_info
         self.outsock_info = []
         self.insock_info = []
         self.input_socket = []
@@ -51,7 +34,11 @@ class ZMQDataProcessingNode(ABC):
         pass
 
     @abstractmethod
-    def work(self, args: Any) -> Any:
+    def post_send(self) -> None:
+        pass
+
+    @abstractmethod
+    def post_recv(self, args: Any) -> Any:
         pass
     
     def set_outsock_info(self, outsock_info: ZMQSocketInfo) -> None:
@@ -100,8 +87,8 @@ class ZMQDataProcessingNode(ABC):
                 print('receive timeout, shutting down')
                 break
 
-            # do work
-            results = self.work(input_data)
+            # do post_recv
+            results = self.post_recv(input_data)
 
             # send data
             try:
@@ -112,6 +99,9 @@ class ZMQDataProcessingNode(ABC):
                         sock.send_pyobj(results)
             except zmq.ZMQError:
                 print('Send queue is full, message was discarded')
+                
+
+            self.post_send()
 
         self.post_loop()
         self.clean_zmq()
@@ -135,9 +125,6 @@ class ZMQDataProcessingEdge:
             send_flag: int = None,
             recv_flag: int = None
         ) -> None:
-
-        if src_node.output_info != dst_node.input_info:
-            raise(IncompatibleData)
         
         self.src_node = src_node
         self.dst_node = dst_node
