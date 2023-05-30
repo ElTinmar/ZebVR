@@ -2,8 +2,9 @@ from collections import deque
 from scipy import stats
 from numpy.typing import NDArray
 import cv2
+from core.abstractclasses import Background
 
-class StaticBackground:
+class StaticBackground(Background):
     """
     take images at the beginning of the recording to
     create a backgroud image
@@ -16,7 +17,7 @@ class StaticBackground:
         self.complete = False
         self.counter = 0
 
-        cv2.namedWindow('background')
+        #cv2.namedWindow('background')
         
     def add_image(self, image : NDArray) -> None:
         """
@@ -41,11 +42,12 @@ class StaticBackground:
         Outputs a background image
         """
 
-        cv2.imshow('background',self.background)
-        cv2.waitKey(1)
+        #cv2.imshow('background',self.background)
+        #cv2.waitKey(1)
 
         return self.background
-class DynamicBackground:
+    
+class DynamicBackground(Background):
     """
     take images at regular intervals during the recording and
     update the backgroud image
