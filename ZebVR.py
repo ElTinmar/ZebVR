@@ -21,6 +21,7 @@ camera = FromFile(
 )
 
 projector = CVProjector(monitor_id = 1)
+projector.init_window()
 
 background = StaticBackground(num_images = 200, every_n_image=1)
 

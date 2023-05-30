@@ -10,7 +10,7 @@ from tracking.tracker_collection import TrackerCollection
 from registration.registration_cam2proj import Cam2ProjReg
 from parallel.dag import ZMQDataProcessingDAG
 from core.dataclasses import CameraParameters
-from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ
+from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, ProjectorZMQ
 
 import time
 import zmq
@@ -64,11 +64,13 @@ trckzmq_0 = TrackerZMQ('Tracker0',tracker)
 trckzmq_1 = TrackerZMQ('Tracker1',tracker)
 trckzmq_2 = TrackerZMQ('Tracker2',tracker)
 
-# stimulus ---------------------------------------------------------
+# projector --------------------------------------------------------
 projector = CVProjector(monitor_id = 1)
-stimulus = Phototaxis(projector)
+projZMQ = ProjectorZMQ(projector)
 
-stimzmq = StimulusZMQ(stimulus=stimulus,projector=projector)
+# stimulus ---------------------------------------------------------
+stimulus = Phototaxis(projector)
+stimzmq = StimulusZMQ(stimulus)
 
 # registration ---------------------------------------------------------
 cam2proj = Cam2ProjReg(
@@ -156,31 +158,14 @@ dag = [
     {
         'src': trckzmq_0,
         'dst': stimzmq,
-        'port': 5558,
-        'send_flag': None,
-        'recv_flag': None
-    }
-]
-
-dag = [
-    {
-        'src': camZMQ,
-        'dst': backZMQ,
-        'port': 5555,
-        'send_flag': None,
-        'recv_flag': None
-    },
-    {
-        'src': backZMQ,
-        'dst': trckzmq_0,
-        'port': 5556,
-        'send_flag': None,
-        'recv_flag': None
-    },
-    {
-        'src': trckzmq_0,
-        'dst': stimzmq,
         'port': 5557,
+        'send_flag': None,
+        'recv_flag': None
+    },
+    {
+        'src': stimzmq,
+        'dst': projZMQ,
+        'port': 5558,
         'send_flag': None,
         'recv_flag': None
     }
