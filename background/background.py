@@ -11,18 +11,22 @@ class BoundedQueue:
     def __init__(self, size, maxlen):
         self.size = size
         self.maxlen = maxlen
-        self.numel = 0
-        self.insert_ind = Value('i',0)
         self.itemsize = np.prod(size)
+        self.numel = Value('i',0)
+        self.insert_ind = Value('i',0)
         self.data = Array('d', int(self.itemsize*maxlen))
     
     def append(self, item) -> None:
         self.data[self.insert_ind.value*self.itemsize:(self.insert_ind.value+1)*self.itemsize] = item.flatten()
-        self.numel += 1 
+        self.numel.value += 1 
         self.insert_ind.value = (self.insert_ind.value + 1) % self.maxlen
 
     def get_data(self):
-        return np.asarray(self.data[0:self.numel*self.itemsize]).reshape((*self.size,self.numel))
+        if self.numel.value == 0:
+            return []
+        else:
+            images = np.asarray(self.data[0:self.numel.value*self.itemsize])
+            return images.reshape((*self.size,self.numel.value))
 
 class DynamicBackground(Background):
     def __init__(
@@ -49,8 +53,7 @@ class DynamicBackground(Background):
 
         while not self.stop_flag.is_set():
             data = self.image_store.get_data()
-            print(data,flush=True)
-            if data:
+            if len(data)>0:
                 self.background = stats.mode(data, axis=2, keepdims=False).mode
                 cv2.imshow('background',self.background)
                 cv2.waitKey(1)
