@@ -17,14 +17,18 @@ class CVProjector(Projector):
                 break
             offset_x = offset_x + width
 
-        cv2.namedWindow('projector',  cv2.WINDOW_NORMAL)
-        cv2.moveWindow('projector', x=offset_x, y=0)
-        cv2.resizeWindow('projector', width, height)
-
         self.monitor_id = monitor_id
         self.win_width = width
         self.win_height = height
         self.offset_x = offset_x
+
+    def init_window(self):
+        cv2.namedWindow('projector', cv2.WINDOW_NORMAL)
+        cv2.moveWindow('projector', x=self.offset_x, y=0)
+        cv2.resizeWindow('projector', self.win_width, self.win_height)
+
+    def close_window(self):
+        cv2.destroyWindow('projector')
 
     def calibration(self, num_pixels = 100) -> None:
         """
