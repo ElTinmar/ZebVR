@@ -3,6 +3,31 @@ from parallel.dag import ZMQDataProcessingNode
 from typing import Any
 import cv2
 
+class ProjectorZMQ(ZMQDataProcessingNode):
+    def __init__(
+            self, 
+            projector : Projector,
+            recv_timeout_s: int = 1
+        ) -> None:
+        
+        super().__init__(recv_timeout_s)
+        self.projector = projector
+
+    def pre_loop(self) -> None:
+        self.projector.init_window()
+
+    def post_loop(self) -> None:
+        self.projector.close_window()
+
+    def post_send(self) -> None:
+        pass
+
+    def post_recv(self, args: Any) -> Any:
+        timestamp = args[0][0]
+        image = args[0][1]
+        print(f'Projector received tracking {timestamp}',flush=True)
+        self.projector.project(image)
+
 class CameraZMQ(ZMQDataProcessingNode):
     def __init__(
             self, 
@@ -97,14 +122,12 @@ class StimulusZMQ(ZMQDataProcessingNode):
     def __init__(
             self, 
             stimulus: Stimulus,
-            projector: Projector,
             recv_timeout_s: int = 1
         ) -> None:
         
         super().__init__(recv_timeout_s)
         
         self.stimulus = stimulus
-        self.projector = projector
 
     def pre_loop(self) -> None:
         pass
@@ -120,5 +143,5 @@ class StimulusZMQ(ZMQDataProcessingNode):
         tracking = args[0][1]
         print(f'Stimulus received tracking {timestamp}',flush=True)
         image = self.stimulus.create_stim_image(tracking)
-        #self.projector.project(image)
+        return [timestamp, image]
     
