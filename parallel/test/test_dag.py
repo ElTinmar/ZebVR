@@ -1,4 +1,4 @@
-from parallel.dag import ZMQDataProcessingDAG, ZMQDataProcessingNode, DataInfo
+from parallel.dag import ZMQDataProcessingDAG, ZMQDataProcessingNode
 import numpy as np
 import cv2
 import time
@@ -15,10 +15,13 @@ class Camera(ZMQDataProcessingNode):
 
     def post_loop(self) -> None:
         pass
+
+    def post_send(self) -> None:
+        pass
     
-    def work(self, args: Any) -> Any:
+    def post_recv(self, args: Any) -> Any:
         self.counter += 1
-        return [self.counter, np.random.rand(512, 512)]
+        return [self.counter, np.random.rand(1024, 1024)]
     
 class Display(ZMQDataProcessingNode):
     def __init__(self, name: str, *args, **kwargs) -> None:
@@ -30,8 +33,11 @@ class Display(ZMQDataProcessingNode):
 
     def post_loop(self):
         cv2.destroyWindow(self.name)
+    
+    def post_send(self) -> None:
+        pass
 
-    def work(self, data: Any) -> Any:
+    def post_recv(self, data: Any) -> Any:
         # TODO socket ID depends on how you build the graph,
         # that's not ideal. Maybe use dict with names instead
         # of lists ?
@@ -40,28 +46,10 @@ class Display(ZMQDataProcessingNode):
         cv2.imshow(self.name,data[socket_id][1])
         cv2.waitKey(1)
 
-frame_info = DataInfo(
-    shape=(512,512),
-    dtype=np.single
-)
-timestamp_info = DataInfo(
-    shape=(1,),
-    dtype=np.int64
-)
-cam = Camera(
-    input_info = None, 
-    output_info = [timestamp_info, frame_info]
-)
-display_0 = Display(
-    name = 'Display0',
-    input_info = [timestamp_info, frame_info], 
-    output_info = None
-)
-display_1 = Display(
-    name = 'Display1',
-    input_info = [timestamp_info, frame_info], 
-    output_info = None
-)
+
+cam = Camera()
+display_0 = Display(name = 'Display0')
+display_1 = Display(name = 'Display1')
 
 dagstr0 = [
     {
