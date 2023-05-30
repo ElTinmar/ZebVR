@@ -1,4 +1,5 @@
 from core.VR import VR
+from core.dataclasses import CameraParameters
 from devices.camera.dummycam import FromFile
 from devices.projector.opencv_projector import CVProjector
 from background.background import StaticBackground
@@ -10,10 +11,13 @@ from tracking.tracker_collection import TrackerCollection
 from registration.registration_cam2proj import Cam2ProjReg
 from visual_stimuli.phototaxis import Phototaxis 
 
-camera = FromFile(
-    video_file = 'toy_data/behavior_2000.avi',
+camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088
+)
+camera = FromFile(
+    video_file = 'toy_data/behavior_2000.avi',
+    parameters = camera_param
 )
 
 projector = CVProjector(monitor_id = 1)
