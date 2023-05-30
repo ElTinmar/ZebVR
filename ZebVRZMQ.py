@@ -1,7 +1,7 @@
 from devices.camera.dummycam import FromFile
 from devices.projector.opencv_projector import CVProjector
 from visual_stimuli.phototaxis import Phototaxis 
-from background.background import StaticBackground
+from background.background import DynamicBackground
 from tracking.body.body_tracker import BodyTracker
 from tracking.eyes.eyes_tracker import EyesTracker
 from tracking.tail.tail_tracker import TailTracker
@@ -27,7 +27,12 @@ camera = FromFile(
 camZMQ = CameraZMQ(camera = camera)
 
 # background -------------------------------------------------
-background = StaticBackground(num_images = 200, every_n_image=1)
+background = DynamicBackground(
+    width = 1088,
+    height = 1088,
+    num_images = 200, 
+    every_n_image = 2
+)
 backZMQ = BackgroundZMQ(background)
 
 # trackers -------------------------------------------------

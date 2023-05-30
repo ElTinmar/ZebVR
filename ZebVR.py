@@ -2,7 +2,7 @@ from core.VR import VR
 from core.dataclasses import CameraParameters
 from devices.camera.dummycam import FromFile
 from devices.projector.opencv_projector import CVProjector
-from background.background import StaticBackground
+from background.background import DynamicBackground
 from tracking.body.body_tracker import BodyTracker
 from tracking.eyes.eyes_tracker import EyesTracker
 from tracking.tail.tail_tracker import TailTracker
@@ -23,7 +23,12 @@ camera = FromFile(
 projector = CVProjector(monitor_id = 1)
 projector.init_window()
 
-background = StaticBackground(num_images = 200, every_n_image=1)
+background = DynamicBackground(
+    width = 1088,
+    height = 1088,
+    num_images = 200, 
+    every_n_image = 2
+)
 
 cam2proj = Cam2ProjReg(
     camera, 
