@@ -3,10 +3,12 @@ from numpy.typing import NDArray
 import cv2
 import numpy as np
 from typing import Tuple
+from core.abstractclasses import Projector  
 
-class CVProjector:
+class CVProjector(Projector):
     def __init__(self, monitor_id=1) -> None:
-
+        super().__init__()
+        
         offset_x = 0
         for id, monitor in enumerate(get_monitors()):
             width = monitor.width
@@ -22,6 +24,7 @@ class CVProjector:
         self.monitor_id = monitor_id
         self.win_width = width
         self.win_height = height
+        self.offset_x = offset_x
 
     def calibration(self, num_pixels = 100) -> None:
         """

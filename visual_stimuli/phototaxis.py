@@ -3,11 +3,11 @@ from numpy.typing import NDArray
 from core.protocols import Projector
 import numpy as np
 from core.dataclasses import TrackingCollection
+from core.abstractclasses import Stimulus
 
-
-class Phototaxis:
+class Phototaxis(Stimulus):
     def __init__(self, projector: Projector):
-        
+        super().__init__()
         self.projector = projector
 
     def create_stim_image(self, parameters: TrackingCollection) -> NDArray:
