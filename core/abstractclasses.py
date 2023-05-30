@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from numpy.typing import NDArray
 from typing import Tuple, List
 import logging
+from core.dataclasses import CameraParameters, Tracking
 
 class CameraData(ABC):
     """
@@ -23,31 +24,36 @@ class CameraData(ABC):
     def reallocate(self):
         """return buffer to camera"""
 
+class Projector(ABC):
+    def calibration(self) -> None:
+        """
+        Project a checkerboard on top of a real world checkerboard pattern 
+        with known dimensions, correct image distortions and get mm/px.
+        (Opt. correct for spatial intensity inhomogeneities: either fit a model
+        with a few parameters e.g. a gaussian, or without a model with one 
+        parameter for each pixel.)
+        """
+        ...
+
+    def project(self, image: NDArray) -> None:
+        """
+        Input image to project
+        """
+        ...
+
+    def get_resolution(self) -> Tuple[int, int]:
+        """
+        Get resolution
+        """
+
 class Camera(ABC):
     def __init__(
             self,
-            camera_index = 0,
-            exposure_time_ms = 10,
-            gain = 4,
-            ROI_top = 0,
-            ROI_left = 0,
-            ROI_height = 512,
-            ROI_width = 512,
-            triggers = False,
-            fps = 100
+            parameters: CameraParameters
     ) -> None:
         super().__init__()
 
-        self.camera_index = camera_index
-        self.exposure_time_ms = exposure_time_ms
-        self.gain = gain
-        self.ROI_top = ROI_top
-        self.ROI_left = ROI_left
-        self.ROI_height = ROI_height
-        self.ROI_width = ROI_width
-        self.triggers = triggers
-        self.fps = fps
-
+        self.parameters = parameters
         self.logger = logging.getLogger('Camera')
 
     def start_acquisition(self) -> None:
@@ -57,7 +63,7 @@ class Camera(ABC):
         pass
 
     def get_resolution(self) -> Tuple[int,int]:
-        return (self.ROI_width, self.ROI_height)
+        return (self.parameters.ROI_width, self.parameters.ROI_height)
 
     def calibration(self) -> None:
         """
@@ -77,6 +83,9 @@ class Camera(ABC):
         ...
     
 class Tracker(ABC):
+    def __init__(self):
+        super().__init__()
+            
     @abstractmethod
     def track(self, image: NDArray) -> List[NDArray]:
         """
@@ -84,7 +93,28 @@ class Tracker(ABC):
         of objects from an image
         """
 
+    @abstractmethod
     def tracking_overlay(self, image: NDArray) -> NDArray:
         """
         Return overlay image to visualize tracking parameters
+        """
+
+class Background(ABC):
+    @abstractmethod
+    def add_image(self, image : NDArray) -> None:
+        """
+        Add images to the background model
+        """
+
+    @abstractmethod
+    def get_background(self) -> NDArray:
+        """
+        Return background model image
+        """
+
+class Stimulus(ABC):
+     @abstractmethod
+     def create_stim_image(self, parameters: Tracking) -> NDArray:
+        """
+        create stimulus image from tracking parameters
         """
