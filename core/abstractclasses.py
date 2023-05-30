@@ -25,6 +25,7 @@ class CameraData(ABC):
         """return buffer to camera"""
 
 class Projector(ABC):
+    @abstractmethod
     def calibration(self) -> None:
         """
         Project a checkerboard on top of a real world checkerboard pattern 
@@ -35,12 +36,19 @@ class Projector(ABC):
         """
         ...
 
+    def init_window(self) -> None:
+        pass
+    
+    def close_window(self) -> None:
+        pass
+
+    @abstractmethod
     def project(self, image: NDArray) -> None:
         """
         Input image to project
         """
         ...
-
+    @abstractmethod
     def get_resolution(self) -> Tuple[int, int]:
         """
         Get resolution
@@ -58,7 +66,7 @@ class Camera(ABC):
 
     def start_acquisition(self) -> None:
         pass
-
+    
     def stop_acquisition(self) -> None:
         pass
 
@@ -73,14 +81,13 @@ class Camera(ABC):
         with a few parameters e.g. a gaussian, or without a model with one 
         parameter for each pixel.)
         """
-        ...
-
+        
+    @abstractmethod
     def fetch(self) -> Tuple[CameraData, bool]:
         """
         Output a boolean if there is an image, 
         and the next image from the camera
         """
-        ...
     
 class Tracker(ABC):
     def __init__(self):
