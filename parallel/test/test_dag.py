@@ -55,16 +55,22 @@ dagstr0 = [
     {
         'src': cam,
         'dst': display_0,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
         'port': 5555,
         'send_flag': zmq.NOBLOCK,
-        'recv_flag': None
+        'recv_flag': None,
+        'src_binds': True
     },
     {
         'src': cam,
         'dst': display_1,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
         'port': 5555,
         'send_flag': zmq.NOBLOCK,
-        'recv_flag': None
+        'recv_flag': None,
+        'src_binds': True
     }
 ]
 
@@ -72,16 +78,22 @@ dagstr1 = [
     {
         'src': cam,
         'dst': display_0,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
         'port': 5555,
         'send_flag': zmq.NOBLOCK,
-        'recv_flag': None
+        'recv_flag': None,
+        'src_binds': True
     },
     {
         'src': cam,
         'dst': display_1,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
         'port': 5556,
         'send_flag': zmq.NOBLOCK,
-        'recv_flag': None
+        'recv_flag': None,
+        'src_binds': True
     }
 ]
 
@@ -89,9 +101,12 @@ dagstr2 = [
     {
         'src': cam,
         'dst': display_0,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
         'port': 5555,
         'send_flag': zmq.NOBLOCK,
-        'recv_flag': None
+        'recv_flag': None,
+        'src_binds': True
     }
 ]
 

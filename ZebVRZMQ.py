@@ -63,6 +63,8 @@ prey_tracker = PreyTracker(
     threshold_prey_area_max = 100
 )
 full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey_tracker])
+full_tracker = TrackerCollection([body_tracker])
+
 tracker = full_tracker
 
 trckzmq_0 = TrackerZMQ('Tracker0',tracker)
@@ -89,90 +91,86 @@ cam2proj = Cam2ProjReg(
     ksize = 10
 )
 
-"""
 dag = [
     {
         'src': camZMQ,
         'dst': backZMQ,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
         'port': 5555,
-        'send_flag': zmq.NOBLOCK,
-        'recv_flag': None
+        'send_flag': None,
+        'recv_flag': None,
+        'src_binds': True
     },
     {
         'src': backZMQ,
         'dst': trckzmq_0,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
         'port': 5556,
-        'send_flag': zmq.NOBLOCK,
-        'recv_flag': None
+        'send_flag': None,
+        'recv_flag': None,
+        'src_binds': True
     },
     {
         'src': backZMQ,
         'dst': trckzmq_1,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
         'port': 5556,
-        'send_flag': zmq.NOBLOCK,
-        'recv_flag': None
+        'send_flag': None,
+        'recv_flag': None,
+        'src_binds': True
     },
     {
         'src': backZMQ,
         'dst': trckzmq_2,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
         'port': 5556,
-        'send_flag': zmq.NOBLOCK,
-        'recv_flag': None
+        'send_flag': None,
+        'recv_flag': None,
+        'src_binds': True
     },
     {
         'src': trckzmq_0,
         'dst': stimzmq,
-        'port': 5558,
-        'send_flag': zmq.NOBLOCK,
-        'recv_flag': None
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
+        'port': 5557,
+        'send_flag': None,
+        'recv_flag': None,
+        'src_binds': False
     },
     {
         'src': trckzmq_1,
         'dst': stimzmq,
-        'port': 5558,
-        'send_flag': zmq.NOBLOCK,
-        'recv_flag': None
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
+        'port': 5557,
+        'send_flag': None,
+        'recv_flag': None,
+        'src_binds': False
     },
     {
         'src': trckzmq_2,
         'dst': stimzmq,
-        'port': 5558,
-        'send_flag': zmq.NOBLOCK,
-        'recv_flag': None
-    }
-]
-TODO there is a problem with sharing port on 5558
-maybe I should reverse connect/bind in that case
-"""
-
-dag = [
-    {
-        'src': camZMQ,
-        'dst': backZMQ,
-        'port': 5555,
-        'send_flag': None,
-        'recv_flag': None
-    },
-    {
-        'src': backZMQ,
-        'dst': trckzmq_0,
-        'port': 5556,
-        'send_flag': None,
-        'recv_flag': None
-    },
-    {
-        'src': trckzmq_0,
-        'dst': stimzmq,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
         'port': 5557,
         'send_flag': None,
-        'recv_flag': None
+        'recv_flag': None,
+        'src_binds': False
     },
     {
         'src': stimzmq,
         'dst': projZMQ,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
         'port': 5558,
         'send_flag': None,
-        'recv_flag': None
+        'recv_flag': None,
+        'src_binds': True
     }
 ]
 

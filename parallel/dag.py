@@ -8,8 +8,11 @@ from abc import ABC, abstractmethod
 @dataclass
 class ZMQSocketInfo:
     address : str = None
+    port: int = 5555
+    protocol: str = 'tcp://'
     socket_type: int = None
     flag: int = None
+    bind: bool = False
 
 class ZMQDataProcessingNode(ABC):
     def __init__(
@@ -55,12 +58,20 @@ class ZMQDataProcessingNode(ABC):
 
         for isock in self.insock_info:
             socket = self.context.socket(isock.socket_type)
-            socket.connect(isock.address)
+            endpoint = isock.protocol + isock.address + f':{isock.port}'
+            if isock.bind:
+                socket.bind(endpoint)
+            else:
+                socket.connect(endpoint)
             self.input_socket.append(socket)
 
         for osock in self.outsock_info:
             socket = self.context.socket(osock.socket_type)
-            socket.bind(osock.address)
+            endpoint = osock.protocol + osock.address + f':{osock.port}'
+            if osock.bind:
+                socket.bind(endpoint)
+            else:
+                socket.connect(endpoint)
             self.output_socket.append(socket)
 
     def clean_zmq(self):
@@ -122,27 +133,38 @@ class ZMQDataProcessingEdge:
             src_node: ZMQDataProcessingNode,
             dst_node: ZMQDataProcessingNode,
             port: int,
+            address: str,
+            protocol = str,
             send_flag: int = None,
-            recv_flag: int = None
+            recv_flag: int = None,
+            src_binds: bool = False 
         ) -> None:
         
         self.src_node = src_node
         self.dst_node = dst_node
+        self.address = address
         self.port = port
+        self.protocol = protocol
         self.send_flag = send_flag
         self.recv_flag = recv_flag
 
         # create zmq socket info
         self.src_socket_info = ZMQSocketInfo(
-            address = f'tcp://*:{port}',
+            address = address,
+            port = port,
+            protocol = protocol,
             socket_type = zmq.PUSH,
-            flag = send_flag
+            flag = send_flag,
+            bind = src_binds
         )
 
         self.dst_socket_info = ZMQSocketInfo(
-            address = f'tcp://localhost:{port}',
+            address = address,
+            port = port,
+            protocol = protocol,
             socket_type = zmq.PULL,
-            flag = recv_flag
+            flag = recv_flag,
+            bind = not src_binds
         )
 
         # update nodes
@@ -160,13 +182,14 @@ class ZMQDataProcessingDAG:
             edge = ZMQDataProcessingEdge(
                 src_node = src,
                 dst_node = dst,
+                address = edge_dict['address'],
+                protocol = edge_dict['protocol'],
                 port = edge_dict['port'],
                 send_flag = edge_dict['send_flag'],
                 recv_flag = edge_dict['recv_flag'],
+                src_binds = edge_dict['src_binds'],
             )
 
-            # NOTE There is some black magic going on here,
-            # maybe make that more explicit ?
             if src not in self.nodes:
                 self.nodes.append(src)
             if dst not in self.nodes:
