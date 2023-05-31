@@ -80,7 +80,7 @@ class BackgroundZMQ(ZMQDataProcessingNode):
         image = args[0][1]
         self.background.add_image(image)
         print(f'Bckg received image {timestamp}' ,flush=True)
-        return [timestamp, image - self.background.get_background()]
+        return [timestamp, abs(image - self.background.get_background())]
     
 class TrackerZMQ(ZMQDataProcessingNode):
     def __init__(
