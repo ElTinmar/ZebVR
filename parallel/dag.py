@@ -137,8 +137,8 @@ class ZMQDataProcessingNode(ABC):
 class ZMQDataProcessingEdge:
     def __init__(
             self, 
-            src_node: ZMQDataProcessingNode,
-            dst_node: ZMQDataProcessingNode,
+            src: ZMQDataProcessingNode,
+            dst: ZMQDataProcessingNode,
             port: int,
             address: str,
             protocol = str,
@@ -147,8 +147,8 @@ class ZMQDataProcessingEdge:
             src_binds: bool = False 
         ) -> None:
         
-        self.src_node = src_node
-        self.dst_node = dst_node
+        self.src_node = src
+        self.dst_node = dst
         self.address = address
         self.port = port
         self.protocol = protocol
@@ -179,24 +179,14 @@ class ZMQDataProcessingEdge:
         self.dst_node.set_insock_info(self.dst_socket_info)
 
 class ZMQDataProcessingDAG:
-    def __init__(self, dag_str: List[dict]):
+    def __init__(self, dag: List[dict]):
         self.nodes = []
         self.edges = []
-        for edge_dict in dag_str:
+        for edge_dict in dag:
+            edge = ZMQDataProcessingEdge(**edge_dict)
+
             src = edge_dict['src']
             dst = edge_dict['dst']
-
-            edge = ZMQDataProcessingEdge(
-                src_node = src,
-                dst_node = dst,
-                address = edge_dict['address'],
-                protocol = edge_dict['protocol'],
-                port = edge_dict['port'],
-                send_flag = edge_dict['send_flag'],
-                recv_flag = edge_dict['recv_flag'],
-                src_binds = edge_dict['src_binds'],
-            )
-
             if src not in self.nodes:
                 self.nodes.append(src)
             if dst not in self.nodes:
