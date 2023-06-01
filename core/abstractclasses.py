@@ -129,3 +129,17 @@ class Stimulus(ABC):
         """
         create stimulus image from tracking parameters
         """
+
+class Cam2Proj(ABC):
+    def registration(self):
+        """
+        Project a grid of dots, one after the other on the screen,
+        take a picture of each dot with the camera, and compute
+        a linear (affine) map between projector and camera spaces
+        """
+
+    def transform_coordinates(self, coord: NDArray) -> NDArray:
+        """
+        Input: camera coordinates
+        Output: projector coordinates
+        """

@@ -1,7 +1,7 @@
 import numpy as np 
 import cv2
 from numpy.typing import NDArray
-from core.protocols import Camera, Projector
+from core.abstractclasses import Camera, Projector
 from typing import List
 import cv2
 
