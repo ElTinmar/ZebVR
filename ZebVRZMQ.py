@@ -12,14 +12,11 @@ from parallel.dag import ZMQDataProcessingDAG
 from core.dataclasses import CameraParameters
 from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, ProjectorZMQ
 
-import time
-import zmq
-
 # camera -------------------------------------------------
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 10
+    fps = 20
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
@@ -65,7 +62,6 @@ prey_tracker = PreyTracker(
 )
 full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey_tracker])
 #full_tracker = TrackerCollection([body_tracker])
-
 tracker = full_tracker
 
 trckzmq_0 = TrackerZMQ('Tracker0',tracker)
@@ -81,7 +77,6 @@ stimulus = Phototaxis(projector)
 stimzmq_0 = StimulusZMQ(stimulus)
 stimzmq_1 = StimulusZMQ(stimulus)
 stimzmq_2 = StimulusZMQ(stimulus)
-
 
 # registration ---------------------------------------------------------
 cam2proj = Cam2ProjReg(
