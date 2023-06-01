@@ -11,6 +11,7 @@ from registration.registration_cam2proj import Cam2ProjReg
 from parallel.dag import ZMQDataProcessingDAG
 from core.dataclasses import CameraParameters
 from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, ProjectorZMQ
+import zmq
 
 # camera -------------------------------------------------
 camera_param = CameraParameters(
@@ -167,7 +168,7 @@ dag = [
         'protocol': 'tcp://',
         'address' : '127.0.0.1',
         'port': 5560,
-        'send_flag': None,
+        'send_flag': zmq.NOBLOCK,
         'recv_flag': None,
         'src_binds': False
     },

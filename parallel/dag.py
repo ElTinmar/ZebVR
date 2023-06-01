@@ -57,7 +57,7 @@ class ZMQDataProcessingNode(ABC):
 
     def configure_zmq(self):
         self.context = zmq.Context()
-        self.context.setsockopt(zmq.RCVTIMEO,self.recv_timeout_s*1000)
+        self.context.setsockopt(zmq.RCVTIMEO, self.recv_timeout_s*1000)
 
         for isock in self.insock_info:
             socket = self.context.socket(isock.socket_type)
@@ -195,7 +195,8 @@ class ZMQDataProcessingDAG:
 
     def start(self):
         # TODO: maybe you should start from the leaves and climb up to the root
-        for n in reversed(self.nodes):
+        # make sure that nodes that binds start before nodes that connect
+        for n in self.nodes:
             n.start()
 
     def stop(self):
