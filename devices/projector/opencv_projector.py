@@ -56,6 +56,3 @@ class CVProjector(Projector):
 
     def get_resolution(self) -> Tuple[int, int]:
         return (self.win_width, self.win_height)
-
-    def __del__(self):
-        cv2.destroyWindow('projector')
