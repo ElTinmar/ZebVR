@@ -168,7 +168,7 @@ dag = [
         'protocol': 'tcp://',
         'address' : '127.0.0.1',
         'port': 5560,
-        'send_flag': zmq.NOBLOCK,
+        'send_flag': None,
         'recv_flag': None,
         'src_binds': False
     },
