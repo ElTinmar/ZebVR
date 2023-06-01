@@ -49,9 +49,14 @@ class DynamicBackground(Background):
         self.background = Array('d',width*height)
         self.image_store = BoundedQueue((width,height),maxlen=num_images)
 
+    def start(self):
         self.proc = Process(target=self.compute_background)
         self.proc.start()
         
+    def stop(self):
+        self.stop_flag.set()
+        self.proc.join()
+
     def compute_background(self):
         cv2.namedWindow('background')
         while not self.stop_flag.is_set():
@@ -78,8 +83,3 @@ class DynamicBackground(Background):
             if self.counter == 0:
                 self.background[:] = image.flatten()
         self.counter += 1
-
-    def __del__(self):
-        self.stop_flag.set()
-        self.proc.join()
-    

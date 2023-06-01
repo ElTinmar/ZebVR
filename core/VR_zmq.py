@@ -67,10 +67,10 @@ class BackgroundZMQ(ZMQDataProcessingNode):
         self.background = background
 
     def pre_loop(self) -> None:
-        pass
+        self.background.start()
 
     def post_loop(self) -> None:
-        pass
+        self.background.stop()
 
     def post_send(self) -> None:
         pass
