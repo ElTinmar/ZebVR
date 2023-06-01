@@ -6,3 +6,5 @@ dependencies:
 - pyzmq
 - screeninfo
 - scipy
+- opencv-python
+- harvesters
