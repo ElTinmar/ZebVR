@@ -1,0 +1,8 @@
+name: ZebVR
+dependencies:
+- numpy
+- sckikit-learn
+- scickit-image
+- pyzmq
+- screeninfo
+- scipy
