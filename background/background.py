@@ -49,24 +49,30 @@ class DynamicBackground(Background):
         self.image_store = BoundedQueue((width,height),maxlen=num_images)
 
     def start(self):
-        self.proc = Process(target=self.compute_background)
-        self.proc.start()
+        self.proc_compute = Process(target=self.compute_background)
+        self.proc_compute.start()
+        self.proc_display = Process(target=self.show_background)
+        self.proc_display.start()
         
     def stop(self):
         self.stop_flag.set()
-        self.proc.join()
+        self.proc_compute.join()
+        self.proc_display.join()
+
+    def show_background(self):
+        cv2.namedWindow('background')
+        while not self.stop_flag.is_set():
+            bckg = np.frombuffer(self.background.get_obj())
+            cv2.imshow('background',bckg.reshape(self.width,self.height))
+            cv2.waitKey(16)
+        cv2.destroyWindow('background')
 
     def compute_background(self):
-        cv2.namedWindow('background')
         while not self.stop_flag.is_set():
             data = self.image_store.get_data()
             if data is not None:
                 bckg_img = stats.mode(data, axis=0, keepdims=False).mode
                 self.background[:] = bckg_img.flatten()
-            bckg = np.frombuffer(self.background.get_obj())
-            cv2.imshow('background',bckg.reshape(self.width,self.height))
-            cv2.waitKey(1)
-        cv2.destroyWindow('background')
 
     def get_background(self) -> NDArray:
         ret = np.frombuffer(self.background.get_obj())
