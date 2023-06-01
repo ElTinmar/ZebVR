@@ -198,7 +198,7 @@ class ZMQDataProcessingDAG:
 
     def start(self):
         # TODO: maybe you should start from the leaves and climb up to the root
-        for n in self.nodes:
+        for n in reversed(self.nodes):
             n.start()
 
     def stop(self):

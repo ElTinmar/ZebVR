@@ -19,7 +19,7 @@ import zmq
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 10
+    fps = 50
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
@@ -78,7 +78,10 @@ projZMQ = ProjectorZMQ(projector)
 
 # stimulus ---------------------------------------------------------
 stimulus = Phototaxis(projector)
-stimzmq = StimulusZMQ(stimulus)
+stimzmq_0 = StimulusZMQ(stimulus)
+stimzmq_1 = StimulusZMQ(stimulus)
+stimzmq_2 = StimulusZMQ(stimulus)
+
 
 # registration ---------------------------------------------------------
 cam2proj = Cam2ProjReg(
@@ -135,43 +138,63 @@ dag = [
     },
     {
         'src': trckzmq_0,
-        'dst': stimzmq,
+        'dst': stimzmq_0,
         'protocol': 'tcp://',
         'address' : '127.0.0.1',
         'port': 5557,
         'send_flag': None,
         'recv_flag': None,
-        'src_binds': False
+        'src_binds': True
     },
     {
         'src': trckzmq_1,
-        'dst': stimzmq,
-        'protocol': 'tcp://',
-        'address' : '127.0.0.1',
-        'port': 5557,
-        'send_flag': None,
-        'recv_flag': None,
-        'src_binds': False
-    },
-    {
-        'src': trckzmq_2,
-        'dst': stimzmq,
-        'protocol': 'tcp://',
-        'address' : '127.0.0.1',
-        'port': 5557,
-        'send_flag': None,
-        'recv_flag': None,
-        'src_binds': False
-    },
-    {
-        'src': stimzmq,
-        'dst': projZMQ,
+        'dst': stimzmq_1,
         'protocol': 'tcp://',
         'address' : '127.0.0.1',
         'port': 5558,
         'send_flag': None,
         'recv_flag': None,
         'src_binds': True
+    },
+    {
+        'src': trckzmq_2,
+        'dst': stimzmq_2,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
+        'port': 5559,
+        'send_flag': None,
+        'recv_flag': None,
+        'src_binds': True
+    },
+    {
+        'src': stimzmq_0,
+        'dst': projZMQ,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
+        'port': 5560,
+        'send_flag': None,
+        'recv_flag': None,
+        'src_binds': False
+    },
+{
+        'src': stimzmq_1,
+        'dst': projZMQ,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
+        'port': 5560,
+        'send_flag': None,
+        'recv_flag': None,
+        'src_binds': False
+    },
+{
+        'src': stimzmq_2,
+        'dst': projZMQ,
+        'protocol': 'tcp://',
+        'address' : '127.0.0.1',
+        'port': 5560,
+        'send_flag': None,
+        'recv_flag': None,
+        'src_binds': False
     }
 ]
 

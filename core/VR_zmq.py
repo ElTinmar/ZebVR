@@ -26,7 +26,8 @@ class ProjectorZMQ(ZMQDataProcessingNode):
         timestamp = args[0][0]
         image = args[0][1]
         print(f'Projector received tracking {timestamp}',flush=True)
-        self.projector.project(image)
+        if image is not None:
+            self.projector.project(image)
 
 class CameraZMQ(ZMQDataProcessingNode):
     def __init__(
@@ -142,6 +143,6 @@ class StimulusZMQ(ZMQDataProcessingNode):
         timestamp = args[0][0]
         tracking = args[0][1]
         print(f'Stimulus received tracking {timestamp}',flush=True)
-        image = self.stimulus.create_stim_image(tracking)
+        image = self.stimulus.create_stim_image(timestamp, tracking)
         return [timestamp, image]
     
