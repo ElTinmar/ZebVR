@@ -3,6 +3,7 @@ import cv2
 import time
 import numpy as np
 import logging
+import time
 
 class Data(CameraData):
     def __init__(self, image, timestamp):
@@ -40,6 +41,7 @@ class FromFile(Camera):
         img_gray = img[:,:,0]
         buf = Data(img_gray, self.img_count)  
         self.logger.log(logging.DEBUG, f'FromFile, {time.time_ns()}, {self.img_count}, 1')
+        time.sleep(1/self.parameters.fps)
         return (buf, ret)
 
     def __del__(self):
@@ -62,7 +64,7 @@ class ZeroCam(Camera):
 
     def fetch(self):
         self.img_count += 1
-        img = np.zeros((self.ROI_width, self.ROI_height), dtype=np.uint8)
+        img = np.zeros((self.parameters.ROI_width, self.parameters.ROI_height), dtype=np.uint8)
         buf = Data(img, self.img_count)
         return (buf, True)
     
@@ -83,6 +85,6 @@ class RandomCam(Camera):
 
     def fetch(self):
         self.img_count += 1
-        img = np.random.randint(0, 255, (self.ROI_width, self.ROI_height), dtype=np.uint8)
+        img = np.random.randint(0, 255, (self.parameters.ROI_width, self.parameters.ROI_height), dtype=np.uint8)
         buf = Data(img, self.img_count)
         return (buf, True)

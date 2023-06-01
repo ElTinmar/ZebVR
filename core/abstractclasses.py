@@ -12,6 +12,10 @@ class CameraData(ABC):
     to the camera
     """
 
+    def __init__(self, param: CameraParameters) -> None:
+        super().__init__()
+        self.parameters = param
+
     @abstractmethod
     def get_img(self) -> NDArray:
         """return image data"""
