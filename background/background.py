@@ -1,4 +1,3 @@
-from collections import deque
 from scipy import stats
 from numpy.typing import NDArray
 import cv2
