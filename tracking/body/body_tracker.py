@@ -1,8 +1,8 @@
 from typing import List 
 import numpy as np
 from numpy.typing import NDArray
-from sklearnex import patch_sklearn
-patch_sklearn()
+#from sklearnex import patch_sklearn
+#patch_sklearn()
 from sklearn.decomposition import PCA
 from tracking.utils.conncomp_filter import bwareaopen
 from core.abstractclasses import Tracker
