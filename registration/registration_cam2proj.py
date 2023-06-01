@@ -3,7 +3,6 @@ import cv2
 from numpy.typing import NDArray
 from core.abstractclasses import Camera, Projector
 from typing import List
-import cv2
 
 # TODO warn if there is substantial shearing/deformations that 
 # the projector is not well aligned

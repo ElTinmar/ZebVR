@@ -1,9 +1,7 @@
-from typing import List
 from numpy.typing import NDArray
-from core.protocols import Projector
 import numpy as np
 from core.dataclasses import TrackingCollection
-from core.abstractclasses import Stimulus
+from core.abstractclasses import Stimulus, Projector
 
 class Phototaxis(Stimulus):
     def __init__(self, projector: Projector):

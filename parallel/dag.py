@@ -2,7 +2,6 @@ import zmq
 from multiprocessing import Process, Event
 from typing import Any, List
 from dataclasses import dataclass
-from numpy.typing import DTypeLike, ArrayLike
 from abc import ABC, abstractmethod
 import time
 
