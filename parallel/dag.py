@@ -4,6 +4,7 @@ from typing import Any, List
 from dataclasses import dataclass
 from numpy.typing import DTypeLike, ArrayLike
 from abc import ABC, abstractmethod
+import time
 
 @dataclass
 class ZMQSocketInfo:
@@ -17,7 +18,7 @@ class ZMQSocketInfo:
 class ZMQDataProcessingNode(ABC):
     def __init__(
             self, 
-            recv_timeout_s = 1
+            recv_timeout_s = 10
         ) -> None:
         super().__init__()
         self.outsock_info = []
@@ -27,6 +28,9 @@ class ZMQDataProcessingNode(ABC):
         self.process = None
         self.stop_loop = Event()
         self.recv_timeout_s = recv_timeout_s
+
+        self.execution_time = 0
+        self.num_loops = 0
 
     @abstractmethod
     def pre_loop(self) -> None:
@@ -86,6 +90,7 @@ class ZMQDataProcessingNode(ABC):
         self.pre_loop()
 
         while not self.stop_loop.is_set():
+            start_time_ns = time.process_time_ns()
             # receive data
             input_data = []
             try:
@@ -113,6 +118,9 @@ class ZMQDataProcessingNode(ABC):
                 
 
             self.post_send()
+
+            self.execution_time += 10e-9 *(time.process_time_ns() - start_time_ns)
+            self.num_loops += 1
 
         self.post_loop()
         self.clean_zmq()

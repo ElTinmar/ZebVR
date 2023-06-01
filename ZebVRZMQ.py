@@ -176,7 +176,7 @@ dag = [
         'recv_flag': None,
         'src_binds': False
     },
-{
+    {
         'src': stimzmq_1,
         'dst': projZMQ,
         'protocol': 'tcp://',
@@ -186,7 +186,7 @@ dag = [
         'recv_flag': None,
         'src_binds': False
     },
-{
+    {
         'src': stimzmq_2,
         'dst': projZMQ,
         'protocol': 'tcp://',

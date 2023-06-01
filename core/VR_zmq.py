@@ -18,6 +18,7 @@ class ProjectorZMQ(ZMQDataProcessingNode):
 
     def post_loop(self) -> None:
         self.projector.close_window()
+        print(f'ProjectorZMQ {self.execution_time/self.num_loops} s per loop')
 
     def post_send(self) -> None:
         pass
@@ -45,7 +46,7 @@ class CameraZMQ(ZMQDataProcessingNode):
         pass
 
     def post_loop(self) -> None:
-        pass
+        print(f'CameraZMQ {self.execution_time/self.num_loops} s per loop')
 
     def post_send(self) -> None:
         if self.data is not None:
@@ -72,6 +73,7 @@ class BackgroundZMQ(ZMQDataProcessingNode):
 
     def post_loop(self) -> None:
         self.background.stop()
+        print(f'BackgroundZMQ {self.execution_time/self.num_loops} s per loop')
 
     def post_send(self) -> None:
         pass
@@ -102,6 +104,7 @@ class TrackerZMQ(ZMQDataProcessingNode):
 
     def post_loop(self) -> None:
         cv2.destroyWindow(self.name)
+        print(f'TrackerZMQ {self.execution_time/self.num_loops} s per loop')
     
     def post_send(self) -> None:
         if self.overlay is not None:
@@ -134,7 +137,7 @@ class StimulusZMQ(ZMQDataProcessingNode):
         pass
 
     def post_loop(self) -> None:
-        pass
+        print(f'StimulusZMQ {self.execution_time/self.num_loops} s per loop')
 
     def post_send(self) -> None:
         pass
