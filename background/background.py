@@ -5,6 +5,8 @@ from core.abstractclasses import Background
 from multiprocessing import Process, Event
 from multiprocessing.sharedctypes import Array, Value
 import numpy as np
+import time
+import ctypes
 
 class BoundedQueue:
     def __init__(self, size, maxlen):
@@ -14,10 +16,11 @@ class BoundedQueue:
 
         self.numel = Value('i',0)
         self.insert_ind = Value('i',0)
-        self.data = Array('d', int(self.itemsize*maxlen))
+        self.data = Array(ctypes.c_float, int(self.itemsize*maxlen))
     
     def append(self, item) -> None:
-        self.data[self.insert_ind.value*self.itemsize:(self.insert_ind.value+1)*self.itemsize] = item.flatten()
+        data_np = np.frombuffer(self.data.get_obj(), dtype=np.float32).reshape((self.maxlen, *self.size))
+        np.copyto(data_np[self.insert_ind.value,:,:],item)
         self.numel.value = min(self.numel.value+1, self.maxlen) 
         self.insert_ind.value = (self.insert_ind.value + 1) % self.maxlen
 
@@ -25,9 +28,8 @@ class BoundedQueue:
         if self.numel.value == 0:
             return None
         else:
-            images = np.frombuffer(self.data.get_obj())
-            image_subset = images[0:self.numel.value*self.itemsize]
-            return image_subset.reshape((self.numel.value,*self.size))
+            data_np = np.frombuffer(self.data.get_obj(), dtype=np.float32).reshape((self.maxlen, *self.size))
+            return data_np[0:self.numel.value,:,:]
 
 class DynamicBackground(Background):
     def __init__(
@@ -45,7 +47,7 @@ class DynamicBackground(Background):
         self.counter = 0
         
         self.stop_flag = Event()
-        self.background = Array('d',width*height)
+        self.background = Array(ctypes.c_float, width*height)
         self.image_store = BoundedQueue((width,height),maxlen=num_images)
 
     def start(self):
@@ -62,8 +64,8 @@ class DynamicBackground(Background):
     def show_background(self):
         cv2.namedWindow('background')
         while not self.stop_flag.is_set():
-            bckg = np.frombuffer(self.background.get_obj())
-            cv2.imshow('background',bckg.reshape(self.width,self.height))
+            bckg = np.frombuffer(self.background.get_obj(), dtype=np.float32).reshape(self.width,self.height)
+            cv2.imshow('background',bckg)
             cv2.waitKey(16)
         cv2.destroyWindow('background')
 
@@ -75,14 +77,12 @@ class DynamicBackground(Background):
                 self.background[:] = bckg_img.flatten()
 
     def get_background(self) -> NDArray:
-        ret = np.frombuffer(self.background.get_obj())
-        return ret.reshape((self.width,self.height))
+        return np.frombuffer(self.background.get_obj(), dtype=np.float32).reshape((self.width,self.height))
     
     def add_image(self, image : NDArray) -> None:
         """
         Input an image and update the background model
         """
-
         if self.counter % self.every_n_image == 0:
             self.image_store.append(image)
             if self.counter == 0:
