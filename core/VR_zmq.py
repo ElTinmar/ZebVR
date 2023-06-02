@@ -7,7 +7,7 @@ class ProjectorZMQ(ZMQDataProcessingNode):
     def __init__(
             self, 
             projector : Projector,
-            recv_timeout_s: int = 1
+            recv_timeout_s: int = 10
         ) -> None:
         
         super().__init__(recv_timeout_s)
@@ -34,7 +34,7 @@ class CameraZMQ(ZMQDataProcessingNode):
     def __init__(
             self, 
             camera: Camera,
-            recv_timeout_s: int = 1
+            recv_timeout_s: int = 10
         ) -> None:
         
         super().__init__(recv_timeout_s)
@@ -61,7 +61,7 @@ class BackgroundZMQ(ZMQDataProcessingNode):
     def __init__(
             self,
             background: Background,
-            recv_timeout_s=1
+            recv_timeout_s: int = 10
         ) -> None:
 
         super().__init__(recv_timeout_s)
@@ -90,7 +90,7 @@ class TrackerZMQ(ZMQDataProcessingNode):
             self, 
             name: str,
             tracker: Tracker,
-            recv_timeout_s=1
+            recv_timeout_s: int = 10
         ) -> None:
 
         super().__init__(recv_timeout_s)
@@ -126,7 +126,7 @@ class StimulusZMQ(ZMQDataProcessingNode):
     def __init__(
             self, 
             stimulus: Stimulus,
-            recv_timeout_s: int = 1
+            recv_timeout_s: int = 10
         ) -> None:
         
         super().__init__(recv_timeout_s)
