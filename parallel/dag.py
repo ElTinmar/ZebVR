@@ -27,8 +27,13 @@ class ZMQDataProcessingNode(ABC):
         self.process = None
         self.stop_loop = Event()
         self.recv_timeout_s = recv_timeout_s
+        self.name = 'ZMQNode'
 
-        self.execution_time = 0
+        # timing measurement
+        self.recv_time_ns = 0
+        self.post_recv_time_ns = 0
+        self.send_time_ns = 0
+        self.post_send_time_ns = 0
         self.num_loops = 0
 
     @abstractmethod
@@ -102,8 +107,12 @@ class ZMQDataProcessingNode(ABC):
                 print('receive timeout, shutting down')
                 break
 
+            self.recv_time_ns += (time.process_time_ns() - start_time_ns)
+
             # do post_recv
             results = self.post_recv(input_data)
+
+            self.post_recv_time_ns += (time.process_time_ns() - start_time_ns)
 
             # send data
             try:
@@ -114,10 +123,13 @@ class ZMQDataProcessingNode(ABC):
                         sock.send_pyobj(results)
             except zmq.ZMQError:
                 print('Send queue is full, message was discarded')
-                
+
+            self.send_time_ns += (time.process_time_ns() - start_time_ns)
+
             self.post_send()
 
-            self.execution_time += 10e-9 *(time.process_time_ns() - start_time_ns)
+            self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
+
             self.num_loops += 1
 
         self.post_loop()
