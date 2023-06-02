@@ -1,12 +1,12 @@
 from screeninfo import get_monitors
 from numpy.typing import NDArray
-import cv2
+from psychopy import visual, core
 import numpy as np
 from typing import Tuple
 from core.abstractclasses import Projector  
 import time
 
-class CVProjector(Projector):
+class PsychoPyProjector(Projector):
     def __init__(self, monitor_id=1) -> None:
         super().__init__()
         
@@ -22,15 +22,16 @@ class CVProjector(Projector):
         self.win_width = width
         self.win_height = height
         self.offset_x = offset_x
-
+        
     def init_window(self):
-        cv2.namedWindow('projector')
-        cv2.namedWindow('projector', cv2.WINDOW_NORMAL)
-        cv2.moveWindow('projector', x=self.offset_x, y=0)
-        cv2.resizeWindow('projector', self.win_width, self.win_height)
+        self.win = visual.Window(
+            size=(self.win_width,self.win_height),
+            fullscr=True,
+            screen = self.monitor_id
+        )
 
     def close_window(self):
-        cv2.destroyWindow('projector')
+        self.win.close()
 
     def calibration(self, num_pixels = 100) -> None:
         """
@@ -41,22 +42,13 @@ class CVProjector(Projector):
         parameter for each pixel.)
         """
 
-        xv, yv = np.meshgrid(range(self.win_width), range(self.win_height), indexing='xy')
-        checkerboard = ((xv // num_pixels) + (yv // num_pixels)) % 2
-        checkerboard = 255*checkerboard.astype(np.uint8)
-        cv2.imshow('projector', checkerboard)
-        cv2.waitKey(1)
-
-        # TODO do the actual calibration
-
     def project(self, image: NDArray) -> None:
         """
         Input image to project
         """
-        #start_time_ns = time.process_time_ns()
-        cv2.imshow('projector', image)
-        cv2.waitKey(1)
-        #print(1e-9 * (time.process_time_ns() -start_time_ns))
+
+        visual.ImageStim(self.win, image)
+        self.win.flip()
 
     def get_resolution(self) -> Tuple[int, int]:
         return (self.win_width, self.win_height)

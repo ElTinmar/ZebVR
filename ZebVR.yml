@@ -1,6 +1,14 @@
 name: ZebVR
 dependencies:
-- python >= 3.8
+- python == 3.8
+- pip
+- pip:
+  - wxPython == 4.1.1
+  - opencv-python
+  - harvesters
+  - screeninfo
+  - hid
+  - psychopy
 - ipython
 - numpy
 - scikit-learn
@@ -8,9 +16,5 @@ dependencies:
 - scikit-image
 - pyzmq
 - scipy
-- pip
-- pip:
-  - opencv-python
-  - harvesters
-  - screeninfo
-  - hid
+
+

@@ -1,5 +1,6 @@
 from devices.camera.dummycam import FromFile
 from devices.projector.opencv_projector import CVProjector
+from devices.projector.psychopy_projector import PsychoPyProjector
 from visual_stimuli.phototaxis import Phototaxis 
 from background.background import DynamicBackground
 from tracking.body.body_tracker import BodyTrackerPCA
@@ -17,7 +18,7 @@ import zmq
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 20
+    fps = 50
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
@@ -70,7 +71,7 @@ trckzmq_1 = TrackerZMQ('Tracker1',tracker)
 trckzmq_2 = TrackerZMQ('Tracker2',tracker)
 
 # projector --------------------------------------------------------
-projector = CVProjector(monitor_id = 1)
+projector = PsychoPyProjector(monitor_id = 1)
 projZMQ = ProjectorZMQ(projector)
 
 # stimulus ---------------------------------------------------------
