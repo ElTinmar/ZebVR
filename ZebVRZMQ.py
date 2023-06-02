@@ -2,7 +2,7 @@ from devices.camera.dummycam import FromFile
 from devices.projector.opencv_projector import CVProjector
 from visual_stimuli.phototaxis import Phototaxis 
 from background.background import DynamicBackground
-from tracking.body.body_tracker import BodyTracker
+from tracking.body.body_tracker import BodyTrackerPCA
 from tracking.eyes.eyes_tracker import EyesTracker
 from tracking.tail.tail_tracker import TailTracker
 from tracking.prey.prey_tracker import PreyTracker
@@ -35,7 +35,7 @@ background = DynamicBackground(
 backZMQ = BackgroundZMQ(background)
 
 # trackers -------------------------------------------------
-body_tracker = BodyTracker(
+body_tracker = BodyTrackerPCA(
     threshold_body_intensity = 0.2,
     threshold_body_area = 500
 )
@@ -62,7 +62,7 @@ prey_tracker = PreyTracker(
     threshold_prey_area_max = 100
 )
 full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey_tracker])
-#full_tracker = TrackerCollection([body_tracker])
+full_tracker = TrackerCollection([body_tracker])
 tracker = full_tracker
 
 trckzmq_0 = TrackerZMQ('Tracker0',tracker)
