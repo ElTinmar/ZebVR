@@ -57,7 +57,7 @@ class ZMQDataProcessingNode(ABC):
 
     def configure_zmq(self):
         self.context = zmq.Context()
-        #self.context.setsockopt(zmq.RCVTIMEO, self.recv_timeout_s*1000)
+        self.context.setsockopt(zmq.RCVTIMEO, self.recv_timeout_s*1000)
 
         for isock in self.insock_info:
             socket = self.context.socket(isock.socket_type)
@@ -115,7 +115,6 @@ class ZMQDataProcessingNode(ABC):
             except zmq.ZMQError:
                 print('Send queue is full, message was discarded')
                 
-
             self.post_send()
 
             self.execution_time += 10e-9 *(time.process_time_ns() - start_time_ns)
