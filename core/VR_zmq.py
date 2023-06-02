@@ -7,18 +7,23 @@ class ProjectorZMQ(ZMQDataProcessingNode):
     def __init__(
             self, 
             projector : Projector,
-            recv_timeout_s: int = 10
+            recv_timeout_s: int = 10,
+            name: str = 'ProjectorZMQ' 
         ) -> None:
         
         super().__init__(recv_timeout_s)
         self.projector = projector
+        self.name = name
 
     def pre_loop(self) -> None:
         self.projector.init_window()
 
     def post_loop(self) -> None:
         self.projector.close_window()
-        print(f'ProjectorZMQ {self.execution_time/self.num_loops} s per loop')
+        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
 
     def post_send(self) -> None:
         pass
@@ -34,19 +39,24 @@ class CameraZMQ(ZMQDataProcessingNode):
     def __init__(
             self, 
             camera: Camera,
-            recv_timeout_s: int = 10
+            recv_timeout_s: int = 10,
+            name: str = 'CameraZMQ' 
         ) -> None:
         
         super().__init__(recv_timeout_s)
         
         self.camera = camera
         self.data = None
+        self.name = name
 
     def pre_loop(self) -> None:
         pass
 
     def post_loop(self) -> None:
-        print(f'CameraZMQ {self.execution_time/self.num_loops} s per loop')
+        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
 
     def post_send(self) -> None:
         if self.data is not None:
@@ -61,19 +71,24 @@ class BackgroundZMQ(ZMQDataProcessingNode):
     def __init__(
             self,
             background: Background,
-            recv_timeout_s: int = 10
+            recv_timeout_s: int = 10,
+            name: str = 'BackgroundZMQ' 
         ) -> None:
 
         super().__init__(recv_timeout_s)
 
         self.background = background
+        self.name = name
 
     def pre_loop(self) -> None:
         self.background.start()
 
     def post_loop(self) -> None:
         self.background.stop()
-        print(f'BackgroundZMQ {self.execution_time/self.num_loops} s per loop')
+        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
 
     def post_send(self) -> None:
         pass
@@ -104,8 +119,11 @@ class TrackerZMQ(ZMQDataProcessingNode):
 
     def post_loop(self) -> None:
         cv2.destroyWindow(self.name)
-        print(f'TrackerZMQ {self.execution_time/self.num_loops} s per loop')
-    
+        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
+
     def post_send(self) -> None:
         if self.overlay is not None:
             for c in range(self.overlay.shape[2]):
@@ -126,19 +144,24 @@ class StimulusZMQ(ZMQDataProcessingNode):
     def __init__(
             self, 
             stimulus: Stimulus,
-            recv_timeout_s: int = 10
+            recv_timeout_s: int = 10,
+            name: str = 'StimulusZMQ' 
         ) -> None:
         
         super().__init__(recv_timeout_s)
         
         self.stimulus = stimulus
+        self.name = name
 
     def pre_loop(self) -> None:
         pass
 
     def post_loop(self) -> None:
-        print(f'StimulusZMQ {self.execution_time/self.num_loops} s per loop')
-
+        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
+        
     def post_send(self) -> None:
         pass
 
