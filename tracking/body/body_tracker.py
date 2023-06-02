@@ -9,6 +9,7 @@ from tracking.utils.conncomp_filter import bwareaopen
 from core.abstractclasses import Tracker
 import cv2
 from core.dataclasses import BodyTracking
+import time
 
 class BodyTracker(Tracker):
     def __init__(
@@ -52,13 +53,17 @@ class BodyTracker(Tracker):
     
 class BodyTrackerPCA(BodyTracker):
     def track(self, image: NDArray) -> BodyTracking:
+        #start_time_ns = time.process_time_ns()
 
         # threshold and remove small objects 
         fish_mask = bwareaopen(
             image >= self.threshold_body_intensity, 
             min_size = self.threshold_body_area
         )
+        #print(f'bwareaopen {10e-9 *(time.process_time_ns() - start_time_ns)}')
+              
         blob_coordinates = np.argwhere(fish_mask) #  (row, col) coordinates
+        #print(f'argwhere {10e-9 *(time.process_time_ns() - start_time_ns)}')
 
         if blob_coordinates.size == 0:
             return None
@@ -72,6 +77,8 @@ class BodyTrackerPCA(BodyTracker):
             # PCs are organized in rows, transform to columns
             principal_components = pca.components_.T
             centroid = pca.mean_
+
+            #print(f'PCA {10e-9 *(time.process_time_ns() - start_time_ns)}')
 
             # correct orientation
             if abs(max(scores[:,0])) > abs(min(scores[:,0])):
@@ -97,13 +104,6 @@ class BodyTrackerMoments(BodyTracker):
             min_size = self.threshold_body_area
         )
 
-        moments_central(fish_mask,)
-
-        # store to generate overlay
-        self.curr_tracking = BodyTracking(
-            centroid = centroid,
-            heading = principal_components,
-            fish_mask = fish_mask
-        )
-
-        return self.curr_tracking 
+        # TODO 
+        
+        return None
