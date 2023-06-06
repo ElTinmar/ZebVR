@@ -53,7 +53,8 @@ class CVProjector(Projector):
         Input image to project
         """
         #start_time_ns = time.process_time_ns()
-        cv2.imshow('projector', image)
+        smallimg = cv2.resize(image, None, fx = 0.25, fy = 0.25, interpolation=cv2.INTER_NEAREST)
+        cv2.imshow('projector', smallimg)
         cv2.waitKey(1)
         #print(1e-9 * (time.process_time_ns() -start_time_ns))
 
