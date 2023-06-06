@@ -60,10 +60,10 @@ class BodyTrackerPCA(BodyTracker):
             image >= self.threshold_body_intensity, 
             min_size = self.threshold_body_area
         )
-        #print(f'bwareaopen {10e-9 *(time.process_time_ns() - start_time_ns)}')
+        #print(f'bwareaopen {1e-9 *(time.process_time_ns() - start_time_ns)}')
               
         blob_coordinates = np.argwhere(fish_mask) #  (row, col) coordinates
-        #print(f'argwhere {10e-9 *(time.process_time_ns() - start_time_ns)}')
+        #print(f'argwhere {1e-9 *(time.process_time_ns() - start_time_ns)}')
 
         if blob_coordinates.size == 0:
             return None
@@ -78,7 +78,7 @@ class BodyTrackerPCA(BodyTracker):
             principal_components = pca.components_.T
             centroid = pca.mean_
 
-            #print(f'PCA {10e-9 *(time.process_time_ns() - start_time_ns)}')
+            #print(f'PCA {1e-9 *(time.process_time_ns() - start_time_ns)}')
 
             # correct orientation
             if abs(max(scores[:,0])) > abs(min(scores[:,0])):
