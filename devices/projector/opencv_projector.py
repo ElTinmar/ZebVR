@@ -24,7 +24,6 @@ class CVProjector(Projector):
         self.offset_x = offset_x
 
     def init_window(self):
-        cv2.namedWindow('projector')
         cv2.namedWindow('projector', cv2.WINDOW_NORMAL)
         cv2.moveWindow('projector', x=self.offset_x, y=0)
         cv2.resizeWindow('projector', self.win_width, self.win_height)
