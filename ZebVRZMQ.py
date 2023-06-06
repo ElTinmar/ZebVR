@@ -1,6 +1,5 @@
 from devices.camera.dummycam import FromFile
 from devices.projector.opencv_projector import CVProjector
-from devices.projector.psychopy_projector import PsychoPyProjector
 from visual_stimuli.phototaxis import Phototaxis 
 from background.background import DynamicBackground
 from tracking.body.body_tracker import BodyTrackerPCA
@@ -9,7 +8,8 @@ from tracking.tail.tail_tracker import TailTracker
 from tracking.prey.prey_tracker import PreyTracker
 from tracking.tracker_collection import TrackerCollection 
 from registration.registration_cam2proj import Cam2ProjReg
-from parallel.dag import ZMQDataProcessingDAG
+from parallel.zmq_worker import ZMQSocketInfo
+from parallel.serialization import send_frame, recv_frame
 from core.dataclasses import CameraParameters
 from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, ProjectorZMQ
 import zmq
@@ -18,13 +18,12 @@ import zmq
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 50
+    fps = 10
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
     parameters = camera_param
 )
-camZMQ = CameraZMQ(camera = camera)
 
 # background -------------------------------------------------
 background = DynamicBackground(
@@ -33,7 +32,6 @@ background = DynamicBackground(
     num_images = 200, 
     every_n_image = 2
 )
-backZMQ = BackgroundZMQ(background)
 
 # trackers -------------------------------------------------
 body_tracker = BodyTrackerPCA(
@@ -66,19 +64,11 @@ full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey
 full_tracker = TrackerCollection([body_tracker])
 tracker = full_tracker
 
-trckzmq_0 = TrackerZMQ('Tracker0',tracker)
-trckzmq_1 = TrackerZMQ('Tracker1',tracker)
-trckzmq_2 = TrackerZMQ('Tracker2',tracker)
-
 # projector --------------------------------------------------------
-projector = PsychoPyProjector(monitor_id = 1)
-projZMQ = ProjectorZMQ(projector)
+projector = CVProjector(monitor_id = 1)
 
 # stimulus ---------------------------------------------------------
 stimulus = Phototaxis(projector)
-stimzmq_0 = StimulusZMQ(stimulus)
-stimzmq_1 = StimulusZMQ(stimulus)
-stimzmq_2 = StimulusZMQ(stimulus)
 
 # registration ---------------------------------------------------------
 cam2proj = Cam2ProjReg(
@@ -92,108 +82,140 @@ cam2proj = Cam2ProjReg(
     ksize = 10
 )
 
-dag = [
-    {
-        'src': camZMQ,
-        'dst': backZMQ,
-        'protocol': 'tcp://',
-        'address' : '127.0.0.1',
-        'port': 5555,
-        'send_flag': None,
-        'recv_flag': None,
-        'src_binds': True
-    },
-    {
-        'src': backZMQ,
-        'dst': trckzmq_0,
-        'protocol': 'tcp://',
-        'address' : '127.0.0.1',
-        'port': 5556,
-        'send_flag': None,
-        'recv_flag': None,
-        'src_binds': True
-    },
-    {
-        'src': backZMQ,
-        'dst': trckzmq_1,
-        'protocol': 'tcp://',
-        'address' : '127.0.0.1',
-        'port': 5556,
-        'send_flag': None,
-        'recv_flag': None,
-        'src_binds': True
-    },
-    {
-        'src': backZMQ,
-        'dst': trckzmq_2,
-        'protocol': 'tcp://',
-        'address' : '127.0.0.1',
-        'port': 5556,
-        'send_flag': None,
-        'recv_flag': None,
-        'src_binds': True
-    },
-    {
-        'src': trckzmq_0,
-        'dst': stimzmq_0,
-        'protocol': 'tcp://',
-        'address' : '127.0.0.1',
-        'port': 5557,
-        'send_flag': None,
-        'recv_flag': None,
-        'src_binds': True
-    },
-    {
-        'src': trckzmq_1,
-        'dst': stimzmq_1,
-        'protocol': 'tcp://',
-        'address' : '127.0.0.1',
-        'port': 5558,
-        'send_flag': None,
-        'recv_flag': None,
-        'src_binds': True
-    },
-    {
-        'src': trckzmq_2,
-        'dst': stimzmq_2,
-        'protocol': 'tcp://',
-        'address' : '127.0.0.1',
-        'port': 5559,
-        'send_flag': None,
-        'recv_flag': None,
-        'src_binds': True
-    },
-    {
-        'src': stimzmq_0,
-        'dst': projZMQ,
-        'protocol': 'tcp://',
-        'address' : '127.0.0.1',
-        'port': 5560,
-        'send_flag': None,
-        'recv_flag': None,
-        'src_binds': False
-    },
-    {
-        'src': stimzmq_1,
-        'dst': projZMQ,
-        'protocol': 'tcp://',
-        'address' : '127.0.0.1',
-        'port': 5560,
-        'send_flag': None,
-        'recv_flag': None,
-        'src_binds': False
-    },
-    {
-        'src': stimzmq_2,
-        'dst': projZMQ,
-        'protocol': 'tcp://',
-        'address' : '127.0.0.1',
-        'port': 5560,
-        'send_flag': None,
-        'recv_flag': None,
-        'src_binds': False
-    }
-]
+# Processing DAG ---------------------------------------------------------------
+
+cam_out = ZMQSocketInfo(
+    port = 5555,
+    socket_type = zmq.PUSH,
+    bind = True,
+    serializer = send_frame
+)
+
+bckg_in = ZMQSocketInfo(
+    port = cam_out.port,
+    socket_type = zmq.PULL,
+    deserializer = recv_frame
+)
+
+bckg_out = ZMQSocketInfo(
+    port = 5556,
+    socket_type = zmq.PUSH,
+    bind = True,
+    serializer = send_frame
+)
+
+tracker0_in = ZMQSocketInfo(
+    port = bckg_out.port,
+    socket_type = zmq.PULL,
+    deserializer = recv_frame
+)
+
+tracker0_out = ZMQSocketInfo(
+    port = 5557,
+    socket_type = zmq.PUSH,
+    bind = True
+)
+
+tracker1_in = ZMQSocketInfo(
+    port = bckg_out.port,
+    socket_type = zmq.PULL,
+    deserializer = recv_frame
+)
+
+tracker1_out = ZMQSocketInfo(
+    port = 5558,
+    socket_type = zmq.PUSH,
+    bind = True
+)
+
+stim0_in = ZMQSocketInfo(
+    port = tracker0_out.port,
+    socket_type = zmq.PULL
+)
+
+stim0_out = ZMQSocketInfo(
+    port = 5559,
+    socket_type = zmq.PUSH,
+    bind = True,
+    serializer = send_frame
+)
+
+stim1_in = ZMQSocketInfo(
+    port = tracker1_out.port,
+    socket_type = zmq.PULL
+)
+
+stim1_out = ZMQSocketInfo(
+    port = 5560,
+    socket_type = zmq.PUSH,
+    bind = True,
+    serializer = send_frame
+)
+
+projector_in0 = ZMQSocketInfo(
+    port = stim0_out.port,
+    socket_type = zmq.PULL,
+    deserializer = recv_frame
+)
+
+projector_in1 = ZMQSocketInfo(
+    port = stim1_out.port,
+    socket_type = zmq.PULL,
+    deserializer = recv_frame
+)
+
+# create and start nodes -------------------------------------------
+camZMQ = CameraZMQ(
+    camera = camera,
+    input_info = [],
+    output_info = [cam_out]
+)
+
+backZMQ = BackgroundZMQ(
+    background,
+    input_info = [bckg_in],
+    output_info = [bckg_out]
+)
+
+trckzmq_0 = TrackerZMQ(
+    'Tracker0',
+    tracker,
+    input_info = [tracker0_in],
+    output_info = [tracker0_out]
+)
+
+trckzmq_1 = TrackerZMQ(
+    'Tracker1',
+    tracker,
+    input_info = [tracker1_in],
+    output_info = [tracker1_out]
+)
+
+stimzmq_0 = StimulusZMQ(
+    stimulus,
+    input_info = [stim0_in],
+    output_info = [stim0_out]
+)
+
+stimzmq_1 = StimulusZMQ(
+    stimulus,
+    input_info = [stim1_in],
+    output_info = [stim1_out]
+)
+
+projZMQ = ProjectorZMQ(
+    projector,
+    input_info = [projector_in0, projector_in1],
+    output_info = []
+)
+
+projZMQ.start()
+stimzmq_1.start()
+stimzmq_0.start()
+trckzmq_1.start()
+trckzmq_0.start()
+backZMQ.start()
+camZMQ.start()
 
 """
 camera.calibration()
@@ -201,8 +223,7 @@ projector.calibration()
 cam2proj.registration()
 """
 
-VR = ZMQDataProcessingDAG(dag)
-VR.start()
+
 
 #time.sleep(120)
 #VR.stop()
