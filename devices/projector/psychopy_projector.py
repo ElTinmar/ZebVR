@@ -47,7 +47,8 @@ class PsychoPyProjector(Projector):
         Input image to project
         """
 
-        visual.ImageStim(self.win, image)
+        img = visual.ImageStim(self.win, image)
+        img.draw()
         self.win.flip()
 
     def get_resolution(self) -> Tuple[int, int]:
