@@ -9,6 +9,8 @@ dependencies:
   - screeninfo
   - hid
   - psychopy
+- numba
+- cudatoolkit
 - ipython
 - numpy
 - scikit-learn
