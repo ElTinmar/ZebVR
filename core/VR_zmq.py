@@ -1,4 +1,4 @@
-from core.abstractclasses import Background, Camera, Tracker, Stimulus, Projector
+from core.abstractclasses import Background, Camera, Tracker, Stimulus, Projector, CameraDisplay
 from parallel.zmq_worker import ZMQDataProcessingNode, ZMQSocketInfo
 from typing import Any
 import cv2
@@ -44,6 +44,42 @@ class CameraZMQ(ZMQDataProcessingNode):
         }
         return ret
     
+class CameraDisplayZMQ(ZMQDataProcessingNode):
+    def __init__(
+            self, 
+            cam_display: CameraDisplay, 
+            input_info : List[ZMQSocketInfo],
+            output_info : List[ZMQSocketInfo],
+            recv_timeout_s: int = 10,
+            name: str = 'CameraDisplayZMQ' 
+        ) -> None:
+        
+        super().__init__(input_info,output_info,recv_timeout_s)
+        self.name = name
+        self.cam_display = cam_display
+
+    def pre_loop(self) -> None:
+        self.cam_display.init_window()
+
+    def post_loop(self) -> None:
+        self.cam_display.close_window()
+        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
+
+    def post_send(self) -> None:
+        pass
+
+    def post_recv(self, args: Any) -> Any:
+        timestamp = args[0]['timestamp']
+        index = args[0]['index']
+        image = args[0]['frame']
+    
+        self.cam_display.display(image)
+
+        print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
+
 class BackgroundZMQ(ZMQDataProcessingNode):
     def __init__(
             self,
@@ -78,7 +114,7 @@ class BackgroundZMQ(ZMQDataProcessingNode):
         image = args[0]['frame']
 
         self.background.add_image(image)
-        print(f'Bckg received image {index}, timestamp {timestamp}' ,flush=True)
+        print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
 
         ret = {
             'index': index,
@@ -173,7 +209,7 @@ class StimulusZMQ(ZMQDataProcessingNode):
 
         ret = {
             'index': index,
-            'timestamp':  self.data.get_timestamp(),
+            'timestamp':  timestamp,
             'frame': self.stimulus.create_stim_image(timestamp, tracking)
         }
         return ret

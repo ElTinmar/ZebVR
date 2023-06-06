@@ -3,7 +3,6 @@ import cv2
 import time
 import numpy as np
 import logging
-import time
 
 class Data(CameraData):
     def __init__(self, image, index, timestamp):

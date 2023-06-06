@@ -1,4 +1,5 @@
 from devices.camera.dummycam import FromFile
+from devices.camera.display import CamDisp
 from devices.projector.opencv_projector import CVProjector
 from visual_stimuli.phototaxis import Phototaxis 
 from background.background import DynamicBackground
@@ -11,7 +12,7 @@ from registration.registration_cam2proj import Cam2ProjReg
 from parallel.zmq_worker import ZMQSocketInfo
 from parallel.serialization import send_frame, recv_frame
 from core.dataclasses import CameraParameters
-from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, ProjectorZMQ
+from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, ProjectorZMQ, CameraDisplayZMQ
 import zmq
 
 # camera -------------------------------------------------
@@ -24,6 +25,9 @@ camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
     parameters = camera_param
 )
+
+# camera display ------------------------------------------
+cam_display = CamDisp('camera')
 
 # background -------------------------------------------------
 background = DynamicBackground(
@@ -84,15 +88,28 @@ cam2proj = Cam2ProjReg(
 
 # Processing DAG ---------------------------------------------------------------
 
-cam_out = ZMQSocketInfo(
+cam_out0 = ZMQSocketInfo(
     port = 5555,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_frame
 )
 
+cam_out1 = ZMQSocketInfo(
+    port = 5561,
+    socket_type = zmq.PUSH,
+    bind = True,
+    serializer = send_frame
+)
+
+cam_disp_in = ZMQSocketInfo(
+    port = cam_out1.port,
+    socket_type = zmq.PULL,
+    deserializer = recv_frame
+)
+
 bckg_in = ZMQSocketInfo(
-    port = cam_out.port,
+    port = cam_out0.port,
     socket_type = zmq.PULL,
     deserializer = recv_frame
 )
@@ -168,8 +185,14 @@ projector_in1 = ZMQSocketInfo(
 camZMQ = CameraZMQ(
     camera = camera,
     input_info = [],
-    output_info = [cam_out]
+    output_info = [cam_out0,cam_out1]
 )
+
+camdispZMQ = CameraDisplayZMQ(
+    cam_display,
+    input_info=[cam_disp_in],
+    output_info=[]
+    )
 
 backZMQ = BackgroundZMQ(
     background,
@@ -215,6 +238,7 @@ stimzmq_0.start()
 trckzmq_1.start()
 trckzmq_0.start()
 backZMQ.start()
+camdispZMQ.start()
 camZMQ.start()
 
 """

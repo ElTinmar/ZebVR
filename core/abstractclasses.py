@@ -44,9 +44,11 @@ class Projector(ABC):
         """
         ...
 
+    @abstractmethod
     def init_window(self) -> None:
         pass
     
+    @abstractmethod
     def close_window(self) -> None:
         pass
 
@@ -96,7 +98,23 @@ class Camera(ABC):
         Output a boolean if there is an image, 
         and the next image from the camera
         """
-    
+
+class CameraDisplay(ABC):
+    def __init__(self) -> None:
+        super().__init__()
+
+    @abstractmethod
+    def init_window(self) -> None:
+        pass
+
+    @abstractmethod
+    def close_window(self) -> None:
+        pass
+
+    @abstractmethod
+    def display(self, image: NDArray) -> None:
+        pass
+
 class Tracker(ABC):
     def __init__(self):
         super().__init__()
