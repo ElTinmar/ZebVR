@@ -6,14 +6,18 @@ import logging
 import time
 
 class Data(CameraData):
-    def __init__(self, image, timestamp):
+    def __init__(self, image, index, timestamp):
         # transform image to single precision
         ui_info = np.iinfo(image.dtype)
         self.image = image.astype(np.float32) / ui_info.max
         self.timestamp = timestamp
+        self.index = index
 
     def get_img(self):
         return self.image
+    
+    def get_index(self):
+        return self.index 
     
     def get_timestamp(self):
         return self.timestamp
@@ -35,14 +39,25 @@ class FromFile(Camera):
         pass
 
     def fetch(self):
+        start_time_ns = time.process_time_ns()
         self.img_count += 1
         self.logger.log(logging.DEBUG, f'FromFile, {time.time_ns()}, {self.img_count}, 0')
         ret, img = self.cap.read()
-        img_gray = img[:,:,0]
-        buf = Data(img_gray, self.img_count)  
-        self.logger.log(logging.DEBUG, f'FromFile, {time.time_ns()}, {self.img_count}, 1')
-        time.sleep(1/self.parameters.fps)
-        return (buf, ret)
+        if ret:
+            img_gray = img[:,:,0]
+            buf = Data(
+                image = img_gray, 
+                index = self.img_count, 
+                timestamp = self.img_count/self.parameters.fps
+            )  
+            self.logger.log(logging.DEBUG, f'FromFile, {time.time_ns()}, {self.img_count}, 1')
+
+            while time.process_time_ns() - start_time_ns < 1e9/self.parameters.fps:
+                pass
+
+            return (buf, ret)
+        else:
+            return (None, ret)
 
     def __del__(self):
         self.cap.release()

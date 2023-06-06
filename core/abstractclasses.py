@@ -21,6 +21,10 @@ class CameraData(ABC):
         """return image data"""
     
     @abstractmethod
+    def get_index(self) -> int:
+        """return frame index"""
+
+    @abstractmethod
     def get_timestamp(self) -> int:
         """return timestamps in ns"""
 
