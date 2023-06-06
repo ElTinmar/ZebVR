@@ -1,4 +1,4 @@
-from core.abstractclasses import Background, Camera, Tracker, Stimulus, Projector, CameraDisplay
+from core.abstractclasses import Background, Camera, Tracker, Stimulus, Projector, CameraDisplay, TrackerDisplay
 from parallel.zmq_worker import ZMQDataProcessingNode, ZMQSocketInfo
 from typing import Any
 import cv2
@@ -137,25 +137,19 @@ class TrackerZMQ(ZMQDataProcessingNode):
 
         self.tracker = tracker
         self.overlay = None
-        self.image = None
         self.name = name
 
     def pre_loop(self) -> None:
-        cv2.namedWindow(self.name)
+        pass
 
     def post_loop(self) -> None:
-        cv2.destroyWindow(self.name)
         print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
         print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
         print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
         print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
 
     def post_send(self) -> None:
-        if self.overlay is not None:
-            for c in range(self.overlay.shape[2]):
-                self.overlay[:,:,c] = self.overlay[:,:,c] + self.image
-            cv2.imshow(self.name, self.overlay)
-            cv2.waitKey(1)
+        pass
 
     def post_recv(self, args: Any) -> Any:
         timestamp = args[0]['timestamp']
@@ -163,16 +157,52 @@ class TrackerZMQ(ZMQDataProcessingNode):
         image = args[0]['frame']
 
         tracking = self.tracker.track(image)
-        self.overlay = self.tracker.tracking_overlay(image)
-        self.image = image 
         print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
         
         ret = {
             'index': index,
             'timestamp': timestamp,
-            'tracking': tracking
+            'tracking': tracking,
+            'frame': image
         }
         return ret
+    
+class TrackerDisplayZMQ(ZMQDataProcessingNode):
+    def __init__(
+            self, 
+            track_display: TrackerDisplay, 
+            input_info : List[ZMQSocketInfo],
+            output_info : List[ZMQSocketInfo],
+            recv_timeout_s: int = 10,
+            name: str = 'TrackerDisplayZMQ' 
+        ) -> None:
+        
+        super().__init__(input_info,output_info,recv_timeout_s)
+        self.name = name
+        self.track_display = track_display
+
+    def pre_loop(self) -> None:
+        self.track_display.init_window()
+
+    def post_loop(self) -> None:
+        self.track_display.close_window()
+        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
+
+    def post_send(self) -> None:
+        pass
+
+    def post_recv(self, args: Any) -> Any:
+        timestamp = args[0]['timestamp']
+        index = args[0]['index']
+        image = args[0]['frame']
+        tracking = args[0]['tracking']
+    
+        self.track_display.display(tracking, image)
+
+        print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
     
 class StimulusZMQ(ZMQDataProcessingNode):
     def __init__(

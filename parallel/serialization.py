@@ -34,3 +34,23 @@ def recv_frame(socket, flags=0, copy=True, track=False):
         'frame': recv_array(socket, flags, copy, track)
     }
     return ret
+
+def send_tracking(socket, data, flags=0, copy=True, track=False) -> None:
+    msg = dict(
+        index = data['index'],
+        timestamp = data['timestamp'],
+    )
+    socket.send_json(msg, flags | zmq.SNDMORE)
+    socket.send_pyobj(data['tracking'], flags | zmq.SNDMORE)
+    send_array(socket, data['frame'], flags, copy, track)
+
+def recv_tracking(socket, flags=0, copy=True, track=False):
+    msg = socket.recv_json(flags=flags)
+    tracking =  socket.recv_pyobj(flags=flags)
+    ret = {
+        'index': msg["index"],
+        'timestamp': msg["timestamp"],
+        'tracking': tracking,
+        'frame': recv_array(socket, flags, copy, track)
+    }
+    return ret

@@ -32,15 +32,4 @@ class TrackerCollection(Tracker):
             
         self.curr_tracking = tracking
         return self.curr_tracking
-
-    def tracking_overlay(self, image: NDArray) -> NDArray:
-
-        overlay = np.zeros(
-            (image.shape[0],image.shape[1],3), 
-            dtype=np.single
-        )
-        
-        for tracker in self.tracker_list:
-            overlay += tracker.tracking_overlay(image)
-
-        return overlay
+    

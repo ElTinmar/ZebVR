@@ -49,19 +49,3 @@ class PreyTracker(Tracker):
 
         return self.curr_tracking
     
-    def tracking_overlay(self, image: NDArray) -> NDArray:
-
-        overlay = np.zeros(
-            (image.shape[0],image.shape[1],3), 
-            dtype=np.single
-        )
-
-        for prey_loc in self.curr_tracking.prey_centroids:
-            overlay = cv2.circle(
-                overlay, 
-                prey_loc.astype(np.int32),
-                self.circle_radius,
-                self.circle_color
-            )
-
-        return overlay

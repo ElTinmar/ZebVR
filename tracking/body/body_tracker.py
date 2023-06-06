@@ -32,25 +32,6 @@ class BodyTracker(Tracker):
     def track(self):
         pass
     
-    def tracking_overlay(self, image: NDArray) -> NDArray:
-
-        overlay = np.zeros(
-            (image.shape[0],image.shape[1],3), 
-            dtype=np.single
-        )
-        
-        if self.curr_tracking is not None:
-            pt1 = self.curr_tracking.centroid
-            pt2 = self.curr_tracking.centroid + self.alpha*self.curr_tracking.heading[:,0]
-            overlay = cv2.line(
-                overlay,
-                pt1.astype(np.int32),
-                pt2.astype(np.int32),
-                self.color_heading
-            )
-
-        return overlay
-    
 class BodyTrackerPCA(BodyTracker):
     def track(self, image: NDArray) -> BodyTracking:
         #start_time_ns = time.process_time_ns()

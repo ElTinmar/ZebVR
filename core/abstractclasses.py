@@ -125,12 +125,22 @@ class Tracker(ABC):
         Extract parameters (position/orientation) 
         of objects from an image
         """
+        
+class TrackerDisplay(ABC):
+    def __init__(self) -> None:
+        super().__init__()
 
     @abstractmethod
-    def tracking_overlay(self, image: NDArray) -> NDArray:
-        """
-        Return overlay image to visualize tracking parameters
-        """
+    def init_window(self):
+        pass
+    
+    @abstractmethod
+    def close_window(self):
+        pass
+
+    @abstractmethod
+    def display(self, parameters: Tracking, image: NDArray) -> NDArray:
+        pass
 
 class Background(ABC):
     @abstractmethod

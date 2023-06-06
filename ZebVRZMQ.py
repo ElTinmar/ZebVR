@@ -10,9 +10,10 @@ from tracking.prey.prey_tracker import PreyTracker
 from tracking.tracker_collection import TrackerCollection 
 from registration.registration_cam2proj import Cam2ProjReg
 from parallel.zmq_worker import ZMQSocketInfo
-from parallel.serialization import send_frame, recv_frame
+from parallel.serialization import send_frame, recv_frame, send_tracking, recv_tracking
 from core.dataclasses import CameraParameters
-from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, ProjectorZMQ, CameraDisplayZMQ
+from tracking.display import TrackerDisp
+from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, ProjectorZMQ, CameraDisplayZMQ, TrackerDisplayZMQ
 import zmq
 
 # camera -------------------------------------------------
@@ -68,6 +69,9 @@ full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey
 full_tracker = TrackerCollection([body_tracker])
 tracker = full_tracker
 
+# tracker disp ----------------------------------------------------
+tracker_display = TrackerDisp(name='tracking')
+
 # projector --------------------------------------------------------
 projector = CVProjector(monitor_id = 1)
 
@@ -87,7 +91,6 @@ cam2proj = Cam2ProjReg(
 )
 
 # Processing DAG ---------------------------------------------------------------
-
 cam_out0 = ZMQSocketInfo(
     port = 5555,
     socket_type = zmq.PUSH,
@@ -130,7 +133,15 @@ tracker0_in = ZMQSocketInfo(
 tracker0_out = ZMQSocketInfo(
     port = 5557,
     socket_type = zmq.PUSH,
-    bind = True
+    bind = True,
+    serializer = send_tracking
+)
+
+tracker0_out1 = ZMQSocketInfo(
+    port = 5562,
+    socket_type = zmq.PUSH,
+    bind = True,
+    serializer = send_tracking
 )
 
 tracker1_in = ZMQSocketInfo(
@@ -142,12 +153,33 @@ tracker1_in = ZMQSocketInfo(
 tracker1_out = ZMQSocketInfo(
     port = 5558,
     socket_type = zmq.PUSH,
-    bind = True
+    bind = True,
+    serializer = send_tracking
+)
+
+tracker1_out1 = ZMQSocketInfo(
+    port = 5563,
+    socket_type = zmq.PUSH,
+    bind = True,
+    serializer = send_tracking
+)
+
+tracker_disp_in0 = ZMQSocketInfo(
+    port = tracker0_out1.port,
+    socket_type = zmq.PULL,
+    deserializer = recv_tracking
+)
+
+tracker_disp_in1 = ZMQSocketInfo(
+    port = tracker1_out1.port,
+    socket_type = zmq.PULL,
+    deserializer = recv_tracking
 )
 
 stim0_in = ZMQSocketInfo(
     port = tracker0_out.port,
-    socket_type = zmq.PULL
+    socket_type = zmq.PULL,
+    deserializer = recv_tracking
 )
 
 stim0_out = ZMQSocketInfo(
@@ -159,7 +191,8 @@ stim0_out = ZMQSocketInfo(
 
 stim1_in = ZMQSocketInfo(
     port = tracker1_out.port,
-    socket_type = zmq.PULL
+    socket_type = zmq.PULL,
+    deserializer = recv_tracking
 )
 
 stim1_out = ZMQSocketInfo(
@@ -204,14 +237,20 @@ trckzmq_0 = TrackerZMQ(
     'Tracker0',
     tracker,
     input_info = [tracker0_in],
-    output_info = [tracker0_out]
+    output_info = [tracker0_out, tracker0_out1]
 )
 
 trckzmq_1 = TrackerZMQ(
     'Tracker1',
     tracker,
     input_info = [tracker1_in],
-    output_info = [tracker1_out]
+    output_info = [tracker1_out, tracker1_out1]
+)
+
+trckdisp = TrackerDisplayZMQ(
+    tracker_display,
+    input_info=[tracker_disp_in0, tracker_disp_in1],
+    output_info=[]
 )
 
 stimzmq_0 = StimulusZMQ(
@@ -235,6 +274,7 @@ projZMQ = ProjectorZMQ(
 projZMQ.start()
 stimzmq_1.start()
 stimzmq_0.start()
+trckdisp.start()
 trckzmq_1.start()
 trckzmq_0.start()
 backZMQ.start()

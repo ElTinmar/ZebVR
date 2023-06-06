@@ -97,34 +97,3 @@ class TailTracker(Tracker):
         else:
             return None
         
-    def tracking_overlay(self, image: NDArray) -> NDArray:
-        
-        overlay = np.zeros(
-            (image.shape[0],image.shape[1],3), 
-            dtype=np.single
-        )
-        
-        if self.curr_tracking is not None:
-            pt1 = self.curr_tracking.body.centroid
-            pt2 = self.curr_tracking.body.centroid + \
-                self.alpha * self.curr_tracking.body.heading[:,0]
-            overlay = cv2.line(
-                overlay,
-                pt1.astype(np.int32),
-                pt2.astype(np.int32),
-                self.color_heading
-            )
-
-            tail_segments = zip(
-                self.curr_tracking.tail_points_interp[:-1,],
-                self.curr_tracking.tail_points_interp[1:,]
-            )
-            for pt1, pt2 in tail_segments:
-                overlay = cv2.line(
-                    overlay,
-                    pt1.astype(np.int32),
-                    pt2.astype(np.int32),
-                    self.color_tail
-                )
-        
-        return overlay
