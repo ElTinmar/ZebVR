@@ -57,14 +57,6 @@ class ZMQDataProcessingNode(ABC):
     @abstractmethod
     def post_recv(self, args: Any) -> Any:
         pass
-    
-    def set_outsock_info(self, outsock_info: ZMQSocketInfo) -> None:
-        if outsock_info not in self.outsock_info:
-            self.outsock_info.append(outsock_info)
-
-    def set_insock_info(self, insock_info: ZMQSocketInfo) -> None:
-        if insock_info not in self.insock_info:
-            self.insock_info.append(insock_info)
 
     def configure_zmq(self):
         self.context = zmq.Context()
@@ -95,66 +87,69 @@ class ZMQDataProcessingNode(ABC):
             sock.close()
         self.context.destroy()
 
+    def _receive(self, socket: zmq.Socket, info: ZMQSocketInfo) -> Any:
+        if info.deserializer is not None:
+            input_data = info.deserializer(
+                socket, 
+                flags = info.flag,
+                copy = info.copy,
+                track = info.track
+            )
+        else:
+            input_data = socket.recv_pyobj(flags = info.flag)
+        return input_data
+    
+    def _send(self, socket: zmq.Socket, info: ZMQSocketInfo, data: Any) -> None:
+        try:
+            if info.serializer is not None:
+                info.serializer(
+                    socket, 
+                    data,
+                    flags = info.flag,
+                    copy = info.copy,
+                    track = info.track
+                )
+            else:
+                socket.send_pyobj(
+                    data, 
+                    flags = info.flag
+                )
+        except zmq.ZMQError:
+            print('Send queue is full, message was discarded')
+
     def _loop(self):
         self.configure_zmq()
         self.pre_loop()
 
         while not self.stop_loop.is_set():
-            start_time_ns = time.process_time_ns()
-            # receive data
-            input_data = []
             try:
+                # receive data
                 for sock, info in zip(self.input_socket,self.insock_info):
-                    if info.deserializer is not None:
-                        input_data.append(
-                            info.deserializer(
-                                sock, 
-                                flags = info.flag,
-                                copy = info.copy,
-                                track = info.track
-                            )
-                        )
-                    else:
-                        input_data.append(
-                            sock.recv_pyobj(flags = info.flag)
-                        )
+                    start_time_ns = time.process_time_ns()
+                    data = self._receive(sock, info)
+                    self.recv_time_ns += (time.process_time_ns() - start_time_ns)
+                    results = self.post_recv(data)
+                    self.post_recv_time_ns += (time.process_time_ns() - start_time_ns)
+                    for sock, info in zip(self.output_socket, self.outsock_info):
+                        self._send(sock, info, results)
+                        self.send_time_ns += (time.process_time_ns() - start_time_ns)
+                        self.post_send()
+                        self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
+                        self.num_loops += 1
+                if not self.input_socket:
+                    start_time_ns = time.process_time_ns()
+                    self.recv_time_ns += (time.process_time_ns() - start_time_ns)
+                    results = self.post_recv(None)
+                    self.post_recv_time_ns += (time.process_time_ns() - start_time_ns)
+                    for sock, info in zip(self.output_socket, self.outsock_info):
+                        self._send(sock, info, results)
+                        self.send_time_ns += (time.process_time_ns() - start_time_ns)
+                        self.post_send()
+                        self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
+                        self.num_loops += 1
             except zmq.error.Again:
                 print('receive timeout, shutting down')
                 break
-
-            self.recv_time_ns += (time.process_time_ns() - start_time_ns)
-
-            # do post_recv
-            results = self.post_recv(input_data)
-
-            self.post_recv_time_ns += (time.process_time_ns() - start_time_ns)
-
-            # send data
-            try:
-                for sock, info in zip(self.output_socket, self.outsock_info):
-                    if info.serializer is not None:
-                        info.serializer(
-                            sock, 
-                            results,
-                            flags = info.flag,
-                            copy = info.copy,
-                            track = info.track
-                        )
-                    else:
-                        sock.send_pyobj(
-                            results, 
-                            flags = info.flag
-                        )
-            except zmq.ZMQError:
-                print('Send queue is full, message was discarded')
-
-            self.send_time_ns += (time.process_time_ns() - start_time_ns)
-
-            self.post_send()
-
-            self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
-
-            self.num_loops += 1
 
         self.post_loop()
         self.clean_zmq()

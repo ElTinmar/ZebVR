@@ -72,9 +72,9 @@ class CameraDisplayZMQ(ZMQDataProcessingNode):
         pass
 
     def post_recv(self, args: Any) -> Any:
-        timestamp = args[0]['timestamp']
-        index = args[0]['index']
-        image = args[0]['frame']
+        timestamp = args['timestamp']
+        index = args['index']
+        image = args['frame']
     
         self.cam_display.display(image)
 
@@ -109,9 +109,9 @@ class BackgroundZMQ(ZMQDataProcessingNode):
         pass
 
     def post_recv(self, args: Any) -> Any:
-        timestamp = args[0]['timestamp']
-        index = args[0]['index']
-        image = args[0]['frame']
+        timestamp = args['timestamp']
+        index = args['index']
+        image = args['frame']
 
         self.background.add_image(image)
         print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
@@ -152,9 +152,9 @@ class TrackerZMQ(ZMQDataProcessingNode):
         pass
 
     def post_recv(self, args: Any) -> Any:
-        timestamp = args[0]['timestamp']
-        index = args[0]['index']
-        image = args[0]['frame']
+        timestamp = args['timestamp']
+        index = args['index']
+        image = args['frame']
 
         tracking = self.tracker.track(image)
         print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
@@ -195,10 +195,10 @@ class TrackerDisplayZMQ(ZMQDataProcessingNode):
         pass
 
     def post_recv(self, args: Any) -> Any:
-        timestamp = args[0]['timestamp']
-        index = args[0]['index']
-        image = args[0]['frame']
-        tracking = args[0]['tracking']
+        timestamp = args['timestamp']
+        index = args['index']
+        image = args['frame']
+        tracking = args['tracking']
     
         self.track_display.display(tracking, image)
 
@@ -232,9 +232,9 @@ class StimulusZMQ(ZMQDataProcessingNode):
         pass
 
     def post_recv(self, args: Any) -> Any:
-        index = args[0]['index']
-        timestamp = args[0]['timestamp']
-        tracking = args[0]['tracking']
+        index = args['index']
+        timestamp = args['timestamp']
+        tracking = args['tracking']
         print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
 
         ret = {
@@ -272,9 +272,9 @@ class ProjectorZMQ(ZMQDataProcessingNode):
         pass
 
     def post_recv(self, args: Any) -> Any:
-        timestamp = args[0]['timestamp']
-        index = args[0]['index']
-        image = args[0]['frame']
+        timestamp = args['timestamp']
+        index = args['index']
+        image = args['frame']
         print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
         if image is not None:
             self.projector.project(image)
