@@ -20,7 +20,7 @@ import zmq
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 10
+    fps = 50
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
@@ -78,7 +78,7 @@ projector = CVProjector(monitor_id = 1)
 # stimulus ---------------------------------------------------------
 stimulus = Phototaxis(projector)
 
-# registration ---------------------------------------------------------
+# registration -----------------------------------------------------
 cam2proj = Cam2ProjReg(
     camera, 
     projector,
@@ -90,7 +90,7 @@ cam2proj = Cam2ProjReg(
     ksize = 10
 )
 
-# Processing DAG ---------------------------------------------------------------
+# Processing DAG ----------------------------------------------------
 cam_out0 = ZMQSocketInfo(
     port = 5555,
     socket_type = zmq.PUSH,
@@ -271,7 +271,7 @@ projZMQ = ProjectorZMQ(
     output_info = []
 )
 
-projZMQ.start()
+#projZMQ.start()
 stimzmq_1.start()
 stimzmq_0.start()
 trckdisp.start()
@@ -286,8 +286,6 @@ camera.calibration()
 projector.calibration()
 cam2proj.registration()
 """
-
-
 
 #time.sleep(120)
 #VR.stop()
