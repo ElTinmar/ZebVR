@@ -9,18 +9,21 @@ class Phototaxis(Stimulus):
         self.projector = projector
         self.last_timestamp = 0
 
+        width, height = self.projector.get_resolution()
+        xv, yv = np.meshgrid(range(width), range(height), indexing='xy')
+        self.img = np.zeros((height,width), dtype=np.single)
+        self.grid_x = xv
+        self.grid_y = yv
+
     def create_stim_image(self, timestamp: int, parameters: TrackingCollection) -> NDArray:
         if timestamp > self.last_timestamp:
             self.last_timestamp = timestamp
-            width, height = self.projector.get_resolution()
-            xv, yv = np.meshgrid(range(width), range(height), indexing='xy')
-            img = np.zeros((height,width), dtype=np.single)
             if parameters.body is not None:
-                img = 1.0*(
-                    ((xv-parameters.body.centroid[0]) * parameters.body.heading[0,1] + \
-                    (yv-parameters.body.centroid[1]) * parameters.body.heading[1,1]) > 0
+                self.img = 1.0*(
+                    ((self.grid_x-parameters.body.centroid[0]) * parameters.body.heading[0,1] + \
+                    (self.grid_y-parameters.body.centroid[1]) * parameters.body.heading[1,1]) > 0
                 )
-            return img
+            return self.img
         else:
             return None
 
