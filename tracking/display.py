@@ -194,5 +194,6 @@ class TrackerDisp(TrackerDisplay):
         overlay = self.overlay(parameters, image)
         for c in range(overlay.shape[2]):
             overlay[:,:,c] = overlay[:,:,c] + image
-        cv2.imshow(self.name, overlay)
+        smallimg = cv2.resize(overlay, None, fx = 0.25, fy = 0.25, interpolation=cv2.INTER_NEAREST)
+        cv2.imshow(self.name, smallimg)
         cv2.waitKey(1)
