@@ -31,6 +31,7 @@ class ZMQDataProcessingNode(ABC):
         self.input_socket = []
         self.output_socket = []
         self.process = None
+        self.poller = None
         self.stop_loop = Event()
         self.recv_timeout_s = recv_timeout_s
         self.name = 'ZMQNode'
@@ -61,6 +62,7 @@ class ZMQDataProcessingNode(ABC):
     def configure_zmq(self):
         self.context = zmq.Context()
         self.context.setsockopt(zmq.RCVTIMEO, self.recv_timeout_s*1000)
+        self.poller = zmq.Poller()
 
         for isock in self.insock_info:
             socket = self.context.socket(isock.socket_type)
@@ -70,6 +72,7 @@ class ZMQDataProcessingNode(ABC):
             else:
                 socket.connect(endpoint)
             self.input_socket.append(socket)
+            self.poller.register(socket, zmq.POLLIN)
 
         for osock in self.outsock_info:
             socket = self.context.socket(osock.socket_type)
@@ -123,20 +126,24 @@ class ZMQDataProcessingNode(ABC):
 
         while not self.stop_loop.is_set():
             try:
-                # receive data
-                for sock, info in zip(self.input_socket,self.insock_info):
-                    start_time_ns = time.process_time_ns()
-                    data = self._receive(sock, info)
-                    self.recv_time_ns += (time.process_time_ns() - start_time_ns)
-                    results = self.post_recv(data)
-                    self.post_recv_time_ns += (time.process_time_ns() - start_time_ns)
-                    for sock, info in zip(self.output_socket, self.outsock_info):
-                        self._send(sock, info, results)
-                    self.send_time_ns += (time.process_time_ns() - start_time_ns)
-                    self.post_send()
-                    self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
-                    self.num_loops += 1
-                if not self.input_socket:
+                if self.input_socket:
+                    events = dict(self.poller.poll(self.recv_timeout_s*1000))
+                    if not events:
+                        raise(zmq.error.Again)
+                    for sock, info in zip(self.input_socket,self.insock_info):
+                        if sock in events and events[sock] == zmq.POLLIN:
+                            start_time_ns = time.process_time_ns()
+                            data = self._receive(sock, info)
+                            self.recv_time_ns += (time.process_time_ns() - start_time_ns)
+                            results = self.post_recv(data)
+                            self.post_recv_time_ns += (time.process_time_ns() - start_time_ns)
+                            for sock, info in zip(self.output_socket, self.outsock_info):
+                                self._send(sock, info, results)
+                            self.send_time_ns += (time.process_time_ns() - start_time_ns)
+                            self.post_send()
+                            self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
+                            self.num_loops += 1
+                else:
                     start_time_ns = time.process_time_ns()
                     self.recv_time_ns += (time.process_time_ns() - start_time_ns)
                     results = self.post_recv(None)
@@ -148,7 +155,7 @@ class ZMQDataProcessingNode(ABC):
                     self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
                     self.num_loops += 1
             except zmq.error.Again:
-                print('receive timeout, shutting down')
+                print('timeout, shutting down.')
                 break
 
         self.post_loop()

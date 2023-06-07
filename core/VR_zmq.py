@@ -45,6 +45,7 @@ class CameraZMQ(ZMQDataProcessingNode):
             }
             return ret
         else:
+            self.stop_loop.set()
             return None
     
 class CameraDisplayZMQ(ZMQDataProcessingNode):

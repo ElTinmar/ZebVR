@@ -20,7 +20,7 @@ import zmq
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 10
+    fps = 20
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
@@ -28,14 +28,15 @@ camera = FromFile(
 )
 
 # camera display ------------------------------------------
-cam_display = CamDisp('camera')
+cam_display = CamDisp('camera',rescale=0.66)
 
 # background -------------------------------------------------
 background = DynamicBackground(
     width = camera_param.ROI_width,
     height = camera_param.ROI_height,
     num_images = 200, 
-    every_n_image = 2
+    every_n_image = 2,
+    rescale=0.66
 )
 
 # trackers -------------------------------------------------
@@ -70,7 +71,7 @@ full_tracker = TrackerCollection([body_tracker])
 tracker = full_tracker
 
 # tracker disp ----------------------------------------------------
-tracker_display = TrackerDisp(name='tracking')
+tracker_display = TrackerDisp(name='tracking',rescale=0.66)
 
 # projector --------------------------------------------------------
 projector = CVProjector(monitor_id = 1)
