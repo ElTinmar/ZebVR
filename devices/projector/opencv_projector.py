@@ -5,6 +5,8 @@ import numpy as np
 from typing import Tuple
 from core.abstractclasses import Projector  
 import time
+import ctypes
+from multiprocessing import Array, Event, Process
 
 class CVProjector(Projector):
     def __init__(self, monitor_id=1, rescale=None) -> None:
@@ -53,7 +55,6 @@ class CVProjector(Projector):
         """
         Input image to project
         """
-        #start_time_ns = time.process_time_ns()
         if self.rescale is not None:
             smallimg = cv2.resize(
                 image, 
@@ -66,7 +67,6 @@ class CVProjector(Projector):
         else:
             cv2.imshow('projector', image)
         cv2.waitKey(1)
-        #print(1e-9 * (time.process_time_ns() -start_time_ns))
 
     def get_resolution(self) -> Tuple[int, int]:
         return (self.win_width, self.win_height)

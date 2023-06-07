@@ -20,7 +20,7 @@ import zmq
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 20
+    fps = 35
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
