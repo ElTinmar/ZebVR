@@ -91,15 +91,17 @@ cam2proj = Cam2ProjReg(
 )
 
 # Processing DAG ----------------------------------------------------
+base_port = 8000
+
 cam_out0 = ZMQSocketInfo(
-    port = 5555,
+    port = base_port,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_frame
 )
 
 cam_out1 = ZMQSocketInfo(
-    port = 5561,
+    port = base_port + 1,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_frame
@@ -118,7 +120,7 @@ bckg_in = ZMQSocketInfo(
 )
 
 bckg_out = ZMQSocketInfo(
-    port = 5556,
+    port = base_port + 2,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_frame
@@ -131,14 +133,14 @@ tracker0_in = ZMQSocketInfo(
 )
 
 tracker0_out = ZMQSocketInfo(
-    port = 5557,
+    port = base_port + 3,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_tracking
 )
 
 tracker0_out1 = ZMQSocketInfo(
-    port = 5562,
+    port = base_port + 4,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_tracking
@@ -151,14 +153,14 @@ tracker1_in = ZMQSocketInfo(
 )
 
 tracker1_out = ZMQSocketInfo(
-    port = 5558,
+    port = base_port + 5,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_tracking
 )
 
 tracker1_out1 = ZMQSocketInfo(
-    port = 5563,
+    port = base_port + 6,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_tracking
@@ -171,14 +173,14 @@ tracker2_in = ZMQSocketInfo(
 )
 
 tracker2_out = ZMQSocketInfo(
-    port = 5571,
+    port = base_port + 7,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_tracking
 )
 
 tracker2_out1 = ZMQSocketInfo(
-    port = 5570,
+    port = base_port + 8,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_tracking
@@ -209,7 +211,7 @@ stim0_in = ZMQSocketInfo(
 )
 
 stim0_out = ZMQSocketInfo(
-    port = 5559,
+    port = base_port + 9,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_frame
@@ -222,7 +224,7 @@ stim1_in = ZMQSocketInfo(
 )
 
 stim1_out = ZMQSocketInfo(
-    port = 5560,
+    port = base_port + 10,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_frame
@@ -235,7 +237,7 @@ stim2_in = ZMQSocketInfo(
 )
 
 stim2_out = ZMQSocketInfo(
-    port = 5572,
+    port = base_port + 11,
     socket_type = zmq.PUSH,
     bind = True,
     serializer = send_frame
