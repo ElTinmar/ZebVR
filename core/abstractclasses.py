@@ -161,7 +161,7 @@ class Background(ABC):
 
 class Stimulus(ABC):
      @abstractmethod
-     def create_stim_image(self, parameters: Tracking) -> NDArray:
+     def create_stim_image(self, timestamp: int, parameters: Tracking) -> NDArray:
         """
         create stimulus image from tracking parameters
         """
