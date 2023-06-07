@@ -11,7 +11,6 @@ class TrackerCollection(Tracker):
     ) -> None:
         
         self.tracker_list = tracker_list
-        self.curr_tracking = None
 
     def track(self, image: NDArray) -> TrackingCollection:
         tracking = TrackingCollection()
@@ -30,6 +29,5 @@ class TrackerCollection(Tracker):
                 else:
                     raise(TypeError("Unknown tracking type"))
             
-        self.curr_tracking = tracking
-        return self.curr_tracking
+        return tracking
     

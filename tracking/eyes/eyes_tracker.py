@@ -16,12 +16,7 @@ class EyesTracker(Tracker):
         threshold_body_area: int,
         threshold_eye_intensity: float,
         threshold_eye_area_min: int,
-        threshold_eye_area_max: int,
-        alpha: int = 100, 
-        beta: int = 10,
-        color_heading: tuple = (0,0,1),
-        color_eye_left: tuple = (0,1,1),
-        color_eye_right: tuple = (1,1,0)
+        threshold_eye_area_max: int
     ) -> None:
         
         super().__init__()
@@ -32,14 +27,6 @@ class EyesTracker(Tracker):
             threshold_body_intensity, 
             threshold_body_area
         )
-
-        self.curr_tracking = None
-
-        self.alpha = alpha
-        self.beta = beta
-        self.color_heading = color_heading
-        self.color_eye_left = color_eye_left
-        self.color_eye_right = color_eye_right
 
     @staticmethod
     def ellipse_direction(inertia_tensor: NDArray) -> NDArray:
@@ -114,13 +101,13 @@ class EyesTracker(Tracker):
                 body_tracking.heading
             )
 
-            self.curr_tracking = EyeTracking(
+            tracking = EyeTracking(
                 left_eye = left_eye,
                 right_eye = right_eye,
                 eye_mask = eye_mask,
                 body = body_tracking
             )
 
-            return self.curr_tracking
+            return tracking
         else:
             return None

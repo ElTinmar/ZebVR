@@ -18,10 +18,7 @@ class TailTracker(Tracker):
         ksize: int = 10,
         arc_angle_deg: float = 150,
         n_pts_interp: int = 40,
-        n_pts_arc: int = 20,
-        alpha: int = 100,
-        color_heading: tuple = (0,0,1),
-        color_tail: tuple = (1,0,1)
+        n_pts_arc: int = 20
     ) -> None:
         
         super().__init__()
@@ -35,14 +32,6 @@ class TailTracker(Tracker):
         self.arc_angle_deg = arc_angle_deg
         self.n_pts_interp = n_pts_interp
         self.n_pts_arc = n_pts_arc
-
-        # tracking
-        self.curr_tracking = None
-
-        # overlay parameters
-        self.alpha = alpha
-        self.color_heading = color_heading 
-        self.color_tail = color_tail 
 
     def track(self, image: NDArray) -> TailTracking:
 
@@ -87,13 +76,13 @@ class TailTracker(Tracker):
             new_points = splev(np.linspace(0,1,self.n_pts_interp), tck)
             skeleton_interp = np.array([new_points[0],new_points[1]])
             
-            self.curr_tracking = TailTracking(
+            tracking = TailTracking(
                 tail_points = skeleton,
                 tail_points_interp = skeleton_interp.T,
                 body = body_tracking
             )
 
-            return self.curr_tracking
+            return tracking
         else:
             return None
         

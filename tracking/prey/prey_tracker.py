@@ -11,21 +11,13 @@ class PreyTracker(Tracker):
         self,
         threshold_prey_intensity: float,
         threshold_prey_area_min: int,
-        threshold_prey_area_max: int,
-        circle_radius: int = 10, 
-        circle_color: tuple = (0,1,0)
+        threshold_prey_area_max: int
     ) -> None:
         
         super().__init__()
         self.threshold_prey_intensity = threshold_prey_intensity
         self.threshold_prey_area_min = threshold_prey_area_min  
         self.threshold_prey_area_max = threshold_prey_area_max 
-
-        self.curr_tracking = None 
-
-        # overlay parameters
-        self.circle_radius = circle_radius
-        self.circle_color = circle_color
 
     def track(self, image: NDArray) -> PreyTracking:
 
@@ -42,10 +34,10 @@ class PreyTracker(Tracker):
         for i,blob in enumerate(regions):
             prey_centroids[i,:] = [blob.centroid[1], blob.centroid[0]] 
 
-        self.curr_tracking = PreyTracking(
+        tracking = PreyTracking(
             prey_centroids = prey_centroids,
             prey_mask = prey_mask
         )
 
-        return self.curr_tracking
+        return tracking
     

@@ -15,19 +15,12 @@ class BodyTracker(Tracker):
     def __init__(
             self, 
             threshold_body_intensity: float, 
-            threshold_body_area: int,
-            alpha: int = 100,
-            color_heading: tuple = (0,0,1)
+            threshold_body_area: int
         ) -> None:
 
         super().__init__()
         self.threshold_body_intensity = threshold_body_intensity
         self.threshold_body_area = threshold_body_area
-
-        self.curr_tracking = None
-
-        self.alpha = alpha
-        self.color_heading = color_heading
 
     def track(self):
         pass
@@ -68,13 +61,13 @@ class BodyTrackerPCA(BodyTracker):
                 principal_components[:,1] = - principal_components[:,1]
 
             # store to generate overlay
-            self.curr_tracking = BodyTracking(
+            tracking = BodyTracking(
                 centroid = centroid,
                 heading = principal_components,
                 fish_mask = fish_mask
             )
 
-            return self.curr_tracking 
+            return tracking 
 
 class BodyTrackerMoments(BodyTracker):
     def track(self, image: NDArray) -> BodyTracking:
