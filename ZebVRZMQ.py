@@ -164,6 +164,26 @@ tracker1_out1 = ZMQSocketInfo(
     serializer = send_tracking
 )
 
+tracker2_in = ZMQSocketInfo(
+    port = bckg_out.port,
+    socket_type = zmq.PULL,
+    deserializer = recv_frame
+)
+
+tracker2_out = ZMQSocketInfo(
+    port = 5571,
+    socket_type = zmq.PUSH,
+    bind = True,
+    serializer = send_tracking
+)
+
+tracker2_out1 = ZMQSocketInfo(
+    port = 5570,
+    socket_type = zmq.PUSH,
+    bind = True,
+    serializer = send_tracking
+)
+
 tracker_disp_in0 = ZMQSocketInfo(
     port = tracker0_out1.port,
     socket_type = zmq.PULL,
@@ -172,6 +192,12 @@ tracker_disp_in0 = ZMQSocketInfo(
 
 tracker_disp_in1 = ZMQSocketInfo(
     port = tracker1_out1.port,
+    socket_type = zmq.PULL,
+    deserializer = recv_tracking
+)
+
+tracker_disp_in2 = ZMQSocketInfo(
+    port = tracker2_out1.port,
     socket_type = zmq.PULL,
     deserializer = recv_tracking
 )
@@ -202,6 +228,20 @@ stim1_out = ZMQSocketInfo(
     serializer = send_frame
 )
 
+stim2_in = ZMQSocketInfo(
+    port = tracker2_out.port,
+    socket_type = zmq.PULL,
+    deserializer = recv_tracking
+)
+
+stim2_out = ZMQSocketInfo(
+    port = 5572,
+    socket_type = zmq.PUSH,
+    bind = True,
+    serializer = send_frame
+)
+
+
 projector_in0 = ZMQSocketInfo(
     port = stim0_out.port,
     socket_type = zmq.PULL,
@@ -210,6 +250,12 @@ projector_in0 = ZMQSocketInfo(
 
 projector_in1 = ZMQSocketInfo(
     port = stim1_out.port,
+    socket_type = zmq.PULL,
+    deserializer = recv_frame
+)
+
+projector_in2 = ZMQSocketInfo(
+    port = stim2_out.port,
     socket_type = zmq.PULL,
     deserializer = recv_frame
 )
@@ -247,9 +293,16 @@ trckzmq_1 = TrackerZMQ(
     output_info = [tracker1_out, tracker1_out1]
 )
 
+trckzmq_2 = TrackerZMQ(
+    'Tracker2',
+    tracker,
+    input_info = [tracker2_in],
+    output_info = [tracker2_out, tracker2_out1]
+)
+
 trckdisp = TrackerDisplayZMQ(
     tracker_display,
-    input_info=[tracker_disp_in0, tracker_disp_in1],
+    input_info=[tracker_disp_in0, tracker_disp_in1, tracker_disp_in2],
     output_info=[]
 )
 
@@ -267,16 +320,25 @@ stimzmq_1 = StimulusZMQ(
     name = 'stim1'
 )
 
+stimzmq_2 = StimulusZMQ(
+    stimulus,
+    input_info = [stim2_in],
+    output_info = [stim2_out],
+    name = 'stim2'
+)
+
 projZMQ = ProjectorZMQ(
     projector,
-    input_info = [projector_in0, projector_in1],
+    input_info = [projector_in0, projector_in1, projector_in2],
     output_info = []
 )
 
 projZMQ.start()
+stimzmq_2.start()
 stimzmq_1.start()
 stimzmq_0.start()
 trckdisp.start()
+trckzmq_2.start()
 trckzmq_1.start()
 trckzmq_0.start()
 backZMQ.start()
