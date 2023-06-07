@@ -4,7 +4,7 @@ from numpy.typing import NDArray
 from tracking.utils.conncomp_filter import bwareafilter
 from skimage.measure import label, regionprops
 from core.abstractclasses import Tracker
-from tracking.body.body_tracker import BodyTracker
+from tracking.body.body_tracker import BodyTrackerPCA
 from core.dataclasses import EyeTracking, EyeParam
 
 import cv2
@@ -28,7 +28,7 @@ class EyesTracker(Tracker):
         self.threshold_eye_intensity = threshold_eye_intensity
         self.threshold_eye_area_min = threshold_eye_area_min
         self.threshold_eye_area_max = threshold_eye_area_max
-        self.body_tracker = BodyTracker(
+        self.body_tracker = BodyTrackerPCA(
             threshold_body_intensity, 
             threshold_body_area
         )
