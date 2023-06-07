@@ -3,7 +3,7 @@ from core.dataclasses import CameraParameters
 from devices.camera.dummycam import FromFile
 from devices.projector.opencv_projector import CVProjector
 from background.background import DynamicBackground
-from tracking.body.body_tracker import BodyTracker
+from tracking.body.body_tracker import BodyTrackerPCA
 from tracking.eyes.eyes_tracker import EyesTracker
 from tracking.tail.tail_tracker import TailTracker
 from tracking.prey.prey_tracker import PreyTracker
@@ -15,7 +15,7 @@ from visual_stimuli.phototaxis import Phototaxis
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 10
+    fps = 100
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
@@ -43,7 +43,7 @@ cam2proj = Cam2ProjReg(
     ksize = 10
 )
 
-body_tracker = BodyTracker(
+body_tracker = BodyTrackerPCA(
     threshold_body_intensity = 0.2,
     threshold_body_area = 500
 )
