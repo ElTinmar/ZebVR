@@ -19,6 +19,7 @@ class VR:
         self.cam2proj = cam2proj
         self.tracker = tracker
         self.stimulus = stimulus
+        self.tracker_display = tracker_display
 
         #self.calibration()
         #self.registration()
@@ -44,7 +45,7 @@ class VR:
                 image = data.get_img()
                 self.background.add_image(image)
                 background_image = self.background.get_background() 
-                back_sub = abs(image - background_image)
+                back_sub = -(image - background_image)
                 tracking = self.tracker.track(back_sub)
                 overlay = self.tracker_display.overlay(tracking, back_sub)
                 stim_image = self.stimulus.create_stim_image(tracking)
