@@ -20,7 +20,7 @@ import zmq
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 50
+    fps = 10
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
@@ -32,8 +32,8 @@ cam_display = CamDisp('camera')
 
 # background -------------------------------------------------
 background = DynamicBackground(
-    width = 1088,
-    height = 1088,
+    width = camera_param.ROI_width,
+    height = camera_param.ROI_height,
     num_images = 200, 
     every_n_image = 2
 )
