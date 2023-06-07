@@ -1,4 +1,4 @@
-from core.abstractclasses import Camera, Projector, Background, Cam2Proj, Tracker, Stimulus
+from core.abstractclasses import Camera, Projector, Background, Cam2Proj, Tracker, TrackerDisplay, Stimulus
 import cv2
 
 class VR:
@@ -9,6 +9,7 @@ class VR:
         background: Background,
         cam2proj: Cam2Proj,
         tracker: Tracker,
+        tracker_display: TrackerDisplay,
         stimulus: Stimulus
     ) -> None:
         
@@ -19,8 +20,8 @@ class VR:
         self.tracker = tracker
         self.stimulus = stimulus
 
-        self.calibration()
-        self.registration()
+        #self.calibration()
+        #self.registration()
         self.run()
 
 
@@ -45,7 +46,7 @@ class VR:
                 background_image = self.background.get_background() 
                 back_sub = abs(image - background_image)
                 tracking = self.tracker.track(back_sub)
-                overlay = self.tracker.tracking_overlay(back_sub)
+                overlay = self.tracker_display.overlay(tracking, back_sub)
                 stim_image = self.stimulus.create_stim_image(tracking)
                 self.projector.project(stim_image)
                 data.reallocate()
