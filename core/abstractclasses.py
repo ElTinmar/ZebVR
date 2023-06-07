@@ -139,6 +139,10 @@ class TrackerDisplay(ABC):
         pass
 
     @abstractmethod
+    def overlay(self, parameters: Tracking, image: NDArray) -> NDArray:
+        pass
+
+    @abstractmethod
     def display(self, parameters: Tracking, image: NDArray) -> NDArray:
         pass
 
