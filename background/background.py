@@ -65,7 +65,8 @@ class DynamicBackground(Background):
         cv2.namedWindow('background')
         while not self.stop_flag.is_set():
             bckg = np.frombuffer(self.background.get_obj(), dtype=np.float32).reshape(self.width,self.height)
-            cv2.imshow('background',bckg)
+            smallimg = cv2.resize(bckg, None, fx = 0.25, fy = 0.25, interpolation=cv2.INTER_NEAREST)
+            cv2.imshow('background',smallimg)
             cv2.waitKey(16)
         cv2.destroyWindow('background')
 

@@ -132,10 +132,10 @@ class ZMQDataProcessingNode(ABC):
                     self.post_recv_time_ns += (time.process_time_ns() - start_time_ns)
                     for sock, info in zip(self.output_socket, self.outsock_info):
                         self._send(sock, info, results)
-                        self.send_time_ns += (time.process_time_ns() - start_time_ns)
-                        self.post_send()
-                        self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
-                        self.num_loops += 1
+                    self.send_time_ns += (time.process_time_ns() - start_time_ns)
+                    self.post_send()
+                    self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
+                    self.num_loops += 1
                 if not self.input_socket:
                     start_time_ns = time.process_time_ns()
                     self.recv_time_ns += (time.process_time_ns() - start_time_ns)
@@ -143,10 +143,10 @@ class ZMQDataProcessingNode(ABC):
                     self.post_recv_time_ns += (time.process_time_ns() - start_time_ns)
                     for sock, info in zip(self.output_socket, self.outsock_info):
                         self._send(sock, info, results)
-                        self.send_time_ns += (time.process_time_ns() - start_time_ns)
-                        self.post_send()
-                        self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
-                        self.num_loops += 1
+                    self.send_time_ns += (time.process_time_ns() - start_time_ns)
+                    self.post_send()
+                    self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
+                    self.num_loops += 1
             except zmq.error.Again:
                 print('receive timeout, shutting down')
                 break

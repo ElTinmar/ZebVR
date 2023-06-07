@@ -20,7 +20,7 @@ import zmq
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 10
+    fps = 50
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
@@ -256,13 +256,15 @@ trckdisp = TrackerDisplayZMQ(
 stimzmq_0 = StimulusZMQ(
     stimulus,
     input_info = [stim0_in],
-    output_info = [stim0_out]
+    output_info = [stim0_out],
+    name = 'stim0'
 )
 
 stimzmq_1 = StimulusZMQ(
     stimulus,
     input_info = [stim1_in],
-    output_info = [stim1_out]
+    output_info = [stim1_out],
+    name = 'stim1'
 )
 
 projZMQ = ProjectorZMQ(

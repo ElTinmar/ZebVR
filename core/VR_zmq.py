@@ -35,14 +35,17 @@ class CameraZMQ(ZMQDataProcessingNode):
 
     def post_recv(self, args: Any) -> Any:
         self.data, res = self.camera.fetch()
-        print(f'Camera sent image {self.data.get_index()}',flush=True)
+        if res:
+            print(f'Camera sent image {self.data.get_index()}',flush=True)
 
-        ret = {
-            'index': self.data.get_index(),
-            'timestamp':  self.data.get_timestamp(),
-            'frame': self.data.get_img()
-        }
-        return ret
+            ret = {
+                'index': self.data.get_index(),
+                'timestamp':  self.data.get_timestamp(),
+                'frame': self.data.get_img()
+            }
+            return ret
+        else:
+            return None
     
 class CameraDisplayZMQ(ZMQDataProcessingNode):
     def __init__(
@@ -57,6 +60,8 @@ class CameraDisplayZMQ(ZMQDataProcessingNode):
         super().__init__(input_info,output_info,recv_timeout_s)
         self.name = name
         self.cam_display = cam_display
+        self.last_frame = 0
+        self.discarded_frames = []
 
     def pre_loop(self) -> None:
         self.cam_display.init_window()
@@ -67,7 +72,8 @@ class CameraDisplayZMQ(ZMQDataProcessingNode):
         print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
         print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
         print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
-
+        print(f'discarded {len(self.discarded_frames)} frames')
+        
     def post_send(self) -> None:
         pass
 
@@ -75,10 +81,12 @@ class CameraDisplayZMQ(ZMQDataProcessingNode):
         timestamp = args['timestamp']
         index = args['index']
         image = args['frame']
-    
-        self.cam_display.display(image)
-
-        print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
+        if index > self.last_frame:
+            self.cam_display.display(image)
+            print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
+            self.last_frame = index
+        else:
+            self.discarded_frames.append(index)
 
 class BackgroundZMQ(ZMQDataProcessingNode):
     def __init__(
@@ -180,6 +188,8 @@ class TrackerDisplayZMQ(ZMQDataProcessingNode):
         super().__init__(input_info,output_info,recv_timeout_s)
         self.name = name
         self.track_display = track_display
+        self.last_frame = 0
+        self.discarded_frames = []
 
     def pre_loop(self) -> None:
         self.track_display.init_window()
@@ -190,6 +200,7 @@ class TrackerDisplayZMQ(ZMQDataProcessingNode):
         print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
         print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
         print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
+        print(f'discarded {len(self.discarded_frames)} frames')
 
     def post_send(self) -> None:
         pass
@@ -200,10 +211,13 @@ class TrackerDisplayZMQ(ZMQDataProcessingNode):
         image = args['frame']
         tracking = args['tracking']
     
-        self.track_display.display(tracking, image)
+        if index > self.last_frame:
+            self.track_display.display(tracking, image)
+            print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
+            self.last_frame = index
+        else:
+            self.discarded_frames.append(index)
 
-        print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
-    
 class StimulusZMQ(ZMQDataProcessingNode):
     def __init__(
             self, 
@@ -257,6 +271,8 @@ class ProjectorZMQ(ZMQDataProcessingNode):
         super().__init__(input_info,output_info,recv_timeout_s)
         self.projector = projector
         self.name = name
+        self.last_frame = 0
+        self.discarded_frames = []
 
     def pre_loop(self) -> None:
         self.projector.init_window()
@@ -267,6 +283,7 @@ class ProjectorZMQ(ZMQDataProcessingNode):
         print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
         print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
         print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
+        print(f'discarded {len(self.discarded_frames)} frames')
 
     def post_send(self) -> None:
         pass
@@ -275,6 +292,10 @@ class ProjectorZMQ(ZMQDataProcessingNode):
         timestamp = args['timestamp']
         index = args['index']
         image = args['frame']
-        print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
-        if image is not None:
-            self.projector.project(image)
+        if index > self.last_frame:
+            print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
+            if image is not None:
+                self.projector.project(image)
+            self.last_frame = index
+        else:
+            self.discarded_frames.append(index)
