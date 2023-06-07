@@ -7,7 +7,7 @@ from core.abstractclasses import Projector
 import time
 
 class CVProjector(Projector):
-    def __init__(self, monitor_id=1) -> None:
+    def __init__(self, monitor_id=1, rescale=None) -> None:
         super().__init__()
         
         offset_x = 0
@@ -22,6 +22,7 @@ class CVProjector(Projector):
         self.win_width = width
         self.win_height = height
         self.offset_x = offset_x
+        self.rescale = rescale
 
     def init_window(self):
         cv2.namedWindow('projector', cv2.WINDOW_NORMAL)
@@ -53,8 +54,17 @@ class CVProjector(Projector):
         Input image to project
         """
         #start_time_ns = time.process_time_ns()
-        smallimg = cv2.resize(image, None, fx = 0.25, fy = 0.25, interpolation=cv2.INTER_NEAREST)
-        cv2.imshow('projector', smallimg)
+        if self.rescale is not None:
+            smallimg = cv2.resize(
+                image, 
+                None, 
+                fx = self.rescale, 
+                fy = self.rescale, 
+                interpolation=cv2.INTER_NEAREST
+            )
+            cv2.imshow('projector', smallimg)
+        else:
+            cv2.imshow('projector', image)
         cv2.waitKey(1)
         #print(1e-9 * (time.process_time_ns() -start_time_ns))
 

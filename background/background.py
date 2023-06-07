@@ -37,7 +37,8 @@ class DynamicBackground(Background):
         width,
         height,
         num_images = 500, 
-        every_n_image = 100
+        every_n_image = 100,
+        rescale = None
     ) -> None:
 
         self.width = width
@@ -45,6 +46,7 @@ class DynamicBackground(Background):
         self.num_images = num_images
         self.every_n_image = every_n_image
         self.counter = 0
+        self.rescale = rescale
         
         self.stop_flag = Event()
         self.background = Array(ctypes.c_float, width*height)
@@ -65,8 +67,18 @@ class DynamicBackground(Background):
         cv2.namedWindow('background')
         while not self.stop_flag.is_set():
             bckg = np.frombuffer(self.background.get_obj(), dtype=np.float32).reshape(self.width,self.height)
-            smallimg = cv2.resize(bckg, None, fx = 0.25, fy = 0.25, interpolation=cv2.INTER_NEAREST)
-            cv2.imshow('background',smallimg)
+            if self.rescale is not None:
+                smallimg = cv2.resize(
+                    bckg, 
+                    None, 
+                    fx = self.rescale, 
+                    fy = self.rescale,
+                    interpolation=cv2.INTER_NEAREST
+                )
+                cv2.imshow('background',smallimg)
+            else:
+                cv2.imshow('background',bckg)
+
             cv2.waitKey(16)
         cv2.destroyWindow('background')
 

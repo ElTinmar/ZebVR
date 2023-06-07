@@ -15,7 +15,8 @@ class TrackerDisp(TrackerDisplay):
             color_eye_left: tuple = (0,1,1),
             color_eye_right: tuple = (1,1,0),
             color_tail: tuple = (1,0,1),
-            circle_color: tuple = (0,1,0)
+            circle_color: tuple = (0,1,0),
+            rescale: float = None
         ) -> None:
         
         super().__init__()
@@ -29,6 +30,7 @@ class TrackerDisp(TrackerDisplay):
         self.color_tail = color_tail 
         self.circle_radius = circle_radius
         self.circle_color = circle_color
+        self.rescale = rescale
 
     def overlay_body(self, parameters: BodyTracking, image: NDArray) -> NDArray:
 
@@ -194,6 +196,15 @@ class TrackerDisp(TrackerDisplay):
         overlay = self.overlay(parameters, image)
         for c in range(overlay.shape[2]):
             overlay[:,:,c] = overlay[:,:,c] + image
-        smallimg = cv2.resize(overlay, None, fx = 0.25, fy = 0.25, interpolation=cv2.INTER_LINEAR)
-        cv2.imshow(self.name, smallimg)
+        if self.rescale is not None:
+            smallimg = cv2.resize(
+                overlay, 
+                None, 
+                fx = self.rescale, 
+                fy = self.rescale, 
+                interpolation=cv2.INTER_LINEAR
+            )
+            cv2.imshow(self.name, smallimg)
+        else:
+            cv2.imshow(self.name, overlay)
         cv2.waitKey(1)
