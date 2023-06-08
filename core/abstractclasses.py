@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from numpy.typing import NDArray
-from typing import Tuple, List
+from typing import Tuple, List, Any
 import logging
 from core.dataclasses import CameraParameters, Tracking
 
@@ -179,3 +179,14 @@ class Cam2Proj(ABC):
         Input: camera coordinates
         Output: projector coordinates
         """
+
+class ImageSaver(ABC):
+    """Save images to video or image files"""
+    def write(self, image: NDArray) -> None:
+        """write image"""
+
+class DataPlotter(ABC):
+    """Real time data plotter """
+    def plot(self, data: Any) -> None:
+        """plot data"""
+        

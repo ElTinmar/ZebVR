@@ -1,30 +1,41 @@
-from writers.writer import Writer
+from core.abstractclasses import ImageSaver
 import cv2
-from multiprocessing import Process, Value, shared_memory
+from numpy.typing import NDArray
+import os.path
 
-class Video_writer(Writer):
-    def __init__(self, num_buffers, height, width, fps, videoname):
-
-        # create a shared memory buffer to queue frames for video
-        # compression
-        self._videoWriter_buffers = shared_memory.SharedMemory(
-            name='videoWriter_buffers', 
-            create=True, 
-            size=num_buffers*height*width
+class CVWriter(ImageSaver):
+    def __init__(
+            self, 
+            height: int, 
+            width: int, 
+            fps: int = 30, 
+            filename: str = '',
+            codec: str = 'MJPG'
+        ) -> None:
+        super().__init__()
+        
+        if os.path.exists(filename):
+            raise(FileExistsError)
+        
+        self.fps = fps
+        self.filename = filename
+        self.height = height
+        self.width = width
+        self.codec = codec
+    
+    def start(self) -> None: 
+        fourcc = cv2.VideoWriter_fourcc(*self.codec)
+        self.cap = cv2.VideoWriter(
+            self.filename,
+            fourcc,
+            self.fps,
+            (self.width,self.height)
         )
-        self._size = Value('i', 0)
-        self._fps = fps
-        fourcc = cv2.VideoWriter_fourcc(*'H264')
-        self._cap = cv2.VideoWriter(videoname,fourcc,fps,(width,height))
 
-    def start(self):
-        while True:
-            if self._size > 0:
-                pass
+    def stop(self) -> None:
+        self.cap.release()
 
-    def write(self, filename, img):
-        if self._size == num_buffers-1:
-            # the buffer is full, wait 
+    def write(self, image: NDArray) -> None:
+        self.cap.write(image)
 
-        else:    
-            self._videoWriter_buffers[]
+    

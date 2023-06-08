@@ -43,19 +43,18 @@ class ZMQDataProcessingNode(ABC):
         self.post_send_time_ns = 0
         self.num_loops = 0
 
-    @abstractmethod
     def pre_loop(self) -> None:
         pass
 
-    @abstractmethod
     def post_loop(self) -> None:
-        pass
+        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
+        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
 
-    @abstractmethod
     def post_send(self) -> None:
         pass
 
-    @abstractmethod
     def post_recv(self, args: Any) -> Any:
         pass
 

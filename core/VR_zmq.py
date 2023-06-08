@@ -1,7 +1,12 @@
-from core.abstractclasses import Background, Camera, Tracker, Stimulus, Projector, CameraDisplay, TrackerDisplay
-from parallel.zmq_worker import ZMQDataProcessingNode, ZMQSocketInfo
+from core.abstractclasses import (
+    Background, Camera, Tracker, Stimulus, 
+    Projector, CameraDisplay, TrackerDisplay, 
+    ImageSaver, DataPlotter
+)
+from parallel.zmq_worker import (
+    ZMQDataProcessingNode, ZMQSocketInfo
+)
 from typing import Any
-import cv2
 from typing import List
 
 class CameraZMQ(ZMQDataProcessingNode):
@@ -19,15 +24,6 @@ class CameraZMQ(ZMQDataProcessingNode):
         self.camera = camera
         self.data = None
         self.name = name
-
-    def pre_loop(self) -> None:
-        pass
-
-    def post_loop(self) -> None:
-        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
 
     def post_send(self) -> None:
         if self.data is not None:
@@ -68,16 +64,10 @@ class CameraDisplayZMQ(ZMQDataProcessingNode):
         self.cam_display.init_window()
 
     def post_loop(self) -> None:
+        super().post_loop()
         self.cam_display.close_window()
-        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
         print(f'discarded {len(self.discarded_frames)} frames')
         
-    def post_send(self) -> None:
-        pass
-
     def post_recv(self, args: Any) -> Any:
         timestamp = args['timestamp']
         index = args['index']
@@ -108,14 +98,8 @@ class BackgroundZMQ(ZMQDataProcessingNode):
         self.background.start()
 
     def post_loop(self) -> None:
+        super().post_loop()
         self.background.stop()
-        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
-
-    def post_send(self) -> None:
-        pass
 
     def post_recv(self, args: Any) -> Any:
         timestamp = args['timestamp']
@@ -147,18 +131,6 @@ class TrackerZMQ(ZMQDataProcessingNode):
         self.tracker = tracker
         self.overlay = None
         self.name = name
-
-    def pre_loop(self) -> None:
-        pass
-
-    def post_loop(self) -> None:
-        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
-
-    def post_send(self) -> None:
-        pass
 
     def post_recv(self, args: Any) -> Any:
         timestamp = args['timestamp']
@@ -196,15 +168,9 @@ class TrackerDisplayZMQ(ZMQDataProcessingNode):
         self.track_display.init_window()
 
     def post_loop(self) -> None:
+        super().post_loop()
         self.track_display.close_window()
-        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
         print(f'discarded {len(self.discarded_frames)} frames')
-
-    def post_send(self) -> None:
-        pass
 
     def post_recv(self, args: Any) -> Any:
         timestamp = args['timestamp']
@@ -233,18 +199,6 @@ class StimulusZMQ(ZMQDataProcessingNode):
         
         self.stimulus = stimulus
         self.name = name
-
-    def pre_loop(self) -> None:
-        pass
-
-    def post_loop(self) -> None:
-        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
-        
-    def post_send(self) -> None:
-        pass
 
     def post_recv(self, args: Any) -> Any:
         index = args['index']
@@ -279,15 +233,9 @@ class ProjectorZMQ(ZMQDataProcessingNode):
         self.projector.init_window()
 
     def post_loop(self) -> None:
+        super().post_loop()
         self.projector.close_window()
-        print(f'{self.name}: recv {1e-9 * self.recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_recv {1e-9 * self.post_recv_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: send {1e-9 * self.send_time_ns/self.num_loops} s per loop')
-        print(f'{self.name}: post_send {1e-9 * self.post_send_time_ns/self.num_loops} s per loop')
         print(f'discarded {len(self.discarded_frames)} frames')
-
-    def post_send(self) -> None:
-        pass
 
     def post_recv(self, args: Any) -> Any:
         timestamp = args['timestamp']
@@ -300,3 +248,43 @@ class ProjectorZMQ(ZMQDataProcessingNode):
             self.last_frame = index
         else:
             self.discarded_frames.append(index)
+
+class ImageSaverZMQ(ZMQDataProcessingNode):
+    def __init__(
+            self, 
+            saver : ImageSaver,
+            input_info : List[ZMQSocketInfo],
+            output_info : List[ZMQSocketInfo],
+            recv_timeout_s: int = 10,
+            name: str = 'ImageSaverZMQ' 
+        ) -> None:
+        
+        super().__init__(input_info,output_info,recv_timeout_s)
+        self.saver = saver
+        self.name = name
+
+    def post_recv(self, args: Any) -> Any:
+        timestamp = args['timestamp']
+        index = args['index']
+        image = args['frame']
+
+        if image is not None:
+            print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)    
+            self.saver.write(image)
+
+class DataPlotterZMQ(ZMQDataProcessingNode):
+    def __init__(
+            self, 
+            plotter : DataPlotter,
+            input_info : List[ZMQSocketInfo],
+            output_info : List[ZMQSocketInfo],
+            recv_timeout_s: int = 10,
+            name: str = 'DataPlotterZMQ' 
+        ) -> None:
+        
+        super().__init__(input_info,output_info,recv_timeout_s)
+        self.plotter = plotter
+        self.name = name
+
+    def post_recv(self, args: Any) -> Any:
+        self.plotter.format_data(args)
