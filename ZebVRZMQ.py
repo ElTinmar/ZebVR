@@ -17,26 +17,29 @@ from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, Proje
 import zmq
 
 # camera -------------------------------------------------
+rescale = 0.5
+
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 10
+    fps = 20
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
-    parameters = camera_param
+    parameters = camera_param,
+    rescale = rescale
 )
 
 # camera display ------------------------------------------
-cam_display = CamDisp('camera',rescale=0.66)
+cam_display = CamDisp('camera',rescale=0.5)
 
 # background -------------------------------------------------
 background = DynamicBackground(
-    width = camera_param.ROI_width,
-    height = camera_param.ROI_height,
+    width = int(camera_param.ROI_width*rescale),
+    height = int(camera_param.ROI_height*rescale),
     num_images = 200, 
     every_n_image = 2,
-    rescale=0.66
+    rescale=0.5
 )
 
 # trackers -------------------------------------------------

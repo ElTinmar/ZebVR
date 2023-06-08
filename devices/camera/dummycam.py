@@ -25,9 +25,10 @@ class Data(CameraData):
         pass
 
 class FromFile(Camera):
-    def __init__(self, video_file, **kwargs):
+    def __init__(self, video_file, rescale: float = None, **kwargs):
         super().__init__(**kwargs)
         self.video_file = video_file
+        self.rescale = rescale
         self.cap = cv2.VideoCapture(video_file)
         self.img_count = 0
 
@@ -44,6 +45,14 @@ class FromFile(Camera):
         ret, img = self.cap.read()
         if ret:
             img_gray = img[:,:,0]
+            if self.rescale is not None:
+                img_gray = cv2.resize(
+                    img_gray,
+                    None,
+                    fx =self.rescale,
+                    fy = self.rescale, 
+                    interpolation = cv2.INTER_NEAREST
+                )
             buf = Data(
                 image = img_gray, 
                 index = self.img_count, 
