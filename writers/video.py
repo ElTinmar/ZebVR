@@ -25,14 +25,19 @@ class CVWriter(ImageSaver):
         self.codec = codec
     
     def to_uint8(self, image: NDArray) -> NDArray:
-        if image.dtype is not np.uint8:
+        if image.dtype == np.uint8:
+            return image
+        else:
             rescaled = 255 * (image - image.min())/(image.max() - image.min())
             return rescaled.astype(np.uint8)
-        else:
+            
+    def to_BGR(self, image: NDArray) -> NDArray:
+        if len(image.shape) == 2:
+            return np.dstack((image,image,image))
+        elif len(image.shape) == 3:
             return image
-        
-    def to_BGR(self, image_gray: NDArray) -> NDArray:
-        return np.dstack((image_gray,image_gray,image_gray))
+        else:
+            raise(TypeError('Image shape not correct'))
         
     def start(self) -> None: 
         fourcc = cv2.VideoWriter_fourcc(*self.codec)
@@ -49,6 +54,7 @@ class CVWriter(ImageSaver):
     def write(self, image: NDArray) -> None:
         image_uint8 = self.to_uint8(image)
         image_BGR_uint8 = self.to_BGR(image_uint8)
+
         self.cap.write(image_BGR_uint8)
 
     

@@ -16,11 +16,11 @@ class ImageWriter(ImageSaver):
         self.img_num = 0
 
     def to_uint8(self, image: NDArray) -> NDArray:
-        if image.dtype is not np.uint8:
+        if image.dtype == np.uint8:
+            return image
+        else:
             rescaled = 255 * (image - image.min())/(image.max() - image.min())
             return rescaled.astype(np.uint8)
-        else:
-            return image
         
     def create_filename(self, extension: str) -> str:
         # create filename and check it doesn't exist
