@@ -77,7 +77,11 @@ class BodyTrackerPCA(BodyTracker):
         
     def track(self, image: NDArray) -> BodyTracking:
         #start_time_ns = time.process_time_ns()
-
+        # TODO implement image downscaling in the tracker 
+        # based on camera calibration : put a theshold on how
+        # many pixels necessary to track the centroid 
+        # accurately 
+         
         if self.previous_centroid is not None:
             left = max(self.previous_centroid[0] - self.dynamic_cropping_len, 0)
             right = min(self.previous_centroid[0] + self.dynamic_cropping_len, self.width)
