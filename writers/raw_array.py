@@ -1,8 +1,7 @@
-from core.abstractclasses import ImageSaver
-import os.path
+from writers.image_writer import ImageWriter
 from numpy.typing import NDArray
 
-class RawArray_writer(ImageSaver):
+class RawArray_writer(ImageWriter):
     """
     Definitely faster than using cv2.imwrite with JPG2000 compression
     but generates large annoying files.
@@ -14,14 +13,14 @@ class RawArray_writer(ImageSaver):
         zeropad_n: int = 8
         ) -> None:
 
-        super().__init__()
-        self.prefix = prefix
-        self.zeropad_n = zeropad_n
-        self.img_num = 0
+        super().__init__(prefix, zeropad_n)
 
     def write(self, image: NDArray) -> None:
-        filename = self.prefix + f'{self.img_num}'.zfill(self.zeropad_n) + '.jpg'
-        if os.path.exists(filename):
-            raise(FileExistsError)
-        image.tofile(filename + '.nparray')
+        # create filename and check it doesn't exist
+        filename = self.create_filename('.nparray')
+        
+        # if image is type single, convert to uint8
+        image_uint8 = self.to_uint8(image)
+
+        image_uint8.tofile(filename)
         self.img_num += 1

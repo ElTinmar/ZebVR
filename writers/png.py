@@ -1,9 +1,8 @@
-from core.abstractclasses import ImageSaver
+from writers.image_writer import ImageWriter
 import cv2
 from numpy.typing import NDArray
-import os.path
 
-class PNG_writer(ImageSaver):
+class PNG_writer(ImageWriter):
     def __init__(
         self, 
         compression = 1,
@@ -11,22 +10,21 @@ class PNG_writer(ImageSaver):
         zeropad_n: int = 8
         ) -> None:
 
-        super().__init__()
+        super().__init__(prefix, zeropad_n)
         if not 0 <= compression <= 9:
             ValueError('compression should be between 0 and 9')
         self._compression = compression
-        self.prefix = prefix
-        self.zeropad_n = zeropad_n
-        self.img_num = 0
     
     def write(self, image: NDArray) -> None:
-        filename = self.prefix + f'{self.img_num}'.zfill(self.zeropad_n) + '.jpg'
-        if os.path.exists(filename):
-            raise(FileExistsError)
+        # create filename and check it doesn't exist
+        filename = self.create_filename('.png')
+        
+        # if image is type single, convert to uint8
+        image_uint8 = self.to_uint8(image)
         
         cv2.imwrite(
             filename,  
-            image, 
+            image_uint8, 
             [cv2.IMWRITE_PNG_COMPRESSION, self._compression]
         )
         self.img_num += 1
