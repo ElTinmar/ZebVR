@@ -2,6 +2,11 @@ from numpy.typing import NDArray
 import numpy as np
 from core.dataclasses import TrackingCollection
 from core.abstractclasses import Stimulus, Projector
+from numba import njit
+
+#@njit
+def compute_image(xx,yy,centroid,heading):
+    return 1.0*(((xx-centroid[0]) * heading[0,1] + (yy-centroid[1]) * heading[1,1]) > 0)
 
 class Phototaxis(Stimulus):
     def __init__(self, projector: Projector):
@@ -19,10 +24,7 @@ class Phototaxis(Stimulus):
         if timestamp > self.last_timestamp:
             self.last_timestamp = timestamp
             if parameters.body is not None:
-                self.img = 1.0*(
-                    ((self.grid_x-parameters.body.centroid[0]) * parameters.body.heading[0,1] + \
-                    (self.grid_y-parameters.body.centroid[1]) * parameters.body.heading[1,1]) > 0
-                )
+                self.img = compute_image(self.grid_x,self.grid_y,parameters.body.centroid, parameters.body.heading)
             return self.img
         else:
             return None

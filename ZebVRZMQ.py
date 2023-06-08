@@ -17,7 +17,7 @@ from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, Proje
 import zmq
 
 # camera -------------------------------------------------
-rescale = 0.25
+rescale = 0.125
 
 # TODO this should be part of camera calibration
 cam_pixels_per_mm = 50
@@ -26,7 +26,7 @@ cam_mm_per_pixel = 1/cam_pixels_per_mm
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 100
+    fps = 60
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
