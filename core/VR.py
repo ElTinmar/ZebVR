@@ -63,11 +63,14 @@ class VR:
                     
                     for c in range(overlay.shape[2]):
                         overlay[:,:,c] = overlay[:,:,c] + image
+
                     overlay = 255*overlay
+                    overlay[overlay>255]=255
                     overlay = overlay.astype(np.uint8)
 
                     cv2.imshow('VR', overlay)
                     cv2.waitKey(1)
+                    
                     self.writer.write(overlay)
         finally:                
             self.camera.stop_acquisition()
