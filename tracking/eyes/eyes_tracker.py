@@ -13,6 +13,9 @@ class EyesTracker(Tracker):
         self,
         threshold_body_intensity: float, 
         threshold_body_area: int,
+        width: int,
+        height: int,
+        dynamic_cropping_len: int,
         threshold_eye_intensity: float,
         threshold_eye_area_min: int,
         threshold_eye_area_max: int,
@@ -26,9 +29,15 @@ class EyesTracker(Tracker):
         self.threshold_eye_area_max = threshold_eye_area_max
         self.dist_eye_midline = dist_eye_midline 
         self.dist_eye_swimbladder = dist_eye_swimbladder
+        self.dynamic_cropping_len = dynamic_cropping_len
+        self.width = width
+        self.height = height
         self.body_tracker = BodyTrackerPCA(
             threshold_body_intensity, 
-            threshold_body_area
+            threshold_body_area,
+            dynamic_cropping_len,
+            height,
+            width
         )
 
     @staticmethod
@@ -69,6 +78,12 @@ class EyesTracker(Tracker):
         body_tracking = self.body_tracker.track(image)
 
         if body_tracking is not None:
+            left = max(int(body_tracking.centroid[0]) - self.dynamic_cropping_len, 0)
+            right = min(int(body_tracking.centroid[0]) + self.dynamic_cropping_len, self.width)
+            bottom = max(int(body_tracking.centroid[1]) - self.dynamic_cropping_len, 0)
+            top = min(int(body_tracking.centroid[1]) + self.dynamic_cropping_len, self.height)
+            image = image[left:right,bottom:top]
+
             eye_mask = bwareafilter(
                 image >= self.threshold_eye_intensity, 
                 min_size = self.threshold_eye_area_min, 
@@ -78,13 +93,13 @@ class EyesTracker(Tracker):
             label_img = label(eye_mask)
             regions = regionprops(label_img) # regionprops returns coordinates as (row, col) 
 
-            blob_centroids = np.zeros((len(regions),2),dtype=np.float64)
+            blob_centroids = np.zeros((len(regions),2), dtype=np.float64)
             for i,blob in enumerate(regions):
                 # (row,col) to (x,y) coordinates  
                 blob_centroids[i,:] = [blob.centroid[1], blob.centroid[0]]
 
             # project coordinates to principal component space
-            centroids_pc = (blob_centroids - body_tracking.centroid) @ body_tracking.heading
+            centroids_pc = (blob_centroids + [bottom, left] - body_tracking.centroid) @ body_tracking.heading
 
             # find the eyes TODO remove magic numbers and put as parameters
             left_eye_index = np.squeeze(
@@ -104,11 +119,16 @@ class EyesTracker(Tracker):
                 left_eye_index, 
                 body_tracking.heading
             )
+            if left_eye is not None:
+                left_eye.centroid += [bottom, left]
+
             right_eye = EyesTracker.get_eye_prop(
                 regions, 
                 right_eye_index, 
                 body_tracking.heading
             )
+            if right_eye is not None:
+                right_eye.centroid += [bottom, left]
 
             tracking = EyeTracking(
                 left_eye = left_eye,

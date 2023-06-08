@@ -4,7 +4,6 @@ from numpy.typing import NDArray
 #from sklearnex import patch_sklearn
 #patch_sklearn()
 from sklearn.decomposition import PCA
-from skimage.measure import moments_central
 from tracking.utils.conncomp_filter import bwareaopen
 from core.abstractclasses import Tracker
 import cv2
@@ -15,19 +14,26 @@ class BodyTracker(Tracker):
     def __init__(
             self, 
             threshold_body_intensity: float, 
-            threshold_body_area: int
+            threshold_body_area: int,
+            dynamic_cropping_len: int,
+            height: int,
+            width: int
         ) -> None:
 
         super().__init__()
         self.threshold_body_intensity = threshold_body_intensity
         self.threshold_body_area = threshold_body_area
+        self.previous_centroid = None
+        self.dynamic_cropping_len = dynamic_cropping_len
+        self.height = height
+        self.width = width
 
     def track(self):
         pass
     
 class BodyTrackerPCA(BodyTracker):
-    def track(self, image: NDArray) -> BodyTracking:
-        #start_time_ns = time.process_time_ns()
+
+    def track_pca(self, image: NDArray) -> BodyTracking:
 
         # threshold and remove small objects 
         fish_mask = bwareaopen(
@@ -68,16 +74,21 @@ class BodyTrackerPCA(BodyTracker):
             )
 
             return tracking 
-
-class BodyTrackerMoments(BodyTracker):
-    def track(self, image: NDArray) -> BodyTracking:
-
-        # threshold and remove small objects 
-        fish_mask = bwareaopen(
-            image >= self.threshold_body_intensity, 
-            min_size = self.threshold_body_area
-        )
-
-        # TODO 
         
-        return None
+    def track(self, image: NDArray) -> BodyTracking:
+        #start_time_ns = time.process_time_ns()
+
+        if self.previous_centroid is not None:
+            left = max(self.previous_centroid[0] - self.dynamic_cropping_len, 0)
+            right = min(self.previous_centroid[0] + self.dynamic_cropping_len, self.width)
+            bottom = max(self.previous_centroid[1] - self.dynamic_cropping_len, 0)
+            top = min(self.previous_centroid[1] + self.dynamic_cropping_len, self.height)
+            tracking = self.track_pca(image[left:right,bottom:top])
+            if tracking is None:
+                return self.track_pca(image)
+            else:
+                tracking.centroid += [left, bottom]
+                self.previous_centroid = tracking.centroid
+                return tracking
+        else:
+            return self.track_pca(image)   

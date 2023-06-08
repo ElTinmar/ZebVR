@@ -124,17 +124,18 @@ class TrackerDisp(TrackerDisplay):
                 self.color_heading
             )
 
-            tail_segments = zip(
-                parameters.tail_points_interp[:-1,],
-                parameters.tail_points_interp[1:,]
-            )
-            for pt1, pt2 in tail_segments:
-                overlay = cv2.line(
-                    overlay,
-                    pt1.astype(np.int32),
-                    pt2.astype(np.int32),
-                    self.color_tail
+            if parameters.tail_points_interp is not None:
+                tail_segments = zip(
+                    parameters.tail_points_interp[:-1,],
+                    parameters.tail_points_interp[1:,]
                 )
+                for pt1, pt2 in tail_segments:
+                    overlay = cv2.line(
+                        overlay,
+                        pt1.astype(np.int32),
+                        pt2.astype(np.int32),
+                        self.color_tail
+                    )
         
         return overlay
 

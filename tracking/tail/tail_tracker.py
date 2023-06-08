@@ -13,6 +13,9 @@ class TailTracker(Tracker):
         self,
         threshold_body_intensity: float, 
         threshold_body_area: int,
+        width: int,
+        height: int,
+        dynamic_cropping_len: int,
         tail_length: float,
         n_tail_points: int = 10,
         ksize: int = 10,
@@ -24,7 +27,10 @@ class TailTracker(Tracker):
         super().__init__()
         self.body_tracker = BodyTrackerPCA(
             threshold_body_intensity, 
-            threshold_body_area
+            threshold_body_area,
+            dynamic_cropping_len,
+            height,
+            width
         )
         self.tail_length = tail_length
         self.n_tail_points = n_tail_points
@@ -32,12 +38,21 @@ class TailTracker(Tracker):
         self.arc_angle_deg = arc_angle_deg
         self.n_pts_interp = n_pts_interp
         self.n_pts_arc = n_pts_arc
+        self.dynamic_cropping_len = dynamic_cropping_len
+        self.height = height
+        self.width = width
 
     def track(self, image: NDArray) -> TailTracking:
 
         body_tracking = self.body_tracker.track(image)
 
         if body_tracking is not None:
+            left = max(int(body_tracking.centroid[0]) - self.dynamic_cropping_len, 0)
+            right = min(int(body_tracking.centroid[0]) + self.dynamic_cropping_len, self.width)
+            bottom = max(int(body_tracking.centroid[1]) - self.dynamic_cropping_len, 0)
+            top = min(int(body_tracking.centroid[1]) + self.dynamic_cropping_len, self.height)
+            image = image[left:right,bottom:top]
+
             # apply a gaussian filter
             arc_rad = math.radians(self.arc_angle_deg)/2
             frame_blurred = cv2.boxFilter(image, -1, (self.ksize, self.ksize))
@@ -49,7 +64,7 @@ class TailTracker(Tracker):
                     body_tracking.heading[0,0]
                 ) 
             arc = np.linspace(-arc_rad, arc_rad, self.n_pts_arc) + start_angle
-            x, y = body_tracking.centroid
+            x, y = body_tracking.centroid - [bottom, left]
             points = [[x, y]]
             for j in range(self.n_tail_points):
                 try:
@@ -71,14 +86,18 @@ class TailTracker(Tracker):
                     points.append(points[-1])
 
             # interpolate
-            skeleton = np.array(points)
-            tck, _ = splprep(skeleton.T)
-            new_points = splev(np.linspace(0,1,self.n_pts_interp), tck)
-            skeleton_interp = np.array([new_points[0],new_points[1]])
-            
+            skeleton = np.array(points) + [bottom, left]
+            try:
+                tck, _ = splprep(skeleton.T)
+                new_points = splev(np.linspace(0,1,self.n_pts_interp), tck)
+                skeleton_interp = np.array([new_points[0],new_points[1]])
+                tail_points_interp = skeleton_interp.T
+            except ValueError:
+                tail_points_interp = None
+                
             tracking = TailTracking(
                 tail_points = skeleton,
-                tail_points_interp = skeleton_interp.T,
+                tail_points_interp = tail_points_interp,
                 body = body_tracking
             )
 
