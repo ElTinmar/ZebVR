@@ -11,6 +11,7 @@ from tracking.tracker_collection import TrackerCollection
 from tracking.display import TrackerDisp
 from registration.registration_cam2proj import Cam2ProjReg
 from visual_stimuli.phototaxis import Phototaxis 
+from writers.video import CVWriter
 
 camera_param = CameraParameters(
     ROI_height = 1088,
@@ -74,8 +75,14 @@ tracker = full_tracker
 
 tracker_display = TrackerDisp(name='tracking')
 
-
 stimulus = Phototaxis(projector)
+
+writer = CVWriter(
+    height = camera_param.ROI_height,
+    width = camera_param.ROI_width,
+    fps = 100,
+    filename = '/home/martin/Documents/tracking.avi'
+)
 
 VirtualReality = VR(
     camera, 
@@ -84,5 +91,6 @@ VirtualReality = VR(
     cam2proj, 
     tracker, 
     tracker_display,
-    stimulus
+    stimulus,
+    writer
 )
