@@ -6,7 +6,6 @@ from skimage.measure import label, regionprops
 from core.abstractclasses import Tracker
 from tracking.body.body_tracker import BodyTrackerPCA
 from core.dataclasses import EyeTracking, EyeParam
-
 import cv2
 
 class EyesTracker(Tracker):
@@ -16,13 +15,17 @@ class EyesTracker(Tracker):
         threshold_body_area: int,
         threshold_eye_intensity: float,
         threshold_eye_area_min: int,
-        threshold_eye_area_max: int
+        threshold_eye_area_max: int,
+        dist_eye_midline: int,
+        dist_eye_swimbladder: int,
     ) -> None:
         
         super().__init__()
         self.threshold_eye_intensity = threshold_eye_intensity
         self.threshold_eye_area_min = threshold_eye_area_min
         self.threshold_eye_area_max = threshold_eye_area_max
+        self.dist_eye_midline = dist_eye_midline 
+        self.dist_eye_swimbladder = dist_eye_swimbladder
         self.body_tracker = BodyTrackerPCA(
             threshold_body_intensity, 
             threshold_body_area
@@ -85,10 +88,16 @@ class EyesTracker(Tracker):
 
             # find the eyes TODO remove magic numbers and put as parameters
             left_eye_index = np.squeeze(
-                np.argwhere(np.logical_and(centroids_pc[:,0] > 10, centroids_pc[:,1] < -5))
+                np.argwhere(np.logical_and(
+                    centroids_pc[:,0] > self.dist_eye_swimbladder, 
+                    centroids_pc[:,1] < -self.dist_eye_midline
+                ))
             )
             right_eye_index = np.squeeze(
-                np.argwhere(np.logical_and(centroids_pc[:,0] > 10, centroids_pc[:,1] > 5))
+                np.argwhere(np.logical_and(
+                    centroids_pc[:,0] > self.dist_eye_swimbladder, 
+                    centroids_pc[:,1] > self.dist_eye_midline
+                ))
             )
             left_eye = EyesTracker.get_eye_prop(
                 regions, 

@@ -17,7 +17,11 @@ from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, Proje
 import zmq
 
 # camera -------------------------------------------------
-rescale = 0.5
+rescale = 1
+
+# TODO this should be part of camera calibration
+cam_pixels_per_mm = 50
+cam_mm_per_pixel = 1/cam_pixels_per_mm
 
 camera_param = CameraParameters(
     ROI_height = 1088,
@@ -27,37 +31,38 @@ camera_param = CameraParameters(
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
     parameters = camera_param,
-    rescale = rescale
+    rescale = None
 )
 
 # camera display ------------------------------------------
-cam_display = CamDisp('camera',rescale=0.5)
+cam_display = CamDisp('camera')
 
 # background -------------------------------------------------
 background = DynamicBackground(
     width = int(camera_param.ROI_width*rescale),
     height = int(camera_param.ROI_height*rescale),
     num_images = 200, 
-    every_n_image = 2,
-    rescale=0.5
+    every_n_image = 2
 )
 
 # trackers -------------------------------------------------
 body_tracker = BodyTrackerPCA(
     threshold_body_intensity = 0.2,
-    threshold_body_area = 500
+    threshold_body_area = 10 * cam_pixels_per_mm * rescale**2
 )
 eyes_tracker = EyesTracker(
     threshold_body_intensity = 0.2,
-    threshold_body_area = 500,
+    threshold_body_area = 10 * cam_pixels_per_mm * rescale**2,
     threshold_eye_intensity = 0.4,
-    threshold_eye_area_min = 100,
-    threshold_eye_area_max = 500
+    threshold_eye_area_min = 2 * cam_pixels_per_mm * rescale**2,
+    threshold_eye_area_max = 10 * cam_pixels_per_mm * rescale**2,
+    dist_eye_midline = 0.1 * cam_pixels_per_mm * rescale,
+    dist_eye_swimbladder = 0.2 * cam_pixels_per_mm * rescale
 )
 tail_tracker = TailTracker(
     threshold_body_intensity = 0.2,
-    threshold_body_area = 500,
-    tail_length = 160,
+    threshold_body_area = 10 * cam_pixels_per_mm * rescale**2,
+    tail_length = 3 * cam_pixels_per_mm * rescale,
     n_tail_points = 12,
     ksize = 5,
     arc_angle_deg = 150,
@@ -66,15 +71,20 @@ tail_tracker = TailTracker(
 )
 prey_tracker = PreyTracker(
     threshold_prey_intensity = 0.025,
-    threshold_prey_area_min = 15,
-    threshold_prey_area_max = 100
+    threshold_prey_area_min = 0.3 * cam_pixels_per_mm * rescale**2,
+    threshold_prey_area_max = 2 * cam_pixels_per_mm *rescale**2
 )
 full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey_tracker])
 #full_tracker = TrackerCollection([body_tracker, eyes_tracker])
 tracker = full_tracker
 
 # tracker disp ----------------------------------------------------
-tracker_display = TrackerDisp(name='tracking',rescale=0.66)
+tracker_display = TrackerDisp(
+    name='tracking',
+    alpha = 2.0 * cam_pixels_per_mm * rescale,
+    beta = 0.2 * cam_pixels_per_mm * rescale,
+    circle_radius = int(0.4 * cam_pixels_per_mm * rescale)
+)
 
 # projector --------------------------------------------------------
 projector = CVProjector(monitor_id = 1)
