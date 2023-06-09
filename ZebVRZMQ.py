@@ -17,7 +17,7 @@ from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, Proje
 import zmq
 
 # camera -------------------------------------------------
-rescale = 0.125
+rescale = 0.25
 
 # TODO this should be part of camera calibration
 cam_pixels_per_mm = 50
@@ -26,7 +26,7 @@ cam_mm_per_pixel = 1/cam_pixels_per_mm
 camera_param = CameraParameters(
     ROI_height = 1088,
     ROI_width = 1088,
-    fps = 60
+    fps = 50
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
@@ -83,7 +83,7 @@ prey_tracker = PreyTracker(
     threshold_prey_area_min = 0.3 * cam_pixels_per_mm * rescale**2,
     threshold_prey_area_max = 2 * cam_pixels_per_mm *rescale**2
 )
-full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey_tracker])
+#full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey_tracker])
 full_tracker = TrackerCollection([body_tracker])
 tracker = full_tracker
 

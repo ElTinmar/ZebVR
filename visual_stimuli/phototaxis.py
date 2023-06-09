@@ -4,7 +4,7 @@ from core.dataclasses import TrackingCollection
 from core.abstractclasses import Stimulus, Projector
 from numba import njit
 
-#@njit
+@njit
 def compute_image(xx,yy,centroid,heading):
     return 1.0*(((xx-centroid[0]) * heading[0,1] + (yy-centroid[1]) * heading[1,1]) > 0)
 
