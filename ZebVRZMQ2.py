@@ -17,16 +17,16 @@ from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, Proje
 import zmq
 
 # camera -------------------------------------------------
-rescale = 0.25
+rescale = 0.125
 
 # TODO this should be part of camera calibration
-cam_pixels_per_mm = 50
+cam_pixels_per_mm = 40
 cam_mm_per_pixel = 1/cam_pixels_per_mm
 
 camera_param = CameraParameters(
     ROI_height = 2048,
     ROI_width = 2048,
-    fps = 10
+    fps = 100
 )
 camera = FromFile(
     video_file = 'toy_data/50mm2_mjpeg.avi',
@@ -41,32 +41,32 @@ cam_display = CamDisp('camera')
 background = DynamicBackground(
     width = int(camera_param.ROI_width*rescale),
     height = int(camera_param.ROI_height*rescale),
-    num_images = 200, 
-    every_n_image = 2
+    num_images = 150, 
+    every_n_image = 10
 )
 
 # trackers -------------------------------------------------
 body_tracker = BodyTrackerPCA(
-    threshold_body_intensity = 0.2,
+    threshold_body_intensity = 0.075,
     threshold_body_area = 10 * cam_pixels_per_mm * rescale**2,
     width = int(camera_param.ROI_width*rescale),
     height = int(camera_param.ROI_height*rescale),
     dynamic_cropping_len = int(5 * cam_pixels_per_mm)
 )
 eyes_tracker = EyesTracker(
-    threshold_body_intensity = 0.2,
+    threshold_body_intensity = 0.075,
     threshold_body_area = 10 * cam_pixels_per_mm * rescale**2,
     width = int(camera_param.ROI_width*rescale),
     height = int(camera_param.ROI_height*rescale),
     dynamic_cropping_len = int(5 * cam_pixels_per_mm),
-    threshold_eye_intensity = 0.4,
+    threshold_eye_intensity = 0.2,
     threshold_eye_area_min = 2 * cam_pixels_per_mm * rescale**2,
     threshold_eye_area_max = 10 * cam_pixels_per_mm * rescale**2,
     dist_eye_midline = 0.1 * cam_pixels_per_mm * rescale,
     dist_eye_swimbladder = 0.2 * cam_pixels_per_mm * rescale
 )
 tail_tracker = TailTracker(
-    threshold_body_intensity = 0.2,
+    threshold_body_intensity = 0.075,
     threshold_body_area = 10 * cam_pixels_per_mm * rescale**2,
     width = int(camera_param.ROI_width*rescale),
     height = int(camera_param.ROI_height*rescale),
@@ -300,7 +300,8 @@ camdispZMQ = CameraDisplayZMQ(
 backZMQ = BackgroundZMQ(
     background,
     input_info = [bckg_in],
-    output_info = [bckg_out]
+    output_info = [bckg_out],
+    polarity = 1
 )
 
 trckzmq_0 = TrackerZMQ(

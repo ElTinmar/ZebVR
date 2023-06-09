@@ -5,6 +5,8 @@ from core.abstractclasses import (
 import cv2
 import numpy as np
 
+polarity = 1
+
 class VR:
     def __init__(
         self,
@@ -54,7 +56,7 @@ class VR:
                     timestamp = data.get_timestamp()
                     self.background.add_image(image)
                     background_image = self.background.get_background() 
-                    back_sub = -(image - background_image)
+                    back_sub = polarity*(image - background_image)
                     tracking = self.tracker.track(back_sub)
                     overlay = self.tracker_display.overlay(tracking, back_sub)
                     stim_image = self.stimulus.create_stim_image(timestamp, tracking)
