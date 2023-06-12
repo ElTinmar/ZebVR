@@ -51,3 +51,10 @@ for i in range(N):
 duration =1e-9*(time.process_time_ns() - start_time_ns)/N
 print(f'projector {duration}')
 projector.close_window()
+
+"""
+The conclusion is that I shouldn't create an image and 
+then display it, but use OpenGL capabilities either 
+directly by writing shaders, or through python 
+libraries (pyglet,psychopy,...) 
+"""
