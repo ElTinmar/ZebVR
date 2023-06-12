@@ -13,21 +13,24 @@ from registration.registration_cam2proj import Cam2ProjReg
 from visual_stimuli.phototaxis import Phototaxis 
 from writers.video import CVWriter
 
-rescale = 1
+# TODO time each module in the single process version to 
+# get accurate timing of just processing
+
+rescale = 0.25
 
 # TODO this should be part of camera calibration
-cam_pixels_per_mm = 40
+cam_pixels_per_mm = 50
 cam_mm_per_pixel = 1/cam_pixels_per_mm
 
 camera_param = CameraParameters(
-    ROI_height = 2048,
-    ROI_width = 2048,
+    ROI_height = 1088,
+    ROI_width = 1088,
     fps = 100
 )
 camera = FromFile(
-    video_file = 'toy_data/50mm2_mjpeg.avi',
+    video_file = 'toy_data/behavior_2000.avi',
     parameters = camera_param,
-    rescale = None
+    rescale = rescale
 )
 
 projector = CVProjector(monitor_id = 1)
@@ -76,7 +79,7 @@ tail_tracker = TailTracker(
     width = int(camera_param.ROI_width*rescale),
     height = int(camera_param.ROI_height*rescale),
     dynamic_cropping_len = int(10 * cam_pixels_per_mm),
-    tail_length = 6 * cam_pixels_per_mm * rescale,
+    tail_length = 3.2 * cam_pixels_per_mm * rescale,
     n_tail_points = 12,
     ksize = 5,
     arc_angle_deg = 150,
@@ -89,18 +92,21 @@ prey_tracker = PreyTracker(
     threshold_prey_area_max = 2 * cam_pixels_per_mm *rescale**2
 )
 full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker])
+full_tracker = TrackerCollection([body_tracker])
 tracker = full_tracker
 
 tracker_display = TrackerDisp(name='tracking')
 
 stimulus = Phototaxis(projector)
 
+"""
 writer = CVWriter(
     height = camera_param.ROI_height,
     width = camera_param.ROI_width,
     fps = 100,
     filename = '/home/martin/Documents/tracking2.avi'
 )
+"""
 
 VirtualReality = VR(
     camera, 
@@ -110,5 +116,5 @@ VirtualReality = VR(
     tracker, 
     tracker_display,
     stimulus,
-    writer
+    None
 )
