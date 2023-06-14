@@ -47,6 +47,7 @@ class VR:
         cv2.namedWindow('VR')
         self.camera.start_acquisition()
         #self.writer.start()
+        self.stimulus.init_window()
 
         camera_fetch_time = 0
         background_time = 0
@@ -83,10 +84,10 @@ class VR:
                 overlay = overlay.astype(np.uint8)
                 overlay_time += (time.process_time_ns() - start_time_ns) 
 
-                stim_image = self.stimulus.create_stim_image(timestamp, tracking)
+                stim_image = self.stimulus.project(tracking)
                 visual_stim_time += (time.process_time_ns() - start_time_ns) 
 
-                self.projector.project(stim_image)
+                #self.projector.project(stim_image)
                 projector_time += (time.process_time_ns() - start_time_ns) 
 
                 data.reallocate()
@@ -101,6 +102,7 @@ class VR:
             
         self.camera.stop_acquisition()
         #self.writer.stop()
+        self.stimulus.close_window()
         cv2.destroyWindow('VR')
 
         print(f'camera_fetch_time {1e-9 * camera_fetch_time/num_loops} s per loop')

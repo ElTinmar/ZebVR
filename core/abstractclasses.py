@@ -160,11 +160,19 @@ class Background(ABC):
         """
 
 class Stimulus(ABC):
-     @abstractmethod
-     def create_stim_image(self, timestamp: int, parameters: Tracking) -> NDArray:
+    @abstractmethod
+    def project(self, parameters: Tracking) -> NDArray:
         """
         create stimulus image from tracking parameters
         """
+
+    @abstractmethod
+    def init_window(self) -> None:
+        pass
+    
+    @abstractmethod
+    def close_window(self) -> None:
+        pass
 
 class Cam2Proj(ABC):
     def registration(self):

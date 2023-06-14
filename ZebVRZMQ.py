@@ -1,7 +1,7 @@
 from devices.camera.dummycam import FromFile
 from devices.camera.display import CamDisp
 from devices.projector.opencv_projector import CVProjector
-from visual_stimuli.phototaxis import Phototaxis 
+from visual_stimuli.phototaxis2 import Phototaxis 
 from background.background import DynamicBackground
 from tracking.body.body_tracker import BodyTrackerPCA
 from tracking.eyes.eyes_tracker import EyesTracker
@@ -99,7 +99,7 @@ tracker_display = TrackerDisp(
 projector = CVProjector(monitor_id = 1)
 
 # stimulus ---------------------------------------------------------
-stimulus = Phototaxis(projector)
+stimulus = Phototaxis(screenid=1)
 
 # registration -----------------------------------------------------
 cam2proj = Cam2ProjReg(
@@ -214,75 +214,31 @@ tracker_disp_in0 = ZMQSocketInfo(
     socket_type = zmq.PULL,
     deserializer = recv_tracking
 )
-
 tracker_disp_in1 = ZMQSocketInfo(
     port = tracker1_out1.port,
     socket_type = zmq.PULL,
     deserializer = recv_tracking
 )
-
 tracker_disp_in2 = ZMQSocketInfo(
     port = tracker2_out1.port,
     socket_type = zmq.PULL,
     deserializer = recv_tracking
 )
 
-stim0_in = ZMQSocketInfo(
+stim_in0 = ZMQSocketInfo(
     port = tracker0_out.port,
     socket_type = zmq.PULL,
     deserializer = recv_tracking
 )
-
-stim0_out = ZMQSocketInfo(
-    port = base_port + 9,
-    socket_type = zmq.PUSH,
-    bind = True,
-    serializer = send_frame
-)
-
-stim1_in = ZMQSocketInfo(
+stim_in1 = ZMQSocketInfo(
     port = tracker1_out.port,
     socket_type = zmq.PULL,
     deserializer = recv_tracking
 )
-
-stim1_out = ZMQSocketInfo(
-    port = base_port + 10,
-    socket_type = zmq.PUSH,
-    bind = True,
-    serializer = send_frame
-)
-
-stim2_in = ZMQSocketInfo(
+stim_in2 = ZMQSocketInfo(
     port = tracker2_out.port,
     socket_type = zmq.PULL,
     deserializer = recv_tracking
-)
-
-stim2_out = ZMQSocketInfo(
-    port = base_port + 11,
-    socket_type = zmq.PUSH,
-    bind = True,
-    serializer = send_frame
-)
-
-
-projector_in0 = ZMQSocketInfo(
-    port = stim0_out.port,
-    socket_type = zmq.PULL,
-    deserializer = recv_frame
-)
-
-projector_in1 = ZMQSocketInfo(
-    port = stim1_out.port,
-    socket_type = zmq.PULL,
-    deserializer = recv_frame
-)
-
-projector_in2 = ZMQSocketInfo(
-    port = stim2_out.port,
-    socket_type = zmq.PULL,
-    deserializer = recv_frame
 )
 
 # create and start nodes -------------------------------------------
@@ -331,37 +287,14 @@ trckdisp = TrackerDisplayZMQ(
     output_info=[]
 )
 
-stimzmq_0 = StimulusZMQ(
+stimzmq = StimulusZMQ(
     stimulus,
-    input_info = [stim0_in],
-    output_info = [stim0_out],
+    input_info = [stim_in0,stim_in1,stim_in2],
+    output_info = [],
     name = 'stim0'
 )
 
-stimzmq_1 = StimulusZMQ(
-    stimulus,
-    input_info = [stim1_in],
-    output_info = [stim1_out],
-    name = 'stim1'
-)
-
-stimzmq_2 = StimulusZMQ(
-    stimulus,
-    input_info = [stim2_in],
-    output_info = [stim2_out],
-    name = 'stim2'
-)
-
-projZMQ = ProjectorZMQ(
-    projector,
-    input_info = [projector_in0, projector_in1, projector_in2],
-    output_info = []
-)
-
-projZMQ.start()
-stimzmq_2.start()
-stimzmq_1.start()
-stimzmq_0.start()
+stimzmq.start()
 trckdisp.start()
 trckzmq_2.start()
 trckzmq_1.start()

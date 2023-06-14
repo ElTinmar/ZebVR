@@ -201,19 +201,27 @@ class StimulusZMQ(ZMQDataProcessingNode):
         
         self.stimulus = stimulus
         self.name = name
+        self.last_frame = 0
+        self.discarded_frames = []
+
+    def pre_loop(self) -> None:
+        self.stimulus.init_window()
+
+    def post_loop(self) -> None:
+        super().post_loop()
+        self.stimulus.close_window()
+        print(f'discarded {len(self.discarded_frames)} frames')
 
     def post_recv(self, args: Any) -> Any:
         index = args['index']
         timestamp = args['timestamp']
         tracking = args['tracking']
-        print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
-
-        ret = {
-            'index': index,
-            'timestamp':  timestamp,
-            'frame': self.stimulus.create_stim_image(timestamp, tracking)
-        }
-        return ret
+        if index > self.last_frame:
+            print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
+            self.stimulus.project(timestamp, tracking)
+            self.last_frame = index
+        else:
+            self.discarded_frames.append(index)
     
 class ProjectorZMQ(ZMQDataProcessingNode):
     def __init__(
