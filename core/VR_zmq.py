@@ -218,7 +218,7 @@ class StimulusZMQ(ZMQDataProcessingNode):
         tracking = args['tracking']
         if index > self.last_frame:
             print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
-            self.stimulus.project(timestamp, tracking)
+            self.stimulus.project(tracking)
             self.last_frame = index
         else:
             self.discarded_frames.append(index)

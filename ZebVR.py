@@ -16,7 +16,7 @@ from writers.video import CVWriter
 # TODO time each module in the single process version to 
 # get accurate timing of just processing
 
-rescale = 0.25
+rescale = 0.5
 
 # TODO this should be part of camera calibration
 cam_pixels_per_mm = 50

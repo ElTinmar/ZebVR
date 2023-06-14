@@ -1,10 +1,9 @@
 from numpy.typing import NDArray
 from core.dataclasses import TrackingCollection
 from core.abstractclasses import Stimulus
-from psychopy import visual
 import numpy as np
+from psychopy import visual
 
-    
 class Phototaxis(Stimulus):
 
     def __init__(self, screenid: int = 0) -> None:
