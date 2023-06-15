@@ -53,14 +53,12 @@ class DynamicBackground(Background):
         self.image_store = BoundedQueue((width,height),maxlen=num_images)
 
     def start(self):
-        print('I started showing bckg',flush=True)
         self.proc_display = Process(
             target=self.show_background,
             args=(self.width, self.height, self.rescale, self.stop_flag, self.background)
         )
         self.proc_display.start()
 
-        print('I started computing bckg',flush=True)
         self.proc_compute = Process(
             target=self.compute_background, 
             args=(self.stop_flag, self.image_store, self.background)
