@@ -39,8 +39,9 @@ class Phototaxis(Stimulus):
     
     def create_shape(self, centroid, heading) -> NDArray:
         # the origin of psychopy is bottomleft vs topleft for the camera image
+        # need to inverse Y-axis
         heading[1,:] = - heading[1,:]
-        
+
         vertices = []
 
         # add line intersection
