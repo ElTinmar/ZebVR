@@ -4,7 +4,7 @@ from numpy.typing import NDArray
 from tracking.utils.conncomp_filter import bwareafilter
 from skimage.measure import label, regionprops
 from core.abstractclasses import Tracker
-from tracking.body.body_tracker import BodyTrackerPCA
+from tracking.body.body_tracker import BodyTracker
 from core.dataclasses import EyeTracking, EyeParam
 import cv2
 
@@ -32,7 +32,7 @@ class EyesTracker(Tracker):
         self.dynamic_cropping_len = dynamic_cropping_len
         self.width = width
         self.height = height
-        self.body_tracker = BodyTrackerPCA(
+        self.body_tracker = BodyTracker(
             threshold_body_intensity, 
             threshold_body_area,
             dynamic_cropping_len,

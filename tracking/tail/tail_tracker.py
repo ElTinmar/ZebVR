@@ -4,7 +4,7 @@ import cv2
 import math 
 from scipy.interpolate import splprep, splev
 from core.abstractclasses import Tracker
-from tracking.body.body_tracker import BodyTrackerPCA
+from tracking.body.body_tracker import BodyTracker
 import cv2
 from core.dataclasses import TailTracking
 
@@ -25,7 +25,7 @@ class TailTracker(Tracker):
     ) -> None:
         
         super().__init__()
-        self.body_tracker = BodyTrackerPCA(
+        self.body_tracker = BodyTracker(
             threshold_body_intensity, 
             threshold_body_area,
             dynamic_cropping_len,

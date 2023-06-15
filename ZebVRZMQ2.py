@@ -3,7 +3,7 @@ from devices.camera.display import CamDisp
 from devices.projector.opencv_projector import CVProjector
 from visual_stimuli.phototaxis import Phototaxis 
 from background.background import DynamicBackground
-from tracking.body.body_tracker import BodyTrackerPCA
+from tracking.body.body_tracker import BodyTracker
 from tracking.eyes.eyes_tracker import EyesTracker
 from tracking.tail.tail_tracker import TailTracker
 from tracking.prey.prey_tracker import PreyTracker
@@ -46,7 +46,7 @@ background = DynamicBackground(
 )
 
 # trackers -------------------------------------------------
-body_tracker = BodyTrackerPCA(
+body_tracker = BodyTracker(
     threshold_body_intensity = 0.075,
     threshold_body_area = 10 * cam_pixels_per_mm * rescale**2,
     width = int(camera_param.ROI_width*rescale),

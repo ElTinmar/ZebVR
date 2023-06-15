@@ -9,8 +9,9 @@ from core.abstractclasses import Tracker
 import cv2
 from core.dataclasses import BodyTracking
 import time
-
+    
 class BodyTracker(Tracker):
+
     def __init__(
             self, 
             threshold_body_intensity: float, 
@@ -28,11 +29,6 @@ class BodyTracker(Tracker):
         self.height = height
         self.width = width
 
-    def track(self):
-        pass
-    
-class BodyTrackerPCA(BodyTracker):
-
     def track_pca(self, image: NDArray) -> BodyTracking:
 
         # threshold and remove small objects 
@@ -40,10 +36,8 @@ class BodyTrackerPCA(BodyTracker):
             image >= self.threshold_body_intensity, 
             min_size = self.threshold_body_area
         )
-        #print(f'bwareaopen {1e-9 *(time.process_time_ns() - start_time_ns)}')
               
         blob_coordinates = np.argwhere(fish_mask) #  (row, col) coordinates
-        #print(f'argwhere {1e-9 *(time.process_time_ns() - start_time_ns)}')
 
         if blob_coordinates.size == 0:
             return None
@@ -57,8 +51,6 @@ class BodyTrackerPCA(BodyTracker):
             # PCs are organized in rows, transform to columns
             principal_components = pca.components_.T
             centroid = pca.mean_
-
-            #print(f'PCA {1e-9 *(time.process_time_ns() - start_time_ns)}')
 
             # correct orientation
             if abs(max(scores[:,0])) > abs(min(scores[:,0])):
