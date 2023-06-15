@@ -1,9 +1,11 @@
 name: ZebVR
+channels:
+- conda-forge
 dependencies:
-- python == 3.8
+- python == 3.8.16
 - pip
 - pip:
-  - wxPython == 4.1.1
+  - wxPython
   - opencv-python
   - harvesters
   - screeninfo
