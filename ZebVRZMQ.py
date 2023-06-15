@@ -19,6 +19,7 @@ import multiprocessing
 
 if __name__ == '__main__':
 
+    # make sure multiprocessing is compatible with windows
     multiprocessing.set_start_method('spawn')
 
     # TODO this should be part of camera calibration
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     camera_param = CameraParameters(
         ROI_height = 1088,
         ROI_width = 1088,
-        fps = 100
+        fps = 20
     )
     camera = FromFile(
         video_file = 'toy_data/behavior_2000.avi',
@@ -44,7 +45,7 @@ if __name__ == '__main__':
         height = int(camera_param.ROI_height),
         num_images = 200, 
         every_n_image = 2,
-        rescale=0.25
+        rescale = 0.25
     )
 
     # trackers -------------------------------------------------
@@ -92,7 +93,7 @@ if __name__ == '__main__':
     projector = CVProjector(monitor_id = 1)
 
     # stimulus ---------------------------------------------------------
-    stimulus = Phototaxis(screenid=1)
+    stimulus = Phototaxis(screenid = 0)
 
     # registration -----------------------------------------------------
     cam2proj = Cam2ProjReg(

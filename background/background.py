@@ -5,7 +5,6 @@ from core.abstractclasses import Background
 from multiprocessing import Process, Event
 from multiprocessing.sharedctypes import Array, Value
 import numpy as np
-import time
 import ctypes
 
 class BoundedQueue:
