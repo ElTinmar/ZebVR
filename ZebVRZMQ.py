@@ -1,7 +1,7 @@
 from devices.camera.dummycam import FromFile
 from devices.camera.display import CamDisp
 from devices.projector.opencv_projector import CVProjector
-from visual_stimuli.phototaxis2 import Phototaxis 
+from visual_stimuli.phototaxis import Phototaxis 
 from background.background import DynamicBackground
 from tracking.body.body_tracker import BodyTrackerPCA
 from tracking.eyes.eyes_tracker import EyesTracker
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     camera_param = CameraParameters(
         ROI_height = 1088,
         ROI_width = 1088,
-        fps = 50
+        fps = 100
     )
     camera = FromFile(
         video_file = 'toy_data/behavior_2000.avi',

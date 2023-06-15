@@ -1,32 +1,63 @@
 from numpy.typing import NDArray
-import numpy as np
 from core.dataclasses import TrackingCollection
-from core.abstractclasses import Stimulus, Projector
-from numba import njit
-
-@njit
-def compute_image(xx,yy,centroid,heading):
-    return 1.0*(((xx-centroid[0]) * heading[0,1] + (yy-centroid[1]) * heading[1,1]) > 0)
+from core.abstractclasses import Stimulus
+import numpy as np
+from psychopy import visual
 
 class Phototaxis(Stimulus):
-    def __init__(self, projector: Projector):
+
+    def __init__(self, screenid: int = 0) -> None:
         super().__init__()
-        self.projector = projector
-        self.last_timestamp = 0
+        self.screenid = screenid
 
-        width, height = self.projector.get_resolution()
-        xv, yv = np.meshgrid(range(width), range(height), indexing='xy')
-        self.img = np.zeros((height,width), dtype=np.single)
-        self.grid_x = xv
-        self.grid_y = yv
+    def init_window(self):
+        self.window = visual.Window(
+            fullscr = True, 
+            screen = self.screenid, 
+            units='pix',
+            colorSpace = 'rgb255'
+        )
+        self.w, self.h = self.window.size
+        
+    def close_window(self):
+        self.window.close()
 
-    def create_stim_image(self, timestamp: int, parameters: TrackingCollection) -> NDArray:
-        if timestamp > self.last_timestamp:
-            self.last_timestamp = timestamp
-            if parameters.body is not None:
-                self.img = compute_image(self.grid_x,self.grid_y,parameters.body.centroid, parameters.body.heading)
-            return self.img
-        else:
-            return None
+    def project(self, parameters: TrackingCollection) -> None:
+        if parameters.body is not None:
+            vertices = self.create_shape(parameters.body.centroid, parameters.body.heading)
+            shape = visual.shape.ShapeStim(
+                self.window, 
+                units='pix', 
+                vertices=vertices, 
+                fillColor=[255,255,255],
+                lineColor=None,
+                pos = [-self.w//2, -self.h//2]
+            )
+            shape.draw()
+            self.window.flip()
+    
+    def create_shape(self, centroid, heading) -> NDArray:
+        vertices = []
+
+        # add line intersection
+        if heading[0,1] != 0:
+            for y in [0,self.h]:
+                x = 1/heading[0,1] * (centroid[0]*heading[0,1] - (y - centroid[1])*heading[1,1])
+                if 0 <= x <= self.w:
+                    vertices.append([x, y])
+        
+        if heading[1,1] != 0:
+            for x in [0,self.w]:
+                y = 1/heading[1,1] * (centroid[1]*heading[1,1] - (x - centroid[0])*heading[0,1])
+                if 0 <= y <= self.h:
+                    vertices.append([x, y])
+
+        # check window corners
+        for x in [0,self.w]:
+            for y in [0,self.h]:
+                if np.dot((x-centroid[0],y-centroid[1]),heading[:,1]) > 0:
+                    vertices.append([x, y])
+
+        return vertices
 
     

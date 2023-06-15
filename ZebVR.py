@@ -10,7 +10,7 @@ from tracking.prey.prey_tracker import PreyTracker
 from tracking.tracker_collection import TrackerCollection 
 from tracking.display import TrackerDisp
 from registration.registration_cam2proj import Cam2ProjReg
-from visual_stimuli.phototaxis2 import Phototaxis 
+from visual_stimuli.phototaxis import Phototaxis 
 from writers.video import CVWriter
 
 # TODO time each module in the single process version to 
