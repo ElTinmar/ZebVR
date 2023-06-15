@@ -10,21 +10,38 @@ class PreyTracker(Tracker):
     def __init__(
         self,
         threshold_prey_intensity: float,
-        threshold_prey_area_min: int,
-        threshold_prey_area_max: int
+        pixels_per_mm: float,
+        threshold_prey_area_min_mm2: float = 0.3,
+        threshold_prey_area_max_mm2: float = 2,
+        rescale: float = None
     ) -> None:
         
         super().__init__()
         self.threshold_prey_intensity = threshold_prey_intensity
-        self.threshold_prey_area_min = threshold_prey_area_min  
-        self.threshold_prey_area_max = threshold_prey_area_max 
+        self.threshold_prey_area_min_pix = threshold_prey_area_min_mm2 * pixels_per_mm
+        self.threshold_prey_area_max_pix = threshold_prey_area_max_mm2 * pixels_per_mm
+        self.rescale = rescale
+
+        if rescale is not None:
+            self.threshold_prey_area_min_pix *= rescale**2
+            self.threshold_prey_area_max_pix *= rescale**2
 
     def track(self, image: NDArray) -> PreyTracking:
-
+        
+        # tracking is faster on small images
+        if self.rescale is not None:
+            image = cv2.resize(
+                    image, 
+                    None, 
+                    fx = self.rescale, 
+                    fy = self.rescale,
+                    interpolation=cv2.INTER_NEAREST
+                )
+            
         prey_mask = bwareafilter(
             image >= self.threshold_prey_intensity, 
-            min_size = self.threshold_prey_area_min, 
-            max_size = self.threshold_prey_area_max
+            min_size = self.threshold_prey_area_min_pix, 
+            max_size = self.threshold_prey_area_max_pix
         )
 
         label_img = label(prey_mask)
@@ -32,7 +49,11 @@ class PreyTracker(Tracker):
 
         prey_centroids = np.empty((len(regions),2),dtype=np.float32)
         for i,blob in enumerate(regions):
-            prey_centroids[i,:] = [blob.centroid[1], blob.centroid[0]] 
+            prey_centroids[i,:] = blob.centroid[1,0].astype('float') 
+
+        # scale back coordinates
+        if self.rescale is not None:
+            prey_centroids *= 1/self.rescale
 
         tracking = PreyTracking(
             prey_centroids = prey_centroids,

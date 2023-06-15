@@ -11,52 +11,60 @@ from core.dataclasses import TailTracking
 class TailTracker(Tracker):
     def __init__(
         self,
-        threshold_body_intensity: float, 
-        threshold_body_area: int,
-        width: int,
-        height: int,
-        dynamic_cropping_len: int,
-        tail_length: float,
+        body_tracker: BodyTracker,
+        dynamic_cropping_len_mm: float,
+        pixels_per_mm: float,
+        tail_length_mm: float = 3,
         n_tail_points: int = 10,
         ksize: int = 10,
         arc_angle_deg: float = 150,
         n_pts_interp: int = 40,
-        n_pts_arc: int = 20
+        n_pts_arc: int = 20,
+        rescale: float = None
     ) -> None:
         
         super().__init__()
-        self.body_tracker = BodyTracker(
-            threshold_body_intensity, 
-            threshold_body_area,
-            dynamic_cropping_len,
-            height,
-            width
-        )
-        self.tail_length = tail_length
+        self.body_tracker = body_tracker  
         self.n_tail_points = n_tail_points
         self.ksize = ksize
         self.arc_angle_deg = arc_angle_deg
         self.n_pts_interp = n_pts_interp
         self.n_pts_arc = n_pts_arc
-        self.dynamic_cropping_len = dynamic_cropping_len
-        self.height = height
-        self.width = width
+        self.pixels_per_mm = pixels_per_mm
+        self.tail_length_pix = tail_length_mm * pixels_per_mm
+        self.dynamic_cropping_len_pix = dynamic_cropping_len_mm * pixels_per_mm
+        self.rescale = rescale
+
+        if rescale is not None:
+            self.tail_length_pix *= rescale
+            self.dynamic_cropping_len_pix *= rescale
 
     def track(self, image: NDArray) -> TailTracking:
 
         body_tracking = self.body_tracker.track(image)
 
+        # tracking is faster on small images
+        if self.rescale is not None:
+            body_tracking.centroid *= self.rescale
+            image = cv2.resize(
+                    image, 
+                    None, 
+                    fx = self.rescale, 
+                    fy = self.rescale,
+                    interpolation=cv2.INTER_NEAREST
+                )
+
         if body_tracking is not None:
-            left = max(int(body_tracking.centroid[0]) - self.dynamic_cropping_len, 0)
-            right = min(int(body_tracking.centroid[0]) + self.dynamic_cropping_len, self.width)
-            bottom = max(int(body_tracking.centroid[1]) - self.dynamic_cropping_len, 0)
-            top = min(int(body_tracking.centroid[1]) + self.dynamic_cropping_len, self.height)
+            left = max(int(body_tracking.centroid[0]) - self.dynamic_cropping_len_pix, 0)
+            right = min(int(body_tracking.centroid[0]) + self.dynamic_cropping_len_pix, image.shape[1])
+            bottom = max(int(body_tracking.centroid[1]) - self.dynamic_cropping_len_pix, 0)
+            top = min(int(body_tracking.centroid[1]) + self.dynamic_cropping_len_pix, image.shape[0])
             image = image[left:right,bottom:top]
 
             # apply a gaussian filter
             arc_rad = math.radians(self.arc_angle_deg)/2
             frame_blurred = cv2.boxFilter(image, -1, (self.ksize, self.ksize))
-            spacing = float(self.tail_length) / self.n_tail_points
+            spacing = float(self.tail_length_pix) / self.n_tail_points
             # why the minus sign ? maybe something with the location of the origin (topleft) vs arctan2 quadrant ?
             start_angle = math.pi + \
                 np.arctan2(
@@ -86,7 +94,9 @@ class TailTracker(Tracker):
                     points.append(points[-1])
 
             # interpolate
-            skeleton = np.array(points) + [bottom, left]
+            skeleton = np.array(points).astype('float') + [bottom, left]
+            if self.rescale is not None:
+                skeleton *= 1/self.rescale
             try:
                 tck, _ = splprep(skeleton.T)
                 new_points = splev(np.linspace(0,1,self.n_pts_interp), tck)

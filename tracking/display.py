@@ -8,9 +8,10 @@ class TrackerDisp(TrackerDisplay):
     def __init__(
             self, 
             name: str,
-            alpha: int = 100,
-            beta: int = 10,
-            circle_radius: int = 10, 
+            pixels_per_mm: float,
+            heading_len_mm: float = 2,
+            eye_len_mm: float = 0.2,
+            circle_radius_mm: float = 0.4, 
             color_heading: tuple = (0,0,1),
             color_eye_left: tuple = (0,1,1),
             color_eye_right: tuple = (1,1,0),
@@ -22,15 +23,21 @@ class TrackerDisp(TrackerDisplay):
         super().__init__()
 
         self.name = name
-        self.alpha = alpha
-        self.beta = beta
+        self.heading_len_pix = heading_len_mm * pixels_per_mm
+        self.eye_len_pix = eye_len_mm * pixels_per_mm
+        self.circle_radius_pix = circle_radius_mm * pixels_per_mm
         self.color_heading = color_heading
         self.color_eye_left = color_eye_left
         self.color_eye_right = color_eye_right
         self.color_tail = color_tail 
-        self.circle_radius = circle_radius
         self.circle_color = circle_color
+        self.pixels_per_mm = pixels_per_mm
         self.rescale = rescale
+
+        if self.rescale is not None:
+            self.heading_len_pix *= rescale
+            self.eye_len_pix *= rescale
+            self.circle_radius_pix *= rescale
 
     def overlay_body(self, parameters: BodyTracking, image: NDArray) -> NDArray:
 
@@ -41,7 +48,7 @@ class TrackerDisp(TrackerDisplay):
         
         if parameters is not None:
             pt1 = parameters.centroid
-            pt2 = parameters.centroid + self.alpha*parameters.heading[:,0]
+            pt2 = parameters.centroid + self.heading_len_pix*parameters.heading[:,0]
             overlay = cv2.line(
                 overlay,
                 pt1.astype(np.int32),
@@ -62,7 +69,7 @@ class TrackerDisp(TrackerDisplay):
 
             pt1 = parameters.body.centroid
             pt2 = parameters.body.centroid + \
-                self.alpha * parameters.body.heading[:,0]
+                self.heading_len_pix * parameters.body.heading[:,0]
             overlay = cv2.line(
                 overlay,
                 pt1.astype(np.int32),
@@ -72,14 +79,14 @@ class TrackerDisp(TrackerDisplay):
 
             if parameters.left_eye is not None:
                 pt1 = parameters.left_eye.centroid
-                pt2 = pt1 + self.beta * parameters.left_eye.direction
+                pt2 = pt1 + self.eye_len_pix * parameters.left_eye.direction
                 overlay = cv2.line(
                     overlay,
                     pt1.astype(np.int32),
                     pt2.astype(np.int32),
                     self.color_eye_left
                 )
-                pt2 = pt1 - self.beta * parameters.left_eye.direction
+                pt2 = pt1 - self.eye_len_pix * parameters.left_eye.direction
                 overlay = cv2.line(
                     overlay,
                     pt1.astype(np.int32),
@@ -89,14 +96,14 @@ class TrackerDisp(TrackerDisplay):
 
             if parameters.right_eye is not None:
                 pt1 = parameters.right_eye.centroid
-                pt2 = pt1 + self.beta * parameters.right_eye.direction
+                pt2 = pt1 + self.eye_len_pix * parameters.right_eye.direction
                 overlay = cv2.line(
                     overlay,
                     pt1.astype(np.int32),
                     pt2.astype(np.int32),
                     self.color_eye_right
                 )
-                pt2 = pt1 - self.beta * parameters.right_eye.direction
+                pt2 = pt1 - self.eye_len_pix * parameters.right_eye.direction
                 overlay = cv2.line(
                     overlay,
                     pt1.astype(np.int32),
@@ -116,7 +123,7 @@ class TrackerDisp(TrackerDisplay):
         if parameters is not None:
             pt1 = parameters.body.centroid
             pt2 = parameters.body.centroid + \
-                self.alpha * parameters.body.heading[:,0]
+                self.heading_len_pix * parameters.body.heading[:,0]
             overlay = cv2.line(
                 overlay,
                 pt1.astype(np.int32),
@@ -150,7 +157,7 @@ class TrackerDisp(TrackerDisplay):
             overlay = cv2.circle(
                 overlay, 
                 prey_loc.astype(np.int32),
-                self.circle_radius,
+                self.circle_radius_pix,
                 self.circle_color
             )
 
@@ -174,6 +181,7 @@ class TrackerDisp(TrackerDisplay):
         return overlay
 
     def overlay(self, parameters: Tracking, image: NDArray) -> NDArray:
+        
         if isinstance(parameters, BodyTracking):
             return self.overlay_body(parameters, image)
         elif isinstance(parameters, EyeTracking):
@@ -194,18 +202,17 @@ class TrackerDisp(TrackerDisplay):
         cv2.destroyWindow(self.name)
 
     def display(self, parameters: Tracking, image: NDArray):
-        overlay = self.overlay(parameters, image)
-        for c in range(overlay.shape[2]):
-            overlay[:,:,c] = overlay[:,:,c] + image
         if self.rescale is not None:
-            smallimg = cv2.resize(
-                overlay, 
+            image = cv2.resize(
+                image, 
                 None, 
                 fx = self.rescale, 
                 fy = self.rescale, 
                 interpolation=cv2.INTER_LINEAR
             )
-            cv2.imshow(self.name, smallimg)
-        else:
-            cv2.imshow(self.name, overlay)
+
+        overlay = self.overlay(parameters, image)
+        for c in range(overlay.shape[2]):
+            overlay[:,:,c] = overlay[:,:,c] + image
+        cv2.imshow(self.name, overlay)
         cv2.waitKey(1)

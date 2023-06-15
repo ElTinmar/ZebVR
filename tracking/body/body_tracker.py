@@ -15,26 +15,29 @@ class BodyTracker(Tracker):
     def __init__(
             self, 
             threshold_body_intensity: float, 
-            threshold_body_area: int,
-            dynamic_cropping_len: int,
-            height: int,
-            width: int
+            pixels_per_mm: float,
+            threshold_body_area_mm2: float = 10,
+            dynamic_cropping_len_mm: float = 5,
+            rescale: float = None
         ) -> None:
 
         super().__init__()
         self.threshold_body_intensity = threshold_body_intensity
-        self.threshold_body_area = threshold_body_area
         self.previous_centroid = None
-        self.dynamic_cropping_len = dynamic_cropping_len
-        self.height = height
-        self.width = width
+        self.pixels_per_mm = pixels_per_mm
+        self.rescale = rescale
+        self.threshold_body_area_pix2 = threshold_body_area_mm2 * pixels_per_mm
+        self.dynamic_cropping_len_pix = np.ceil(dynamic_cropping_len_mm * pixels_per_mm)
+
+        if rescale is not None:
+            self.threshold_body_area_pix2 *= rescale**2
 
     def track_pca(self, image: NDArray) -> BodyTracking:
 
         # threshold and remove small objects 
         fish_mask = bwareaopen(
             image >= self.threshold_body_intensity, 
-            min_size = self.threshold_body_area
+            min_size = self.threshold_body_area_pix2
         )
               
         blob_coordinates = np.argwhere(fish_mask) #  (row, col) coordinates
@@ -43,7 +46,11 @@ class BodyTracker(Tracker):
             return None
         else:
             # (row,col) to (x,y) coordinates
-            blob_coordinates = blob_coordinates[:,[1, 0]]
+            blob_coordinates = blob_coordinates[:,[1, 0]].astype('float')
+
+            # scale back coordinates
+            if self.rescale is not None:
+                blob_coordinates *= 1/self.rescale
 
             # PCA
             pca = PCA()
@@ -68,18 +75,25 @@ class BodyTracker(Tracker):
             return tracking 
         
     def track(self, image: NDArray) -> BodyTracking:
-        #start_time_ns = time.process_time_ns()
-        # TODO implement image downscaling in the tracker 
-        # based on camera calibration : put a theshold on how
-        # many pixels necessary to track the centroid 
-        # accurately 
-         
+
         if self.previous_centroid is not None:
-            left = max(self.previous_centroid[0] - self.dynamic_cropping_len, 0)
-            right = min(self.previous_centroid[0] + self.dynamic_cropping_len, self.width)
-            bottom = max(self.previous_centroid[1] - self.dynamic_cropping_len, 0)
-            top = min(self.previous_centroid[1] + self.dynamic_cropping_len, self.height)
-            tracking = self.track_pca(image[left:right,bottom:top])
+            left = max(self.previous_centroid[0] - self.dynamic_cropping_len_pix, 0)
+            right = min(self.previous_centroid[0] + self.dynamic_cropping_len_pix, image.shape[1])
+            bottom = max(self.previous_centroid[1] - self.dynamic_cropping_len_pix, 0)
+            top = min(self.previous_centroid[1] + self.dynamic_cropping_len_pix, image.shape[0])
+            imagecropped = image[left:right,bottom:top]
+
+            # tracking is faster on small images
+            if self.rescale is not None:
+                imagecropped = cv2.resize(
+                        imagecropped, 
+                        None, 
+                        fx = self.rescale, 
+                        fy = self.rescale,
+                        interpolation=cv2.INTER_NEAREST
+                    )
+       
+            tracking = self.track_pca(imagecropped)
             if tracking is None:
                 return self.track_pca(image)
             else:
@@ -87,4 +101,14 @@ class BodyTracker(Tracker):
                 self.previous_centroid = tracking.centroid
                 return tracking
         else:
+            # tracking is faster on small images
+            if self.rescale is not None:
+                image = cv2.resize(
+                        image, 
+                        None, 
+                        fx = self.rescale, 
+                        fy = self.rescale,
+                        interpolation=cv2.INTER_NEAREST
+                    )
+                
             return self.track_pca(image)   

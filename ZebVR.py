@@ -56,17 +56,17 @@ cam2proj = Cam2ProjReg(
 
 body_tracker = BodyTracker(
     threshold_body_intensity = 0.05,
-    threshold_body_area = 10 * cam_pixels_per_mm * rescale**2,
+    threshold_body_area_mm2 = 10 * cam_pixels_per_mm * rescale**2,
     width = int(camera_param.ROI_width*rescale),
     height = int(camera_param.ROI_height*rescale),
-    dynamic_cropping_len = int(10 * cam_pixels_per_mm)
+    dynamic_cropping_len_mm = int(10 * cam_pixels_per_mm)
 )
 eyes_tracker = EyesTracker(
     threshold_body_intensity = 0.05,
-    threshold_body_area = 10 * cam_pixels_per_mm * rescale**2,
+    threshold_body_area_mm2 = 10 * cam_pixels_per_mm * rescale**2,
     width = int(camera_param.ROI_width*rescale),
     height = int(camera_param.ROI_height*rescale),
-    dynamic_cropping_len = int(10 * cam_pixels_per_mm),
+    dynamic_cropping_len_mm = int(10 * cam_pixels_per_mm),
     threshold_eye_intensity = 0.2,
     threshold_eye_area_min = 2 * cam_pixels_per_mm * rescale**2,
     threshold_eye_area_max = 10 * cam_pixels_per_mm * rescale**2,
@@ -75,10 +75,10 @@ eyes_tracker = EyesTracker(
 )
 tail_tracker = TailTracker(
     threshold_body_intensity = 0.05,
-    threshold_body_area = 10 * cam_pixels_per_mm * rescale**2,
+    threshold_body_area_mm2 = 10 * cam_pixels_per_mm * rescale**2,
     width = int(camera_param.ROI_width*rescale),
     height = int(camera_param.ROI_height*rescale),
-    dynamic_cropping_len = int(10 * cam_pixels_per_mm),
+    dynamic_cropping_len_mm = int(10 * cam_pixels_per_mm),
     tail_length = 3.2 * cam_pixels_per_mm * rescale,
     n_tail_points = 12,
     ksize = 5,
