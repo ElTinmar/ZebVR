@@ -3,6 +3,7 @@ from core.dataclasses import TrackingCollection
 from core.abstractclasses import Stimulus
 import numpy as np
 from psychopy import visual
+from functools import cmp_to_key
 
 class Phototaxis(Stimulus):
 
@@ -31,7 +32,7 @@ class Phototaxis(Stimulus):
                 vertices=vertices, 
                 fillColor=[255,255,255],
                 lineColor=None,
-                pos = [-self.w//2, -self.h//2]
+                pos=[-self.w//2, -self.h//2]
             )
             shape.draw()
             self.window.flip()
@@ -52,12 +53,18 @@ class Phototaxis(Stimulus):
                 if 0 <= y <= self.h:
                     vertices.append([x, y])
 
+        def compare(point1, point2):
+            v1 = point1-centroid
+            v2 = point2-centroid
+            cross = np.cross(v1,v2)
+            return np.sign(cross)
+
         # check window corners
         for x in [0,self.w]:
             for y in [0,self.h]:
                 if np.dot((x-centroid[0],y-centroid[1]),heading[:,1]) > 0:
                     vertices.append([x, y])
 
-        return vertices
+        return sorted(vertices, key=cmp_to_key(compare))
 
     
