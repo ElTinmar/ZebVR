@@ -53,26 +53,43 @@ class DynamicBackground(Background):
         self.image_store = BoundedQueue((width,height),maxlen=num_images)
 
     def start(self):
-        self.proc_compute = Process(target=self.compute_background)
-        self.proc_compute.start()
-        self.proc_display = Process(target=self.show_background)
+        print('I started showing bckg',flush=True)
+        self.proc_display = Process(
+            target=self.show_background,
+            args=(self.width, self.height, self.rescale, self.stop_flag, self.background)
+        )
         self.proc_display.start()
+
+        print('I started computing bckg',flush=True)
+        self.proc_compute = Process(
+            target=self.compute_background, 
+            args=(self.stop_flag, self.image_store, self.background)
+        )
+        self.proc_compute.start()
         
     def stop(self):
         self.stop_flag.set()
         self.proc_compute.join()
         self.proc_display.join()
 
-    def show_background(self):
+    @staticmethod
+    def show_background(
+        width: int, 
+        height: int,
+        rescale: float, 
+        stop_flag: Event, 
+        background: Array
+    ):
+
         cv2.namedWindow('background')
-        while not self.stop_flag.is_set():
-            bckg = np.frombuffer(self.background.get_obj(), dtype=np.float32).reshape(self.width,self.height)
-            if self.rescale is not None:
+        while not stop_flag.is_set():
+            bckg = np.frombuffer(background.get_obj(), dtype=np.float32).reshape(width,height)
+            if rescale is not None:
                 smallimg = cv2.resize(
                     bckg, 
                     None, 
-                    fx = self.rescale, 
-                    fy = self.rescale,
+                    fx = rescale, 
+                    fy = rescale,
                     interpolation=cv2.INTER_NEAREST
                 )
                 cv2.imshow('background',smallimg)
@@ -82,12 +99,18 @@ class DynamicBackground(Background):
             cv2.waitKey(16)
         cv2.destroyWindow('background')
 
-    def compute_background(self):
-        while not self.stop_flag.is_set():
-            data = self.image_store.get_data()
+    @staticmethod
+    def compute_background(
+        stop_flag: Event, 
+        image_store: BoundedQueue, 
+        background: Array
+    ):
+
+        while not stop_flag.is_set():
+            data = image_store.get_data()
             if data is not None:
                 bckg_img = stats.mode(data, axis=0, keepdims=False).mode
-                self.background[:] = bckg_img.flatten()
+                background[:] = bckg_img.flatten()
 
     def get_background(self) -> NDArray:
         return np.frombuffer(self.background.get_obj(), dtype=np.float32).reshape((self.width,self.height))

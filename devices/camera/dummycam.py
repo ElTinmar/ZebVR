@@ -29,14 +29,13 @@ class FromFile(Camera):
         super().__init__(**kwargs)
         self.video_file = video_file
         self.rescale = rescale
-        self.cap = cv2.VideoCapture(video_file)
         self.img_count = 0
 
     def start_acquisition(self):
-        pass
+        self.cap = cv2.VideoCapture(self.video_file)
 
     def stop_acquisition(self):
-        pass
+        self.cap.release()
 
     def fetch(self):
         start_time_ns = time.process_time_ns()
@@ -66,10 +65,7 @@ class FromFile(Camera):
             return (buf, ret)
         else:
             return (None, ret)
-
-    def __del__(self):
-        self.cap.release()
-
+        
 class ZeroCam(Camera):
     """
     Provides an empty image. This is just for testing

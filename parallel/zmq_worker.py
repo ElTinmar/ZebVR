@@ -119,7 +119,8 @@ class ZMQDataProcessingNode(ABC):
         except zmq.ZMQError:
             print('Send queue is full, message was discarded')
 
-    def _loop(self):
+    def _loop(self, stop_loop: Event):
+        self.stop_loop = stop_loop
         self.configure_zmq()
         self.pre_loop()
 
@@ -162,7 +163,10 @@ class ZMQDataProcessingNode(ABC):
 
     def start(self):
         # start the loop in a separate process
-        self.process = Process(target = self._loop)
+        self.process = Process(
+            target = self._loop, 
+            args = (self.stop_loop,)
+        )
         self.process.start()
         
     def stop(self):

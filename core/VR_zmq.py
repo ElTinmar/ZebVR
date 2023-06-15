@@ -25,6 +25,12 @@ class CameraZMQ(ZMQDataProcessingNode):
         self.data = None
         self.name = name
 
+    def pre_loop(self) -> None:
+        self.camera.start_acquisition()
+
+    def post_loop(self) -> None:
+        self.camera.stop_acquisition()
+
     def post_send(self) -> None:
         if self.data is not None:
             self.data.reallocate()
