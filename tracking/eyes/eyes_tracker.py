@@ -29,7 +29,7 @@ class EyesTracker(Tracker):
         self.threshold_eye_area_max_pix2 = threshold_eye_area_max_mm2 * pixels_per_mm
         self.dist_eye_midline_pix = dist_eye_midline_mm * pixels_per_mm
         self.dist_eye_swimbladder_pix = dist_eye_swimbladder_mm * pixels_per_mm
-        self.dynamic_cropping_len_pix = dynamic_cropping_len_mm * pixels_per_mm
+        self.dynamic_cropping_len_pix = int(np.ceil(dynamic_cropping_len_mm * pixels_per_mm))
         self.body_tracker = body_tracker
         self.rescale = rescale
 
@@ -38,7 +38,6 @@ class EyesTracker(Tracker):
             self.threshold_eye_area_max_pix2 *= rescale**2
             self.dist_eye_midline_pix *= rescale
             self.dist_eye_swimbladder_pix *= rescale
-            self.dynamic_cropping_len_pix *= rescale
 
     @staticmethod
     def ellipse_direction(inertia_tensor: NDArray) -> NDArray:
@@ -78,18 +77,7 @@ class EyesTracker(Tracker):
     def track(self, image: NDArray) -> EyeTracking:
 
         body_tracking = self.body_tracker.track(image)
-
-        # tracking is faster on small images
-        if self.rescale is not None:
-            body_tracking.centroid *= self.rescale
-            image = cv2.resize(
-                    image, 
-                    None, 
-                    fx = self.rescale, 
-                    fy = self.rescale,
-                    interpolation=cv2.INTER_NEAREST
-                )
-
+        
         if body_tracking is not None:
             #TODO crop each eye separately instead 
             left = max(int(body_tracking.centroid[0]) - self.dynamic_cropping_len_pix, 0)
@@ -98,6 +86,17 @@ class EyesTracker(Tracker):
             top = min(int(body_tracking.centroid[1]) + self.dynamic_cropping_len_pix, image.shape[0])
             image = image[left:right,bottom:top]
 
+            # tracking is faster on small images
+            if self.rescale is not None:
+                body_tracking.centroid *= self.rescale
+                image = cv2.resize(
+                        image, 
+                        None, 
+                        fx = self.rescale, 
+                        fy = self.rescale,
+                        interpolation=cv2.INTER_NEAREST
+                    )
+                
             eye_mask = bwareafilter(
                 image >= self.threshold_eye_intensity, 
                 min_size = self.threshold_eye_area_min_pix2, 
@@ -128,7 +127,7 @@ class EyesTracker(Tracker):
                     centroids_pc[:,1] > self.dist_eye_midline_pix
                 ))
             )
-            left_eye = EyesTracker.get_eye_prop(
+            left_eye = self.get_eye_prop(
                 regions, 
                 left_eye_index, 
                 body_tracking.heading
@@ -136,7 +135,7 @@ class EyesTracker(Tracker):
             if left_eye is not None:
                 left_eye.centroid += [bottom, left]
 
-            right_eye = EyesTracker.get_eye_prop(
+            right_eye = self.get_eye_prop(
                 regions, 
                 right_eye_index, 
                 body_tracking.heading

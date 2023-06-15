@@ -78,7 +78,7 @@ if __name__ == '__main__':
         rescale = 0.25
     )
     #full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey_tracker])
-    full_tracker = TrackerCollection([body_tracker])
+    full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker])
     tracker = full_tracker
 
     # tracker disp ----------------------------------------------------

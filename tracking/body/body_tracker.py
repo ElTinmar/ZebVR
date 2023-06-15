@@ -27,7 +27,7 @@ class BodyTracker(Tracker):
         self.pixels_per_mm = pixels_per_mm
         self.rescale = rescale
         self.threshold_body_area_pix2 = threshold_body_area_mm2 * pixels_per_mm
-        self.dynamic_cropping_len_pix = np.ceil(dynamic_cropping_len_mm * pixels_per_mm)
+        self.dynamic_cropping_len_pix = int(np.ceil(dynamic_cropping_len_mm * pixels_per_mm))
 
         if rescale is not None:
             self.threshold_body_area_pix2 *= rescale**2

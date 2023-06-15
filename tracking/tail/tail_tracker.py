@@ -32,27 +32,15 @@ class TailTracker(Tracker):
         self.n_pts_arc = n_pts_arc
         self.pixels_per_mm = pixels_per_mm
         self.tail_length_pix = tail_length_mm * pixels_per_mm
-        self.dynamic_cropping_len_pix = dynamic_cropping_len_mm * pixels_per_mm
+        self.dynamic_cropping_len_pix = int(np.ceil(dynamic_cropping_len_mm * pixels_per_mm))
         self.rescale = rescale
 
         if rescale is not None:
             self.tail_length_pix *= rescale
-            self.dynamic_cropping_len_pix *= rescale
 
     def track(self, image: NDArray) -> TailTracking:
 
         body_tracking = self.body_tracker.track(image)
-
-        # tracking is faster on small images
-        if self.rescale is not None:
-            body_tracking.centroid *= self.rescale
-            image = cv2.resize(
-                    image, 
-                    None, 
-                    fx = self.rescale, 
-                    fy = self.rescale,
-                    interpolation=cv2.INTER_NEAREST
-                )
 
         if body_tracking is not None:
             left = max(int(body_tracking.centroid[0]) - self.dynamic_cropping_len_pix, 0)
@@ -61,6 +49,17 @@ class TailTracker(Tracker):
             top = min(int(body_tracking.centroid[1]) + self.dynamic_cropping_len_pix, image.shape[0])
             image = image[left:right,bottom:top]
 
+            # tracking is faster on small images
+            if self.rescale is not None:
+                body_tracking.centroid *= self.rescale
+                image = cv2.resize(
+                        image, 
+                        None, 
+                        fx = self.rescale, 
+                        fy = self.rescale,
+                        interpolation=cv2.INTER_NEAREST
+                    )
+                
             # apply a gaussian filter
             arc_rad = math.radians(self.arc_angle_deg)/2
             frame_blurred = cv2.boxFilter(image, -1, (self.ksize, self.ksize))
