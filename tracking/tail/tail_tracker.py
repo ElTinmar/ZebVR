@@ -57,7 +57,7 @@ class TailTracker(Tracker):
             arc_rad = math.radians(self.arc_angle_deg)/2
             frame_blurred = cv2.boxFilter(image, -1, (self.ksize, self.ksize))
             spacing = float(self.tail_length) / self.n_tail_points
-            # why the minus sign ?
+            # why the minus sign ? maybe something with the location of the origin (topleft) vs arctan2 quadrant ?
             start_angle = math.pi + \
                 np.arctan2(
                     -body_tracking.heading[1,0],
