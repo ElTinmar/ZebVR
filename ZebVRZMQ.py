@@ -58,13 +58,13 @@ if __name__ == '__main__':
     eyes_tracker = EyesTracker(
         body_tracker = body_tracker,
         pixels_per_mm = cam_pixels_per_mm,
-        dynamic_cropping_len_mm = 5,
+        dynamic_cropping_len_mm = 4,
         threshold_eye_intensity = 0.4,
         rescale = 0.25
     )
     tail_tracker = TailTracker(
         body_tracker = body_tracker,
-        dynamic_cropping_len_mm = 5,
+        dynamic_cropping_len_mm = 4,
         pixels_per_mm = cam_pixels_per_mm,
         n_tail_points = 12,
         ksize = 5,
@@ -80,6 +80,7 @@ if __name__ == '__main__':
     )
     #full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey_tracker])
     full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker])
+    full_tracker = TrackerCollection([body_tracker])
     tracker = full_tracker
 
     # tracker disp ----------------------------------------------------
@@ -93,7 +94,7 @@ if __name__ == '__main__':
     projector = CVProjector(monitor_id = 1)
 
     # stimulus ---------------------------------------------------------
-    stimulus = Phototaxis(screenid = 0)
+    stimulus = Phototaxis(screenid = 1)
 
     # registration -----------------------------------------------------
     cam2proj = Cam2ProjReg(
