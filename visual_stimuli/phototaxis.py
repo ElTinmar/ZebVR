@@ -41,6 +41,7 @@ class Phototaxis(Stimulus):
         # the origin of psychopy is bottomleft vs topleft for the camera image
         # need to inverse Y-axis
         heading[1,:] = - heading[1,:]
+        centroid[1] = self.h - centroid[1]
 
         vertices = []
 
