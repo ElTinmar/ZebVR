@@ -82,23 +82,38 @@ def crop(image: NDArray, box: Rect) -> NDArray:
         box.left:box.left+box.width
     ]
 
+def enforce_limits(box: Rect, width: int, height: int) -> Rect:
+    if box.left < 0:
+        box.left = 0
+    if box.bottom < 0:
+        box.bottom = 0
+    if box.left + box.width > width:
+        box.width = width - box.left
+    if box.bottom + box.height > height:
+        box.height = height - box.bottom
+    return box
+
 def diagonal_crop(image: NDArray, rect: Rect, angle_deg: float) -> NDArray:
-
-    bb = bounding_box_after_rot(rect, angle_deg)
-    image_bb = crop(image, bb)
-    image_rot, bb2 = rotate_bounded(image_bb, -angle_deg)
-
-    [offsetx, offsety] = rotation_matrix(-angle_deg) @ [[rect.left-bb.left],[rect.bottom-bb.bottom]]
-    print([offsetx, offsety])
-
-    print(rect)
-    print(bb)
-    print(bb2)
-    bb3 = Rect(
-        int(offsetx) - bb2.left,
-        int(offsety) - bb2.bottom,
+    # TODO fix bug when BB goes beyond image dimensions
+    bbox = bounding_box_after_rot(rect, angle_deg)
+    bbox = enforce_limits(bbox, image.shape[1], image.shape[0])
+    offset = [
+        [rect.left-bbox.left],
+        [rect.bottom-bbox.bottom]
+    ]
+    offset_rot = rotation_matrix(-angle_deg) @ offset
+    image_cropped = crop(image, bbox)
+    image_rot, rotation_bbox = rotate_bounded(image_cropped, -angle_deg)
+    final_bbox = Rect(
+        int(offset_rot[0]) - rotation_bbox.left,
+        int(offset_rot[1]) - rotation_bbox.bottom,
         rect.width,
         rect.height
         )
-    image_diag = crop(image_rot, bb3)
-    return bb, image_bb, image_rot, image_diag
+    final_bbox = enforce_limits(
+        final_bbox, 
+        image_rot.shape[1], 
+        image_rot.shape[0]
+    )
+    image_diag = crop(image_rot, final_bbox)
+    return image_diag
