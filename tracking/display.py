@@ -202,17 +202,18 @@ class TrackerDisp(TrackerDisplay):
         cv2.destroyWindow(self.name)
 
     def display(self, parameters: Tracking, image: NDArray):
-        if self.rescale is not None:
-            image = cv2.resize(
-                image, 
-                None, 
-                fx = self.rescale, 
-                fy = self.rescale, 
-                interpolation=cv2.INTER_LINEAR
-            )
-
         overlay = self.overlay(parameters, image)
         for c in range(overlay.shape[2]):
             overlay[:,:,c] = overlay[:,:,c] + image
+
+        if self.rescale is not None:
+            overlay = cv2.resize(
+                overlay, 
+                None, 
+                fx = self.rescale, 
+                fy = self.rescale, 
+                interpolation=cv2.INTER_AREA
+            )
+
         cv2.imshow(self.name, overlay)
         cv2.waitKey(1)
