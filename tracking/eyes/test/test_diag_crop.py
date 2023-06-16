@@ -4,7 +4,7 @@ import cv2
 from core.dataclasses import Rect
 
 rect = Rect(500,250,300,100)
-angle = 35
+angle = 135
 image = 0.5*np.random.rand(1000,1000) + \
       0.5*cv2.resize(np.random.rand(100,100),None,fx=10,fy=10)
 vert = rotate_vertices(rect,angle).T

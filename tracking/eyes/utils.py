@@ -88,7 +88,7 @@ def diagonal_crop(image: NDArray, rect: Rect, angle_deg: float) -> NDArray:
     image_bb = crop(image, bb)
     image_rot, bb2 = rotate_bounded(image_bb, -angle_deg)
 
-    [offsetx, offsety] = rotation_matrix(angle_deg) @ [[rect.left-bb.left],[rect.bottom-bb.bottom]]
+    [offsetx, offsety] = rotation_matrix(-angle_deg) @ [[rect.left-bb.left],[rect.bottom-bb.bottom]]
     print([offsetx, offsety])
 
     print(rect)
@@ -96,7 +96,7 @@ def diagonal_crop(image: NDArray, rect: Rect, angle_deg: float) -> NDArray:
     print(bb2)
     bb3 = Rect(
         int(offsetx) - bb2.left,
-        -int(offsety) - bb2.bottom,
+        int(offsety) - bb2.bottom,
         rect.width,
         rect.height
         )
