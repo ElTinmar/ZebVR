@@ -1,4 +1,4 @@
-from typing import List 
+from typing import List, Tuple 
 import numpy as np
 from numpy.typing import NDArray
 #from sklearnex import patch_sklearn
@@ -9,6 +9,14 @@ from core.abstractclasses import Tracker
 import cv2
 from core.dataclasses import BodyTracking
 import time
+from dataclasses import dataclass
+
+@dataclass
+class Rect:
+    left: int
+    bottom: int
+    width: int
+    height: int
     
 class BodyTracker(Tracker):
 
@@ -17,7 +25,7 @@ class BodyTracker(Tracker):
             threshold_body_intensity: float, 
             pixels_per_mm: float,
             threshold_body_area_mm2: float = 10,
-            dynamic_cropping_len_mm: float = 5,
+            dynamic_cropping_len_mm: float = 4,
             rescale: float = None
         ) -> None:
 
@@ -29,15 +37,17 @@ class BodyTracker(Tracker):
         self.threshold_body_area_pix2 = threshold_body_area_mm2 * pixels_per_mm
         self.dynamic_cropping_len_pix = int(np.ceil(dynamic_cropping_len_mm * pixels_per_mm))
 
-        if rescale is not None:
-            self.threshold_body_area_pix2 *= rescale**2
-
-    def track_pca(self, image: NDArray) -> BodyTracking:
+    @staticmethod
+    def track_pca(
+            image: NDArray, 
+            thresh_size: float, 
+            thresh_intensity: float
+        ) -> BodyTracking:
 
         # threshold and remove small objects 
         fish_mask = bwareaopen(
-            image >= self.threshold_body_intensity, 
-            min_size = self.threshold_body_area_pix2
+            image >= thresh_intensity, 
+            min_size = thresh_size
         )
               
         blob_coordinates = np.argwhere(fish_mask) #  (row, col) coordinates
@@ -46,11 +56,7 @@ class BodyTracker(Tracker):
             return None
         else:
             # (row,col) to (x,y) coordinates
-            blob_coordinates = blob_coordinates[:,[1, 0]].astype('float')
-
-            # scale back coordinates
-            if self.rescale is not None:
-                blob_coordinates *= 1/self.rescale
+            blob_coordinates = blob_coordinates[:,[1, 0]]
 
             # PCA
             pca = PCA()
@@ -74,41 +80,94 @@ class BodyTracker(Tracker):
 
             return tracking 
         
+    def dynamic_cropping(self, image: NDArray) -> Tuple[NDArray, bool, Rect]:
+        '''
+        If previous centroid is defined, crop around it, otherwise
+        return origingal image
+        '''
+        if self.previous_centroid is not None:
+            left = int(max(self.previous_centroid[0] - self.dynamic_cropping_len_pix, 0))
+            right = int(min(self.previous_centroid[0] + self.dynamic_cropping_len_pix, image.shape[1]))
+            bottom = int(max(self.previous_centroid[1] - self.dynamic_cropping_len_pix, 0))
+            top = int(min(self.previous_centroid[1] + self.dynamic_cropping_len_pix, image.shape[0]))
+            width = right - left
+            height = top - bottom
+            return (image[bottom:top, left:right], True, Rect(left, bottom, width, height))
+        else:
+            return (image, False, None)
+
+    def downsample_image(self, image: NDArray) -> Tuple[NDArray,bool]:
+        '''
+        If rescale is specified, return rescaled image with nearest
+        neighbour interpolation, otherwise return original image
+        '''
+        if self.rescale is not None:
+            image_resized = cv2.resize(
+                image,
+                None,
+                fx = self.rescale, 
+                fy = self.rescale,
+                interpolation = cv2.INTER_NEAREST
+            )
+            return (image_resized, True)
+        else:
+            return (image, False)
+
+    def get_original_coordinates(
+            self, 
+            coordinates: NDArray, 
+            resized: bool, 
+            cropped: bool,
+            rect: Rect
+        ):
+        print(f'resized: {resized}, cropped: {cropped}, rect: {rect}', flush=True)
+        print(f'Before {coordinates}', flush = True)
+        if resized:
+            coordinates *= 1/self.rescale
+        if cropped:
+            coordinates += [rect.left, rect.bottom]
+        print(f'After {coordinates}', flush = True)
+        return coordinates
+
     def track(self, image: NDArray) -> BodyTracking:
 
-        if self.previous_centroid is not None:
-            left = max(self.previous_centroid[0] - self.dynamic_cropping_len_pix, 0)
-            right = min(self.previous_centroid[0] + self.dynamic_cropping_len_pix, image.shape[1])
-            bottom = max(self.previous_centroid[1] - self.dynamic_cropping_len_pix, 0)
-            top = min(self.previous_centroid[1] + self.dynamic_cropping_len_pix, image.shape[0])
-            imagecropped = image[left:right,bottom:top]
+        image_ori = image.copy()
+        image, cropped, rect = self.dynamic_cropping(image)
+        image, resized = self.downsample_image(image)
 
-            # tracking is faster on small images
-            if self.rescale is not None:
-                imagecropped = cv2.resize(
-                        imagecropped, 
-                        None, 
-                        fx = self.rescale, 
-                        fy = self.rescale,
-                        interpolation=cv2.INTER_NEAREST
-                    )
-       
-            tracking = self.track_pca(imagecropped)
-            if tracking is None:
-                return self.track_pca(image)
-            else:
-                tracking.centroid += [left, bottom]
-                self.previous_centroid = tracking.centroid
-                return tracking
+        if resized:
+            tracking = BodyTracker.track_pca(
+                image = image, 
+                thresh_size = self.threshold_body_area_pix2 * self.rescale**2,
+                thresh_intensity = self.threshold_body_intensity
+            )
         else:
-            # tracking is faster on small images
-            if self.rescale is not None:
-                image = cv2.resize(
-                        image, 
-                        None, 
-                        fx = self.rescale, 
-                        fy = self.rescale,
-                        interpolation=cv2.INTER_NEAREST
-                    )
-                
-            return self.track_pca(image)   
+            tracking = BodyTracker.track_pca(
+                image = image, 
+                thresh_size = self.threshold_body_area_pix2,
+                thresh_intensity = self.threshold_body_intensity
+            )
+        
+        if (tracking is None) and (cropped or resized):
+            # if cropping or resizing failed, do the tracking on the whole image
+            cropped = False
+            resized = False
+            tracking = self.track_pca(
+                image = image_ori, 
+                thresh_size = self.threshold_body_area_pix2,
+                thresh_intensity = self.threshold_body_intensity
+            )
+
+        if tracking is not None: 
+            tracking.centroid = self.get_original_coordinates(
+                tracking.centroid,
+                resized,
+                cropped,
+                rect
+            )
+            self.previous_centroid = tracking.centroid
+        else:
+            #self.previous_centroid = None
+            pass
+
+        return tracking
