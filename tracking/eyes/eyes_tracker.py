@@ -5,13 +5,13 @@ from tracking.utils.conncomp_filter import bwareafilter
 from skimage.measure import label, regionprops
 from core.abstractclasses import Tracker
 from tracking.body.body_tracker import BodyTracker
-from core.dataclasses import EyeTracking, EyeParam
+from core.dataclasses import EyeTracking, EyeParam, Rect
 import cv2
+from tracking.eyes.utils import ellipse_direction, angle_between_vectors, diagonal_crop
 
 class EyesTracker(Tracker):
     def __init__(
         self,
-        body_tracker: BodyTracker,
         pixels_per_mm: float,
         threshold_eye_intensity: float,
         dynamic_cropping_len_mm: float = 5,
@@ -30,7 +30,6 @@ class EyesTracker(Tracker):
         self.dist_eye_midline_pix = dist_eye_midline_mm * pixels_per_mm
         self.dist_eye_swimbladder_pix = dist_eye_swimbladder_mm * pixels_per_mm
         self.dynamic_cropping_len_pix = int(np.ceil(dynamic_cropping_len_mm * pixels_per_mm))
-        self.body_tracker = body_tracker
         self.rescale = rescale
 
         if rescale is not None:
@@ -39,24 +38,10 @@ class EyesTracker(Tracker):
             self.dist_eye_midline_pix *= rescale
             self.dist_eye_swimbladder_pix *= rescale
 
-    @staticmethod
-    def ellipse_direction(inertia_tensor: NDArray) -> NDArray:
-    # return the first eigenvector of the inertia tensor
-    # corresponds to the principal axis of the ellipse 
-        eigvals, eigvecs = np.linalg.eig(inertia_tensor)
-        loc = np.argmax(abs(eigvals))
-        return eigvecs[loc,:]
-
-    @staticmethod
-    def angle_between_vectors(v1: NDArray, v2: NDArray) -> float:
-        v1_unit = v1 / np.linalg.norm(v1)
-        v2_unit = v2 / np.linalg.norm(v2)
-        return np.array(np.arccos(np.dot(v1_unit,v2_unit)))
-    
     def get_eye_prop(self, regions, eye_ind, principal_components) -> EyeParam:
         if eye_ind.size == 1:
-            eye_dir = EyesTracker.ellipse_direction(regions[eye_ind].inertia_tensor)
-            eye_angle = EyesTracker.angle_between_vectors(eye_dir,principal_components[:,0])
+            eye_dir = ellipse_direction(regions[eye_ind].inertia_tensor)
+            eye_angle = angle_between_vectors(eye_dir,principal_components[:,0])
             # (row,col) to (x,y) coordinates 
             eye_centroid = np.array(
                 [regions[eye_ind].centroid[1], 
@@ -74,7 +59,7 @@ class EyesTracker(Tracker):
         else:
             return None
 
-    def track(self, image: NDArray) -> EyeTracking:
+    def track(self, image: NDArray, centroid: NDArray, heading: NDArray) -> EyeTracking:
 
         body_tracking = self.body_tracker.track(image)
         
@@ -84,7 +69,7 @@ class EyesTracker(Tracker):
             right = min(int(body_tracking.centroid[0]) + self.dynamic_cropping_len_pix, image.shape[1])
             bottom = max(int(body_tracking.centroid[1]) - self.dynamic_cropping_len_pix, 0)
             top = min(int(body_tracking.centroid[1]) + self.dynamic_cropping_len_pix, image.shape[0])
-            image = image[left:right,bottom:top]
+            image = image[bottom:top,left:right]
 
             # tracking is faster on small images
             if self.rescale is not None:

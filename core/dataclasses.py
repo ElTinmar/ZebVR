@@ -2,6 +2,13 @@ from numpy.typing import NDArray
 from dataclasses import dataclass
 
 @dataclass
+class Rect:
+    left: int
+    bottom: int
+    width: int
+    height: int
+    
+@dataclass
 class CameraParameters:
     camera_index: int = 0, 
     exposure_time_ms: int = 10, 

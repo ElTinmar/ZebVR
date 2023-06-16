@@ -202,6 +202,8 @@ class TrackerDisp(TrackerDisplay):
         cv2.destroyWindow(self.name)
 
     def display(self, parameters: Tracking, image: NDArray):
+        # TODO rescale before and also rescale parameters
+        
         overlay = self.overlay(parameters, image)
         for c in range(overlay.shape[2]):
             overlay[:,:,c] = overlay[:,:,c] + image

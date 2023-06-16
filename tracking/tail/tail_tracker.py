@@ -47,7 +47,7 @@ class TailTracker(Tracker):
             right = min(int(body_tracking.centroid[0]) + self.dynamic_cropping_len_pix, image.shape[1])
             bottom = max(int(body_tracking.centroid[1]) - self.dynamic_cropping_len_pix, 0)
             top = min(int(body_tracking.centroid[1]) + self.dynamic_cropping_len_pix, image.shape[0])
-            image = image[left:right,bottom:top]
+            image = image[bottom:top,left:right]
 
             # tracking is faster on small images
             if self.rescale is not None:

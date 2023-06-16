@@ -7,17 +7,10 @@ from sklearn.decomposition import PCA
 from tracking.utils.conncomp_filter import bwareaopen
 from core.abstractclasses import Tracker
 import cv2
-from core.dataclasses import BodyTracking
+from core.dataclasses import BodyTracking, Rect
 import time
 from dataclasses import dataclass
 
-@dataclass
-class Rect:
-    left: int
-    bottom: int
-    width: int
-    height: int
-    
 class BodyTracker(Tracker):
 
     def __init__(
@@ -120,13 +113,10 @@ class BodyTracker(Tracker):
             cropped: bool,
             rect: Rect
         ):
-        print(f'resized: {resized}, cropped: {cropped}, rect: {rect}', flush=True)
-        print(f'Before {coordinates}', flush = True)
         if resized:
             coordinates *= 1/self.rescale
         if cropped:
             coordinates += [rect.left, rect.bottom]
-        print(f'After {coordinates}', flush = True)
         return coordinates
 
     def track(self, image: NDArray) -> BodyTracking:

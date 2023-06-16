@@ -29,7 +29,7 @@ if __name__ == '__main__':
     camera_param = CameraParameters(
         ROI_height = 1088,
         ROI_width = 1088,
-        fps = 20
+        fps = 120
     )
     camera = FromFile(
         video_file = 'toy_data/behavior_2000.avi',
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     # trackers -------------------------------------------------
     body_tracker = BodyTracker(
         threshold_body_intensity = 0.2,
-        dynamic_cropping_len_mm = 5,
+        dynamic_cropping_len_mm = 3,
         pixels_per_mm = cam_pixels_per_mm,
         rescale = 0.25
     )
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     )
     #full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey_tracker])
     full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker])
-    full_tracker = TrackerCollection([body_tracker])
+    #full_tracker = TrackerCollection([body_tracker])
     tracker = full_tracker
 
     # tracker disp ----------------------------------------------------
