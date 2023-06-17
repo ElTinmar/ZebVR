@@ -18,7 +18,8 @@ class TailTracker(Tracker):
         ksize: int = 10,
         arc_angle_deg: float = 150,
         n_pts_interp: int = 40,
-        n_pts_arc: int = 20
+        n_pts_arc: int = 20,
+        dist_swim_bladder_mm: float = 0.4
     ) -> None:
         
         super().__init__()
@@ -29,6 +30,7 @@ class TailTracker(Tracker):
         self.n_pts_arc = n_pts_arc
         self.pixels_per_mm = pixels_per_mm
         self.tail_length_pix = tail_length_mm * pixels_per_mm
+        self.dist_swim_bladder_pix = dist_swim_bladder_mm * pixels_per_mm
         self.dynamic_cropping_len_pix = int(np.ceil(dynamic_cropping_len_mm * pixels_per_mm))
 
     @staticmethod
@@ -47,7 +49,8 @@ class TailTracker(Tracker):
         arc_rad = math.radians(arc_angle_deg)/2
         frame_blurred = cv2.boxFilter(image, -1, (ksize, ksize))
         spacing = float(tail_length_pix) / n_tail_points
-        arc = np.linspace(-arc_rad, arc_rad, n_pts_arc)
+        start_angle = -np.pi/2
+        arc = np.linspace(-arc_rad, arc_rad, n_pts_arc) + start_angle
         x, y = origin
         points = [[x, y]]
         for j in range(n_tail_points):
@@ -107,13 +110,13 @@ class TailTracker(Tracker):
             self.tail_length_pix,
             self.n_pts_arc,
             self.n_pts_interp,
-            (w//2, 0) 
+            (w//2, self.dist_swim_bladder_pix) 
         )
 
         tracking = TailTracking(
             tail_points = tail,
             tail_points_interp = tail_interp,
-            origin = (w//2,0),
+            origin = (w//2, self.dist_swim_bladder_pix),
             image = image_tail
         )
 
