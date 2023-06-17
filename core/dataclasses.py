@@ -32,6 +32,7 @@ class BodyTracking(Tracking):
     centroid: NDArray
     heading: NDArray
     fish_mask: NDArray
+    image: NDArray
 
 @dataclass
 class EyeParam:
@@ -57,6 +58,7 @@ class TailTracking(Tracking):
 class PreyTracking(Tracking):
     prey_centroids: NDArray
     prey_mask: NDArray
+    image: NDArray
 
 @dataclass
 class TrackingCollection(Tracking):

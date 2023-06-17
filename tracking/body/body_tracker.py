@@ -66,7 +66,8 @@ class BodyTracker(Tracker):
             tracking = BodyTracking(
                 centroid = centroid,
                 heading = principal_components,
-                fish_mask = fish_mask
+                fish_mask = fish_mask,
+                image = image
             )
 
             return tracking 

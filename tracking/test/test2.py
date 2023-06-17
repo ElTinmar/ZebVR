@@ -4,6 +4,9 @@ from background.background import DynamicBackground
 from tracking.body.body_tracker import BodyTracker
 from tracking.eyes.eyes_tracker import EyesTracker
 from tracking.tail.tail_tracker import TailTracker
+from tracking.prey.prey_tracker import PreyTracker
+from tracking.tracker_collection import TrackerCollection
+from tracking.display import TrackerDisp
 import cv2
 import numpy as np
 
@@ -52,11 +55,18 @@ tail_tracker = TailTracker(
     n_pts_interp = 40,
     n_pts_arc = 20
 )
-polarity = -1
-camera.start_acquisition()
+prey_tracker = PreyTracker(
+    threshold_prey_intensity = 0.025,
+    pixels_per_mm = cam_pixels_per_mm
+)
 
-cv2.namedWindow('eyes')
-cv2.namedWindow('tail')
+tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker, prey_tracker])
+tracker_display = TrackerDisp(pixels_per_mm = cam_pixels_per_mm)
+
+polarity = -1
+
+camera.start_acquisition()
+tracker_display.init_window()
 tracking_eyes = None
 tracking_tail = None
 for i in range(2000):
@@ -65,61 +75,8 @@ for i in range(2000):
     background.add_image(image)
     background_image = background.get_background()
     back_sub = polarity*(image - background_image)
-    tracking = body_tracker.track(back_sub)
-    if tracking is not None:
-        tracking_eyes = eyes_tracker.track(back_sub, tracking.centroid, tracking.heading)
-        tracking_tail = tail_tracker.track(back_sub, tracking.centroid, tracking.heading)
+    tracking = tracker.track(back_sub)
+    tracker_display.display(tracking)
 
-    if tracking_eyes is not None:
-        eye_len_pix = 10
-        if tracking_eyes.left_eye is not None:
-            pt1 = tracking_eyes.left_eye.centroid
-            pt2 = pt1 + eye_len_pix * tracking_eyes.left_eye.direction
-            tracking_eyes.image = cv2.line(
-                tracking_eyes.image,
-                pt1.astype(np.int32),
-                pt2.astype(np.int32),
-                0
-            )
-            pt2 = pt1 - eye_len_pix * tracking_eyes.left_eye.direction
-            tracking_eyes.image = cv2.line(
-                tracking_eyes.image,
-                pt1.astype(np.int32),
-                pt2.astype(np.int32),
-                0
-            )
-
-        if tracking_eyes.right_eye is not None:
-            pt1 = tracking_eyes.right_eye.centroid
-            pt2 = pt1 + eye_len_pix * tracking_eyes.right_eye.direction
-            tracking_eyes.image = cv2.line(
-                tracking_eyes.image,
-                pt1.astype(np.int32),
-                pt2.astype(np.int32),
-                0
-            )
-            pt2 = pt1 - eye_len_pix * tracking_eyes.right_eye.direction
-            tracking_eyes.image = cv2.line(
-                tracking_eyes.image,
-                pt1.astype(np.int32),
-                pt2.astype(np.int32),
-                0
-            )
-        cv2.imshow('eyes',tracking_eyes.image)
-    if tracking_tail is not None:
-        if tracking_tail.tail_points_interp is not None:
-            tail_segments = zip(
-                tracking_tail.tail_points_interp[:-1,],
-                tracking_tail.tail_points_interp[1:,]
-            )
-            for pt1, pt2 in tail_segments:
-                tracking_tail.image = cv2.line(
-                    tracking_tail.image,
-                    pt1.astype(np.int32),
-                    pt2.astype(np.int32),
-                    255
-                )
-        cv2.imshow('tail',tracking_tail.image)
-    cv2.waitKey(1)
-
-cv2.destroyAllWindows()
+tracker_display.close_window()
+camera.stop_acquisition()

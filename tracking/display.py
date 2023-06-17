@@ -1,7 +1,8 @@
 from core.abstractclasses import TrackerDisplay
 from core.dataclasses import (
     Tracking, BodyTracking, EyeTracking, 
-    TailTracking, PreyTracking, TrackingCollection
+    TailTracking, PreyTracking, TrackingCollection,
+    EyeParam
 )
 import cv2
 from numpy.typing import NDArray
@@ -10,7 +11,6 @@ import numpy as np
 class TrackerDisp(TrackerDisplay):
     def __init__(
             self, 
-            name: str,
             pixels_per_mm: float,
             heading_len_mm: float = 2,
             eye_len_mm: float = 0.2,
@@ -25,10 +25,9 @@ class TrackerDisp(TrackerDisplay):
         
         super().__init__()
 
-        self.name = name
         self.heading_len_pix = heading_len_mm * pixels_per_mm
         self.eye_len_pix = eye_len_mm * pixels_per_mm
-        self.circle_radius_pix = circle_radius_mm * pixels_per_mm
+        self.circle_radius_pix = int(circle_radius_mm * pixels_per_mm)
         self.color_heading = color_heading
         self.color_eye_left = color_eye_left
         self.color_eye_right = color_eye_right
@@ -42,183 +41,137 @@ class TrackerDisp(TrackerDisplay):
             self.eye_len_pix *= rescale
             self.circle_radius_pix *= rescale
 
-    def overlay_body(self, parameters: BodyTracking, image: NDArray) -> NDArray:
+    def display_body(self, parameters: BodyTracking) -> NDArray:
 
-        overlay = np.zeros(
-            (image.shape[0],image.shape[1],3), 
-            dtype=np.single
+        tracking_image = np.dstack(
+            (parameters.image,
+             parameters.image,
+             parameters.image)
         )
         
         if parameters is not None:
             pt1 = parameters.centroid
             pt2 = parameters.centroid + self.heading_len_pix*parameters.heading[:,0]
-            overlay = cv2.line(
-                overlay,
+            tracking_image = cv2.line(
+                tracking_image,
                 pt1.astype(np.int32),
                 pt2.astype(np.int32),
                 self.color_heading
             )
 
-        return overlay
+        cv2.imshow('tracking',tracking_image)
 
-    def overlay_eyes(self, parameters: EyeTracking, image: NDArray) -> NDArray:
+    def display_eyes(self, parameters: EyeTracking) -> NDArray:
         
-        overlay = np.zeros(
-            (image.shape[0],image.shape[1],3), 
-            dtype=np.single
+        def disp_eye(image: NDArray, eye: EyeParam, color):
+            pt1 = eye.centroid
+            pt2 = pt1 + self.eye_len_pix * eye.direction
+            image = cv2.line(
+                image,
+                pt1.astype(np.int32),
+                pt2.astype(np.int32),
+                color
+            )
+            pt2 = pt1 - self.eye_len_pix * eye.direction
+            image = cv2.line(
+                image,
+                pt1.astype(np.int32),
+                pt2.astype(np.int32),
+                color
+            )
+            return image
+
+        tracking_image = np.dstack(
+            (parameters.image,
+             parameters.image,
+             parameters.image)
         )
 
         if parameters is not None:
-
-            pt1 = parameters.body.centroid
-            pt2 = parameters.body.centroid + \
-                self.heading_len_pix * parameters.body.heading[:,0]
-            overlay = cv2.line(
-                overlay,
-                pt1.astype(np.int32),
-                pt2.astype(np.int32),
-                self.color_heading
-            )
-
             if parameters.left_eye is not None:
-                pt1 = parameters.left_eye.centroid
-                pt2 = pt1 + self.eye_len_pix * parameters.left_eye.direction
-                overlay = cv2.line(
-                    overlay,
-                    pt1.astype(np.int32),
-                    pt2.astype(np.int32),
-                    self.color_eye_left
-                )
-                pt2 = pt1 - self.eye_len_pix * parameters.left_eye.direction
-                overlay = cv2.line(
-                    overlay,
-                    pt1.astype(np.int32),
-                    pt2.astype(np.int32),
-                    self.color_eye_left
-                )
-
+                tracking_image = disp_eye(tracking_image, parameters.left_eye, self.color_eye_left)
             if parameters.right_eye is not None:
-                pt1 = parameters.right_eye.centroid
-                pt2 = pt1 + self.eye_len_pix * parameters.right_eye.direction
-                overlay = cv2.line(
-                    overlay,
-                    pt1.astype(np.int32),
-                    pt2.astype(np.int32),
-                    self.color_eye_right
-                )
-                pt2 = pt1 - self.eye_len_pix * parameters.right_eye.direction
-                overlay = cv2.line(
-                    overlay,
-                    pt1.astype(np.int32),
-                    pt2.astype(np.int32),
-                    self.color_eye_right
-                )
+                tracking_image = disp_eye(tracking_image, parameters.right_eye, self.color_eye_right)
 
-        return overlay
+        cv2.imshow('eyes',tracking_image)
 
-    def overlay_tail(self, parameters: TailTracking, image: NDArray) -> NDArray:
+    def display_tail(self, parameters: TailTracking) -> NDArray:
 
-        overlay = np.zeros(
-            (image.shape[0],image.shape[1],3), 
-            dtype=np.single
+        tracking_image = np.dstack(
+            (parameters.image,
+             parameters.image,
+             parameters.image)
         )
         
         if parameters is not None:
-            pt1 = parameters.body.centroid
-            pt2 = parameters.body.centroid + \
-                self.heading_len_pix * parameters.body.heading[:,0]
-            overlay = cv2.line(
-                overlay,
-                pt1.astype(np.int32),
-                pt2.astype(np.int32),
-                self.color_heading
-            )
-
             if parameters.tail_points_interp is not None:
                 tail_segments = zip(
                     parameters.tail_points_interp[:-1,],
                     parameters.tail_points_interp[1:,]
                 )
                 for pt1, pt2 in tail_segments:
-                    overlay = cv2.line(
-                        overlay,
+                    tracking_image = cv2.line(
+                        tracking_image,
                         pt1.astype(np.int32),
                         pt2.astype(np.int32),
                         self.color_tail
                     )
         
-        return overlay
+        cv2.imshow('tail', tracking_image)
 
-    def overlay_prey(self, parameters: PreyTracking, image: NDArray) -> NDArray:
+    def display_prey(self, parameters: PreyTracking) -> NDArray:
 
-        overlay = np.zeros(
-            (image.shape[0],image.shape[1],3), 
-            dtype=np.single
+        tracking_image = np.dstack(
+            (parameters.image,
+             parameters.image,
+             parameters.image)
         )
 
         for prey_loc in parameters.prey_centroids:
-            overlay = cv2.circle(
-                overlay, 
+            tracking_image = cv2.circle(
+                tracking_image, 
                 prey_loc.astype(np.int32),
                 self.circle_radius_pix,
                 self.circle_color
             )
 
-        return overlay
+        cv2.imshow('prey', tracking_image)
 
-    def overlay_collection(self, parameters: TrackingCollection, image: NDArray) -> NDArray:
-        overlay = np.zeros(
-            (image.shape[0],image.shape[1],3), 
-            dtype=np.single
-        )
+    def display_collection(self, parameters: TrackingCollection) -> NDArray:
         
         if parameters.body is not None:
-            overlay += self.overlay_body(parameters.body, image)
+            self.display_body(parameters.body)
         if parameters.eyes is not None:
-            overlay += self.overlay_eyes(parameters.eyes,image)
+            self.display_eyes(parameters.eyes)
         if parameters.tail is not None:
-            overlay += self.overlay_tail(parameters.tail,image)
+            self.display_tail(parameters.tail)
         if parameters.prey is not None:
-            overlay += self.overlay_prey(parameters.prey,image)
-        
-        return overlay
-
-    def overlay(self, parameters: Tracking, image: NDArray) -> NDArray:
-        
-        if isinstance(parameters, BodyTracking):
-            return self.overlay_body(parameters, image)
-        elif isinstance(parameters, EyeTracking):
-            return self.overlay_eyes(parameters, image)
-        elif isinstance(parameters, TailTracking):
-            return self.overlay_tail(parameters, image)
-        elif isinstance(parameters, PreyTracking):
-            return self.overlay_prey(parameters, image)
-        elif isinstance(parameters, TrackingCollection):
-            return self.overlay_collection(parameters, image) 
-        else:
-            raise(TypeError("Unknown tracking type"))
-
+            self.display_prey(parameters.prey)
+    
     def init_window(self):
-        cv2.namedWindow(self.name)
+        cv2.namedWindow('tracking')
+        cv2.namedWindow('eyes')
+        cv2.namedWindow('tail')
+        cv2.namedWindow('prey')
 
     def close_window(self):
-        cv2.destroyWindow(self.name)
+        cv2.destroyWindow('tracking')
+        cv2.destroyWindow('eyes')
+        cv2.destroyWindow('tail')
+        cv2.destroyWindow('prey')
 
-    def display(self, parameters: Tracking, image: NDArray):
-        # TODO rescale before and also rescale parameters
+    def display(self, parameters: Tracking):
+        if isinstance(parameters, BodyTracking):
+            self.display_body(parameters)
+        elif isinstance(parameters, EyeTracking):
+            self.display_eyes(parameters)
+        elif isinstance(parameters, TailTracking):
+            self.display_tail(parameters)
+        elif isinstance(parameters, PreyTracking):
+            self.display_prey(parameters)
+        elif isinstance(parameters, TrackingCollection):
+            self.display_collection(parameters) 
+        else:
+            raise(TypeError("Unknown tracking type"))
         
-        overlay = self.overlay(parameters, image)
-        for c in range(overlay.shape[2]):
-            overlay[:,:,c] = overlay[:,:,c] + image
-
-        if self.rescale is not None:
-            overlay = cv2.resize(
-                overlay, 
-                None, 
-                fx = self.rescale, 
-                fy = self.rescale, 
-                interpolation=cv2.INTER_AREA
-            )
-
-        cv2.imshow(self.name, overlay)
         cv2.waitKey(1)

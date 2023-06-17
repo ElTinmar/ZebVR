@@ -48,8 +48,9 @@ class PreyTracker(Tracker):
         regions = regionprops(label_img)
 
         prey_centroids = np.empty((len(regions),2),dtype=np.float32)
-        for i,blob in enumerate(regions):
-            prey_centroids[i,:] = blob.centroid[1,0].astype('float') 
+        for i, blob in enumerate(regions):
+            y, x = blob.centroid
+            prey_centroids[i,:] = [x, y] 
 
         # scale back coordinates
         if self.rescale is not None:
@@ -57,7 +58,8 @@ class PreyTracker(Tracker):
 
         tracking = PreyTracking(
             prey_centroids = prey_centroids,
-            prey_mask = prey_mask
+            prey_mask = prey_mask,
+            image = image
         )
 
         return tracking
