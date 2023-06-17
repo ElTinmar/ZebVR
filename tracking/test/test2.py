@@ -1,16 +1,10 @@
-from core.VR import VR
 from core.dataclasses import CameraParameters
 from devices.camera.dummycam import FromFile
-from devices.projector.opencv_projector import CVProjector
 from background.background import DynamicBackground
 from tracking.body.body_tracker import BodyTracker
 from tracking.eyes.eyes_tracker import EyesTracker
 from tracking.tail.tail_tracker import TailTracker
-from tracking.prey.prey_tracker import PreyTracker
-from tracking.tracker_collection import TrackerCollection 
-from tracking.display import TrackerDisp
-from registration.registration_cam2proj import Cam2ProjReg
-from visual_stimuli.phototaxis import Phototaxis 
+import cv2
 
 # TODO this should be part of camera calibration
 cam_pixels_per_mm = 50
@@ -46,7 +40,7 @@ eyes_tracker = EyesTracker(
     pixels_per_mm = cam_pixels_per_mm,
     dynamic_cropping_len_mm = 4,
     threshold_eye_intensity = 0.4,
-    rescale = 0.25
+    crop_dimension_pix = (60,40)
 )
 tail_tracker = TailTracker(
     dynamic_cropping_len_mm = 4,
@@ -55,18 +49,30 @@ tail_tracker = TailTracker(
     ksize = 5,
     arc_angle_deg = 150,
     n_pts_interp = 40,
-    n_pts_arc = 20,
-    rescale = 0.25
+    n_pts_arc = 20
 )
 polarity = -1
 camera.start_acquisition()
-for i in range(600):
+
+cv2.namedWindow('eyes')
+cv2.namedWindow('tail')
+tracking_eyes = None
+tracking_tail = None
+for i in range(2000):
     data, keepgoing = camera.fetch()
     image = data.get_img()
     background.add_image(image)
     background_image = background.get_background()
     back_sub = polarity*(image - background_image)
+    tracking = body_tracker.track(back_sub)
+    if tracking is not None:
+        tracking_eyes = eyes_tracker.track(back_sub, tracking.centroid, tracking.heading)
+        tracking_tail = tail_tracker.track(back_sub, tracking.centroid, tracking.heading)
 
-tracking = body_tracker.track(back_sub)
-#ytracking_eyes = eyes_tracker.track(back_sub, tracking.centroid,tracking.heading)
-tracking_tail = tail_tracker.track(back_sub, tracking.centroid,tracking.heading)
+    if tracking_eyes is not None:
+        cv2.imshow('eyes',tracking_eyes.image)
+    if tracking_tail is not None:
+        cv2.imshow('tail',tracking_tail.image)
+    cv2.waitKey(1)
+
+cv2.destroyAllWindows()

@@ -120,7 +120,7 @@ class Tracker(ABC):
         super().__init__()
             
     @abstractmethod
-    def track(self, image: NDArray) -> List[NDArray]:
+    def track(self, image: NDArray, *args, **kwargs) -> List[NDArray]:
         """
         Extract parameters (position/orientation) 
         of objects from an image

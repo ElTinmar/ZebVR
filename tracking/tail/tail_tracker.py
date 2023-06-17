@@ -4,7 +4,6 @@ import cv2
 import math 
 from scipy.interpolate import splprep, splev
 from core.abstractclasses import Tracker
-from tracking.body.body_tracker import BodyTracker
 from core.dataclasses import TailTracking, Rect
 from tracking.utils.diagonal_imcrop import diagonal_crop
 from typing import Tuple
@@ -19,8 +18,7 @@ class TailTracker(Tracker):
         ksize: int = 10,
         arc_angle_deg: float = 150,
         n_pts_interp: int = 40,
-        n_pts_arc: int = 20,
-        rescale: float = None
+        n_pts_arc: int = 20
     ) -> None:
         
         super().__init__()
@@ -32,10 +30,6 @@ class TailTracker(Tracker):
         self.pixels_per_mm = pixels_per_mm
         self.tail_length_pix = tail_length_mm * pixels_per_mm
         self.dynamic_cropping_len_pix = int(np.ceil(dynamic_cropping_len_mm * pixels_per_mm))
-        self.rescale = rescale
-
-        if rescale is not None:
-            self.tail_length_pix *= rescale
 
     @staticmethod
     def track_tail(
@@ -45,7 +39,8 @@ class TailTracker(Tracker):
         n_tail_points: int,
         tail_length_pix: int,
         n_pts_arc: int,
-        n_pts_interp: int
+        n_pts_interp: int,
+        origin: Tuple
         ) -> Tuple[NDArray, NDArray]:
 
         # apply a gaussian filter
@@ -53,7 +48,7 @@ class TailTracker(Tracker):
         frame_blurred = cv2.boxFilter(image, -1, (ksize, ksize))
         spacing = float(tail_length_pix) / n_tail_points
         arc = np.linspace(-arc_rad, arc_rad, n_pts_arc)
-        x, y = [0, 0]
+        x, y = origin
         points = [[x, y]]
         for j in range(n_tail_points):
             try:
@@ -93,17 +88,17 @@ class TailTracker(Tracker):
             heading: NDArray
         ) -> TailTracking:
 
+        # TODO parametrize magic number
         angle = np.arctan2(heading[1,1],heading[0,1]) 
-        corner = centroid - 100 * heading[:,1] + 0 * heading[:,0]
+        w, h = (self.tail_length_pix, int(1.5*self.tail_length_pix))
+        corner = centroid - w//2 * heading[:,1]
         image_tail = diagonal_crop(
             image, 
-            Rect(corner[0],corner[1],200,200),
+            Rect(corner[0],corner[1],w,h),
             np.rad2deg(angle)
         )
-        cv2.namedWindow('tail')
-        cv2.imshow('tail', image_tail)
-        cv2.waitKey(1)
 
+        # TODO parametrize magic number
         tail, tail_interp = TailTracker.track_tail(
             image_tail,
             self.arc_angle_deg,
@@ -111,14 +106,14 @@ class TailTracker(Tracker):
             self.n_tail_points,
             self.tail_length_pix,
             self.n_pts_arc,
-            self.n_pts_interp
+            self.n_pts_interp,
+            (w//2, 0) 
         )
 
         tracking = TailTracking(
             tail_points = tail,
             tail_points_interp = tail_interp,
-            heading = heading,
-            centroid = centroid,
+            origin = (w//2,0),
             image = image_tail
         )
 

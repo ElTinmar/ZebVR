@@ -1,5 +1,6 @@
 from numpy.typing import NDArray
 from dataclasses import dataclass
+from typing import Tuple 
 
 @dataclass
 class Rect:
@@ -36,20 +37,21 @@ class BodyTracking(Tracking):
 class EyeParam:
     direction: NDArray
     angle: float
-    centroid: NDArray    
+    centroid: NDArray 
 
 @dataclass
 class EyeTracking(Tracking):
     left_eye: EyeParam
     right_eye: EyeParam
     eye_mask: NDArray
-    body: BodyTracking
+    image: NDArray
 
 @dataclass 
 class TailTracking(Tracking):
     tail_points: NDArray
     tail_points_interp: NDArray
-    body: BodyTracking
+    origin: Tuple
+    image: NDArray
 
 @dataclass
 class PreyTracking(Tracking):

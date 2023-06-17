@@ -1,4 +1,4 @@
-from typing import List, Tuple 
+from typing import Tuple 
 import numpy as np
 from numpy.typing import NDArray
 #from sklearnex import patch_sklearn
@@ -8,8 +8,6 @@ from tracking.utils.conncomp_filter import bwareaopen
 from core.abstractclasses import Tracker
 import cv2
 from core.dataclasses import BodyTracking, Rect
-import time
-from dataclasses import dataclass
 
 class BodyTracker(Tracker):
 
