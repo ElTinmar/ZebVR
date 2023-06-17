@@ -1,5 +1,8 @@
 from core.abstractclasses import TrackerDisplay
-from core.dataclasses import Tracking, BodyTracking, EyeTracking, TailTracking, PreyTracking, TrackingCollection
+from core.dataclasses import (
+    Tracking, BodyTracking, EyeTracking, 
+    TailTracking, PreyTracking, TrackingCollection
+)
 import cv2
 from numpy.typing import NDArray
 import numpy as np
