@@ -3,11 +3,13 @@ import numpy as np
 from numpy.typing import NDArray
 from tracking.utils.conncomp_filter import bwareafilter
 from skimage.measure import label, regionprops
+from sklearn.decomposition import PCA
 from core.abstractclasses import Tracker
 from tracking.body.body_tracker import BodyTracker
 from core.dataclasses import EyeTracking, EyeParam, Rect
 import cv2
-from tracking.eyes.utils import ellipse_direction, angle_between_vectors, diagonal_crop
+from tracking.utils.geometry import ellipse_direction, angle_between_vectors
+from tracking.utils.diagonal_imcrop import diagonal_crop
 
 class EyesTracker(Tracker):
     def __init__(
@@ -37,104 +39,82 @@ class EyesTracker(Tracker):
             self.threshold_eye_area_max_pix2 *= rescale**2
             self.dist_eye_midline_pix *= rescale
             self.dist_eye_swimbladder_pix *= rescale
-
-    def get_eye_prop(self, regions, eye_ind, principal_components) -> EyeParam:
-        if eye_ind.size == 1:
-            eye_dir = ellipse_direction(regions[eye_ind].inertia_tensor)
-            eye_angle = angle_between_vectors(eye_dir,principal_components[:,0])
-            # (row,col) to (x,y) coordinates 
-            eye_centroid = np.array(
-                [regions[eye_ind].centroid[1], 
-                 regions[eye_ind].centroid[0]],
-                dtype = np.float32
-            )
-            if self.rescale is not None:
-                eye_centroid *= 1/self.rescale
-            res = EyeParam(
-                direction = eye_dir, 
-                angle = eye_angle, 
-                centroid = eye_centroid
-            )
-            return res
-        else:
-            return None
-
-    def track(self, image: NDArray, centroid: NDArray, heading: NDArray) -> EyeTracking:
-
-        body_tracking = self.body_tracker.track(image)
         
-        if body_tracking is not None:
-            #TODO crop each eye separately instead 
-            left = max(int(body_tracking.centroid[0]) - self.dynamic_cropping_len_pix, 0)
-            right = min(int(body_tracking.centroid[0]) + self.dynamic_cropping_len_pix, image.shape[1])
-            bottom = max(int(body_tracking.centroid[1]) - self.dynamic_cropping_len_pix, 0)
-            top = min(int(body_tracking.centroid[1]) + self.dynamic_cropping_len_pix, image.shape[0])
-            image = image[bottom:top,left:right]
+    @staticmethod
+    def track_eye(
+        image: NDArray,
+        threshold_eye_intensity: float, 
+        threshold_eye_area_min_pix2: float,
+        threshold_eye_area_max_pix2: float
+    ):
+        
+        eye_mask = bwareafilter(
+            image >= threshold_eye_intensity, 
+            min_size = threshold_eye_area_min_pix2, 
+            max_size = threshold_eye_area_max_pix2
+        )
 
-            # tracking is faster on small images
-            if self.rescale is not None:
-                body_tracking.centroid *= self.rescale
-                image = cv2.resize(
-                        image, 
-                        None, 
-                        fx = self.rescale, 
-                        fy = self.rescale,
-                        interpolation=cv2.INTER_NEAREST
-                    )
-                
-            eye_mask = bwareafilter(
-                image >= self.threshold_eye_intensity, 
-                min_size = self.threshold_eye_area_min_pix2, 
-                max_size = self.threshold_eye_area_max_pix2
-            )
+        blob_coordinates = np.argwhere(eye_mask)
 
-            label_img = label(eye_mask)
-            regions = regionprops(label_img) # regionprops returns coordinates as (row, col) 
-
-            blob_centroids = np.zeros((len(regions),2), dtype=np.float64)
-            for i,blob in enumerate(regions):
-                # (row,col) to (x,y) coordinates  
-                blob_centroids[i,:] = [blob.centroid[1], blob.centroid[0]]
-
-            # project coordinates to principal component space
-            centroids_pc = (blob_centroids + [bottom, left] - body_tracking.centroid) @ body_tracking.heading
-
-            # find the eyes TODO remove magic numbers and put as parameters
-            left_eye_index = np.squeeze(
-                np.argwhere(np.logical_and(
-                    centroids_pc[:,0] > self.dist_eye_swimbladder_pix, 
-                    centroids_pc[:,1] < -self.dist_eye_midline_pix
-                ))
-            )
-            right_eye_index = np.squeeze(
-                np.argwhere(np.logical_and(
-                    centroids_pc[:,0] > self.dist_eye_swimbladder_pix, 
-                    centroids_pc[:,1] > self.dist_eye_midline_pix
-                ))
-            )
-            left_eye = self.get_eye_prop(
-                regions, 
-                left_eye_index, 
-                body_tracking.heading
-            )
-            if left_eye is not None:
-                left_eye.centroid += [bottom, left]
-
-            right_eye = self.get_eye_prop(
-                regions, 
-                right_eye_index, 
-                body_tracking.heading
-            )
-            if right_eye is not None:
-                right_eye.centroid += [bottom, left]
-
-            tracking = EyeTracking(
-                left_eye = left_eye,
-                right_eye = right_eye,
-                eye_mask = eye_mask,
-                body = body_tracking
-            )
-
-            return tracking
-        else:
+        if blob_coordinates.size == 0:
             return None
+        else:
+            # (row,col) to (x,y) coordinates
+            blob_coordinates = blob_coordinates[:,[1, 0]]
+
+            # PCA
+            pca = PCA()
+            scores = pca.fit_transform(blob_coordinates)
+            # PCs are organized in rows, transform to columns
+            principal_components = pca.components_.T
+            centroid = pca.mean_
+
+            # correct orientation
+            if np.linalg.det(principal_components) < 0:
+                principal_components[:,1] = - principal_components[:,1]
+            
+            angle = np.arctan2(
+                -principal_components[1,0],
+                principal_components[0,0]
+            ) 
+
+            # store to generate overlay
+            result = EyeParam(
+                centroid = centroid,
+                direction = principal_components[:,0],
+                angle = angle
+            )
+
+            return result
+
+    def track(
+            self, 
+            image: NDArray, 
+            centroid: NDArray, 
+            heading: NDArray
+        ) -> EyeTracking:
+
+        angle = np.arctan2(heading[1,1],heading[0,1]) 
+        corner = centroid - 30 * heading[:,1] + 40* heading[:,0]
+        image_eyes = diagonal_crop(
+            image, 
+            Rect(corner[0],corner[1],60,40),
+            np.rad2deg(angle)
+        )
+        '''
+        cv2.namedWindow('eyes')
+        cv2.imshow('eyes',image_eyes)
+        cv2.waitKey(1)   
+        '''
+        tracking = EyeTracking(
+            left_eye = EyesTracker.track_eye(
+                image_eyes,
+                self.threshold_eye_intensity,
+                self.threshold_eye_area_min_pix2,
+                self.threshold_eye_area_max_pix2
+            ),
+            right_eye = None
+        )
+
+        return tracking
+

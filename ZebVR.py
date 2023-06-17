@@ -37,8 +37,8 @@ projector = CVProjector(monitor_id = 1)
 projector.init_window()
 
 background = DynamicBackground(
-    width = int(camera_param.ROI_width*rescale),
-    height = int(camera_param.ROI_height*rescale),
+    width = int(camera_param.ROI_width),
+    height = int(camera_param.ROI_height),
     num_images = 100, 
     every_n_image = 20
 )
