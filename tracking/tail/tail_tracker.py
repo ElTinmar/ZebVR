@@ -90,7 +90,7 @@ class TailTracker(Tracker):
 
         # TODO parametrize magic number
         angle = np.arctan2(heading[1,1],heading[0,1]) 
-        w, h = (self.tail_length_pix, int(1.5*self.tail_length_pix))
+        w, h = (int(1.5*self.tail_length_pix), int(1.5*self.tail_length_pix))
         corner = centroid - w//2 * heading[:,1]
         image_tail = diagonal_crop(
             image, 
