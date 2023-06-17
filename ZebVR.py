@@ -13,11 +13,6 @@ from registration.registration_cam2proj import Cam2ProjReg
 from visual_stimuli.phototaxis import Phototaxis 
 from writers.video import CVWriter
 
-# TODO time each module in the single process version to 
-# get accurate timing of just processing
-
-rescale = 0.5
-
 # TODO this should be part of camera calibration
 cam_pixels_per_mm = 50
 cam_mm_per_pixel = 1/cam_pixels_per_mm
@@ -29,8 +24,7 @@ camera_param = CameraParameters(
 )
 camera = FromFile(
     video_file = 'toy_data/behavior_2000.avi',
-    parameters = camera_param,
-    rescale = rescale
+    parameters = camera_param
 )
 
 projector = CVProjector(monitor_id = 1)
@@ -39,8 +33,8 @@ projector.init_window()
 background = DynamicBackground(
     width = int(camera_param.ROI_width),
     height = int(camera_param.ROI_height),
-    num_images = 100, 
-    every_n_image = 20
+    num_images = 200, 
+    every_n_image = 2
 )
 
 cam2proj = Cam2ProjReg(
@@ -53,57 +47,36 @@ cam2proj = Cam2ProjReg(
     dot_intensity = 255,
     ksize = 10
 )
-
 body_tracker = BodyTracker(
-    threshold_body_intensity = 0.05,
-    threshold_body_area_mm2 = 10 * cam_pixels_per_mm * rescale**2,
-    width = int(camera_param.ROI_width*rescale),
-    height = int(camera_param.ROI_height*rescale),
-    dynamic_cropping_len_mm = int(10 * cam_pixels_per_mm)
+    threshold_body_intensity = 0.2,
+    dynamic_cropping_len_mm = 3,
+    pixels_per_mm = cam_pixels_per_mm,
+    rescale = 0.25
 )
 eyes_tracker = EyesTracker(
-    threshold_body_intensity = 0.05,
-    threshold_body_area_mm2 = 10 * cam_pixels_per_mm * rescale**2,
-    width = int(camera_param.ROI_width*rescale),
-    height = int(camera_param.ROI_height*rescale),
-    dynamic_cropping_len_mm = int(10 * cam_pixels_per_mm),
-    threshold_eye_intensity = 0.2,
-    threshold_eye_area_min = 2 * cam_pixels_per_mm * rescale**2,
-    threshold_eye_area_max = 10 * cam_pixels_per_mm * rescale**2,
-    dist_eye_midline = 0.1 * cam_pixels_per_mm * rescale,
-    dist_eye_swimbladder = 0.2 * cam_pixels_per_mm * rescale
+    pixels_per_mm = cam_pixels_per_mm,
+    dynamic_cropping_len_mm = 4,
+    threshold_eye_intensity = 0.4,
+    crop_dimension_pix = (60,40)
 )
 tail_tracker = TailTracker(
-    threshold_body_intensity = 0.05,
-    threshold_body_area_mm2 = 10 * cam_pixels_per_mm * rescale**2,
-    width = int(camera_param.ROI_width*rescale),
-    height = int(camera_param.ROI_height*rescale),
-    dynamic_cropping_len_mm = int(10 * cam_pixels_per_mm),
-    tail_length = 3.2 * cam_pixels_per_mm * rescale,
+    dynamic_cropping_len_mm = 4,
+    pixels_per_mm = cam_pixels_per_mm,
     n_tail_points = 12,
     ksize = 5,
-    arc_angle_deg = 150,
+    arc_angle_deg = 120,
     n_pts_interp = 40,
     n_pts_arc = 20
 )
 prey_tracker = PreyTracker(
     threshold_prey_intensity = 0.025,
-    threshold_prey_area_min = 0.3 * cam_pixels_per_mm * rescale**2,
-    threshold_prey_area_max = 2 * cam_pixels_per_mm *rescale**2
-)
-full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker])
-full_tracker = TrackerCollection([body_tracker])
-tracker = full_tracker
-
-tracker_display = TrackerDisp(
-    name='tracking',
-    alpha = 2.0 * cam_pixels_per_mm * rescale,
-    beta = 0.2 * cam_pixels_per_mm * rescale,
-    circle_radius = int(0.4 * cam_pixels_per_mm * rescale)
+    pixels_per_mm = cam_pixels_per_mm
 )
 
-stimulus = Phototaxis(screenid=1)
+tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker])
+tracker_display = TrackerDisp(pixels_per_mm = cam_pixels_per_mm)
 
+stimulus = Phototaxis(screenid=0)
 """
 writer = CVWriter(
     height = camera_param.ROI_height,

@@ -2,8 +2,6 @@ from core.abstractclasses import (
     Camera, Projector, Background, Cam2Proj, 
     Tracker, TrackerDisplay, Stimulus, ImageSaver
 )
-import cv2
-import numpy as np
 import time
 
 polarity = -1
@@ -43,11 +41,10 @@ class VR:
         self.cam2proj.registration()
 
     def run(self):
-
-        cv2.namedWindow('VR')
         self.camera.start_acquisition()
-        #self.writer.start()
         self.stimulus.init_window()
+        self.tracker_display.init_window()
+        #self.writer.start()
 
         camera_fetch_time = 0
         background_time = 0
@@ -66,44 +63,26 @@ class VR:
 
             if keepgoing:
                 image = data.get_img()
-                timestamp = data.get_timestamp()
-
                 self.background.add_image(image)
                 background_image = self.background.get_background() 
                 back_sub = polarity*(image - background_image)
                 background_time += (time.process_time_ns() - start_time_ns) 
-
                 tracking = self.tracker.track(back_sub)
                 tracking_time += (time.process_time_ns() - start_time_ns) 
-
-                overlay = self.tracker_display.overlay(tracking, back_sub)
-                for c in range(overlay.shape[2]):
-                    overlay[:,:,c] = overlay[:,:,c] + image
-                overlay = 255*overlay
-                overlay[overlay>255]=255
-                overlay = overlay.astype(np.uint8)
+                self.tracker_display.display(tracking)
                 overlay_time += (time.process_time_ns() - start_time_ns) 
-
-                stim_image = self.stimulus.project(tracking)
+                self.stimulus.project(tracking)
                 visual_stim_time += (time.process_time_ns() - start_time_ns) 
-
-                #self.projector.project(stim_image)
-                projector_time += (time.process_time_ns() - start_time_ns) 
-
+                
                 data.reallocate()
-                
-                cv2.imshow('VR', overlay)
-                cv2.waitKey(1)
-                
                 #self.writer.write(overlay)
-
                 num_loops+=1
                 loop_time += (time.process_time_ns() - start_time_ns) 
             
-        self.camera.stop_acquisition()
         #self.writer.stop()
+        self.camera.stop_acquisition()
+        self.tracker_display.close_window()
         self.stimulus.close_window()
-        cv2.destroyWindow('VR')
 
         print(f'camera_fetch_time {1e-9 * camera_fetch_time/num_loops} s per loop')
         print(f'background_time {1e-9 * background_time/num_loops} s per loop')

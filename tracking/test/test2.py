@@ -7,8 +7,6 @@ from tracking.tail.tail_tracker import TailTracker
 from tracking.prey.prey_tracker import PreyTracker
 from tracking.tracker_collection import TrackerCollection
 from tracking.display import TrackerDisp
-import cv2
-import numpy as np
 
 # TODO this should be part of camera calibration
 cam_pixels_per_mm = 50
@@ -29,8 +27,7 @@ background = DynamicBackground(
     width = int(camera_param.ROI_width),
     height = int(camera_param.ROI_height),
     num_images = 200, 
-    every_n_image = 2,
-    rescale = 0.25
+    every_n_image = 2
 )
 
 # trackers -------------------------------------------------
@@ -60,15 +57,13 @@ prey_tracker = PreyTracker(
     pixels_per_mm = cam_pixels_per_mm
 )
 
-tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker, prey_tracker])
+tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker])
 tracker_display = TrackerDisp(pixels_per_mm = cam_pixels_per_mm)
 
 polarity = -1
 
 camera.start_acquisition()
 tracker_display.init_window()
-tracking_eyes = None
-tracking_tail = None
 for i in range(2000):
     data, keepgoing = camera.fetch()
     image = data.get_img()
