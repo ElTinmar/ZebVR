@@ -8,6 +8,7 @@ from core.dataclasses import EyeTracking, EyeParam, Rect
 from tracking.utils.geometry import ellipse_direction, angle_between_vectors
 from tracking.utils.diagonal_imcrop import diagonal_crop
 
+# TODO convert crop_dimension_pix in mm
 class EyesTracker(Tracker):
     def __init__(
         self,
@@ -18,7 +19,7 @@ class EyesTracker(Tracker):
         threshold_eye_area_max_mm2: float = 10,
         dist_eye_midline_mm: float = 0.1,
         dist_eye_swimbladder_mm: float = 0.2,
-        crop_dimension_pix: Tuple = (60,40)
+        crop_dimension_mm: Tuple = (1.2, 0.8)
     ) -> None:
         
         super().__init__()
@@ -29,8 +30,11 @@ class EyesTracker(Tracker):
         self.dist_eye_midline_pix = dist_eye_midline_mm * pixels_per_mm
         self.dist_eye_swimbladder_pix = dist_eye_swimbladder_mm * pixels_per_mm
         self.dynamic_cropping_len_pix = int(np.ceil(dynamic_cropping_len_mm * pixels_per_mm))
-        self.crop_dimension_pix = crop_dimension_pix
-        
+        self.crop_dimension_pix = (
+            int(crop_dimension_mm[0] * pixels_per_mm),
+            int(crop_dimension_mm[1] * pixels_per_mm)
+        )
+                
     @staticmethod
     def get_eye_prop(blob) -> EyeParam:
         eye_dir = ellipse_direction(blob.inertia_tensor)
