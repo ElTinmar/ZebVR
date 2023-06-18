@@ -30,6 +30,7 @@ class Tracking:
 @dataclass
 class BodyTracking(Tracking):
     centroid: NDArray
+    centroid_small: NDArray
     heading: NDArray
     fish_mask: NDArray
     image: NDArray

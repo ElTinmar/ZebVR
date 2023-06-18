@@ -50,8 +50,8 @@ class TrackerDisp(TrackerDisplay):
         )
         
         if parameters is not None:
-            pt1 = parameters.centroid
-            pt2 = parameters.centroid + self.heading_len_pix*parameters.heading[:,0]
+            pt1 = parameters.centroid_small
+            pt2 = parameters.centroid_small + self.heading_len_pix*parameters.heading[:,0]
             tracking_image = cv2.line(
                 tracking_image,
                 pt1.astype(np.int32),

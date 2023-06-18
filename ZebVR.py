@@ -47,6 +47,7 @@ cam2proj = Cam2ProjReg(
     dot_intensity = 255,
     ksize = 10
 )
+
 body_tracker = BodyTracker(
     threshold_body_intensity = 0.2,
     dynamic_cropping_len_mm = 3,
@@ -56,8 +57,7 @@ body_tracker = BodyTracker(
 eyes_tracker = EyesTracker(
     pixels_per_mm = cam_pixels_per_mm,
     dynamic_cropping_len_mm = 4,
-    threshold_eye_intensity = 0.4,
-    crop_dimension_pix = (60,40)
+    threshold_eye_intensity = 0.4
 )
 tail_tracker = TailTracker(
     dynamic_cropping_len_mm = 4,
