@@ -14,7 +14,7 @@ from visual_stimuli.phototaxis import Phototaxis
 from writers.video import CVWriter
 
 # TODO this should be part of camera calibration
-cam_pixels_per_mm = 50
+cam_pixels_per_mm = 70
 cam_mm_per_pixel = 1/cam_pixels_per_mm
 
 camera_param = CameraParameters(
@@ -50,7 +50,7 @@ cam2proj = Cam2ProjReg(
 )
 
 body_tracker = BodyTracker(
-    threshold_body_intensity = 0.2,
+    threshold_body_intensity = 0.1,
     dynamic_cropping_len_mm = 3,
     pixels_per_mm = cam_pixels_per_mm,
     rescale = 0.25
@@ -58,7 +58,9 @@ body_tracker = BodyTracker(
 eyes_tracker = EyesTracker(
     pixels_per_mm = cam_pixels_per_mm,
     dynamic_cropping_len_mm = 4,
-    threshold_eye_intensity = 0.4
+    threshold_eye_intensity = 0.2,
+    crop_dimension_mm=(1.2,0.8),
+    crop_offset_mm=0.2
 )
 tail_tracker = TailTracker(
     dynamic_cropping_len_mm = 4,
