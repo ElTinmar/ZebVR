@@ -113,6 +113,8 @@ class BodyTracker(Tracker):
             cropped: bool,
             rect: Rect
         ):
+        # TODO this looks bad, side-effect + return value
+        # don't do that 
         if resized:
             coordinates *= 1/self.rescale
         if cropped:
