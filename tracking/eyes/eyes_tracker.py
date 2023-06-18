@@ -18,8 +18,8 @@ class EyesTracker(Tracker):
         threshold_eye_area_min_mm2: float = 2,
         threshold_eye_area_max_mm2: float = 10,
         dist_eye_midline_mm: float = 0.1,
-        dist_eye_swimbladder_mm: float = 0.2,
-        crop_dimension_mm: Tuple = (1.2, 0.8)
+        crop_dimension_mm: Tuple = (1.2, 0.8),
+        crop_offset_mm: float = 0
     ) -> None:
         
         super().__init__()
@@ -28,12 +28,13 @@ class EyesTracker(Tracker):
         self.threshold_eye_area_min_pix2 = threshold_eye_area_min_mm2 * pixels_per_mm
         self.threshold_eye_area_max_pix2 = threshold_eye_area_max_mm2 * pixels_per_mm
         self.dist_eye_midline_pix = dist_eye_midline_mm * pixels_per_mm
-        self.dist_eye_swimbladder_pix = dist_eye_swimbladder_mm * pixels_per_mm
         self.dynamic_cropping_len_pix = int(np.ceil(dynamic_cropping_len_mm * pixels_per_mm))
         self.crop_dimension_pix = (
             int(crop_dimension_mm[0] * pixels_per_mm),
             int(crop_dimension_mm[1] * pixels_per_mm)
         )
+        self.crop_offset_pix = crop_offset_mm * pixels_per_mm
+        
                 
     @staticmethod
     def get_eye_prop(blob) -> EyeParam:
@@ -97,7 +98,7 @@ class EyesTracker(Tracker):
         if centroid is not None:
             angle = np.arctan2(heading[1,1],heading[0,1]) 
             w, h = self.crop_dimension_pix
-            corner = centroid - w//2 * heading[:,1] + h * heading[:,0]
+            corner = centroid - w//2 * heading[:,1] + (h+self.crop_offset_pix) * heading[:,0] 
             image = diagonal_crop(
                 image, 
                 Rect(corner[0],corner[1],w,h),
