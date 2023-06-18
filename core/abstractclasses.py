@@ -155,6 +155,14 @@ class Background(ABC):
         Return background model image
         """
 
+    @abstractmethod
+    def get_polarity(self) -> int:
+        """
+        Return image polarity for background subtraction
+        -1 : background illumination
+        1  : darkfield illumination
+        """
+
 class Stimulus(ABC):
     @abstractmethod
     def project(self, parameters: Tracking) -> NDArray:

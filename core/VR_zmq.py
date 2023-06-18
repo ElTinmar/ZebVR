@@ -93,14 +93,12 @@ class BackgroundZMQ(ZMQDataProcessingNode):
             output_info : List[ZMQSocketInfo],
             recv_timeout_s: int = 10,
             name: str = 'BackgroundZMQ',
-            polarity: int = -1
         ) -> None:
 
         super().__init__(input_info,output_info,recv_timeout_s)
 
         self.background = background
         self.name = name
-        self.polarity = polarity
 
     def pre_loop(self) -> None:
         self.background.start()
@@ -120,7 +118,7 @@ class BackgroundZMQ(ZMQDataProcessingNode):
         ret = {
             'index': index,
             'timestamp':  timestamp,
-            'frame': self.polarity*(image - self.background.get_background())
+            'frame': self.background.get_polarity()*(image - self.background.get_background())
         }
         return ret
     

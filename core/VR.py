@@ -4,8 +4,6 @@ from core.abstractclasses import (
 )
 import time
 
-polarity = -1
-
 class VR:
     def __init__(
         self,
@@ -64,7 +62,7 @@ class VR:
                 image = data.get_img()
                 self.background.add_image(image)
                 background_image = self.background.get_background() 
-                back_sub = polarity*(image - background_image)
+                back_sub = self.background.get_polarity()*(image - background_image)
                 background_time += (time.process_time_ns() - start_time_ns) 
                 tracking = self.tracker.track(back_sub)
                 tracking_time += (time.process_time_ns() - start_time_ns) 

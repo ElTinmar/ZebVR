@@ -19,7 +19,7 @@ class CameraParameters:
     ROI_height: int = 512, 
     ROI_width: int = 512, 
     triggers: bool = False, 
-    fps: int = 100,
+    fps: int = 100
 
 class Tracking:
     """

@@ -37,6 +37,7 @@ class DynamicBackground(Background):
         height,
         num_images = 500, 
         every_n_image = 100,
+        polarity: int = 1,
         rescale = None
     ) -> None:
 
@@ -45,6 +46,7 @@ class DynamicBackground(Background):
         self.num_images = num_images
         self.every_n_image = every_n_image
         self.counter = 0
+        self.polarity = polarity
         self.rescale = rescale
         
         self.stop_flag = Event()
@@ -121,3 +123,6 @@ class DynamicBackground(Background):
             if self.counter == 0:
                 self.background[:] = image.flatten()
         self.counter += 1
+
+    def get_polarity(self) -> int:
+        return self.polarity
