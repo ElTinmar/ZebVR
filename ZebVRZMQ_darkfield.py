@@ -25,19 +25,20 @@ if __name__ == '__main__':
     multiprocessing.set_start_method('spawn')
 
     # TODO this should be part of camera calibration
-    cam_pixels_per_mm = 50
+    #cam_pixels_per_mm = 50
+    cam_pixels_per_mm = 40
     cam_mm_per_pixel = 1/cam_pixels_per_mm
 
     camera_param = CameraParameters(
-        ROI_height = 1088,
-        ROI_width = 1088,
-        fps = 40
+        ROI_height = 2048,
+        ROI_width = 2048,
+        fps = 10
     )
     camera = FromFile(
-        video_file = 'toy_data/behavior_2000.avi',
+        video_file = 'toy_data/50mm2_mjpeg.avi',
         parameters = camera_param,
     )
-    
+
     # camera display ------------------------------------------
     cam_display = CamDisp('camera',rescale=0.25)
 
@@ -48,7 +49,7 @@ if __name__ == '__main__':
         num_images = 200, 
         every_n_image = 2,
         rescale = 0.25,
-        polarity = -1
+        polarity = 1
     )
 
     # trackers -------------------------------------------------

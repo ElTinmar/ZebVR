@@ -18,12 +18,12 @@ cam_pixels_per_mm = 50
 cam_mm_per_pixel = 1/cam_pixels_per_mm
 
 camera_param = CameraParameters(
-    ROI_height = 1088,
-    ROI_width = 1088,
+    ROI_height = 2048,
+    ROI_width = 2048,
     fps = 100
 )
 camera = FromFile(
-    video_file = 'toy_data/behavior_2000.avi',
+    video_file = 'toy_data/50mm2_mjpeg.avi',
     parameters = camera_param
 )
 
@@ -35,7 +35,7 @@ background = DynamicBackground(
     height = int(camera_param.ROI_height),
     num_images = 200, 
     every_n_image = 2,
-    polarity = -1
+    polarity = 1
 )
 
 cam2proj = Cam2ProjReg(
