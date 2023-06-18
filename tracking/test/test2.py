@@ -40,8 +40,7 @@ body_tracker = BodyTracker(
 eyes_tracker = EyesTracker(
     pixels_per_mm = cam_pixels_per_mm,
     dynamic_cropping_len_mm = 4,
-    threshold_eye_intensity = 0.4,
-    crop_dimension_pix = (60,40)
+    threshold_eye_intensity = 0.4
 )
 tail_tracker = TailTracker(
     dynamic_cropping_len_mm = 4,
@@ -72,6 +71,7 @@ for i in range(2000):
     back_sub = polarity*(image - background_image)
     tracking = tracker.track(back_sub)
     tracker_display.display(tracking)
+    data.reallocate()
 
 tracker_display.close_window()
 camera.stop_acquisition()

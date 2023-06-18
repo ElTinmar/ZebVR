@@ -51,7 +51,6 @@ class VR:
         tracking_time = 0
         overlay_time = 0
         visual_stim_time = 0
-        projector_time = 0
         loop_time = 0
         num_loops = 0
 
@@ -89,5 +88,4 @@ class VR:
         print(f'tracking_time {1e-9 * tracking_time/num_loops} s per loop')
         print(f'overlay_time {1e-9 * overlay_time/num_loops} s per loop')
         print(f'visual_stim_time {1e-9 * visual_stim_time/num_loops} s per loop')
-        print(f'projector_time {1e-9 * projector_time/num_loops} s per loop')
         print(f'loop_time {1e-9 * loop_time/num_loops} s per loop')
