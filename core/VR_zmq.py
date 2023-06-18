@@ -151,8 +151,7 @@ class TrackerZMQ(ZMQDataProcessingNode):
         ret = {
             'index': index,
             'timestamp': timestamp,
-            'tracking': tracking,
-            'frame': image
+            'tracking': tracking
         }
         return ret
     
@@ -183,11 +182,10 @@ class TrackerDisplayZMQ(ZMQDataProcessingNode):
     def post_recv(self, args: Any) -> Any:
         timestamp = args['timestamp']
         index = args['index']
-        image = args['frame']
         tracking = args['tracking']
     
         if index > self.last_frame:
-            self.track_display.display(tracking, image)
+            self.track_display.display(tracking)
             print(f'{self.name} received image {index}, timestamp {timestamp}',flush=True)
             self.last_frame = index
         else:

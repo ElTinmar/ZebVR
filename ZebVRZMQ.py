@@ -29,7 +29,7 @@ if __name__ == '__main__':
     camera_param = CameraParameters(
         ROI_height = 1088,
         ROI_width = 1088,
-        fps = 120
+        fps = 100
     )
     camera = FromFile(
         video_file = 'toy_data/behavior_2000.avi',
@@ -56,39 +56,30 @@ if __name__ == '__main__':
         rescale = 0.25
     )
     eyes_tracker = EyesTracker(
-        body_tracker = body_tracker,
         pixels_per_mm = cam_pixels_per_mm,
         dynamic_cropping_len_mm = 4,
-        threshold_eye_intensity = 0.4,
-        rescale = 0.25
+        threshold_eye_intensity = 0.4
     )
     tail_tracker = TailTracker(
-        body_tracker = body_tracker,
         dynamic_cropping_len_mm = 4,
         pixels_per_mm = cam_pixels_per_mm,
         n_tail_points = 12,
         ksize = 5,
         arc_angle_deg = 150,
         n_pts_interp = 40,
-        n_pts_arc = 20,
-        rescale = 0.25
+        n_pts_arc = 20
     )
     prey_tracker = PreyTracker(
         threshold_prey_intensity = 0.025,
-        pixels_per_mm = cam_pixels_per_mm,
-        rescale = 0.25
+        pixels_per_mm = cam_pixels_per_mm
     )
-    #full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker, prey_tracker])
-    full_tracker = TrackerCollection([body_tracker, eyes_tracker, tail_tracker])
-    #full_tracker = TrackerCollection([body_tracker])
+    #full_tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker, prey_tracker])
+    full_tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker])
+    #full_tracker = TrackerCollection(body_tracker)
     tracker = full_tracker
 
     # tracker disp ----------------------------------------------------
-    tracker_display = TrackerDisp(
-        name='tracking',
-        pixels_per_mm = cam_pixels_per_mm,
-        rescale = 0.25
-    )
+    tracker_display = TrackerDisp(pixels_per_mm = cam_pixels_per_mm)
 
     # projector --------------------------------------------------------
     projector = CVProjector(monitor_id = 1)
@@ -153,15 +144,13 @@ if __name__ == '__main__':
     tracker0_out = ZMQSocketInfo(
         port = base_port + 3,
         socket_type = zmq.PUSH,
-        bind = True,
-        serializer = send_tracking
+        bind = True
     )
 
     tracker0_out1 = ZMQSocketInfo(
         port = base_port + 4,
         socket_type = zmq.PUSH,
-        bind = True,
-        serializer = send_tracking
+        bind = True
     )
 
     tracker1_in = ZMQSocketInfo(
@@ -173,15 +162,13 @@ if __name__ == '__main__':
     tracker1_out = ZMQSocketInfo(
         port = base_port + 5,
         socket_type = zmq.PUSH,
-        bind = True,
-        serializer = send_tracking
+        bind = True
     )
 
     tracker1_out1 = ZMQSocketInfo(
         port = base_port + 6,
         socket_type = zmq.PUSH,
-        bind = True,
-        serializer = send_tracking
+        bind = True
     )
 
     tracker2_in = ZMQSocketInfo(
@@ -193,47 +180,39 @@ if __name__ == '__main__':
     tracker2_out = ZMQSocketInfo(
         port = base_port + 7,
         socket_type = zmq.PUSH,
-        bind = True,
-        serializer = send_tracking
+        bind = True
     )
 
     tracker2_out1 = ZMQSocketInfo(
         port = base_port + 8,
         socket_type = zmq.PUSH,
-        bind = True,
-        serializer = send_tracking
+        bind = True
     )
 
     tracker_disp_in0 = ZMQSocketInfo(
         port = tracker0_out1.port,
-        socket_type = zmq.PULL,
-        deserializer = recv_tracking
+        socket_type = zmq.PULL
     )
     tracker_disp_in1 = ZMQSocketInfo(
         port = tracker1_out1.port,
-        socket_type = zmq.PULL,
-        deserializer = recv_tracking
+        socket_type = zmq.PULL
     )
     tracker_disp_in2 = ZMQSocketInfo(
         port = tracker2_out1.port,
-        socket_type = zmq.PULL,
-        deserializer = recv_tracking
+        socket_type = zmq.PULL
     )
 
     stim_in0 = ZMQSocketInfo(
         port = tracker0_out.port,
-        socket_type = zmq.PULL,
-        deserializer = recv_tracking
+        socket_type = zmq.PULL
     )
     stim_in1 = ZMQSocketInfo(
         port = tracker1_out.port,
-        socket_type = zmq.PULL,
-        deserializer = recv_tracking
+        socket_type = zmq.PULL
     )
     stim_in2 = ZMQSocketInfo(
         port = tracker2_out.port,
-        socket_type = zmq.PULL,
-        deserializer = recv_tracking
+        socket_type = zmq.PULL
     )
 
     # create and start nodes -------------------------------------------
