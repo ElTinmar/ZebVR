@@ -65,6 +65,7 @@ class BodyTracker(Tracker):
             # store to generate overlay
             tracking = BodyTracking(
                 centroid = centroid,
+                centroid_small = centroid.copy(),
                 heading = principal_components,
                 fish_mask = fish_mask,
                 image = image
@@ -154,7 +155,7 @@ class BodyTracker(Tracker):
                 cropped,
                 rect
             )
-            self.previous_centroid = tracking.centroid
+            self.previous_centroid = tracking.centroid.copy()
         else:
             #self.previous_centroid = None
             pass
