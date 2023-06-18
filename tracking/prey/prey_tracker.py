@@ -6,6 +6,10 @@ from core.abstractclasses import Tracker
 import cv2
 from core.dataclasses import PreyTracking
 
+# TODO: track only at 10 Hz and predict the rest of
+# the time
+# Use hungarian assignment / kalman filters
+
 class PreyTracker(Tracker):
     def __init__(
         self,
