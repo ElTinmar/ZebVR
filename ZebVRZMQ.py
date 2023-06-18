@@ -17,6 +17,8 @@ from core.VR_zmq import CameraZMQ, BackgroundZMQ, TrackerZMQ, StimulusZMQ, Proje
 import zmq
 import multiprocessing
 
+# TODO should I serialize the images in tracking manually ?
+
 if __name__ == '__main__':
 
     # make sure multiprocessing is compatible with windows
@@ -29,7 +31,7 @@ if __name__ == '__main__':
     camera_param = CameraParameters(
         ROI_height = 1088,
         ROI_width = 1088,
-        fps = 100
+        fps = 40
     )
     camera = FromFile(
         video_file = 'toy_data/behavior_2000.avi',
