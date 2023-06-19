@@ -54,27 +54,27 @@ class VR:
 
         keepgoing = True
         while keepgoing:
-            start_time_ns = time.process_time_ns()
+            start_time_ns = time.time_ns()
             data, keepgoing = self.camera.fetch()
-            camera_fetch_time += (time.process_time_ns() - start_time_ns)
+            camera_fetch_time += (time.time_ns() - start_time_ns)
 
             if keepgoing:
                 image = data.get_img()
                 self.background.add_image(image)
                 background_image = self.background.get_background() 
                 back_sub = self.background.get_polarity()*(image - background_image)
-                background_time += (time.process_time_ns() - start_time_ns) 
+                background_time += (time.time_ns() - start_time_ns) 
                 tracking = self.tracker.track(back_sub)
-                tracking_time += (time.process_time_ns() - start_time_ns) 
+                tracking_time += (time.time_ns() - start_time_ns) 
                 self.tracker_display.display(tracking)
-                overlay_time += (time.process_time_ns() - start_time_ns) 
+                overlay_time += (time.time_ns() - start_time_ns) 
                 self.stimulus.project(tracking)
-                visual_stim_time += (time.process_time_ns() - start_time_ns) 
+                visual_stim_time += (time.time_ns() - start_time_ns) 
                 
                 data.reallocate()
                 #self.writer.write(overlay)
-                num_loops+=1
-                loop_time += (time.process_time_ns() - start_time_ns) 
+                num_loops += 1
+                loop_time += (time.time_ns() - start_time_ns) 
             
         #self.writer.stop()
         self.camera.stop_acquisition()

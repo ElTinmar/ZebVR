@@ -77,7 +77,7 @@ prey_tracker = PreyTracker(
 tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker])
 tracker_display = TrackerDisp(pixels_per_mm = cam_pixels_per_mm)
 
-stimulus = Phototaxis(screenid=0)
+stimulus = Phototaxis(screenid=1)
 """
 writer = CVWriter(
     height = camera_param.ROI_height,

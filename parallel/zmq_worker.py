@@ -132,27 +132,27 @@ class ZMQDataProcessingNode(ABC):
                         raise(zmq.error.Again)
                     for sock, info in zip(self.input_socket,self.insock_info):
                         if sock in events and events[sock] == zmq.POLLIN:
-                            start_time_ns = time.process_time_ns()
+                            start_time_ns = time.time_ns()
                             data = self._receive(sock, info)
-                            self.recv_time_ns += (time.process_time_ns() - start_time_ns)
+                            self.recv_time_ns += (time.time_ns() - start_time_ns)
                             results = self.post_recv(data)
-                            self.post_recv_time_ns += (time.process_time_ns() - start_time_ns)
+                            self.post_recv_time_ns += (time.time_ns() - start_time_ns)
                             for sock, info in zip(self.output_socket, self.outsock_info):
                                 self._send(sock, info, results)
-                            self.send_time_ns += (time.process_time_ns() - start_time_ns)
+                            self.send_time_ns += (time.time_ns() - start_time_ns)
                             self.post_send()
-                            self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
+                            self.post_send_time_ns += (time.time_ns() - start_time_ns)
                             self.num_loops += 1
                 else:
-                    start_time_ns = time.process_time_ns()
-                    self.recv_time_ns += (time.process_time_ns() - start_time_ns)
+                    start_time_ns = time.time_ns()
+                    self.recv_time_ns += (time.time_ns() - start_time_ns)
                     results = self.post_recv(None)
-                    self.post_recv_time_ns += (time.process_time_ns() - start_time_ns)
+                    self.post_recv_time_ns += (time.time_ns() - start_time_ns)
                     for sock, info in zip(self.output_socket, self.outsock_info):
                         self._send(sock, info, results)
-                    self.send_time_ns += (time.process_time_ns() - start_time_ns)
+                    self.send_time_ns += (time.time_ns() - start_time_ns)
                     self.post_send()
-                    self.post_send_time_ns += (time.process_time_ns() - start_time_ns)
+                    self.post_send_time_ns += (time.time_ns() - start_time_ns)
                     self.num_loops += 1
             except zmq.error.Again:
                 print('timeout, shutting down.')

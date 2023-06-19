@@ -31,7 +31,7 @@ if __name__ == '__main__':
     camera_param = CameraParameters(
         ROI_height = 1088,
         ROI_width = 1088,
-        fps = 40
+        fps = 100
     )
     camera = FromFile(
         video_file = 'toy_data/behavior_2000.avi',

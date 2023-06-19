@@ -12,14 +12,14 @@ import time
 # skimage.morphology.remove_small_objects
 
 def components_size(ar, connectivity=1):
-    #start_time_ns = time.process_time_ns()
+    #start_time_ns = time.time_ns()
     footprint = ndi.generate_binary_structure(ar.ndim, connectivity)
-    #print(f'generate_binary_structure {1e-9 *(time.process_time_ns() - start_time_ns)}')
+    #print(f'generate_binary_structure {1e-9 *(time.time_ns() - start_time_ns)}')
     ccs = np.zeros_like(ar, dtype=np.int32)
     ndi.label(ar, footprint, output=ccs)
-    #print(f'label {1e-9 *(time.process_time_ns() - start_time_ns)}')
+    #print(f'label {1e-9 *(time.time_ns() - start_time_ns)}')
     component_sz = np.bincount(ccs.ravel()) # TODO This is taking a lot of time 
-    #print(f'bincount {1e-9 *(time.process_time_ns() - start_time_ns)}')
+    #print(f'bincount {1e-9 *(time.time_ns() - start_time_ns)}')
     
     return (component_sz, ccs)
 

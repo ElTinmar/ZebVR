@@ -38,7 +38,7 @@ class FromFile(Camera):
         self.cap.release()
 
     def fetch(self):
-        start_time_ns = time.process_time_ns()
+        start_time_ns = time.time_ns()
         self.img_count += 1
         self.logger.log(logging.DEBUG, f'FromFile, {time.time_ns()}, {self.img_count}, 0')
         ret, img = self.cap.read()
@@ -59,7 +59,7 @@ class FromFile(Camera):
             )  
             self.logger.log(logging.DEBUG, f'FromFile, {time.time_ns()}, {self.img_count}, 1')
 
-            while time.process_time_ns() - start_time_ns < 1e9/self.parameters.fps:
+            while time.time_ns() - start_time_ns < 1e9/self.parameters.fps:
                 pass
 
             return (buf, ret)
