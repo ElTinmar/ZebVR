@@ -74,7 +74,7 @@ prey_tracker = PreyTracker(
     pixels_per_mm = cam_pixels_per_mm
 )
 
-tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker])
+tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker, prey_tracker])
 tracker_display = TrackerDisp(pixels_per_mm = cam_pixels_per_mm)
 
 stimulus = Phototaxis(screenid=1)

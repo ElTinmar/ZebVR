@@ -61,6 +61,8 @@ class EyesTracker(Tracker):
         x_midline: int
     ):
         
+        # TODO there is already a label/regionprop in here,
+        # pool that together please  
         eye_mask = bwareafilter(
             image >= threshold_eye_intensity, 
             min_size = threshold_eye_area_min_pix2, 
