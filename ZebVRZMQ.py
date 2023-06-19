@@ -1,4 +1,4 @@
-from devices.camera.dummycam import FromFile
+from devices.camera.dummycam import FromFileFPS
 from devices.camera.display import CamDisp
 from devices.projector.opencv_projector import CVProjector
 from visual_stimuli.phototaxis import Phototaxis 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         ROI_width = 1088,
         fps = 100
     )
-    camera = FromFile(
+    camera = FromFileFPS(
         video_file = 'toy_data/behavior_2000.avi',
         parameters = camera_param,
     )

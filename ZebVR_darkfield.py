@@ -1,6 +1,6 @@
 from core.VR import VR
 from core.dataclasses import CameraParameters
-from devices.camera.dummycam import FromFile
+from devices.camera.dummycam import FromFileFPS
 from devices.projector.opencv_projector import CVProjector
 from background.background import DynamicBackground
 from tracking.body.body_tracker import BodyTracker
@@ -22,7 +22,7 @@ camera_param = CameraParameters(
     ROI_width = 2048,
     fps = 100
 )
-camera = FromFile(
+camera = FromFileFPS(
     video_file = 'toy_data/50mm2_mjpeg.avi',
     parameters = camera_param
 )

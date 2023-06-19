@@ -1,5 +1,5 @@
 from core.dataclasses import CameraParameters
-from devices.camera.dummycam import FromFile
+from devices.camera.dummycam import FromFileFPS
 from background.background import DynamicBackground
 from tracking.body.body_tracker import BodyTracker
 from tracking.eyes.eyes_tracker import EyesTracker
@@ -17,7 +17,7 @@ camera_param = CameraParameters(
     ROI_width = 1088,
     fps = 100
 )
-camera = FromFile(
+camera = FromFileFPS(
     video_file = 'toy_data/behavior_2000.avi',
     parameters = camera_param,
 )

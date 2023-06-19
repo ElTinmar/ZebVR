@@ -24,6 +24,48 @@ class Data(CameraData):
     def reallocate(self):
         pass
 
+class FromFileFPS(Camera):
+    def __init__(self, video_file, rescale: float = None, **kwargs):
+        super().__init__(**kwargs)
+        self.video_file = video_file
+        self.rescale = rescale
+        self.img_count = 0
+
+    def start_acquisition(self):
+        self.cap = cv2.VideoCapture(self.video_file)
+
+    def stop_acquisition(self):
+        self.cap.release()
+
+    def fetch(self):
+        start_time_ns = time.time_ns()
+        self.img_count += 1
+        self.logger.log(logging.DEBUG, f'FromFileFPS, {time.time_ns()}, {self.img_count}, 0')
+        ret, img = self.cap.read()
+        if ret:
+            img_gray = img[:,:,0]
+            if self.rescale is not None:
+                img_gray = cv2.resize(
+                    img_gray,
+                    None,
+                    fx =self.rescale,
+                    fy = self.rescale, 
+                    interpolation = cv2.INTER_NEAREST
+                )
+            buf = Data(
+                image = img_gray, 
+                index = self.img_count, 
+                timestamp = self.img_count/self.parameters.fps
+            )  
+            self.logger.log(logging.DEBUG, f'FromFileFPS, {time.time_ns()}, {self.img_count}, 1')
+
+            while time.time_ns() - start_time_ns < 1e9/self.parameters.fps:
+                pass
+
+            return (buf, ret)
+        else:
+            return (None, ret)
+
 class FromFile(Camera):
     def __init__(self, video_file, rescale: float = None, **kwargs):
         super().__init__(**kwargs)
@@ -59,13 +101,10 @@ class FromFile(Camera):
             )  
             self.logger.log(logging.DEBUG, f'FromFile, {time.time_ns()}, {self.img_count}, 1')
 
-            while time.time_ns() - start_time_ns < 1e9/self.parameters.fps:
-                pass
-
             return (buf, ret)
         else:
             return (None, ret)
-        
+                
 class ZeroCam(Camera):
     """
     Provides an empty image. This is just for testing
