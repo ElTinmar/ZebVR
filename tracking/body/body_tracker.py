@@ -38,7 +38,7 @@ class BodyTracker(Tracker):
         # TODO check cv2.connectedComponentsWithStats
 
         # threshold and remove small objects 
-        fish_mask = bwareaopen(
+        fish_mask, _ = bwareaopen(
             image >= thresh_intensity, 
             min_size = thresh_size
         )

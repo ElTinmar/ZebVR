@@ -2,7 +2,7 @@ import numpy as np
 from typing import Tuple
 from numpy.typing import NDArray
 from tracking.utils.conncomp_filter import bwareafilter
-from skimage.measure import label, regionprops
+from skimage.measure import regionprops
 from core.abstractclasses import Tracker
 from core.dataclasses import EyeTracking, EyeParam, Rect
 from tracking.utils.geometry import ellipse_direction, angle_between_vectors
@@ -60,17 +60,14 @@ class EyesTracker(Tracker):
         dist_eye_midline_pix: float,
         x_midline: int
     ):
-        
-        # TODO there is already a label/regionprop in here,
-        # pool that together please  
-        eye_mask = bwareafilter(
+
+        eye_mask, label = bwareafilter(
             image >= threshold_eye_intensity, 
             min_size = threshold_eye_area_min_pix2, 
             max_size = threshold_eye_area_max_pix2
         )
-
-        label_img = label(eye_mask)
-        regions = regionprops(label_img) 
+        regions = regionprops(label) 
+        
         left_eye = None
         right_eye = None
         for blob in regions:
