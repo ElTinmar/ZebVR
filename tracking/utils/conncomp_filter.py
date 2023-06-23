@@ -9,43 +9,56 @@ from typing import Tuple
 def components_size(
         ar: NDArray, 
         connectivity: int = 1
-    ) -> Tuple[NDArray, NDArray]:
+        ) -> Tuple[NDArray, NDArray]:
     
-    footprint = ndi.generate_binary_structure(ar.ndim, connectivity)
-    label = np.zeros_like(ar, dtype=np.int32)
-    ndi.label(ar, footprint, output=label)
-    component_sz = np.bincount(label.ravel()) 
-    return (component_sz, label)
+    strel = ndi.generate_binary_structure(ar.ndim, connectivity)
+    ccs = np.zeros_like(ar, dtype=np.int32)
+    ndi.label(ar, strel, output=ccs)
+    component_sz = np.bincount(ccs.ravel()) 
+    return (component_sz, ccs)
 
 def bwareaopen(
         ar: NDArray, 
         min_size: int = 64, 
         connectivity: int = 1
-        ) -> Tuple[NDArray, NDArray]:
-
+        ) -> NDArray:
+    
     out = ar.copy()
-    component_sz, label = components_size(ar, connectivity)
+    component_sz, ccs = components_size(ar, connectivity)
     too_small = component_sz < min_size
-    too_small_mask = too_small[label]
+    too_small_mask = too_small[ccs]
     out[too_small_mask] = 0
-    label[label == too_small] = 0
-    return (out, label)
+
+    return out
+
+def bwareaclose(
+        ar: NDArray, 
+        max_size: int = 256, 
+        connectivity: int = 1
+        ) -> NDArray:
+    
+    out = ar.copy()
+    component_sz, ccs = components_size(ar, connectivity)
+    too_big = component_sz > max_size
+    too_big_mask = too_big[ccs]
+    out[too_big_mask] = 0
+
+    return out
 
 def bwareafilter(
         ar: NDArray, 
         min_size: int = 64, 
         max_size: int = 256, 
         connectivity: int = 1
-        ) -> Tuple[NDArray,NDArray]:
+        ) -> NDArray:
     
     out = ar.copy()
-    component_sz, label = components_size(ar, connectivity)
+    component_sz, ccs = components_size(ar, connectivity)
     too_small = component_sz < min_size 
-    too_small_mask = too_small[label]
+    too_small_mask = too_small[ccs]
     too_big = component_sz > max_size
-    too_big_mask = too_big[label]
+    too_big_mask = too_big[ccs]
     out[too_small_mask] = 0
     out[too_big_mask] = 0
-    label[label == too_small] = 0
-    label[label == too_big] = 0
-    return (out, label)
+
+    return out

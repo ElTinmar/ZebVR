@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 from tracking.utils.conncomp_filter import bwareafilter
-from skimage.measure import regionprops
+from skimage.measure import regionprops, label
 from core.abstractclasses import Tracker
 import cv2
 from core.dataclasses import PreyTracking
@@ -49,10 +49,8 @@ class PreyTracker(Tracker):
                         fy = self.rescale,
                         interpolation=cv2.INTER_NEAREST
                     )
-
-            # TODO there is already a label/regionprop in here,
-            # pool that together please    
-            prey_mask, label = bwareafilter(
+ 
+            prey_mask = bwareafilter(
                 image >= self.threshold_prey_intensity, 
                 min_size = self.threshold_prey_area_min_pix, 
                 max_size = self.threshold_prey_area_max_pix
@@ -63,7 +61,8 @@ class PreyTracker(Tracker):
             #label_img = label(last_masks,connectivity=3)
             #regions = regionprops(label_img)
 
-            regions = regionprops(label)
+            label_img = label(prey_mask)
+            regions = regionprops(label_img)
 
             prey_centroids = np.empty((len(regions),2),dtype=np.float32)
             #prey_centroids = []

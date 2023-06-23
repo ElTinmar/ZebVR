@@ -76,8 +76,8 @@ if __name__ == '__main__':
         threshold_prey_intensity = 0.025,
         pixels_per_mm = cam_pixels_per_mm
     )
-    #full_tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker, prey_tracker])
-    full_tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker])
+    full_tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker, prey_tracker])
+    #full_tracker = TrackerCollection(body_tracker, [eyes_tracker, tail_tracker])
     #full_tracker = TrackerCollection(body_tracker)
     tracker = full_tracker
 
