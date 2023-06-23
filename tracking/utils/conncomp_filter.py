@@ -1,8 +1,8 @@
 import numpy as np
 from scipy import ndimage as ndi
-import time
 from numpy.typing import NDArray
 from typing import Tuple
+
 # those are essentially stripped down versions of 
 # skimage.morphology.remove_small_objects
 
