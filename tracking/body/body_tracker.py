@@ -38,7 +38,7 @@ class BodyTracker(Tracker):
         # TODO check cv2.connectedComponentsWithStats
         # threshold and remove small objects 
         props = bwareaopen_props(
-            1.0*(image >= thresh_intensity), 
+            image >= thresh_intensity, 
             min_size = thresh_size
         )
 
