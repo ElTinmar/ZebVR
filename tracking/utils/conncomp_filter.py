@@ -70,7 +70,11 @@ def bwareaopen_centroids(
         connectivity: int = 1,
     ) -> NDArray:
 
-    label_img = label(ar, connectivity)
+    #label_img = label(ar, connectivity)
+    strel = ndi.generate_binary_structure(ar.ndim, connectivity)
+    label_img = np.zeros_like(ar, dtype=np.int32)
+    ndi.label(ar, strel, output=label_img)
+    
     props = regionprops(label_img)
     centroids = []
     for blob in props:
@@ -86,7 +90,11 @@ def bwareafilter_centroids(
         connectivity: int = 1
     ) -> NDArray:
 
-    label_img = label(ar, connectivity)
+    #label_img = label(ar, connectivity)
+    strel = ndi.generate_binary_structure(ar.ndim, connectivity)
+    label_img = np.zeros_like(ar, dtype=np.int32)
+    ndi.label(ar, strel, output=label_img)
+    
     props = regionprops(label_img)
     centroids = []
     for blob in props:
@@ -124,7 +132,7 @@ def bwareafilter_props(
     strel = ndi.generate_binary_structure(ar.ndim, connectivity)
     label_img = np.zeros_like(ar, dtype=np.int32)
     ndi.label(ar, strel, output=label_img)
-    
+
     props = regionprops(label_img)
     filtered_props = []
     for blob in props:
