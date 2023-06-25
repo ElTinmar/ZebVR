@@ -4,7 +4,7 @@ from numpy.typing import NDArray
 #from sklearnex import patch_sklearn
 #patch_sklearn()
 from sklearn.decomposition import PCA
-from tracking.utils.conncomp_filter import bwareaopen
+from tracking.utils.conncomp_filter import bwareaopen_props
 from core.abstractclasses import Tracker
 import cv2
 from core.dataclasses import BodyTracking, Rect
@@ -36,24 +36,20 @@ class BodyTracker(Tracker):
         ) -> BodyTracking:
         
         # TODO check cv2.connectedComponentsWithStats
-
         # threshold and remove small objects 
-        fish_mask = bwareaopen(
-            image >= thresh_intensity, 
+        props = bwareaopen_props(
+            1.0*(image >= thresh_intensity), 
             min_size = thresh_size
         )
-              
-        blob_coordinates = np.argwhere(fish_mask) #  (row, col) coordinates
 
-        if blob_coordinates.size == 0:
+        if props == []:
             return None
         else:
-            # (row,col) to (x,y) coordinates
-            blob_coordinates = blob_coordinates[:,[1, 0]]
+            fish_coords = np.fliplr(props[0].coords)
 
             # PCA
             pca = PCA()
-            scores = pca.fit_transform(blob_coordinates)
+            scores = pca.fit_transform(fish_coords)
             # PCs are organized in rows, transform to columns
             principal_components = pca.components_.T
             centroid = pca.mean_
@@ -69,7 +65,7 @@ class BodyTracker(Tracker):
                 centroid = centroid,
                 centroid_small = centroid.copy(),
                 heading = principal_components,
-                fish_mask = fish_mask,
+                fish_mask = None,
                 image = image
             )
 

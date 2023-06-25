@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.typing import NDArray
-from tracking.utils.conncomp_filter import bwareafilter
-from skimage.measure import regionprops, label
+from tracking.utils.conncomp_filter import bwareafilter_centroids
 from core.abstractclasses import Tracker
 import cv2
 from core.dataclasses import PreyTracking
@@ -50,31 +49,11 @@ class PreyTracker(Tracker):
                         interpolation=cv2.INTER_NEAREST
                     )
  
-            prey_mask = bwareafilter(
+            prey_centroids = bwareafilter_centroids(
                 image >= self.threshold_prey_intensity, 
                 min_size = self.threshold_prey_area_min_pix, 
                 max_size = self.threshold_prey_area_max_pix
             )
-
-            #self.last_masks.append(prey_mask)
-            #last_masks = np.asarray(self.last_masks)
-            #label_img = label(last_masks,connectivity=3)
-            #regions = regionprops(label_img)
-
-            label_img = label(prey_mask)
-            regions = regionprops(label_img)
-
-            prey_centroids = np.empty((len(regions),2),dtype=np.float32)
-            #prey_centroids = []
-            for i, blob in enumerate(regions):
-                # How (x,y) change with time
-                #obliqueness = np.linalg.norm(blob.inertia_tensor[0,1:2])
-                #t, y, x = blob.centroid
-                y, x = blob.centroid
-                #if obliqueness >= 0.1:
-                    #prey_centroids.append([x,y])
-                prey_centroids[i,:] = [x, y] 
-            #prey_centroids = np.asarray(prey_centroids)
 
             # scale back coordinates
             if self.rescale is not None:
@@ -82,7 +61,7 @@ class PreyTracker(Tracker):
 
             tracking = PreyTracking(
                 prey_centroids = prey_centroids,
-                prey_mask = prey_mask,
+                prey_mask = None,
                 image = image
             )
 
