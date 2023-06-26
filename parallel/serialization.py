@@ -19,12 +19,13 @@ def recv_array(socket, flags=0, copy=True, track=False):
     return A.reshape(md["shape"])
 
 def send_frame(socket, data, flags=0, copy=True, track=False) -> None:
-    msg = dict(
-        index = data['index'],
-        timestamp = data['timestamp']
-    )
-    socket.send_json(msg, flags | zmq.SNDMORE)
-    send_array(socket, data['frame'], flags, copy, track)
+    if data is not None:
+        msg = dict(
+            index = data['index'],
+            timestamp = data['timestamp']
+        )
+        socket.send_json(msg, flags | zmq.SNDMORE)
+        send_array(socket, data['frame'], flags, copy, track)
 
 def recv_frame(socket, flags=0, copy=True, track=False):
     msg = socket.recv_json(flags=flags)
@@ -36,13 +37,14 @@ def recv_frame(socket, flags=0, copy=True, track=False):
     return ret
 
 def send_tracking(socket, data, flags=0, copy=True, track=False) -> None:
-    msg = dict(
-        index = data['index'],
-        timestamp = data['timestamp'],
-    )
-    socket.send_json(msg, flags | zmq.SNDMORE)
-    socket.send_pyobj(data['tracking'], flags | zmq.SNDMORE)
-    send_array(socket, data['frame'], flags, copy, track)
+    if data is not None:
+        msg = dict(
+            index = data['index'],
+            timestamp = data['timestamp'],
+        )
+        socket.send_json(msg, flags | zmq.SNDMORE)
+        socket.send_pyobj(data['tracking'], flags | zmq.SNDMORE)
+        send_array(socket, data['frame'], flags, copy, track)
 
 def recv_tracking(socket, flags=0, copy=True, track=False):
     msg = socket.recv_json(flags=flags)
