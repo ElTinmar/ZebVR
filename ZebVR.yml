@@ -12,6 +12,7 @@ dependencies:
   - hid
   - psychopy
   - PyQt5
+  - PyQt5-tools
 - numba
 - cudatoolkit
 - ipython
