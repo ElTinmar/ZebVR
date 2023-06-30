@@ -1,4 +1,4 @@
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets
 from core.abstractclasses import Camera, Background
 
 class MainWindow(QtWidgets.QMainWindow):
