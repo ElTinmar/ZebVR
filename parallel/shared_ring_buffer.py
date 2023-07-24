@@ -2,7 +2,6 @@ from multiprocessing import Array, Value, Event
 from typing import List
 import time
 from itertools import cycle
-from abc import abstractmethod
 
 class SharedRingBuffer:
 
@@ -10,7 +9,8 @@ class SharedRingBuffer:
             self,
             num_element: int,
             element_byte_size: int
-    ):
+        ):
+
         self.element_byte_size = element_byte_size
         self.num_element = num_element
         self.total_size = element_byte_size * num_element
@@ -57,6 +57,8 @@ class SharedRingBuffer:
         ''' Return number of items currently stored in the buffer '''
         return (self.write_cursor.value - self.read_cursor.value) % self.total_size
     
+
+# maybe that can be separated in input and output buffers ?
 class BufferCollection:
     def __init__(
             self,
@@ -79,9 +81,14 @@ class BufferCollection:
     def select(self):
         start_time = time.time()
         while True:
+            counter = 0
             for idx, event in self.event_iterator:
                 if event.is_set():
                     return self.buffer_collection[idx]
+                counter += 1
+                # if we tried all of them unsuccessfully, sleep a bit
+                if counter == len(self.buffer_collection):
+                    break
 
             elapsed_time = time.time() - start_time
             if elapsed_time >= self.timeout:
