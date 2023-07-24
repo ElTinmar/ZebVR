@@ -39,7 +39,7 @@ if __name__ == '__main__':
     ringbuf1 = SharedRingBuffer(num_element=NLOOP//2, element_byte_size=int(np.prod(SIZE)))
     ringbuf2 = SharedRingBuffer(num_element=NLOOP//2, element_byte_size=int(np.prod(SIZE)))
     
-    collection1 = BufferCollection([ringbuf1])
+    collection1 = BufferCollection([ringbuf1,ringbuf2], dispatch=True)
     collection2 = BufferCollection([ringbuf2])
     collection3 = BufferCollection([ringbuf1, ringbuf2])
 
