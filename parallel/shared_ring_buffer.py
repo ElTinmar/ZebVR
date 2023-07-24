@@ -1,4 +1,8 @@
 from multiprocessing import Array, Value, Event 
+from typing import List
+import time
+from itertools import cycle
+from abc import abstractmethod
 
 class SharedRingBuffer:
 
@@ -52,3 +56,52 @@ class SharedRingBuffer:
     def size(self):
         ''' Return number of items currently stored in the buffer '''
         return (self.write_cursor.value - self.read_cursor.value) % self.total_size
+    
+class BufferCollection:
+    def __init__(
+            self,
+            buffer_collection: List[SharedRingBuffer],
+            dispatch = True,
+            timeout = 1,
+            dt = 0.1
+        ) -> None:
+
+        self.buffer_collection = buffer_collection
+        self.dispatch = dispatch
+        self.timeout = timeout
+        self.dt = dt
+
+        self.data_available = [(idx, buffer.data_available) for (idx, buffer) in enumerate(buffer_collection)]
+        self.event_iterator = cycle(self.data_available)
+
+        self.buffer_iterator = cycle(self.buffer_collection)
+
+    def select(self):
+        start_time = time.time()
+        while True:
+            for idx, event in self.event_iterator:
+                if event.is_set():
+                    return self.buffer_collection[idx]
+
+            elapsed_time = time.time() - start_time
+            if elapsed_time >= self.timeout:
+                return None
+            
+            time.sleep(self.dt)
+        
+    def read(self) -> SharedRingBuffer:
+        return self.select()
+    
+    def write(self) -> List[SharedRingBuffer]:
+        if self.dispatch:
+            return self.write_dispatch()
+        else:
+            return self.write_copy()
+
+    def write_copy(self) -> List[SharedRingBuffer]:
+        return self.buffer_collection
+
+    def write_dispatch(self) -> SharedRingBuffer:
+        return next(self.buffer_iterator)
+
+        
