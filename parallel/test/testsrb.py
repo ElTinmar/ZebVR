@@ -26,11 +26,11 @@ def consumer(input: BufferCollection):
             buffer.read_done()
     cv2.destroyWindow('display')
 
-def producer(output: BufferCollection, maxval: int):
+def producer(output: BufferCollection, val: int):
     for i in range(NLOOP//2):
         buffer = output.write()[0]
         full, data = buffer.get_write_buffer()
-        data[:] = np.random.randint(0, maxval, (np.prod(SIZE),), dtype='B')
+        data[:] = np.random.randint(0, 255, (np.prod(SIZE),), dtype='B')//val
         buffer.write_done()
     
 if __name__ == '__main__':
@@ -44,8 +44,8 @@ if __name__ == '__main__':
     collection3 = BufferCollection([ringbuf1, ringbuf2])
 
     pcons = mp.Process(target=consumer, args=(collection3,))
-    pprod1 = mp.Process(target=producer, args=(collection1, 255))
-    pprod2 = mp.Process(target=producer, args=(collection2, 25))
+    pprod1 = mp.Process(target=producer, args=(collection1, 2))
+    pprod2 = mp.Process(target=producer, args=(collection2, 1))
     pmon = mp.Process(target=monitor, args=([ringbuf1, ringbuf2],))
 
     pmon.start()
