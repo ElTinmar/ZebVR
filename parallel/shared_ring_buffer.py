@@ -55,7 +55,9 @@ class SharedRingBuffer:
 
     def size(self):
         ''' Return number of items currently stored in the buffer '''
-        return (self.write_cursor.value - self.read_cursor.value) % self.total_size
+        num_bytes = (self.write_cursor.value - self.read_cursor.value) % self.total_size
+        numel = num_bytes/self.element_byte_size
+        return numel
     
 
 # maybe that can be separated in input and output buffers ?
@@ -108,7 +110,7 @@ class BufferCollection:
     def write_copy(self) -> List[SharedRingBuffer]:
         return self.buffer_collection
 
-    def write_dispatch(self) -> SharedRingBuffer:
-        return next(self.buffer_iterator)
+    def write_dispatch(self) -> List[SharedRingBuffer]:
+        return [next(self.buffer_iterator)]
 
         
