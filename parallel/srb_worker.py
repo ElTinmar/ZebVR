@@ -5,7 +5,10 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 import time
 
+# TODO create an abstract process class to define the loop structure 
+# and have zmq workers and shared memory workers inherit from that
 # TODO use shared ring buffers to share information
+
 
 @dataclass
 class ZMQSocketInfo:
