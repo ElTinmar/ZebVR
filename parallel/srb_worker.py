@@ -60,39 +60,14 @@ class ZMQDataProcessingNode(ABC):
     def post_send(self) -> None:
         pass
 
-    def post_recv(self, args: Any) -> Any:
+    def post_recv(self):
         pass
 
-    def configure_zmq(self):
-        self.context = zmq.Context()
-        self.context.setsockopt(zmq.RCVTIMEO, self.recv_timeout_s*1000)
-        self.poller = zmq.Poller()
-
-        for isock in self.insock_info:
-            socket = self.context.socket(isock.socket_type)
-            endpoint = isock.protocol + isock.address + f':{isock.port}'
-            if isock.bind:
-                socket.bind(endpoint)
-            else:
-                socket.connect(endpoint)
-            self.input_socket.append(socket)
-            self.poller.register(socket, zmq.POLLIN)
-
-        for osock in self.outsock_info:
-            socket = self.context.socket(osock.socket_type)
-            endpoint = osock.protocol + osock.address + f':{osock.port}'
-            if osock.bind:
-                socket.bind(endpoint)
-            else:
-                socket.connect(endpoint)
-            self.output_socket.append(socket)
+    def setup(self):
+        pass
 
     def clean_zmq(self):
-        for sock in self.input_socket:
-            sock.close()
-        for sock in self.output_socket:
-            sock.close()
-        self.context.destroy()
+        pass
 
     def _receive(self, socket: zmq.Socket, info: ZMQSocketInfo) -> Any:
         if info.deserializer is not None:

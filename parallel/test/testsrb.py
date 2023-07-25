@@ -20,8 +20,7 @@ def consumer(input: BufferCollection):
         buffer = input.read()
         if buffer is not None:
             empty, data = buffer.get_read_buffer()
-            array = np.frombuffer(data, dtype='B').reshape(SIZE)
-            cv2.imshow('display',array)
+            cv2.imshow('display',data.reshape(SIZE))
             cv2.waitKey(1)
             buffer.read_done()
     cv2.destroyWindow('display')
@@ -36,10 +35,10 @@ def producer(output: BufferCollection, val: int):
 if __name__ == '__main__':
     mp.set_start_method('spawn')
 
-    ringbuf1 = SharedRingBuffer(num_element=NLOOP//2, element_byte_size=int(np.prod(SIZE)))
-    ringbuf2 = SharedRingBuffer(num_element=NLOOP//2, element_byte_size=int(np.prod(SIZE)))
+    ringbuf1 = SharedRingBuffer(num_element=NLOOP//2, element_size=int(np.prod(SIZE)))
+    ringbuf2 = SharedRingBuffer(num_element=NLOOP//2, element_size=int(np.prod(SIZE)))
     
-    collection1 = BufferCollection([ringbuf1,ringbuf2], dispatch=True)
+    collection1 = BufferCollection([ringbuf1])
     collection2 = BufferCollection([ringbuf2])
     collection3 = BufferCollection([ringbuf1, ringbuf2])
 
@@ -48,6 +47,7 @@ if __name__ == '__main__':
     pprod2 = mp.Process(target=producer, args=(collection2, 1))
     pmon = mp.Process(target=monitor, args=([ringbuf1, ringbuf2],))
 
+    start_time = time.time()
     pmon.start()
     pcons.start()
     pprod1.start()
@@ -57,4 +57,6 @@ if __name__ == '__main__':
     pprod2.join()
     pcons.join()
     pmon.terminate()
+    elapsed_time = time.time() - start_time
+    print(f'time {elapsed_time}')
 

@@ -2,52 +2,63 @@ from multiprocessing import Array, Value, Event
 from typing import List
 import time
 from itertools import cycle
+import numpy as np
 
 class SharedRingBuffer:
 
     def __init__(
             self,
             num_element: int,
-            element_byte_size: int
+            element_size: int,
+            data_type = 'B'
         ):
 
-        self.element_byte_size = element_byte_size
+        self.element_size = element_size
         self.num_element = num_element
-        self.total_size = element_byte_size * num_element
+        self.total_size = element_size * num_element
+        self.data_type = data_type
 
         self.read_cursor = Value('i',0)
         self.write_cursor = Value('i',0)
         self.data_available = Event()
-        self.data = Array('B', self.total_size)
+        self.data = Array(data_type, self.total_size)
 
     def get_read_buffer(self):
-        '''return memoryview to the current read location'''
-        buffer = memoryview(self.data.get_obj()).cast('B')
+        '''return buffer to the current read location'''
+        buffer = np.frombuffer(
+            self.data.get_obj(), 
+            dtype = self.data_type, 
+            count = self.element_size,
+            offset = self.read_cursor.value
+        )
         empty = self.empty()
-        slice = buffer[self.read_cursor.value:self.read_cursor.value+self.element_byte_size]
-        return (empty, slice)
+        return (empty, buffer)
 
     def get_write_buffer(self):
-        '''return memoryview to the current write location'''
-        buffer = memoryview(self.data.get_obj()).cast('B')
+        '''return buffer to the current write location'''
+        buffer = np.frombuffer(
+            self.data.get_obj(), 
+            dtype = self.data_type, 
+            count = self.element_size,
+            offset = self.write_cursor.value
+        )
         full = self.full()
-        slice = buffer[self.write_cursor.value:self.write_cursor.value+self.element_byte_size]
-        return (full, slice)
+        return (full, buffer)
     
     def read_done(self):
         '''current position has been read'''
-        self.read_cursor.value = (self.read_cursor.value  +  self.element_byte_size) % self.total_size
+        self.read_cursor.value = (self.read_cursor.value  +  self.element_size) % self.total_size
         if self.empty():
             self.data_available.clear()
 
     def write_done(self):
         '''current position has been written'''
-        self.write_cursor.value = (self.write_cursor.value  +  self.element_byte_size) % self.total_size
+        self.write_cursor.value = (self.write_cursor.value  +  self.element_size) % self.total_size
         self.data_available.set()
 
     def full(self):
         ''' check if buffer is full '''
-        return self.write_cursor.value == ((self.read_cursor.value - self.element_byte_size) % self.total_size)
+        return self.write_cursor.value == ((self.read_cursor.value - self.element_size) % self.total_size)
 
     def empty(self):
         ''' check if buffer is empty '''
@@ -56,7 +67,7 @@ class SharedRingBuffer:
     def size(self):
         ''' Return number of items currently stored in the buffer '''
         num_bytes = (self.write_cursor.value - self.read_cursor.value) % self.total_size
-        numel = num_bytes/self.element_byte_size
+        numel = num_bytes/self.element_size
         return numel
     
 
