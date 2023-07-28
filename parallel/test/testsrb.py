@@ -5,7 +5,7 @@ import cv2
 from typing import List
 import time
 
-SIZE = (1024, 1024, 3)
+SIZE = (256, 256, 3)
 NLOOP = 1000
 
 def monitor(buffers: List[SharedRingBuffer]):
@@ -35,8 +35,13 @@ def producer(output: BufferCollection, val: int):
 if __name__ == '__main__':
     mp.set_start_method('spawn')
 
-    ringbuf1 = SharedRingBuffer(num_element=NLOOP//2, element_size=int(np.prod(SIZE)))
-    ringbuf2 = SharedRingBuffer(num_element=NLOOP//2, element_size=int(np.prod(SIZE)))
+    # data structure:
+    # sentinel: 1 byte 
+    # frame number: 4 bytes 
+    # frame data: height*width*channel*bitdepth bytes 
+
+    ringbuf1 = SharedRingBuffer(num_element=100, element_size=int(np.prod(SIZE)))
+    ringbuf2 = SharedRingBuffer(num_element=100, element_size=int(np.prod(SIZE)))
     
     collection1 = BufferCollection([ringbuf1])
     collection2 = BufferCollection([ringbuf2])
