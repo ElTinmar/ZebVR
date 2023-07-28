@@ -18,8 +18,11 @@ class SharedRingBuffer:
         self.total_size = element_size * num_element
         self.data_type = data_type
 
-        self.read_cursor = Value('i',0)
-        self.write_cursor = Value('i',0)
+        # NOTE: unsigned long int can overflow, 
+        # which can cause problems if the buffer
+        # is too big, I should probably issue an error 
+        self.read_cursor = Value('I',0)
+        self.write_cursor = Value('I',0)
         self.data_available = Event()
         self.data = Array(data_type, self.total_size)
 
@@ -29,7 +32,7 @@ class SharedRingBuffer:
             self.data.get_obj(), 
             dtype = self.data_type, 
             count = self.element_size,
-            offset = self.read_cursor.value
+            offset = self.read_cursor.value * self.element_size 
         )
         empty = self.empty()
         return (empty, buffer)
@@ -40,25 +43,25 @@ class SharedRingBuffer:
             self.data.get_obj(), 
             dtype = self.data_type, 
             count = self.element_size,
-            offset = self.write_cursor.value
+            offset = self.write_cursor.value * self.element_size
         )
         full = self.full()
         return (full, buffer)
     
     def read_done(self):
         '''current position has been read'''
-        self.read_cursor.value = (self.read_cursor.value  +  self.element_size) % self.total_size
+        self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_element
         if self.empty():
             self.data_available.clear()
 
     def write_done(self):
         '''current position has been written'''
-        self.write_cursor.value = (self.write_cursor.value  +  self.element_size) % self.total_size
+        self.write_cursor.value = (self.write_cursor.value  +  1) % self.num_element
         self.data_available.set()
 
     def full(self):
         ''' check if buffer is full '''
-        return self.write_cursor.value == ((self.read_cursor.value - self.element_size) % self.total_size)
+        return self.write_cursor.value == ((self.read_cursor.value - 1) % self.num_element)
 
     def empty(self):
         ''' check if buffer is empty '''
@@ -66,9 +69,7 @@ class SharedRingBuffer:
 
     def size(self):
         ''' Return number of items currently stored in the buffer '''
-        num_bytes = (self.write_cursor.value - self.read_cursor.value) % self.total_size
-        numel = num_bytes/self.element_size
-        return numel
+        return (self.write_cursor.value - self.read_cursor.value) % self.num_element
     
 
 # maybe that can be separated in input and output buffers ?
