@@ -6,8 +6,75 @@ from typing import List
 import time
 import struct
 
-SIZE = (1024, 1024, 3)
+SIZE = (512, 512, 3)
 NLOOP = 1000
+BUFSIZE = 200
+
+class FrameByteU8:
+    '''
+    Frame message structure:
+    - sentinel (1 byte)
+    - frame_num (4 bytes)
+    - timestamp (8 bytes)
+    - image height (4 bytes)
+    - image width (4 bytes)
+    - num image channels (1 bytes)
+    - pixel data (h*w*c bytes)
+    '''
+
+    def __init__(
+            self,
+            height,
+            width,
+            channels):
+        
+        self.height = height
+        self.width = width
+        self.channels = channels
+        self.format = ('B'+ 
+              'L'+ 
+              'Q'+
+              'L'+
+              'L'+
+              'B'+
+              'B'*height*width*channels)
+        
+    def pack_frame(
+            self,
+            buffer,
+            sentinel,
+            frame_num,
+            timestamp,
+            pixel_data):
+        
+        #TODO *pixel_data is probably slow
+        
+        struct.pack_into(
+            self.format,
+            buffer,
+            0,
+            sentinel,
+            frame_num,
+            timestamp,
+            self.height,
+            self.width,
+            self.channels,
+            *pixel_data
+        )
+        
+    def unpack_frame(self, buffer):
+        return struct.unpack_from(
+            self.format, 
+            buffer
+        )
+
+def unpack_frame(buffer):
+    sentinel = buffer[0]
+    frame_num = 0
+    for i in range(1,5):
+        frame_num += 2**((4-i)*8) * buffer[i]
+    frame = buffer[5:]
+    return (sentinel, frame_num, frame)
 
 def monitor(buffers: List[SharedRingBuffer]):
     while True:
@@ -57,8 +124,8 @@ if __name__ == '__main__':
     # frame number: 4 bytes 
     # frame data: height*width*channel*bitdepth bytes 
 
-    ringbuf1 = SharedRingBuffer(num_element=500, element_size=5+int(np.prod(SIZE)))
-    ringbuf2 = SharedRingBuffer(num_element=500, element_size=5+int(np.prod(SIZE)))
+    ringbuf1 = SharedRingBuffer(num_element=BUFSIZE, element_size=5+int(np.prod(SIZE)))
+    ringbuf2 = SharedRingBuffer(num_element=BUFSIZE, element_size=5+int(np.prod(SIZE)))
     
     collection1 = BufferCollection([ringbuf1])
     collection2 = BufferCollection([ringbuf2])
