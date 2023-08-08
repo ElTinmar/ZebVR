@@ -1,4 +1,4 @@
-from parallel.shared_ring_buffer import SharedRingBuffer, BufferCollection
+from parallel.shared_ring_buffer import SharedRingBuffer, DataDispatcher
 import multiprocessing as mp
 import numpy as np
 import cv2
@@ -6,7 +6,7 @@ from typing import List
 import time
 import struct
 
-SIZE = (512, 512, 3)
+SIZE = (1024, 1024, 3)
 NLOOP = 1000
 BUFSIZE = 200
 
@@ -82,7 +82,7 @@ def monitor(buffers: List[SharedRingBuffer]):
             print(f'{idx}: {buf.size()}', flush=True)
         time.sleep(0.1)
 
-def consumer(input: BufferCollection):
+def consumer(input: DataDispatcher):
     cv2.namedWindow('display')
     while True:
         buffer = input.read()
@@ -99,7 +99,7 @@ def consumer(input: BufferCollection):
                 break
     cv2.destroyWindow('display')
 
-def producer(output: BufferCollection, val: int):
+def producer(output: DataDispatcher, val: int):
     frame_num = 0
     sentinel = 0
     for i in range(NLOOP//2):
@@ -127,9 +127,9 @@ if __name__ == '__main__':
     ringbuf1 = SharedRingBuffer(num_element=BUFSIZE, element_size=5+int(np.prod(SIZE)))
     ringbuf2 = SharedRingBuffer(num_element=BUFSIZE, element_size=5+int(np.prod(SIZE)))
     
-    collection1 = BufferCollection([ringbuf1])
-    collection2 = BufferCollection([ringbuf2])
-    collection3 = BufferCollection([ringbuf1, ringbuf2])
+    collection1 = DataDispatcher([ringbuf1])
+    collection2 = DataDispatcher([ringbuf2])
+    collection3 = DataDispatcher([ringbuf1, ringbuf2])
 
     pcons = mp.Process(target=consumer, args=(collection3,))
     pprod1 = mp.Process(target=producer, args=(collection1, 2))
