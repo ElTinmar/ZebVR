@@ -78,12 +78,12 @@ def producer(output: DataDispatcher, val: int):
     for i in range(NLOOP//2):
         if i == NLOOP//2-1:
             sentinel = 1
-        pixel_data = np.random.randint(0, 255, (np.prod(SIZE),), dtype='B')//val
         frame_num += 1
         timestamp = time.time_ns()
         height = SIZE[0]
         width = SIZE[1]
         channels = SIZE[2]
+        pixel_data = np.random.randint(0, 255, (np.prod(SIZE),), dtype='B')//val
 
         for manager in output.write():
             manager.pack(
