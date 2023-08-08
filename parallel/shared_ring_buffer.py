@@ -75,6 +75,10 @@ class SharedRingBuffer:
 
 @dataclass
 class DataManager:
+    '''
+    Contains shared buffer as well as the functions to put and retrieve data to/from 
+    the shared buffer
+    '''
     buffer: SharedRingBuffer
     packer: Callable
     unpacker: Callable
