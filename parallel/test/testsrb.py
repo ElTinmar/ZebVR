@@ -65,7 +65,7 @@ def consumer(input: DataDispatcher):
         if manager is not None:
             (sentinel, frame_num, timestamp, height, width, channels, pixel_data) = manager.unpack()
             print(f'received (#{frame_num}: {timestamp}), ({height}, {width}, {channels}), sentinel {sentinel}' , flush=True)
-            cv2.imshow('display', pixel_data.reshape(SIZE))
+            cv2.imshow('display', pixel_data.reshape((height, width, channels)))
             cv2.waitKey(1)
             manager.read_done()
             if sentinel > 0:
