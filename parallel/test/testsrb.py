@@ -9,7 +9,7 @@ import sys
 SIZE = (1024, 1024, 3)
 HEADER_SIZE = 22
 NLOOP = 1000
-BUFSIZE = 200
+BUFSIZE = 20
 
 '''
 Frame message structure:
