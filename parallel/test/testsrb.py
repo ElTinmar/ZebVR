@@ -80,15 +80,19 @@ def producer(output: DataDispatcher, val: int):
             sentinel = 1
         pixel_data = np.random.randint(0, 255, (np.prod(SIZE),), dtype='B')//val
         frame_num += 1
+        timestamp = time.time_ns()
+        height = SIZE[0]
+        width = SIZE[1]
+        channels = SIZE[2]
 
         for manager in output.write():
             manager.pack(
                 sentinel,
                 frame_num,
-                time.time_ns(),
-                SIZE[0],
-                SIZE[1],
-                SIZE[2],
+                timestamp,
+                height,
+                width,
+                channels,
                 pixel_data
             )
             manager.write_done()
