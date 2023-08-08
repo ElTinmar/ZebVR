@@ -1,4 +1,4 @@
-from parallel.shared_ring_buffer import SharedRingBuffer, DataManager, DataDispatcher
+from parallel.shared_ring_buffer import SharedRingBuffer, DataDispatcher
 import multiprocessing as mp
 import numpy as np
 import cv2
@@ -61,13 +61,13 @@ def monitor(buffers: List[SharedRingBuffer]):
 def consumer(input: DataDispatcher):
     cv2.namedWindow('display')
     while True:
-        manager = input.read()
-        if manager is not None:
-            (sentinel, frame_num, timestamp, height, width, channels, pixel_data) = manager.unpack()
+        buffer = input.read()
+        if buffer is not None:
+            (sentinel, frame_num, timestamp, height, width, channels, pixel_data) = buffer.unpack()
             print(f'received (#{frame_num}: {timestamp}), ({height}, {width}, {channels}), sentinel {sentinel}' , flush=True)
             cv2.imshow('display', pixel_data.reshape((height, width, channels)))
             cv2.waitKey(1)
-            manager.read_done()
+            buffer.read_done()
             if sentinel > 0:
                 break
     cv2.destroyWindow('display')
@@ -85,8 +85,8 @@ def producer(output: DataDispatcher, val: int):
         timestamp = time.time_ns()
         pixel_data = np.random.randint(0, 255, (np.prod(SIZE),), dtype='B')//val
 
-        for manager in output.write():
-            manager.pack(
+        for buffer in output.write():
+            buffer.pack(
                 sentinel,
                 frame_num,
                 timestamp,
@@ -95,28 +95,28 @@ def producer(output: DataDispatcher, val: int):
                 channels,
                 pixel_data
             )
-            manager.write_done()
+            buffer.write_done()
     
 if __name__ == '__main__':
     mp.set_start_method('spawn')
 
-    ringbuf1 = SharedRingBuffer(num_element=BUFSIZE, element_size=HEADER_SIZE+int(np.prod(SIZE)))
-    ringbuf2 = SharedRingBuffer(num_element=BUFSIZE, element_size=HEADER_SIZE+int(np.prod(SIZE)))
-    
-    manager1 = DataManager(
-        buffer = ringbuf1, 
-        packer = pack_frame_and_metadata, 
-        unpacker = unpack_frame_and_metadata
-    )
-    manager2 = DataManager(
-        buffer = ringbuf2, 
+    ringbuf1 = SharedRingBuffer(
+        num_element=BUFSIZE, 
+        element_size=HEADER_SIZE+int(np.prod(SIZE)),
         packer = pack_frame_and_metadata, 
         unpacker = unpack_frame_and_metadata
     )
 
-    dispatcher1 = DataDispatcher([manager1])
-    dispatcher2 = DataDispatcher([manager2])
-    dispatcher3 = DataDispatcher([manager1, manager2])
+    ringbuf2 = SharedRingBuffer(
+        num_element=BUFSIZE, 
+        element_size=HEADER_SIZE+int(np.prod(SIZE)),
+        packer = pack_frame_and_metadata, 
+        unpacker = unpack_frame_and_metadata
+    )
+
+    dispatcher1 = DataDispatcher([ringbuf1])
+    dispatcher2 = DataDispatcher([ringbuf2])
+    dispatcher3 = DataDispatcher([ringbuf1, ringbuf2])
 
     pcons = mp.Process(target=consumer, args=(dispatcher3,))
     pprod1 = mp.Process(target=producer, args=(dispatcher1, 2))

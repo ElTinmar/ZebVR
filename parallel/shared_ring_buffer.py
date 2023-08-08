@@ -3,7 +3,6 @@ from typing import List, Callable, Optional, Any
 import time
 from itertools import cycle
 import numpy as np
-from dataclasses import dataclass
 
 class SharedRingBuffer:
 
@@ -11,13 +10,18 @@ class SharedRingBuffer:
             self,
             num_element: int,
             element_size: int,
+            packer: Callable,
+            unpacker: Callable,
             data_type = 'B'
         ):
 
-        self.element_size = element_size
         self.num_element = num_element
+        self.element_size = element_size
+        self.packer = packer
+        self.unpacker = unpacker
         self.total_size = element_size * num_element
         self.data_type = data_type
+        
 
         # NOTE: unsigned long int can overflow, 
         # which can cause problems if the buffer
@@ -72,31 +76,15 @@ class SharedRingBuffer:
     def size(self):
         ''' Return number of items currently stored in the buffer '''
         return (self.write_cursor.value - self.read_cursor.value) % self.num_element
-
-#TODO merge DataManager and SharedRingBuffer
-@dataclass
-class DataManager:
-    '''
-    Contains shared buffer as well as the functions to put and retrieve data to/from 
-    the shared buffer
-    '''
-    buffer: SharedRingBuffer
-    packer: Callable
-    unpacker: Callable
-
+    
     def pack(self, *args, **kwargs) -> Any:
-        full, data = self.buffer.get_write_buffer()
+        full, data = self.get_write_buffer()
         return self.packer(data, *args, **kwargs)
     
     def unpack(self) -> Any:
-        empty, data = self.buffer.get_read_buffer()
+        empty, data = self.get_read_buffer()
         return self.unpacker(data)
-    
-    def read_done(self) -> None:
-        self.buffer.read_done()
 
-    def write_done(self) -> None:
-        self.buffer.write_done()
 
 class DataDispatcher:
     '''
@@ -105,32 +93,31 @@ class DataDispatcher:
     '''
     def __init__(
             self,
-            data_managers: List[DataManager],
+            buffers: List[SharedRingBuffer],
             dispatch = True,
             timeout = 1,
             dt = 0.1
         ) -> None:
 
-        self.data_managers = data_managers
+        self.buffers = buffers
         self.dispatch = dispatch
         self.timeout = timeout
         self.dt = dt
 
-        self.data_available = [(idx, manager.buffer.data_available) for (idx, manager) in enumerate(data_managers)]
+        self.data_available = [(idx, buffer.data_available) for (idx, buffer) in enumerate(buffers)]
         self.event_iterator = cycle(self.data_available)
+        self.buffer_iterator = cycle(self.buffers)
 
-        self.manager_iterator = cycle(self.data_managers)
-
-    def select(self) -> Optional[DataManager]:
+    def select(self) -> Optional[SharedRingBuffer]:
         start_time = time.time()
         while True:
             counter = 0
             for idx, event in self.event_iterator:
                 if event.is_set():
-                    return self.data_managers[idx]
+                    return self.buffers[idx]
                 counter += 1
                 # if we tried all of them unsuccessfully, sleep a bit
-                if counter == len(self.data_managers):
+                if counter == len(self.buffers):
                     break
 
             elapsed_time = time.time() - start_time
@@ -139,19 +126,19 @@ class DataDispatcher:
             
             time.sleep(self.dt)
         
-    def read(self) -> DataManager:
+    def read(self) -> SharedRingBuffer:
         return self.select()
     
-    def write(self) -> List[DataManager]:
+    def write(self) -> List[SharedRingBuffer]:
         if self.dispatch:
             return self.write_dispatch()
         else:
             return self.write_copy()
 
-    def write_copy(self) -> List[DataManager]:
-        return self.data_managers
+    def write_copy(self) -> List[SharedRingBuffer]:
+        return self.buffers
 
-    def write_dispatch(self) -> List[DataManager]:
-        return [next(self.manager_iterator)]
+    def write_dispatch(self) -> List[SharedRingBuffer]:
+        return [next(self.buffer_iterator)]
 
         
