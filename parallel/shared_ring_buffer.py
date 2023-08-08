@@ -114,7 +114,7 @@ class DataDispatcher:
         self.data_available = [(idx, manager.buffer.data_available) for (idx, manager) in enumerate(data_managers)]
         self.event_iterator = cycle(self.data_available)
 
-        self.buffer_iterator = cycle(self.data_managers)
+        self.manager_iterator = cycle(self.data_managers)
 
     def select(self) -> Optional[DataManager]:
         start_time = time.time()
@@ -147,6 +147,6 @@ class DataDispatcher:
         return self.data_managers
 
     def write_dispatch(self) -> List[DataManager]:
-        return [next(self.buffer_iterator)]
+        return [next(self.manager_iterator)]
 
         
