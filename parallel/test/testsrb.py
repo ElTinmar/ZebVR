@@ -75,14 +75,14 @@ def consumer(input: DataDispatcher):
 def producer(output: DataDispatcher, val: int):
     frame_num = 0
     sentinel = 0
+    height = SIZE[0]
+    width = SIZE[1]
+    channels = SIZE[2]
     for i in range(NLOOP//2):
         if i == NLOOP//2-1:
             sentinel = 1
         frame_num += 1
         timestamp = time.time_ns()
-        height = SIZE[0]
-        width = SIZE[1]
-        channels = SIZE[2]
         pixel_data = np.random.randint(0, 255, (np.prod(SIZE),), dtype='B')//val
 
         for manager in output.write():
