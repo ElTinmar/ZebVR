@@ -20,7 +20,8 @@ class SharedRingBuffer:
 
         # NOTE: unsigned long int can overflow, 
         # which can cause problems if the buffer
-        # is too big, I should probably issue an error 
+        # is too big. I should run out of memory
+        # before this becomes a problem though
         self.read_cursor = Value('I',0)
         self.write_cursor = Value('I',0)
         self.data_available = Event()
