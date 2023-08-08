@@ -77,43 +77,38 @@ def producer(output: DataDispatcher, val: int):
     frame_num = 0
     sentinel = 0
     for i in range(NLOOP//2):
-        buffer = output.write()[0]
-        full, data = buffer.get_write_buffer()
-        frame_num += 1
         if i == NLOOP//2-1:
             sentinel = 1
         pixel_data = np.random.randint(0, 255, (np.prod(SIZE),), dtype='B')//val
-        
-        pack_frame_and_metadata(
-            data,
-            sentinel,
-            frame_num,
-            time.time_ns(),
-            SIZE[0],
-            SIZE[1],
-            SIZE[2],
-            pixel_data
-        )
-        buffer.write_done()
+        frame_num += 1
+
+        for buffer in output.write():
+            full, data = buffer.get_write_buffer()
+            pack_frame_and_metadata(
+                data,
+                sentinel,
+                frame_num,
+                time.time_ns(),
+                SIZE[0],
+                SIZE[1],
+                SIZE[2],
+                pixel_data
+            )
+            buffer.write_done()
     
 if __name__ == '__main__':
     mp.set_start_method('spawn')
 
-    # data structure:
-    # sentinel: 1 byte 
-    # frame number: 4 bytes 
-    # frame data: height*width*channel*bitdepth bytes 
-
     ringbuf1 = SharedRingBuffer(num_element=BUFSIZE, element_size=HEADER_SIZE+int(np.prod(SIZE)))
     ringbuf2 = SharedRingBuffer(num_element=BUFSIZE, element_size=HEADER_SIZE+int(np.prod(SIZE)))
     
-    collection1 = DataDispatcher([ringbuf1])
-    collection2 = DataDispatcher([ringbuf2])
-    collection3 = DataDispatcher([ringbuf1, ringbuf2])
+    dispatcher1 = DataDispatcher([ringbuf1])
+    dispatcher2 = DataDispatcher([ringbuf2])
+    dispatcher3 = DataDispatcher([ringbuf1, ringbuf2])
 
-    pcons = mp.Process(target=consumer, args=(collection3,))
-    pprod1 = mp.Process(target=producer, args=(collection1, 2))
-    pprod2 = mp.Process(target=producer, args=(collection2, 1))
+    pcons = mp.Process(target=consumer, args=(dispatcher3,))
+    pprod1 = mp.Process(target=producer, args=(dispatcher1, 2))
+    pprod2 = mp.Process(target=producer, args=(dispatcher2, 1))
     pmon = mp.Process(target=monitor, args=([ringbuf1, ringbuf2],))
 
     start_time = time.time()
