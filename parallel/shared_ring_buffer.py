@@ -73,7 +73,7 @@ class SharedRingBuffer:
     
 
 # maybe that can be separated in input and output buffers ?
-class BufferCollection:
+class DataDispatcher:
     def __init__(
             self,
             buffer_collection: List[SharedRingBuffer],
