@@ -22,7 +22,6 @@ class SharedRingBuffer:
         self.total_size = element_size * num_element
         self.data_type = data_type
         
-
         # NOTE: unsigned long int can overflow, 
         # which can cause problems if the buffer
         # is too big. I should run out of memory
@@ -30,6 +29,7 @@ class SharedRingBuffer:
         self.read_cursor = Value('I',0)
         self.write_cursor = Value('I',0)
         self.data_available = Event()
+        self.overflow = Event()
         self.data = Array(data_type, self.total_size)
 
     def get_read_buffer(self):
@@ -62,6 +62,8 @@ class SharedRingBuffer:
 
     def write_done(self):
         '''current position has been written'''
+        if self.full():
+            self.overflow.set()
         self.write_cursor.value = (self.write_cursor.value  +  1) % self.num_element
         self.data_available.set()
 
@@ -84,7 +86,6 @@ class SharedRingBuffer:
     def unpack(self) -> Any:
         empty, data = self.get_read_buffer()
         return self.unpacker(data)
-
 
 class DataDispatcher:
     '''
