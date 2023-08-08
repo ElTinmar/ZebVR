@@ -5,76 +5,53 @@ import cv2
 from typing import List
 import time
 import struct
+import sys
 
 SIZE = (1024, 1024, 3)
+HEADER_SIZE = 22
 NLOOP = 1000
 BUFSIZE = 200
 
-class FrameByteU8:
-    '''
-    Frame message structure:
-    - sentinel (1 byte)
-    - frame_num (4 bytes)
-    - timestamp (8 bytes)
-    - image height (4 bytes)
-    - image width (4 bytes)
-    - num image channels (1 bytes)
-    - pixel data (h*w*c bytes)
-    '''
+'''
+Frame message structure:
+- sentinel (1 byte)
+- frame_num (4 bytes)
+- timestamp (8 bytes)
+- image height (4 bytes)
+- image width (4 bytes)
+- num image channels (1 bytes)
+- pixel data (h*w*c bytes)
+'''
 
-    def __init__(
-            self,
-            height,
-            width,
-            channels):
-        
-        self.height = height
-        self.width = width
-        self.channels = channels
-        self.format = ('B'+ 
-              'L'+ 
-              'Q'+
-              'L'+
-              'L'+
-              'B'+
-              'B'*height*width*channels)
-        
-    def pack_frame(
-            self,
-            buffer,
-            sentinel,
-            frame_num,
-            timestamp,
-            pixel_data):
-        
-        #TODO *pixel_data is probably slow
-        
-        struct.pack_into(
-            self.format,
-            buffer,
-            0,
-            sentinel,
-            frame_num,
-            timestamp,
-            self.height,
-            self.width,
-            self.channels,
-            *pixel_data
-        )
-        
-    def unpack_frame(self, buffer):
-        return struct.unpack_from(
-            self.format, 
-            buffer
-        )
+def pack_frame_and_metadata(
+        buffer,
+        sentinel,
+        frame_num,
+        timestamp,
+        height,
+        width,
+        channels,
+        pixel_data
+    ) -> None:
 
-def unpack_frame(buffer):
-    sentinel = buffer[0]
-    frame_num = 0
-    for i in range(1,5):
-        frame_num += 2**((4-i)*8) * buffer[i]
-    frame = buffer[5:]
-    return (sentinel, frame_num, frame)
+    buffer[:1] = memoryview(sentinel.to_bytes(1,sys.byteorder))
+    buffer[1:5] = memoryview(frame_num.to_bytes(4,sys.byteorder))
+    buffer[5:13] = memoryview(timestamp.to_bytes(8,sys.byteorder))
+    buffer[13:17] = memoryview(height.to_bytes(4,sys.byteorder))
+    buffer[17:21] = memoryview(width.to_bytes(4,sys.byteorder))
+    buffer[21:22] = memoryview(channels.to_bytes(1,sys.byteorder))
+    buffer[22:] = pixel_data
+
+def unpack_frame_and_metadata(buffer):
+
+    sentinel = int.from_bytes(buffer[:1], sys.byteorder)
+    frame_num = int.from_bytes(buffer[1:5], sys.byteorder)
+    timestamp = int.from_bytes(buffer[5:13], sys.byteorder)
+    height = int.from_bytes(buffer[13:17], sys.byteorder)
+    width = int.from_bytes(buffer[17:21], sys.byteorder)
+    channels = int.from_bytes(buffer[21:22], sys.byteorder)
+    pixel_data = buffer[22:]
+    return (sentinel, frame_num, timestamp, height, width, channels, pixel_data)
 
 def monitor(buffers: List[SharedRingBuffer]):
     while True:
@@ -88,11 +65,9 @@ def consumer(input: DataDispatcher):
         buffer = input.read()
         if buffer is not None:
             empty, data = buffer.get_read_buffer()
-            sentinel = data[0]
-            frame_num = 2**24 * data[1] + 2**16 * data[2] + 2**8 * data[3] + data[4]
-            print(f'received {frame_num}, sentinel {sentinel}', flush=True)
-            frame = data[5:]
-            cv2.imshow('display',frame.reshape(SIZE))
+            (sentinel, frame_num, timestamp, height, width, channels, pixel_data) = unpack_frame_and_metadata(data)
+            print(f'received (#{frame_num}: {timestamp}), ({height}, {width}, {channels}), sentinel {sentinel}' , flush=True)
+            cv2.imshow('display',pixel_data.reshape(SIZE))
             cv2.waitKey(1)
             buffer.read_done()
             if sentinel > 0:
@@ -108,12 +83,18 @@ def producer(output: DataDispatcher, val: int):
         frame_num += 1
         if i == NLOOP//2-1:
             sentinel = 1
-        frame = np.random.randint(0, 255, (np.prod(SIZE),), dtype='B')//val
-        payload = np.hstack(
-            (sentinel,
-            struct.unpack('BBBB',frame_num.to_bytes(4,'big')),
-            frame))
-        data[:] = payload 
+        pixel_data = np.random.randint(0, 255, (np.prod(SIZE),), dtype='B')//val
+        
+        pack_frame_and_metadata(
+            data,
+            sentinel,
+            frame_num,
+            time.time_ns(),
+            SIZE[0],
+            SIZE[1],
+            SIZE[2],
+            pixel_data
+        )
         buffer.write_done()
     
 if __name__ == '__main__':
@@ -124,8 +105,8 @@ if __name__ == '__main__':
     # frame number: 4 bytes 
     # frame data: height*width*channel*bitdepth bytes 
 
-    ringbuf1 = SharedRingBuffer(num_element=BUFSIZE, element_size=5+int(np.prod(SIZE)))
-    ringbuf2 = SharedRingBuffer(num_element=BUFSIZE, element_size=5+int(np.prod(SIZE)))
+    ringbuf1 = SharedRingBuffer(num_element=BUFSIZE, element_size=HEADER_SIZE+int(np.prod(SIZE)))
+    ringbuf2 = SharedRingBuffer(num_element=BUFSIZE, element_size=HEADER_SIZE+int(np.prod(SIZE)))
     
     collection1 = DataDispatcher([ringbuf1])
     collection2 = DataDispatcher([ringbuf2])
