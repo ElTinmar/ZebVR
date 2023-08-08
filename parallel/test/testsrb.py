@@ -4,7 +4,6 @@ import numpy as np
 import cv2
 from typing import List
 import time
-import struct
 import sys
 
 SIZE = (1024, 1024, 3)
@@ -67,7 +66,7 @@ def consumer(input: DataDispatcher):
             empty, data = buffer.get_read_buffer()
             (sentinel, frame_num, timestamp, height, width, channels, pixel_data) = unpack_frame_and_metadata(data)
             print(f'received (#{frame_num}: {timestamp}), ({height}, {width}, {channels}), sentinel {sentinel}' , flush=True)
-            cv2.imshow('display',pixel_data.reshape(SIZE))
+            cv2.imshow('display', pixel_data.reshape(SIZE))
             cv2.waitKey(1)
             buffer.read_done()
             if sentinel > 0:
