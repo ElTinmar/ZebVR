@@ -1,5 +1,5 @@
 from multiprocessing import Array, Value, Event 
-from typing import List, Callable, Optional
+from typing import List, Callable, Optional, Any
 import time
 from itertools import cycle
 import numpy as np
@@ -79,18 +79,18 @@ class DataManager:
     packer: Callable
     unpacker: Callable
 
-    def pack(self, *args, **kwargs):
+    def pack(self, *args, **kwargs) -> Any:
         full, data = self.buffer.get_write_buffer()
         return self.packer(data, *args, **kwargs)
     
-    def unpack(self):
+    def unpack(self) -> Any:
         empty, data = self.buffer.get_read_buffer()
         return self.unpacker(data)
     
-    def read_done(self):
+    def read_done(self) -> None:
         self.buffer.read_done()
 
-    def write_done(self):
+    def write_done(self) -> None:
         self.buffer.write_done()
 
 class DataDispatcher:
