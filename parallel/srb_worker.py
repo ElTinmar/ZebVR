@@ -1,45 +1,22 @@
-import zmq
 from multiprocessing import Process, Event
-from typing import Any, List, Callable
-from dataclasses import dataclass
-from abc import ABC, abstractmethod
+from abc import ABC
 import time
+from parallel.shared_ring_buffer import DataDispatcher
 
-# TODO create an abstract process class to define the loop structure 
-# and have zmq workers and shared memory workers inherit from that
-# TODO use shared ring buffers to share information
-
-
-@dataclass
-class ZMQSocketInfo:
-    address : str = "127.0.0.1"
-    port: int = 5555
-    protocol: str = 'tcp://'
-    socket_type: int = None
-    flag: int = 0
-    copy: bool = True
-    track: bool = False
-    bind: bool = False
-    serializer: Callable = None
-    deserializer: Callable = None
-
-class ZMQDataProcessingNode(ABC):
+class DataProcessingNode(ABC):
     def __init__(
             self, 
-            input_info: List[ZMQSocketInfo],
-            output_info: List[ZMQSocketInfo],
+            input: DataDispatcher,
+            output: DataDispatcher,
             recv_timeout_s = 10
         ) -> None:
         super().__init__()
-        self.outsock_info = output_info
-        self.insock_info = input_info
-        self.input_socket = []
-        self.output_socket = []
+        self.input = input
+        self.output = output
         self.process = None
-        self.poller = None
         self.stop_loop = Event()
         self.recv_timeout_s = recv_timeout_s
-        self.name = 'ZMQNode'
+        self.name = 'Node'
 
         # timing measurement
         self.recv_time_ns = 0
@@ -69,77 +46,40 @@ class ZMQDataProcessingNode(ABC):
     def clean_zmq(self):
         pass
 
-    def _receive(self, socket: zmq.Socket, info: ZMQSocketInfo) -> Any:
-        if info.deserializer is not None:
-            input_data = info.deserializer(
-                socket, 
-                flags = info.flag,
-                copy = info.copy,
-                track = info.track
-            )
-        else:
-            input_data = socket.recv_pyobj(flags = info.flag)
-        return input_data
-    
-    def _send(self, socket: zmq.Socket, info: ZMQSocketInfo, data: Any) -> None:
-        try:
-            if info.serializer is not None:
-                info.serializer(
-                    socket, 
-                    data,
-                    flags = info.flag,
-                    copy = info.copy,
-                    track = info.track
-                )
-            else:
-                socket.send_pyobj(
-                    data, 
-                    flags = info.flag
-                )
-        except zmq.ZMQError:
-            print('Send queue is full, message was discarded')
-
     def _loop(self, stop_loop: Event):
         self.stop_loop = stop_loop
-        self.configure_zmq()
         self.pre_loop()
 
         while not self.stop_loop.is_set():
-            try:
-                if self.input_socket:
-                    events = dict(self.poller.poll(self.recv_timeout_s*1000))
-                    if not events:
-                        raise(zmq.error.Again)
-                    for sock, info in zip(self.input_socket,self.insock_info):
-                        if sock in events and events[sock] == zmq.POLLIN:
-                            start_time_ns = time.time_ns()
-                            data = self._receive(sock, info)
-                            self.recv_time_ns += (time.time_ns() - start_time_ns)
-                            results = self.post_recv(data)
-                            self.post_recv_time_ns += (time.time_ns() - start_time_ns)
-                            for sock, info in zip(self.output_socket, self.outsock_info):
-                                self._send(sock, info, results)
-                            self.send_time_ns += (time.time_ns() - start_time_ns)
-                            self.post_send()
-                            self.post_send_time_ns += (time.time_ns() - start_time_ns)
-                            self.num_loops += 1
-                else:
+            if self.input is not None:
+                for inbuf in self.input:
                     start_time_ns = time.time_ns()
+                    data = inbuf.unpack()
                     self.recv_time_ns += (time.time_ns() - start_time_ns)
-                    results = self.post_recv(None)
+                    results = self.post_recv(data)
+                    inbuf.read_done()
                     self.post_recv_time_ns += (time.time_ns() - start_time_ns)
-                    for sock, info in zip(self.output_socket, self.outsock_info):
-                        self._send(sock, info, results)
+                    for outbuf in self.output:
+                        outbuf.pack(results)
+                        outbuf.write_done()
                     self.send_time_ns += (time.time_ns() - start_time_ns)
                     self.post_send()
                     self.post_send_time_ns += (time.time_ns() - start_time_ns)
                     self.num_loops += 1
-            except zmq.error.Again:
-                print('timeout, shutting down.')
-                break
+            else:
+                start_time_ns = time.time_ns()
+                self.recv_time_ns += (time.time_ns() - start_time_ns)
+                results = self.post_recv(None)
+                self.post_recv_time_ns += (time.time_ns() - start_time_ns)
+                for outbuf in self.output:
+                        outbuf.pack(results)
+                        outbuf.write_done()
+                self.send_time_ns += (time.time_ns() - start_time_ns)
+                self.post_send()
+                self.post_send_time_ns += (time.time_ns() - start_time_ns)
+                self.num_loops += 1
 
         self.post_loop()
-        self.clean_zmq()
 
     def start(self):
         # start the loop in a separate process
