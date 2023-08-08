@@ -1,8 +1,9 @@
 from multiprocessing import Array, Value, Event 
-from typing import List
+from typing import List, Callable, Optional
 import time
 from itertools import cycle
 import numpy as np
+from dataclasses import dataclass
 
 class SharedRingBuffer:
 
@@ -71,38 +72,60 @@ class SharedRingBuffer:
     def size(self):
         ''' Return number of items currently stored in the buffer '''
         return (self.write_cursor.value - self.read_cursor.value) % self.num_element
-    
 
-# maybe that can be separated in input and output buffers ?
+@dataclass
+class DataManager:
+    buffer: SharedRingBuffer
+    packer: Callable
+    unpacker: Callable
+
+    def pack(self, *args, **kwargs):
+        full, data = self.buffer.get_write_buffer()
+        return self.packer(data, *args, **kwargs)
+    
+    def unpack(self):
+        empty, data = self.buffer.get_read_buffer()
+        return self.unpacker(data)
+    
+    def read_done(self):
+        self.buffer.read_done()
+
+    def write_done(self):
+        self.buffer.write_done()
+
 class DataDispatcher:
+    '''
+    contains collections of buffers and their respective packing and unpacking functions
+    handles buffer dispatching/copy and load balancing 
+    '''
     def __init__(
             self,
-            buffer_collection: List[SharedRingBuffer],
+            data_managers: List[DataManager],
             dispatch = True,
             timeout = 1,
             dt = 0.1
         ) -> None:
 
-        self.buffer_collection = buffer_collection
+        self.data_managers = data_managers
         self.dispatch = dispatch
         self.timeout = timeout
         self.dt = dt
 
-        self.data_available = [(idx, buffer.data_available) for (idx, buffer) in enumerate(buffer_collection)]
+        self.data_available = [(idx, manager.buffer.data_available) for (idx, manager) in enumerate(data_managers)]
         self.event_iterator = cycle(self.data_available)
 
-        self.buffer_iterator = cycle(self.buffer_collection)
+        self.buffer_iterator = cycle(self.data_managers)
 
-    def select(self):
+    def select(self) -> Optional[DataManager]:
         start_time = time.time()
         while True:
             counter = 0
             for idx, event in self.event_iterator:
                 if event.is_set():
-                    return self.buffer_collection[idx]
+                    return self.data_managers[idx]
                 counter += 1
                 # if we tried all of them unsuccessfully, sleep a bit
-                if counter == len(self.buffer_collection):
+                if counter == len(self.data_managers):
                     break
 
             elapsed_time = time.time() - start_time
@@ -111,19 +134,19 @@ class DataDispatcher:
             
             time.sleep(self.dt)
         
-    def read(self) -> SharedRingBuffer:
+    def read(self) -> DataManager:
         return self.select()
     
-    def write(self) -> List[SharedRingBuffer]:
+    def write(self) -> List[DataManager]:
         if self.dispatch:
             return self.write_dispatch()
         else:
             return self.write_copy()
 
-    def write_copy(self) -> List[SharedRingBuffer]:
-        return self.buffer_collection
+    def write_copy(self) -> List[DataManager]:
+        return self.data_managers
 
-    def write_dispatch(self) -> List[SharedRingBuffer]:
+    def write_dispatch(self) -> List[DataManager]:
         return [next(self.buffer_iterator)]
 
         
