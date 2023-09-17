@@ -90,7 +90,8 @@ class SharedRingBuffer:
 class DataDispatcher:
     '''
     contains collections of buffers and their respective packing and unpacking functions
-    handles buffer dispatching/copy and load balancing 
+    handles buffer dispatching/copy and load balancing on the sending side and polling
+    on the receiving side
     '''
     def __init__(
             self,
