@@ -1,8 +1,11 @@
-from multiprocessing import Array, Value, Event 
+from multiprocessing import RawArray, Value, Event 
 from typing import List, Callable, Optional, Any
 import time
 from itertools import cycle
 import numpy as np
+
+# TODO if reading is too slow, you will miss some data_available set events and 
+# get into trouble if you do a full revolution and the buffer appears empty
 
 class SharedRingBuffer:
 
@@ -28,14 +31,14 @@ class SharedRingBuffer:
         # before this becomes a problem though
         self.read_cursor = Value('I',0)
         self.write_cursor = Value('I',0)
-        self.data_available = Event()
+        self.data_available = Event() 
         self.overflow = Event()
-        self.data = Array(data_type, self.total_size)
+        self.data = RawArray(data_type, self.total_size)
 
     def get_read_buffer(self):
         '''return buffer to the current read location'''
         buffer = np.frombuffer(
-            self.data.get_obj(), 
+            self.data, 
             dtype = self.data_type, 
             count = self.element_size,
             offset = self.read_cursor.value * self.element_size 
@@ -46,7 +49,7 @@ class SharedRingBuffer:
     def get_write_buffer(self):
         '''return buffer to the current write location'''
         buffer = np.frombuffer(
-            self.data.get_obj(), 
+            self.data, 
             dtype = self.data_type, 
             count = self.element_size,
             offset = self.write_cursor.value * self.element_size
@@ -57,7 +60,7 @@ class SharedRingBuffer:
     def read_done(self):
         '''current position has been read'''
         self.read_cursor.value = (self.read_cursor.value  +  1) % self.num_element
-        if self.empty():
+        if self.empty(): # TODO this is a problem (see above)
             self.data_available.clear()
 
     def write_done(self):
