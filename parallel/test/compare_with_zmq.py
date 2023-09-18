@@ -8,7 +8,6 @@ from typing import Callable
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-
 SHAPE = (256, 256)
 BIG_ARRAY = np.random.randint(0,255,SHAPE, dtype='B')
 NLOOP = 200
