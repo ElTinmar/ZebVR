@@ -193,5 +193,4 @@ if __name__ == '__main__':
 
     plt.figure()
     ax = sns.catplot(timing_data, x="shm", y="timing", col="pfun", kind="bar")
-    ax.set_ylabel('time (s)')
     plt.show()
