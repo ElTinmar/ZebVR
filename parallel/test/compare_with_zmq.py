@@ -6,6 +6,7 @@ import multiprocessing as mp
 import time
 from typing import Callable
 import seaborn as sns
+import pandas as pd
 import matplotlib.pyplot as plt
 
 SHAPE = (256, 256)
@@ -170,15 +171,27 @@ def long_computation(array):
     
 if __name__ == '__main__':
     mp.set_start_method('spawn')
-    
-    for processing_fun in [do_nothing, average, long_computation]:
-        time_ring_buffer = []
-        time_zmq = []
-        time_queues = []
+    timing_data = pd.DataFrame(columns=['pfun','shm','timing'])
+    for processing_fun_name, processing_fun in zip(['pass','avg','svd'],[do_nothing, average, long_computation]):
         for rep in range(REPEATS):
-            time_ring_buffer.append(test_ring_buffer(processing_fun))
-            time_zmq.append(test_zmq(processing_fun))
-            time_queues.append(test_queues(processing_fun))
-        plt.figure()
-        sns.barplot([time_ring_buffer, time_zmq, time_queues])
-        plt.show()
+            row_0 = pd.DataFrame.from_dict({
+                'pfun': [processing_fun_name], 
+                'shm': ['rb'] ,
+                'timing': [test_ring_buffer(processing_fun)]
+            })
+            row_1 = pd.DataFrame.from_dict({
+                'pfun': [processing_fun_name], 
+                'shm': ['zmq'],
+                'timing': [test_zmq(processing_fun)]
+            })
+            row_2 = pd.DataFrame.from_dict({
+                'pfun': [processing_fun_name], 
+                'shm': ['queue'] ,
+                'timing': [test_queues(processing_fun)]
+            })
+            timing_data = pd.concat([timing_data, row_0, row_1, row_2], ignore_index=True)
+
+    plt.figure()
+    ax = sns.catplot(timing_data, x="shm", y="timing", col="pfun", kind="bar")
+    ax.set_ylabel('time (s)')
+    plt.show()
