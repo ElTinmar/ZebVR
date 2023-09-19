@@ -11,7 +11,7 @@ class XimeaImage(CameraData):
             index: int, 
             timestamp: float
         ) -> None:
-
+        super().__init__()
         self.pixeldata = pixeldata
         self.index = index
         self.timestamp = timestamp
@@ -34,10 +34,9 @@ class XimeaImage(CameraData):
 
 class XimeaCamera(Camera):
     def __init__(self, parameters: CameraParameters):
-        super.__init__(parameters)
+        super().__init__(parameters)
         self.xi_cam = None
         self.xi_img = None
-        self.configure()
 
     def configure(self):
         # open camera
@@ -57,10 +56,11 @@ class XimeaCamera(Camera):
         self.xi_cam.set_offsetY(self.parameters.ROI_top)
 
     def start_acquisition(self) -> None:
+        self.configure()
         self.xi_cam.start_acquisition()
     
     def stop_acquisition(self) -> None:
-        self.xi_cam.start_acquisition()
+        self.xi_cam.stop_acquisition()
 
     def fetch(self) -> Tuple[CameraData, bool]:
         try:
