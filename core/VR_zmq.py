@@ -6,8 +6,7 @@ from core.abstractclasses import (
 from parallel.zmq_worker import (
     ZMQDataProcessingNode, ZMQSocketInfo
 )
-from typing import Any
-from typing import List
+from typing import Any, List
 
 class CameraZMQ(ZMQDataProcessingNode):
     def __init__(
