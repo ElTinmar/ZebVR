@@ -120,3 +120,8 @@ to what is advertised in the documentation.
 It does work in 8-bit pattern mode with input from the HDMI and triggers on VSYNC
 however, so be sure to select that mode, and dial in an exposure of 8333 or less
 (maximum duration of a frame at 120 Hz).
+
+# 6. Aspect ratio
+
+The DMD array is diagonal and not orthogonal. This messes up the aspect ratio in native
+resolution, and must be accounted for by scaling the patterns
