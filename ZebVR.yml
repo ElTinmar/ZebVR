@@ -9,7 +9,7 @@ dependencies:
   - opencv-python
   - harvesters
   - screeninfo
-  - hid
+  - hidapi
   - psychopy
   - PyQt5
   - PyQt5-tools
