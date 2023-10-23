@@ -110,7 +110,9 @@ of the EDID specification will be necessary.
 You should now be able to select 912 x 1140 at 120 Hz in the display 
 settings when you plug in the Lightcrafter to a (relatively recent) computer.
 
-# 5. Use the DLP Lightcrafter Pattern mode
+# 5. Use the DLP Lightcrafter Pattern mode for 120 Hz display
+
+Only 8-bit grayscale is possible in Pattern mode @120Hz
 
 For some reason, the 120 Hz display rate doesn't seem to work in video mode 
 (the Lightcrafter reports a buffer freeze and the image is very choppy), contrary
