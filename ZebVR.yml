@@ -3,25 +3,18 @@ channels:
 - conda-forge
 dependencies:
 - python == 3.8.16
-- pip
-- pip:
-  - wxPython
-  - opencv-python
-  - harvesters
-  - screeninfo
-  - hidapi
-  - psychopy
-  - PyQt5
-  - PyQt5-tools
-- numba
-- cudatoolkit
 - ipython
 - numpy
-- scikit-learn
-- scikit-learn-intelex 
-- scikit-image
-- pyzmq
-- scipy
-- matplotlib
-- seaborn
+- pyqt
+- pip
+- pip:
+  - git+https://github.com/ElTinmar/Lightcrafter.git@main  
+  - git+https://github.com/ElTinmar/email.git@main
+  - git+https://github.com/ElTinmar/multiprocessing_logger.git@main
+  - git+https://github.com/ElTinmar/video_tools.git@main
+  - git+https://github.com/ElTinmar/tracker.git@main
+  - git+https://github.com/ElTinmar/image_tools.git@main
+  - git+https://github.com/ElTinmar/qt_widgets.git@main
+  - git+https://github.com/ElTinmar/camera_tools.git@main
+  - git+https://github.com/ElTinmar/ipc_tools.git@main
 
