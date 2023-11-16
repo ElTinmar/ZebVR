@@ -1,3 +1,6 @@
+# logs
+*.log
+
 # Video examples
 *.avi
 *.mp4
