@@ -19,6 +19,7 @@ class CameraWorker(ZebVR_Worker):
     def __init__(self, cam: Camera, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cam = cam
+        self.prev_time = 0
 
     def initialize(self) -> None:
         super().initialize()
@@ -29,6 +30,12 @@ class CameraWorker(ZebVR_Worker):
         self.cam.stop_acquisition()
     
     def work(self, data):
+        res = self.cam.get_frame().image
+        elapsed = (time.monotonic_ns() - self.prev_time) * 1e-6
+        while elapsed < 1000/200:
+            time.sleep(0.001)
+            elapsed = (time.monotonic_ns() - self.prev_time) * 1e-6
+        self.prev_time = time.monotonic_ns()
         return self.cam.get_frame().image
     
 class BackgroundSubWorker(ZebVR_Worker):
@@ -113,7 +120,7 @@ if __name__ == "__main__":
                 eye_gamma=2.5,
                 eye_contrast=0.4,
                 eye_norm=0.3,
-                eye_dyntresh_res=20,
+                eye_dyntresh_res=5,
                 eye_size_lo_mm=0.8,
                 eye_size_hi_mm=10,
                 crop_dimension_mm=(1.0,1,5),
@@ -190,6 +197,6 @@ if __name__ == "__main__":
     prt.stop()
     l.stop()
 
-    print(q_cam.get_average_freq())
-    print(q_back.get_average_freq())
+    print(q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
+    print(q_back.get_average_freq(), q_back.queue.num_lost_item.value)
     print(q_tracking.get_average_freq())
