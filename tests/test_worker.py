@@ -32,7 +32,7 @@ class Receiver(ZebVR_Worker):
 
 if __name__ == '__main__':
 
-    l = Logger()
+    l = Logger('log.txt', Logger.DEBUG)
 
     s = Sender(
         name = 'Random_image_generator',
