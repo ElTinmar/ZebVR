@@ -34,8 +34,14 @@ if __name__ == '__main__':
 
     l = Logger('test_worker.log', Logger.DEBUG)
 
-    s = Sender(
-        name = 'Random_image_generator',
+    s0 = Sender(
+        name = 'Random_image_generator_0',
+        logger = l,
+        send_strategy = send_strategy.BROADCAST
+    )
+
+    s1 = Sender(
+        name = 'Random_image_generator_1',
         logger = l,
         send_strategy = send_strategy.BROADCAST
     )
@@ -56,15 +62,18 @@ if __name__ == '__main__':
 
     #q = MonitoredQueue(QueueMP()) 
     
-    connect(sender=s, receiver=r, queue=q)
+    connect(sender=s0, receiver=r, queue=q)
+    connect(sender=s1, receiver=r, queue=q)
 
     l.start()
     r.start()
-    s.start()
+    s0.start()
+    s1.start()
 
     time.sleep(10)
 
-    s.stop()
+    s0.stop()
+    s1.stop()
     r.stop()
     l.stop()
 
