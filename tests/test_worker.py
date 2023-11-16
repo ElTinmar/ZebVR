@@ -27,9 +27,8 @@ class Receiver(ZebVR_Worker):
         cv2.destroyAllWindows()
 
     def work(self, data: NDArray) -> None:
-        if data is not None:
-            cv2.imshow('receiver', data)
-            cv2.waitKey(1)
+        cv2.imshow('receiver', data)
+        cv2.waitKey(1)
 
 class Dispatcher(ZebVR_Worker):
 
@@ -41,6 +40,18 @@ class Dispatcher(ZebVR_Worker):
         )
 
     def work(self, data: NDArray) -> None:
+        return data
+    
+class Collector(ZebVR_Worker):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(
+            send_strategy=send_strategy.BROADCAST, 
+            receive_strategy=receive_strategy.COLLECT, 
+            *args, **kwargs
+        )
+
+    def work(self, data: List) -> None:
         return data
 
 def test_two_senders_one_receiver():
