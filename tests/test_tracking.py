@@ -4,6 +4,8 @@ from tracker import (
     Tracker, LinearSumAssignment, 
     AnimalTracker, AnimalTrackerParamOverlay, AnimalTrackerParamTracking,
     BodyTracker, BodyTrackerParamOverlay, BodyTrackerParamTracking,
+    TailTracker, TailTrackerParamOverlay, TailTrackerParamTracking,
+    EyesTracker, EyesTrackerParamOverlay, EyesTrackerParamTracking
 )
 from multiprocessing_logger import Logger
 from ipc_tools import RingBuffer, QueueMP, ZMQ_PushPullArray, MonitoredQueue
@@ -103,8 +105,43 @@ if __name__ == "__main__":
                 median_filter_sz_mm=0.13
             )
         ),
-        None,
-        None
+        EyesTracker(
+            overlay_param=EyesTrackerParamOverlay(),
+            tracking_param=EyesTrackerParamTracking(
+                pix_per_mm=40,
+                target_pix_per_mm=40,
+                eye_gamma=2.5,
+                eye_contrast=0.4,
+                eye_norm=0.3,
+                eye_dyntresh_res=20,
+                eye_size_lo_mm=0.8,
+                eye_size_hi_mm=10,
+                crop_dimension_mm=(1.0,1,5),
+                crop_offset_mm=-0.3,
+                blur_sz_mm=0.06,
+                median_filter_sz_mm=0.06
+            )
+        ),
+        TailTracker(
+            overlay_param=TailTrackerParamOverlay(),
+            tracking_param=TailTrackerParamTracking(
+                pix_per_mm=40,
+                target_pix_per_mm=20,
+                tail_contrast=1,
+                tail_gamma=0.75,
+                tail_norm=0.2,
+                arc_angle_deg=120,
+                n_tail_points=12,
+                n_pts_arc=20,
+                n_pts_interp=40,
+                tail_length_mm=2.6,
+                crop_offset_tail_mm=2.25,
+                dist_swim_bladder_mm=0.2,
+                crop_dimension_mm=(3.5,3.5),
+                blur_sz_mm=0.06,
+                median_filter_sz_mm=0.06
+            )
+        )
     )
     l = Logger('test_tracking.log', Logger.DEBUG)
     b = BackroundImage(
