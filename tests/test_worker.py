@@ -26,7 +26,7 @@ class Receiver(ZebVR_Worker):
         super().cleanup()
         cv2.destroyAllWindows()
 
-    def work(self, data: List) -> None:
+    def work(self, data: NDArray) -> None:
         cv2.imshow('receiver', data)
         cv2.waitKey(1)
 
