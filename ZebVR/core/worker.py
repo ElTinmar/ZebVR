@@ -6,7 +6,6 @@ from itertools import cycle
 from queue import Empty, Full
 from enum import Enum
 
-
 from multiprocessing_logger import Logger
 from ipc_tools import QueueLike
 
