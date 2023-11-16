@@ -1,6 +1,10 @@
 from camera_tools import Camera, MovieFileCam
 from ZebVR import ZebVR_Worker, connect, receive_strategy, send_strategy
-from tracker import Tracker, AnimalTracker, LinearSumAssignment, AnimalTrackerParamOverlay, AnimalTrackerParamTracking
+from tracker import (
+    Tracker, LinearSumAssignment, 
+    AnimalTracker, AnimalTrackerParamOverlay, AnimalTrackerParamTracking,
+    BodyTracker, BodyTrackerParamOverlay, BodyTrackerParamTracking,
+)
 from multiprocessing_logger import Logger
 from ipc_tools import RingBuffer, QueueMP, ZMQ_PushPullArray, MonitoredQueue
 import numpy as np
@@ -62,9 +66,43 @@ if __name__ == "__main__":
         None, 
         AnimalTracker(
             overlay_param=AnimalTrackerParamOverlay(),
-            tracking_param=AnimalTrackerParamTracking()
+            tracking_param=AnimalTrackerParamTracking(
+                animal_contrast=1.0,
+                animal_gamma=1.0,
+                animal_intensity=0.07,
+                animal_norm=1.0,
+                blur_sz_mm=0.13,
+                max_animal_length_mm=12,
+                max_animal_size_mm=30,
+                max_animal_width_mm=2.5,
+                median_filter_sz_mm=0.13,
+                min_animal_length_mm=1,
+                min_animal_size_mm=1,
+                min_animal_width_mm=0.4,
+                pad_value_mm=4,
+                pix_per_mm=40,
+                target_pix_per_mm=7.5
+            )
         ),
-        None,
+        BodyTracker(
+            overlay_param=BodyTrackerParamOverlay(),
+            tracking_param=BodyTrackerParamTracking(
+                pix_per_mm=40,
+                target_pix_per_mm=7.5,
+                body_intensity=0.06,
+                body_gamma=3.0,
+                body_contrast=1.5,
+                body_norm=0.3,
+                min_body_size_mm=2,
+                max_body_size_mm=30,
+                min_body_length_mm=2,
+                max_body_length_mm=6,
+                min_body_width_mm=0.4,
+                max_body_width_mm=1.2,
+                blur_sz_mm=0.13,
+                median_filter_sz_mm=0.13
+            )
+        ),
         None,
         None
     )
