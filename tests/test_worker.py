@@ -5,11 +5,11 @@ import cv2
 from typing import List
 
 from ZebVR import ZebVR_Worker, connect, receive_strategy, send_strategy
-from ipc_tools import RingBuffer
+from ipc_tools import RingBuffer, QueueMP, ZMQ_PushPullArray, MonitoredQueue
 from multiprocessing_logger import Logger
 
-HEIGHT = 1024
-WIDTH = 1024
+HEIGHT = 2048
+WIDTH = 2048
 
 class Sender(ZebVR_Worker):
 
@@ -46,11 +46,15 @@ if __name__ == '__main__':
         receive_strategy = receive_strategy.POLL
     )
 
-    q = RingBuffer(
-        num_items = 100,
-        item_shape = (HEIGHT, WIDTH),
-        data_type = np.uint8
-    ) 
+    q = MonitoredQueue(
+        RingBuffer(
+            num_items = 100,
+            item_shape = (HEIGHT, WIDTH),
+            data_type = np.uint8
+        )
+    )
+
+    #q = MonitoredQueue(QueueMP()) 
     
     connect(sender=s, receiver=r, queue=q)
 
@@ -64,5 +68,6 @@ if __name__ == '__main__':
     r.stop()
     l.stop()
 
+    print(q.get_average_freq())
 
 
