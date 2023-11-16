@@ -135,17 +135,19 @@ class ZebVR_Worker(ABC):
 
     def send(self, data: Optional[Any]) -> None:
         '''sends data'''
-        if self.send_strategy == send_strategy.BROADCAST:
-            self.broadcast(data)
-        elif self.send_strategy == send_strategy.DISPATCH:
-            self.dispatch(data)
+
+        if data is not None:
+            
+            if self.send_strategy == send_strategy.BROADCAST:
+                self.broadcast(data)
+            elif self.send_strategy == send_strategy.DISPATCH:
+                self.dispatch(data)
 
     def broadcast(self, data) -> None:
         '''copy data to all send queues'''
 
-        if data is not None:
-            for q in self.send_queues:            
-                q.put(data, block=self.send_block, timeout=self.send_timeout)
+        for q in self.send_queues:            
+            q.put(data, block=self.send_block, timeout=self.send_timeout)
 
     def dispatch(self, data) -> None:
         '''send data alternatively to each queue'''
