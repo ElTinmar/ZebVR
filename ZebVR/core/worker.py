@@ -112,22 +112,24 @@ class ZebVR_Worker(ABC):
     def poll(self) -> Optional[Any]:
         '''Return data from the first queue that is ready'''
 
-        if self.receive_timeout is None:
-            deadline = float('inf')
-        else:
-            deadline = time.monotonic() + self.receive_timeout
+        if self.receive_queues_iterator is not None:
 
-        for q in self.receive_queues_iterator:
-            
-            if time.monotonic() < deadline:
-                return None
-            
-            try:
-                return q.get_nowait()
-            except Empty:
-                pass
+            if self.receive_timeout is None:
+                deadline = float('inf')
+            else:
+                deadline = time.monotonic() + self.receive_timeout
 
-            # sleep a bit ?
+            for q in self.receive_queues_iterator:
+                
+                if time.monotonic() > deadline:
+                    return None
+                
+                try:
+                    return q.get_nowait()
+                except Empty:
+                    pass
+
+                # sleep a bit ?
 
     def send(self, data: Optional[Any]) -> None:
         '''sends data'''
@@ -146,22 +148,24 @@ class ZebVR_Worker(ABC):
     def dispatch(self, data) -> None:
         '''send data alternatively to each queue'''
 
-        if self.send_timeout is None:
-            deadline = float('inf')
-        else:
-            deadline = time.monotonic() + self.send_timeout
+        if self.send_queues_iterator is not None:
 
-        for q in self.send_queues_iterator:
-            
-            if time.monotonic() < deadline:
-                return None
-            
-            try:
-                return q.put_nowait(data)
-            except Full:
-                pass
+            if self.send_timeout is None:
+                deadline = float('inf')
+            else:
+                deadline = time.monotonic() + self.send_timeout
 
-            # sleep a bit ?
+            for q in self.send_queues_iterator:
+                
+                if time.monotonic() > deadline:
+                    return None
+                
+                try:
+                    return q.put_nowait(data)
+                except Full:
+                    pass
+
+                # sleep a bit ?
 
     @abstractmethod
     def work(self, data: Any) -> Any:
