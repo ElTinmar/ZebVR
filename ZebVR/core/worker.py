@@ -66,13 +66,11 @@ class ZebVR_Worker(ABC):
             send_time: {send_time_ms}
         ''')
 
-    @abstractmethod
     def initialize(self) -> None:
         '''initialize resources at the beginning of the loop in a new process'''
         self.logger.configure_emitter()
         self.local_logger = self.logger.get_logger(self.name)
 
-    @abstractmethod
     def cleanup(self) -> None:
         '''cleans resources at the end'''
 
