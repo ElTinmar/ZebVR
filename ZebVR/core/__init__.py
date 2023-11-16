@@ -1,1 +1,1 @@
-from worker import ZebVR_Worker
+from .worker import ZebVR_Worker, connect
