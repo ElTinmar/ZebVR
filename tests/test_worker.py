@@ -43,6 +43,7 @@ class Dispatcher(ZebVR_Worker):
         return data
     
 class Collector(ZebVR_Worker):
+    # NOTE this seems to not make sense
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(
@@ -52,7 +53,7 @@ class Collector(ZebVR_Worker):
         )
 
     def work(self, data: List) -> None:
-        return data
+        return data[0] 
 
 def test_two_senders_one_receiver():
 
