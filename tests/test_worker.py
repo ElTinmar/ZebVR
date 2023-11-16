@@ -27,8 +27,9 @@ class Receiver(ZebVR_Worker):
         cv2.destroyAllWindows()
 
     def work(self, data: NDArray) -> None:
-        cv2.imshow('receiver', data)
-        cv2.waitKey(1)
+        if data is not None:
+            cv2.imshow('receiver', data)
+            cv2.waitKey(1)
 
 class Dispatcher(ZebVR_Worker):
 
@@ -97,6 +98,53 @@ def test_two_senders_one_receiver():
 
     print(q0.get_average_freq())
     print(q1.get_average_freq())
+
+def test_two_senders_one_receiver_shared_queue():
+
+    l = Logger('test_worker.log', Logger.DEBUG)
+
+    s0 = Sender(
+        name = 'Random_image_generator_0',
+        logger = l,
+        send_strategy = send_strategy.BROADCAST
+    )
+
+    s1 = Sender(
+        name = 'Random_image_generator_1',
+        logger = l,
+        send_strategy = send_strategy.BROADCAST
+    )
+
+    r = Receiver(
+        name = 'Image_displayer',
+        logger = l,
+        receive_strategy = receive_strategy.POLL
+    )
+
+    q = MonitoredQueue(
+        RingBuffer(
+            num_items = 100,
+            item_shape = (HEIGHT, WIDTH),
+            data_type = np.uint8
+        )
+    )
+
+    connect(sender=s0, receiver=r, queue=q)
+    connect(sender=s1, receiver=r, queue=q)
+
+    l.start()
+    r.start()
+    s0.start()
+    s1.start()
+
+    time.sleep(10)
+
+    s0.stop()
+    s1.stop()
+    r.stop()
+    l.stop()
+
+    print(q.get_average_freq())
 
 def test_one_sender_two_receivers():
 
@@ -230,9 +278,10 @@ def test_sender_dispatcher_two_receivers():
 
 if __name__ == '__main__':
 
-    test_two_senders_one_receiver()
-    test_one_sender_two_receivers()
-    test_sender_dispatcher_two_receivers()
+    #test_two_senders_one_receiver()
+    test_two_senders_one_receiver_shared_queue()
+    #test_one_sender_two_receivers()
+    #test_sender_dispatcher_two_receivers()
 
 
 
