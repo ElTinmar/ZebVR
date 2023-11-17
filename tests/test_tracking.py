@@ -67,7 +67,7 @@ class TrackerWorker(ZebVR_Worker):
         if data is not None:
             res = {}
             res['tracking'] = self.tracker.track(data)
-            res['overlay'] = self.tracker.overlay(data, res['tracking'])
+            res['overlay'] = self.tracker.overlay_local(res['tracking'])
             return res
     
 class Printer(ZebVR_Worker):
@@ -212,8 +212,8 @@ if __name__ == "__main__":
     q_display = MonitoredQueue(
         RingBuffer(
             num_items = 100,
-            item_shape = (h, w),
-            data_type = np.float32
+            item_shape = (h, w, 3),
+            data_type = np.uint8
         )
     )
     q_tracking = MonitoredQueue(QueueMP())
