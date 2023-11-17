@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from multiprocessing import Event, Process
-from typing  import Any, Optional, List
+from typing  import Any, Optional, Dict
 import time
 from itertools import cycle
 from queue import Empty, Full
@@ -37,8 +37,10 @@ class ZebVR_Worker(ABC):
         self.name = name
         self.iteration = 0
         self.receive_queues = []
+        self.receive_queue_names = []
         self.receive_queues_iterator = None
         self.send_queues = []
+        self.send_queue_names = []
         self.send_queues_iterator = None
         self.send_block = send_block
         self.send_timeout = send_timeout
@@ -48,13 +50,15 @@ class ZebVR_Worker(ABC):
         self.receive_queues_iterator = None
         self.receive_strategy = receive_strategy
 
-    def register_receive_queue(self, queue: QueueLike):
+    def register_receive_queue(self, queue: QueueLike, name: str):
         self.receive_queues.append(queue)
-        self.receive_queues_iterator = cycle(self.receive_queues)
+        self.receive_queue_names.append(name)
+        self.receive_queues_iterator = cycle(zip(self.receive_queue_names, self.receive_queues))
 
-    def register_send_queue(self, queue: QueueLike):
+    def register_send_queue(self, queue: QueueLike, name: str):
         self.send_queues.append(queue)
-        self.send_queues_iterator = cycle(self.send_queues)
+        self.send_queue_names.append(name)
+        self.send_queues_iterator = cycle(zip(self.send_queue_names, self.send_queues))
     
     def main_loop(self):
 
@@ -103,16 +107,16 @@ class ZebVR_Worker(ABC):
         elif self.receive_strategy == receive_strategy.POLL:
             return self.poll()
         
-    def collect(self) -> List:
+    def collect(self) -> Dict:
         '''Each receive queue must receive data'''
 
-        data = []
-        for q in self.receive_queues:
-            data.append(q.get(block=self.receive_block, timeout=self.receive_timeout))
+        data = {}
+        for name, queue in zip(self.receive_queue_names, self.receive_queues):
+            data[name] = queue.get(block=self.receive_block, timeout=self.receive_timeout)
         return data
     
     def poll(self) -> Optional[Any]:
-        '''Return data from the first queue that is ready'''
+        '''Use if all queues are equivalent. Return data from the first queue that is ready'''
 
         if self.receive_queues_iterator is not None:
 
@@ -121,13 +125,13 @@ class ZebVR_Worker(ABC):
             else:
                 deadline = time.monotonic() + self.receive_timeout
 
-            for q in self.receive_queues_iterator:
+            for name, queue in self.receive_queues_iterator:
                 
                 if time.monotonic() > deadline:
                     return None
                 
                 try:
-                    return q.get_nowait()
+                    return queue.get_nowait()
                 except Empty:
                     pass
 
@@ -136,21 +140,20 @@ class ZebVR_Worker(ABC):
     def send(self, data: Optional[Any]) -> None:
         '''sends data'''
 
-        if data is not None:
-            
-            if self.send_strategy == send_strategy.BROADCAST:
-                self.broadcast(data)
-            elif self.send_strategy == send_strategy.DISPATCH:
-                self.dispatch(data)
+        if self.send_strategy == send_strategy.BROADCAST:
+            self.broadcast(data)
+        elif self.send_strategy == send_strategy.DISPATCH:
+            self.dispatch(data)
 
-    def broadcast(self, data) -> None:
-        '''copy data to all send queues'''
+    def broadcast(self, data_dict: Dict) -> None:
+        '''send data to all queues with proper names'''
 
-        for q in self.send_queues:            
-            q.put(data, block=self.send_block, timeout=self.send_timeout)
+        for name, queue in zip(self.send_queue_names, self.send_queues):      
+            if name in data_dict:
+                queue.put(data_dict[name], block=self.send_block, timeout=self.send_timeout)
 
-    def dispatch(self, data) -> None:
-        '''send data alternatively to each queue'''
+    def dispatch(self, data: Any) -> None:
+        '''Use if all queues are equivalent. Send data alternatively to each queue'''
 
         if self.send_queues_iterator is not None:
 
@@ -159,13 +162,13 @@ class ZebVR_Worker(ABC):
             else:
                 deadline = time.monotonic() + self.send_timeout
 
-            for q in self.send_queues_iterator:
+            for name, queue in self.send_queues_iterator:
                 
                 if time.monotonic() > deadline:
                     return None
                 
                 try:
-                    return q.put_nowait(data)
+                    return queue.put_nowait(data)
                 except Full:
                     pass
 
@@ -185,6 +188,6 @@ class ZebVR_Worker(ABC):
         self.stop_event.set()
         self.process.join()
 
-def connect(sender: ZebVR_Worker, receiver: ZebVR_Worker, queue: QueueLike):
-    sender.register_send_queue(queue)
-    receiver.register_receive_queue(queue)
+def connect(sender: ZebVR_Worker, receiver: ZebVR_Worker, queue: QueueLike, name: str):
+    sender.register_send_queue(queue, name)
+    receiver.register_receive_queue(queue, name)
