@@ -12,7 +12,6 @@ from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
 
-
 import numpy as np
 from numpy.typing import NDArray
 import time
