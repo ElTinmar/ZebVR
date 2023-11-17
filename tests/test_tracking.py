@@ -172,9 +172,9 @@ if __name__ == "__main__":
                 n_tail_points=12,
                 n_pts_arc=20,
                 n_pts_interp=40,
-                tail_length_mm=2.6,
+                tail_length_mm=2.5,
                 crop_offset_tail_mm=2.25,
-                dist_swim_bladder_mm=0.2,
+                dist_swim_bladder_mm=-0.2,
                 crop_dimension_mm=(3.5,3.5),
                 blur_sz_mm=0.06,
                 median_filter_sz_mm=0.06
