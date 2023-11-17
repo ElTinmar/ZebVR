@@ -4,19 +4,20 @@ import numpy as np
 import cv2
 from typing import List, Optional
 
-from ZebVR import ZebVR_Worker, connect, receive_strategy, send_strategy
+from ZebVR import WorkerNode, connect, receive_strategy, send_strategy
 from ipc_tools import RingBuffer, QueueMP, ZMQ_PushPullArray, MonitoredQueue
 from multiprocessing_logger import Logger
+from dagline import WorkerNode, ProcessingDAG
 
 HEIGHT = 2048
 WIDTH = 2048
 
-class Sender(ZebVR_Worker):
+class Sender(WorkerNode):
 
     def work(self, data: None) -> NDArray:
         return np.random.randint(0,255,(HEIGHT,WIDTH), dtype=np.uint8)
 
-class Receiver(ZebVR_Worker):
+class Receiver(WorkerNode):
 
     def initialize(self) -> None:
         super().initialize()
@@ -30,7 +31,7 @@ class Receiver(ZebVR_Worker):
         cv2.imshow('receiver', data)
         cv2.waitKey(1)
 
-class Dispatcher(ZebVR_Worker):
+class Dispatcher(WorkerNode):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(
@@ -42,7 +43,7 @@ class Dispatcher(ZebVR_Worker):
     def work(self, data: NDArray) -> None:
         return data
     
-class Collector(ZebVR_Worker):
+class Collector(WorkerNode):
     # NOTE this seems to not make sense
 
     def __init__(self, *args, **kwargs) -> None:

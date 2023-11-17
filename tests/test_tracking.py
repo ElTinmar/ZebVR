@@ -1,5 +1,4 @@
 from camera_tools import Camera, MovieFileCam
-from ZebVR import ZebVR_Worker, connect, receive_strategy, send_strategy
 from tracker import (
     Tracker, LinearSumAssignment, 
     AnimalTracker, AnimalTrackerParamOverlay, AnimalTrackerParamTracking,
@@ -11,6 +10,8 @@ from multiprocessing_logger import Logger
 from ipc_tools import RingBuffer, QueueMP, MonitoredQueue, ZMQ_PushPullObj
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
+from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
+
 
 import numpy as np
 from numpy.typing import NDArray
@@ -18,7 +19,7 @@ import time
 from typing import Any, Dict
 import cv2
 
-class CameraWorker(ZebVR_Worker):
+class CameraWorker(WorkerNode):
 
     def __init__(self, cam: Camera, fps: int = 200, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -42,7 +43,7 @@ class CameraWorker(ZebVR_Worker):
         self.prev_time = time.monotonic_ns()
         return res
     
-class BackgroundSubWorker(ZebVR_Worker):
+class BackgroundSubWorker(WorkerNode):
 
     def __init__(self, sub: BackgroundSubtractor, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -57,7 +58,7 @@ class BackgroundSubWorker(ZebVR_Worker):
             image = im2single(im2gray(data))
             return self.sub.subtract_background(image)
          
-class TrackerWorker(ZebVR_Worker):
+class TrackerWorker(WorkerNode):
     
     def __init__(self, tracker: Tracker, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -70,13 +71,13 @@ class TrackerWorker(ZebVR_Worker):
             res['overlay'] = self.tracker.overlay_local(res['tracking'])
             return res
     
-class Printer(ZebVR_Worker):
+class Printer(WorkerNode):
 
     def work(self, data: Any) -> None:
         if data is not None:
             print(data['animals'].centroids)
 
-class Display(ZebVR_Worker):
+class Display(WorkerNode):
 
     def __init__(self, fps: int, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -232,27 +233,16 @@ if __name__ == "__main__":
     q_tracking = MonitoredQueue(ZMQ_PushPullObj(port=5559)) 
     '''
 
-    connect(sender=cam, receiver=bckg, queue=q_cam, name='cam_image')
-    connect(sender=bckg, receiver=trck, queue=q_back, name='background_subtracted')
-    connect(sender=trck, receiver=prt, queue=q_tracking, name='tracking')
-    connect(sender=trck, receiver=dis, queue=q_display, name='overlay')
+    dag = ProcessingDAG()
+    dag.connect(sender=cam, receiver=bckg, queue=q_cam, name='cam_image')
+    dag.connect(sender=bckg, receiver=trck, queue=q_back, name='background_subtracted')
+    dag.connect(sender=trck, receiver=prt, queue=q_tracking, name='tracking')
+    dag.connect(sender=trck, receiver=dis, queue=q_display, name='overlay')
 
-    l.start()
-    dis.start()
-    prt.start()
-    trck.start()
-    bckg.start()
-    cam.start()
-
+    dag.start()
     time.sleep(10)
-
-    cam.kill()
-    bckg.kill()
-    trck.kill()
-    prt.kill()
-    dis.kill()
-    l.kill()
-
+    dag.stop()
+    
     '''
     print(q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
     print(q_back.get_average_freq(), q_back.queue.num_lost_item.value)
