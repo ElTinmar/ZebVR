@@ -20,10 +20,11 @@ import cv2
 
 class CameraWorker(ZebVR_Worker):
 
-    def __init__(self, cam: Camera, *args, **kwargs):
+    def __init__(self, cam: Camera, fps: int = 200, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cam = cam
         self.prev_time = 0
+        self.fps = fps
 
     def initialize(self) -> None:
         super().initialize()
@@ -33,14 +34,13 @@ class CameraWorker(ZebVR_Worker):
         super().cleanup()
         self.cam.stop_acquisition()
     
-    def work(self, data):
+    def work(self, data: None) -> NDArray: 
         res = self.cam.get_frame().image
-        elapsed = (time.monotonic_ns() - self.prev_time) * 1e-6
-        while elapsed < 1000/200:
-            time.sleep(0.001)
-            elapsed = (time.monotonic_ns() - self.prev_time) * 1e-6
+        elapsed = (time.monotonic_ns() - self.prev_time) 
+        while elapsed < 1e9/self.fps:
+            elapsed = (time.monotonic_ns() - self.prev_time) 
         self.prev_time = time.monotonic_ns()
-        return self.cam.get_frame().image
+        return res
     
 class BackgroundSubWorker(ZebVR_Worker):
 
@@ -189,7 +189,7 @@ if __name__ == "__main__":
 
     h, w = (m.get_height(), m.get_width())
 
-    cam = CameraWorker(cam = m, name='camera', logger = l)
+    cam = CameraWorker(cam = m, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT)
     trck = TrackerWorker(t, name='tracker', logger = l, send_strategy=send_strategy.BROADCAST)
     prt = Printer(name='printer', logger = l)
     bckg = BackgroundSubWorker(b, name='background', logger = l)
