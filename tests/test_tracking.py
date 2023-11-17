@@ -232,12 +232,12 @@ if __name__ == "__main__":
 
     time.sleep(10)
 
-    cam.stop()
-    bckg.stop()
-    trck.stop()
-    prt.stop()
-    dis.stop()
-    l.stop()
+    cam.kill()
+    bckg.kill()
+    trck.kill()
+    prt.kill()
+    dis.kill()
+    l.kill()
 
     print(q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
     print(q_back.get_average_freq(), q_back.queue.num_lost_item.value)

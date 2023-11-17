@@ -200,6 +200,11 @@ class ZebVR_Worker(ABC):
         '''stop the loop and join process'''
         self.stop_event.set()
         self.process.join()
+    
+    def kill(self):
+        '''stop the loop and join process'''
+        self.stop_event.set()
+        self.process.terminate()
 
 # TODO have connect be a method of class DAG, that would also start and stop the whole chain
 # from root to leaves
