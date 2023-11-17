@@ -8,11 +8,15 @@ from tracker import (
     EyesTracker, EyesTrackerParamOverlay, EyesTrackerParamTracking
 )
 from multiprocessing_logger import Logger
-from ipc_tools import RingBuffer, QueueMP, ZMQ_PushPullArray, MonitoredQueue
-import numpy as np
-import time
+from ipc_tools import RingBuffer, QueueMP, MonitoredQueue
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
+
+import numpy as np
+from numpy.typing import NDArray
+import time
+from typing import Any, Dict
+import cv2
 
 class CameraWorker(ZebVR_Worker):
 
@@ -48,9 +52,10 @@ class BackgroundSubWorker(ZebVR_Worker):
         super().initialize()
         self.sub.initialize()
 
-    def work(self, data):
-        image = im2single(im2gray(data))
-        return self.sub.subtract_background(image)
+    def work(self, data: NDArray) -> NDArray:
+        if data is not None:
+            image = im2single(im2gray(data))
+            return self.sub.subtract_background(image)
          
 class TrackerWorker(ZebVR_Worker):
     
@@ -58,14 +63,40 @@ class TrackerWorker(ZebVR_Worker):
         super().__init__(*args, **kwargs)
         self.tracker = tracker
 
-    def work(self, data):
-        tracking = self.tracker.track(data)
-        return tracking['animals'].centroids
+    def work(self, data: NDArray) -> Dict:
+        if data is not None:
+            res = {}
+            res['tracking'] = self.tracker.track(data)
+            res['overlay'] = self.tracker.overlay(data, res['tracking'])
+            return res
     
 class Printer(ZebVR_Worker):
 
-    def work(self, data):
-        print(data)
+    def work(self, data: Any) -> None:
+        if data is not None:
+            print(data['animals'].centroids)
+
+class Display(ZebVR_Worker):
+
+    def __init__(self, fps: int, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fps = fps
+        self.prev_time = 0
+
+    def initialize(self) -> None:
+        super().initialize()
+        cv2.namedWindow('display')
+    
+    def cleanup(self) -> None:
+        super().cleanup()
+        cv2.destroyAllWindows()
+
+    def work(self, data: NDArray) -> None:
+        if data is not None:
+            if time.monotonic() - self.prev_time > 1/self.fps:
+                cv2.imshow('display', data)
+                cv2.waitKey(1)
+                self.prev_time = time.monotonic()
 
 if __name__ == "__main__":
 
@@ -159,9 +190,10 @@ if __name__ == "__main__":
     h, w = (m.get_height(), m.get_width())
 
     cam = CameraWorker(cam = m, name='camera', logger = l)
-    trck = TrackerWorker(t, name='tracker', logger = l)
+    trck = TrackerWorker(t, name='tracker', logger = l, send_strategy=send_strategy.BROADCAST)
     prt = Printer(name='printer', logger = l)
     bckg = BackgroundSubWorker(b, name='background', logger = l)
+    dis = Display(fps = 30, name='display', logger = l)
 
     q_cam = MonitoredQueue(
         RingBuffer(
@@ -177,13 +209,22 @@ if __name__ == "__main__":
             data_type = np.float32
         )
     )
+    q_display = MonitoredQueue(
+        RingBuffer(
+            num_items = 100,
+            item_shape = (h, w),
+            data_type = np.float32
+        )
+    )
     q_tracking = MonitoredQueue(QueueMP())
 
-    connect(sender=cam, receiver=bckg, queue=q_cam)
-    connect(sender=bckg, receiver=trck, queue=q_back)
-    connect(sender=trck, receiver=prt, queue=q_tracking)
+    connect(sender=cam, receiver=bckg, queue=q_cam, name='cam_image')
+    connect(sender=bckg, receiver=trck, queue=q_back, name='background_subtracted')
+    connect(sender=trck, receiver=prt, queue=q_tracking, name='tracking')
+    connect(sender=trck, receiver=dis, queue=q_display, name='overlay')
 
     l.start()
+    dis.start()
     prt.start()
     trck.start()
     bckg.start()
@@ -195,8 +236,10 @@ if __name__ == "__main__":
     bckg.stop()
     trck.stop()
     prt.stop()
+    dis.stop()
     l.stop()
 
     print(q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
     print(q_back.get_average_freq(), q_back.queue.num_lost_item.value)
+    print(q_display.get_average_freq(), q_display.queue.num_lost_item.value)
     print(q_tracking.get_average_freq())
