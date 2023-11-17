@@ -36,7 +36,7 @@ class ZebVR_Worker(ABC):
             logger: Logger,
             send_block: bool = False,
             send_timeout: Optional[float] = None,
-            send_strategy: send_strategy = send_strategy.BROADCAST, 
+            send_strategy: send_strategy = send_strategy.DISPATCH, 
             receive_block: bool = True,
             receive_timeout: Optional[float] = 10.0,
             receive_strategy: receive_strategy = receive_strategy.POLL
@@ -156,12 +156,14 @@ class ZebVR_Worker(ABC):
         elif self.send_strategy == send_strategy.DISPATCH:
             self.dispatch(data)
 
-    def broadcast(self, data_dict: Dict) -> None:
+    def broadcast(self, data_dict: Optional[Dict]) -> None:
         '''send data to all queues with proper names'''
 
-        for name, queue in zip(self.send_queue_names, self.send_queues):      
-            if name in data_dict:
-                queue.put(data_dict[name], block=self.send_block, timeout=self.send_timeout)
+        if data_dict is not None:
+
+            for name, queue in zip(self.send_queue_names, self.send_queues):      
+                if name in data_dict:
+                    queue.put(data_dict[name], block=self.send_block, timeout=self.send_timeout)
 
     def dispatch(self, data: Any) -> None:
         '''Use if all queues are equivalent. Send data alternatively to each queue'''
@@ -199,6 +201,10 @@ class ZebVR_Worker(ABC):
         self.stop_event.set()
         self.process.join()
 
+# TODO have connect be a method of class DAG, that would also start and stop the whole chain
+# from root to leaves
+# IDEA have DAG show topology using a graph library
+# IDEA maybe have DAG monitor the queues 
 def connect(sender: ZebVR_Worker, receiver: ZebVR_Worker, queue: QueueLike, name: str):
     sender.register_send_queue(queue, name)
     receiver.register_receive_queue(queue, name)
