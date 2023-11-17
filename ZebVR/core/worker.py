@@ -10,13 +10,24 @@ from multiprocessing_logger import Logger
 from ipc_tools import QueueLike
 
 class receive_strategy(Enum):
+    '''
+    POLL: All queues convey the same type of data. Cycle through queues until one is ready to retrieve data.
+    COLLECT: Wait for data from all queues to arrive and label the data by queue.
+             Queues can transmit different types of data.
+    '''
+
     POLL = 1
     COLLECT = 2
 
 class send_strategy(Enum):
-    BROADCAST = 1
-    DISPATCH = 2
+    '''
+    DISPATCH: All queues convey the same type of data. Cycle through queues until one is ready to send data.
+    BROADCAST: Send to all queues by name. Queues can transmit different types of data.
+    '''
 
+    DISPATCH = 1
+    BROADCAST = 2
+    
 class ZebVR_Worker(ABC):
 
     def __init__(
