@@ -8,7 +8,7 @@ from tracker import (
     EyesTracker, EyesTrackerParamOverlay, EyesTrackerParamTracking
 )
 from multiprocessing_logger import Logger
-from ipc_tools import RingBuffer, QueueMP, MonitoredQueue
+from ipc_tools import RingBuffer, QueueMP, MonitoredQueue, ZMQ_PushPullObj
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
 
@@ -218,6 +218,20 @@ if __name__ == "__main__":
     )
     q_tracking = MonitoredQueue(QueueMP())
 
+    '''
+    q_cam = MonitoredQueue(QueueMP())
+    q_back = MonitoredQueue(QueueMP())
+    q_display = MonitoredQueue(QueueMP())
+    q_tracking = MonitoredQueue(QueueMP())
+    '''
+
+    '''
+    q_cam = MonitoredQueue(ZMQ_PushPullObj(port=5556))
+    q_back = MonitoredQueue(ZMQ_PushPullObj(port=5557))
+    q_display = MonitoredQueue(ZMQ_PushPullObj(port=5558))
+    q_tracking = MonitoredQueue(ZMQ_PushPullObj(port=5559)) 
+    '''
+
     connect(sender=cam, receiver=bckg, queue=q_cam, name='cam_image')
     connect(sender=bckg, receiver=trck, queue=q_back, name='background_subtracted')
     connect(sender=trck, receiver=prt, queue=q_tracking, name='tracking')
@@ -239,7 +253,13 @@ if __name__ == "__main__":
     dis.kill()
     l.kill()
 
+    '''
     print(q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
     print(q_back.get_average_freq(), q_back.queue.num_lost_item.value)
     print(q_display.get_average_freq(), q_display.queue.num_lost_item.value)
+    '''
+
+    print(q_cam.get_average_freq())
+    print(q_back.get_average_freq())
+    print(q_display.get_average_freq())
     print(q_tracking.get_average_freq())
