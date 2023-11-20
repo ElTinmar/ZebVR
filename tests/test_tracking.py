@@ -238,9 +238,11 @@ if __name__ == "__main__":
     dag.connect(sender=trck, receiver=prt, queue=q_tracking, name='tracking')
     dag.connect(sender=trck, receiver=dis, queue=q_display, name='overlay')
 
+    l.start()
     dag.start()
     time.sleep(10)
     dag.stop()
+    l.stop()
     
     '''
     print(q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
