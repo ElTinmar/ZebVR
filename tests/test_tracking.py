@@ -68,10 +68,13 @@ class TrackerWorker(WorkerNode):
         if data is not None:
             res = {}
             tracking = self.tracker.track(data)
-            res['overlay'] = self.tracker.overlay_local(tracking)
-            res['tracking'] = {}
-            res['tracking']['orientation'] = tracking['body'][0].heading
-            res['tracking']['centroid'] = tracking['body'][0].centroid
+            if tracking is not None:
+                res['overlay'] = self.tracker.overlay_local(tracking)
+                res['tracking'] = None
+                if tracking['body'][0] is not None: 
+                    res['tracking'] = {}
+                    res['tracking']['orientation'] = tracking['body'][0].heading
+                    res['tracking']['centroid'] = tracking['body'][0].centroid
             return res
     
 class Printer(WorkerNode):
@@ -194,7 +197,7 @@ if __name__ == "__main__":
     
     ptx = Phototaxis(
         window_size=(1024,1024),
-        window_position=(1200,0),
+        window_position=(1400,0),
         color=(1.0, 0.0, 0.0, 1.0),
         window_decoration=False
     )
@@ -252,7 +255,7 @@ if __name__ == "__main__":
 
     l.start()
     dag.start()
-    time.sleep(20)
+    time.sleep(30)
     dag.stop()
     l.stop()
     
