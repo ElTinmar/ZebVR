@@ -69,7 +69,8 @@ class TrackerWorker(WorkerNode):
             res = {}
             tracking = self.tracker.track(data)
             if tracking is not None:
-                res['overlay'] = self.tracker.overlay_local(tracking)
+                # in a real situation, don't do the overlay in the tracker 
+                res['overlay'] = self.tracker.overlay_local(tracking) 
                 res['tracking'] = None
                 if tracking['body'][0] is not None: 
                     res['tracking'] = {}
