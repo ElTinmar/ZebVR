@@ -202,7 +202,7 @@ if __name__ == "__main__":
         window_decoration=False
     )
     
-    cam = CameraWorker(cam = m, fps = 50, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT)
+    cam = CameraWorker(cam = m, fps = 200, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT)
     trck = TrackerWorker(t, name='tracker', logger = l, send_strategy=send_strategy.BROADCAST)
     prt = Printer(name='printer', logger = l)
     bckg = BackgroundSubWorker(b, name='background', logger = l)
