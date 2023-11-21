@@ -89,7 +89,6 @@ class Phototaxis(VisualStim):
         self.update()
 
     def work(self, data: Dict) -> None:
-        print(data)
         if data is not None:
             self.fish_orientation_x.value = data['orientation'][0,1]
             self.fish_orientation_y.value = data['orientation'][1,1]
