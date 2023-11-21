@@ -66,6 +66,7 @@ class VisualStimWorker(WorkerNode):
 
     def initialize(self) -> None:
         super().initialize()
+
         # launch main window loop in a separate process 
         self.display_process = Process(target=self.run)
         self.display_process.start()
