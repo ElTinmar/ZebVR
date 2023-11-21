@@ -5,7 +5,9 @@ dependencies:
 - python == 3.8.16
 - ipython
 - numpy
+- opencv # this needs to be here to force qt5 to be the version used by opencv in subsequent modules
 - pyqt
+- vispy
 - pip
 - pip:
   - git+https://github.com/ElTinmar/Lightcrafter.git@main  

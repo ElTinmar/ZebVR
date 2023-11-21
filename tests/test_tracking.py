@@ -1,6 +1,6 @@
 from camera_tools import Camera, MovieFileCam
 from tracker import (
-    Tracker, LinearSumAssignment, 
+    Tracker, GridAssignment,
     AnimalTracker, AnimalTrackerParamOverlay, AnimalTrackerParamTracking,
     BodyTracker, BodyTrackerParamOverlay, BodyTrackerParamTracking,
     TailTracker, TailTrackerParamOverlay, TailTrackerParamTracking,
@@ -11,6 +11,7 @@ from ipc_tools import RingBuffer, QueueMP, MonitoredQueue, ZMQ_PushPullObj
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
+from stimulus import Phototaxis, VisualStimWorker
 
 import numpy as np
 from numpy.typing import NDArray
@@ -66,15 +67,18 @@ class TrackerWorker(WorkerNode):
     def work(self, data: NDArray) -> Dict:
         if data is not None:
             res = {}
-            res['tracking'] = self.tracker.track(data)
-            res['overlay'] = self.tracker.overlay_local(res['tracking'])
+            tracking = self.tracker.track(data)
+            res['overlay'] = self.tracker.overlay_local(tracking)
+            res['tracking'] = {}
+            res['tracking']['orientation'] = tracking['body'][0].heading
+            res['tracking']['centroid'] = tracking['body'][0].centroid
             return res
     
 class Printer(WorkerNode):
 
     def work(self, data: Any) -> None:
         if data is not None:
-            print(data['animals'].centroids)
+            print(data)
 
 class Display(WorkerNode):
 
@@ -101,8 +105,9 @@ class Display(WorkerNode):
 if __name__ == "__main__":
 
     m = MovieFileCam(filename='toy_data/19-40-44.avi')
+    h, w = (m.get_height(), m.get_width())
     t = Tracker(
-        LinearSumAssignment(10), 
+        GridAssignment(LUT=np.zeros((h,w), dtype=np.int_)), 
         None, 
         AnimalTracker(
             overlay_param=AnimalTrackerParamOverlay(),
@@ -186,14 +191,20 @@ if __name__ == "__main__":
         image_file_name = 'toy_data/19-40-44.png',
         polarity = Polarity.DARK_ON_BRIGHT
     )
-
-    h, w = (m.get_height(), m.get_width())
-
+    
+    ptx = Phototaxis(
+        window_size=(1024,1024),
+        window_position=(1200,0),
+        color=(1.0, 0.0, 0.0, 1.0),
+        window_decoration=False
+    )
+    
     cam = CameraWorker(cam = m, fps = 200, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT)
     trck = TrackerWorker(t, name='tracker', logger = l, send_strategy=send_strategy.BROADCAST)
     prt = Printer(name='printer', logger = l)
     bckg = BackgroundSubWorker(b, name='background', logger = l)
     dis = Display(fps = 30, name='display', logger = l)
+    stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l) 
 
     q_cam = MonitoredQueue(
         RingBuffer(
@@ -235,12 +246,13 @@ if __name__ == "__main__":
     dag = ProcessingDAG()
     dag.connect(sender=cam, receiver=bckg, queue=q_cam, name='cam_image')
     dag.connect(sender=bckg, receiver=trck, queue=q_back, name='background_subtracted')
-    dag.connect(sender=trck, receiver=prt, queue=q_tracking, name='tracking')
+    #dag.connect(sender=trck, receiver=prt, queue=q_tracking, name='tracking')
+    dag.connect(sender=trck, receiver=stim, queue=q_tracking, name='tracking')
     dag.connect(sender=trck, receiver=dis, queue=q_display, name='overlay')
 
     l.start()
     dag.start()
-    time.sleep(10)
+    time.sleep(20)
     dag.stop()
     l.stop()
     
