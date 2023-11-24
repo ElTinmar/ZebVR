@@ -1,10 +1,10 @@
 from camera_tools import Camera, MovieFileCam
 from tracker import (
-    Tracker, GridAssignment,
-    AnimalTracker, AnimalTrackerParamOverlay, AnimalTrackerParamTracking,
-    BodyTracker, BodyTrackerParamOverlay, BodyTrackerParamTracking,
-    TailTracker, TailTrackerParamOverlay, TailTrackerParamTracking,
-    EyesTracker, EyesTrackerParamOverlay, EyesTrackerParamTracking
+    GridAssignment, MultiFishTracker, MultiFishOverlay,
+    AnimalTracker, AnimalOverlay, AnimalTrackerParamOverlay, AnimalTrackerParamTracking,
+    BodyTracker, BodyOverlay, BodyTrackerParamOverlay, BodyTrackerParamTracking,
+    TailTracker, TailOverlay, TailTrackerParamOverlay, TailTrackerParamTracking,
+    EyesTracker, EyesOverlay, EyesTrackerParamOverlay, EyesTrackerParamTracking
 )
 from multiprocessing_logger import Logger
 from ipc_tools import RingBuffer, QueueMP, MonitoredQueue, ZMQ_PushPullObj
@@ -60,23 +60,28 @@ class BackgroundSubWorker(WorkerNode):
          
 class TrackerWorker(WorkerNode):
     
-    def __init__(self, tracker: Tracker, *args, **kwargs):
+    def __init__(self, tracker: MultiFishTracker, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.tracker = tracker
 
     def work(self, data: NDArray) -> Dict:
         if data is not None:
-            res = {}
             tracking = self.tracker.track(data)
             if tracking is not None:
-                # in a real situation, don't do the overlay in the tracker 
-                res['overlay'] = self.tracker.overlay_local(tracking) 
-                res['tracking'] = None
-                if tracking['body'][0] is not None: 
-                    res['tracking'] = {}
-                    res['tracking']['orientation'] = tracking['body'][0].heading
-                    res['tracking']['centroid'] = tracking['body'][0].centroid
-            return res
+                res = {}
+                res['stimulus'] = tracking
+                res['overlay'] = tracking
+                return res
+        
+class OverlayWorker(WorkerNode):
+
+    def __init__(self, overlay: MultiFishOverlay, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.overlay = overlay
+
+    def work(self, data: Any) -> Dict:
+        if data is not None:
+            return self.overlay.overlay(data.image, data)
     
 class Printer(WorkerNode):
 
@@ -110,16 +115,23 @@ if __name__ == "__main__":
 
     m = MovieFileCam(filename='toy_data/19-40-44.avi')
     h, w = (m.get_height(), m.get_width())
+
+    o = MultiFishOverlay(
+        AnimalOverlay(AnimalTrackerParamOverlay),
+        BodyOverlay(BodyTrackerParamOverlay),
+        EyesOverlay(EyesTrackerParamOverlay),
+        TailOverlay(TailTrackerParamOverlay),
+    )
+    
     t = Tracker(
         GridAssignment(LUT=np.zeros((h,w), dtype=np.int_)), 
         None, 
         AnimalTracker(
-            overlay_param=AnimalTrackerParamOverlay(),
             tracking_param=AnimalTrackerParamTracking(
                 animal_contrast=1.0,
                 animal_gamma=1.0,
                 animal_intensity=0.07,
-                animal_norm=1.0,
+                animal_brightness=0.0,
                 blur_sz_mm=0.13,
                 max_animal_length_mm=12,
                 max_animal_size_mm=30,
@@ -134,14 +146,13 @@ if __name__ == "__main__":
             )
         ),
         BodyTracker(
-            overlay_param=BodyTrackerParamOverlay(),
             tracking_param=BodyTrackerParamTracking(
                 pix_per_mm=40,
                 target_pix_per_mm=7.5,
                 body_intensity=0.06,
                 body_gamma=3.0,
                 body_contrast=1.5,
-                body_norm=0.3,
+                body_brightness=0.0,
                 min_body_size_mm=2,
                 max_body_size_mm=30,
                 min_body_length_mm=2,
@@ -153,13 +164,12 @@ if __name__ == "__main__":
             )
         ),
         EyesTracker(
-            overlay_param=EyesTrackerParamOverlay(),
             tracking_param=EyesTrackerParamTracking(
                 pix_per_mm=40,
                 target_pix_per_mm=40,
                 eye_gamma=2.5,
                 eye_contrast=0.4,
-                eye_norm=0.3,
+                eye_brightness=0.3,
                 eye_dyntresh_res=5,
                 eye_size_lo_mm=0.8,
                 eye_size_hi_mm=10,
@@ -170,13 +180,12 @@ if __name__ == "__main__":
             )
         ),
         TailTracker(
-            overlay_param=TailTrackerParamOverlay(),
             tracking_param=TailTrackerParamTracking(
                 pix_per_mm=40,
                 target_pix_per_mm=20,
                 tail_contrast=1,
                 tail_gamma=0.75,
-                tail_norm=0.2,
+                tail_brightness=0.0,
                 arc_angle_deg=120,
                 n_tail_points=12,
                 n_pts_arc=20,
@@ -209,6 +218,7 @@ if __name__ == "__main__":
     bckg = BackgroundSubWorker(b, name='background', logger = l)
     dis = Display(fps = 30, name='display', logger = l)
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l) 
+    oly = OverlayWorker(overlay=o, name="overlay", logger=l)
 
     q_cam = MonitoredQueue(
         RingBuffer(
@@ -232,6 +242,7 @@ if __name__ == "__main__":
         )
     )
     q_tracking = MonitoredQueue(QueueMP())
+    q_overlay = MonitoredQueue(QueueMP())
 
     '''
     q_cam = MonitoredQueue(QueueMP())
@@ -251,8 +262,9 @@ if __name__ == "__main__":
     dag.connect(sender=cam, receiver=bckg, queue=q_cam, name='cam_image')
     dag.connect(sender=bckg, receiver=trck, queue=q_back, name='background_subtracted')
     #dag.connect(sender=trck, receiver=prt, queue=q_tracking, name='tracking')
-    dag.connect(sender=trck, receiver=stim, queue=q_tracking, name='tracking')
-    dag.connect(sender=trck, receiver=dis, queue=q_display, name='overlay')
+    dag.connect(sender=trck, receiver=stim, queue=q_tracking, name='stimulus')
+    dag.connect(sender=trck, receiver=stim, queue=q_tracking, name='overlay')
+    dag.connect(sender=oly, receiver=dis, queue=q_display, name='disp')
 
     l.start()
     dag.start()
