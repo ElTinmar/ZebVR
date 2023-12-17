@@ -171,8 +171,8 @@ if __name__ == "__main__":
             tracking_param=EyesTrackerParamTracking(
                 pix_per_mm=40,
                 target_pix_per_mm=40,
-                eye_gamma=2.5,
-                eye_contrast=0.4,
+                eye_gamma=3.5,
+                eye_contrast=2.2,
                 eye_brightness=0.3,
                 eye_dyntresh_res=5,
                 eye_size_lo_mm=0.8,
@@ -196,7 +196,7 @@ if __name__ == "__main__":
                 n_pts_interp=40,
                 tail_length_mm=2.5,
                 crop_offset_tail_mm=2.25,
-                dist_swim_bladder_mm=-0.2,
+                dist_swim_bladder_mm=0,
                 crop_dimension_mm=(3.5,3.5),
                 blur_sz_mm=0.06,
                 median_filter_sz_mm=0.06
