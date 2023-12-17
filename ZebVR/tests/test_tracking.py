@@ -154,14 +154,14 @@ if __name__ == "__main__":
                 pix_per_mm=40,
                 target_pix_per_mm=7.5,
                 body_intensity=0.06,
-                body_gamma=3.0,
+                body_gamma=1.5,
                 body_contrast=1.5,
                 body_brightness=0.0,
                 min_body_size_mm=2,
                 max_body_size_mm=30,
                 min_body_length_mm=2,
                 max_body_length_mm=6,
-                min_body_width_mm=0.4,
+                min_body_width_mm=0.2,
                 max_body_width_mm=1.2,
                 blur_sz_mm=0.13,
                 median_filter_sz_mm=0.13
@@ -284,5 +284,6 @@ if __name__ == "__main__":
 
     print(q_cam.get_average_freq())
     print(q_back.get_average_freq())
+    print(q_overlay.get_average_freq())
     print(q_display.get_average_freq())
     print(q_tracking.get_average_freq())
