@@ -1,17 +1,17 @@
 from camera_tools import Camera, MovieFileCam
 from tracker import (
-    GridAssignment, MultiFishTracker, MultiFishOverlay,
-    AnimalTracker, AnimalOverlay, AnimalTrackerParamOverlay, AnimalTrackerParamTracking,
-    BodyTracker, BodyOverlay, BodyTrackerParamOverlay, BodyTrackerParamTracking,
-    TailTracker, TailOverlay, TailTrackerParamOverlay, TailTrackerParamTracking,
-    EyesTracker, EyesOverlay, EyesTrackerParamOverlay, EyesTrackerParamTracking
+    GridAssignment, MultiFishTracker, MultiFishTracker_CPU, MultiFishOverlay, MultiFishOverlay_opencv,
+    AnimalTracker_CPU, AnimalOverlay_opencv, AnimalTrackerParamTracking, AnimalTrackerParamOverlay,
+    BodyTracker_CPU, BodyOverlay_opencv, BodyTrackerParamTracking, BodyTrackerParamOverlay,
+    EyesTracker_CPU, EyesOverlay_opencv, EyesTrackerParamTracking, EyesTrackerParamOverlay,
+    TailTracker_CPU, TailOverlay_opencv, TailTrackerParamTracking, TailTrackerParamOverlay
 )
 from multiprocessing_logger import Logger
-from ipc_tools import RingBuffer, QueueMP, MonitoredQueue, ZMQ_PushPullObj
+from ipc_tools import RingBuffer, QueueMP, MonitoredQueue
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
-from stimulus import Phototaxis, VisualStimWorker
+from ZebVR.stimulus import Phototaxis, VisualStimWorker
 
 import numpy as np
 from numpy.typing import NDArray
@@ -116,17 +116,17 @@ if __name__ == "__main__":
     m = MovieFileCam(filename='toy_data/19-40-44.avi')
     h, w = (m.get_height(), m.get_width())
 
-    o = MultiFishOverlay(
-        AnimalOverlay(AnimalTrackerParamOverlay),
-        BodyOverlay(BodyTrackerParamOverlay),
-        EyesOverlay(EyesTrackerParamOverlay),
-        TailOverlay(TailTrackerParamOverlay),
+    o = MultiFishOverlay_opencv(
+        AnimalOverlay_opencv(AnimalTrackerParamOverlay),
+        BodyOverlay_opencv(BodyTrackerParamOverlay),
+        EyesOverlay_opencv(EyesTrackerParamOverlay),
+        TailOverlay_opencv(TailTrackerParamOverlay),
     )
     
-    t = Tracker(
+    t = MultiFishTracker_CPU(
         GridAssignment(LUT=np.zeros((h,w), dtype=np.int_)), 
         None, 
-        AnimalTracker(
+        AnimalTracker_CPU(
             tracking_param=AnimalTrackerParamTracking(
                 animal_contrast=1.0,
                 animal_gamma=1.0,
@@ -145,7 +145,7 @@ if __name__ == "__main__":
                 target_pix_per_mm=7.5
             )
         ),
-        BodyTracker(
+        BodyTracker_CPU(
             tracking_param=BodyTrackerParamTracking(
                 pix_per_mm=40,
                 target_pix_per_mm=7.5,
@@ -163,7 +163,7 @@ if __name__ == "__main__":
                 median_filter_sz_mm=0.13
             )
         ),
-        EyesTracker(
+        EyesTracker_CPU(
             tracking_param=EyesTrackerParamTracking(
                 pix_per_mm=40,
                 target_pix_per_mm=40,
@@ -179,7 +179,7 @@ if __name__ == "__main__":
                 median_filter_sz_mm=0.06
             )
         ),
-        TailTracker(
+        TailTracker_CPU(
             tracking_param=TailTrackerParamTracking(
                 pix_per_mm=40,
                 target_pix_per_mm=20,
