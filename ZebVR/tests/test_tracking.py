@@ -69,7 +69,8 @@ class TrackerWorker(WorkerNode):
             tracking = self.tracker.track(data)
             if tracking is not None:
                 res = {}
-                res['stimulus'] = tracking
+                k = list(tracking.body.keys())[0]
+                res['stimulus'] = tracking.body[k]
                 res['overlay'] = tracking
                 return res
         
@@ -81,7 +82,10 @@ class OverlayWorker(WorkerNode):
 
     def work(self, data: Any) -> Dict:
         if data is not None:
-            return self.overlay.overlay(data.image, data)
+            if data.identities is None:
+                return data.image
+            else:
+                return self.overlay.overlay(data.image, data)
     
 class Printer(WorkerNode):
 
@@ -113,14 +117,14 @@ class Display(WorkerNode):
 
 if __name__ == "__main__":
 
-    m = MovieFileCam(filename='toy_data/19-40-44.avi')
+    m = MovieFileCam(filename='/home/martin/Documents/toy_data/19-40-44.avi')
     h, w = (m.get_height(), m.get_width())
 
     o = MultiFishOverlay_opencv(
-        AnimalOverlay_opencv(AnimalTrackerParamOverlay),
-        BodyOverlay_opencv(BodyTrackerParamOverlay),
-        EyesOverlay_opencv(EyesTrackerParamOverlay),
-        TailOverlay_opencv(TailTrackerParamOverlay),
+        AnimalOverlay_opencv(AnimalTrackerParamOverlay()),
+        BodyOverlay_opencv(BodyTrackerParamOverlay()),
+        EyesOverlay_opencv(EyesTrackerParamOverlay()),
+        TailOverlay_opencv(TailTrackerParamOverlay()),
     )
     
     t = MultiFishTracker_CPU(
@@ -201,7 +205,7 @@ if __name__ == "__main__":
     )
     l = Logger('test_tracking.log', Logger.DEBUG)
     b = BackroundImage(
-        image_file_name = 'toy_data/19-40-44.png',
+        image_file_name = '/home/martin/Documents/toy_data/19-40-44.png',
         polarity = Polarity.DARK_ON_BRIGHT
     )
     
@@ -263,7 +267,7 @@ if __name__ == "__main__":
     dag.connect(sender=bckg, receiver=trck, queue=q_back, name='background_subtracted')
     #dag.connect(sender=trck, receiver=prt, queue=q_tracking, name='tracking')
     dag.connect(sender=trck, receiver=stim, queue=q_tracking, name='stimulus')
-    dag.connect(sender=trck, receiver=stim, queue=q_tracking, name='overlay')
+    dag.connect(sender=trck, receiver=oly, queue=q_overlay, name='overlay')
     dag.connect(sender=oly, receiver=dis, queue=q_display, name='disp')
 
     l.start()

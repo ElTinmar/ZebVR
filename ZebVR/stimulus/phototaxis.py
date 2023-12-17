@@ -2,6 +2,7 @@ from typing import Tuple, Dict
 from .visual_stim import VisualStim
 from vispy import gloo, app
 from multiprocessing import Value
+from typing import Any
 
 # TODO add transformation from camera coords to proj coords
 
@@ -88,11 +89,12 @@ class Phototaxis(VisualStim):
         self.program['a_fish_centroid'] = [self.fish_centroid_x.value, self.fish_centroid_y.value]
         self.update()
 
-    def work(self, data: Dict) -> None:
+    def work(self, data: Any) -> None:
         if data is not None:
-            self.fish_orientation_x.value = data['orientation'][0,1]
-            self.fish_orientation_y.value = data['orientation'][1,1]
-            self.fish_centroid_x.value = data['centroid'][0]
-            self.fish_centroid_y.value = data['centroid'][1]
+            if data.heading is not None:
+                self.fish_orientation_x.value = data.heading[0,1]
+                self.fish_orientation_y.value = data.heading[1,1]
+                self.fish_centroid_x.value = data.centroid[0]
+                self.fish_centroid_y.value = data.centroid[1]
 
     
