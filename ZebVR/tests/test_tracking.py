@@ -155,13 +155,13 @@ if __name__ == "__main__":
                 target_pix_per_mm=7.5,
                 body_intensity=0.06,
                 body_gamma=1.5,
-                body_contrast=1.5,
+                body_contrast=3.0,
                 body_brightness=0.0,
-                min_body_size_mm=2,
+                min_body_size_mm=0,
                 max_body_size_mm=30,
-                min_body_length_mm=2,
+                min_body_length_mm=0,
                 max_body_length_mm=6,
-                min_body_width_mm=0.2,
+                min_body_width_mm=0,
                 max_body_width_mm=1.2,
                 blur_sz_mm=0.13,
                 median_filter_sz_mm=0.13
@@ -196,13 +196,14 @@ if __name__ == "__main__":
                 n_pts_interp=40,
                 tail_length_mm=2.3,
                 crop_offset_tail_mm=2.25,
-                dist_swim_bladder_mm=0,
+                dist_swim_bladder_mm=-0.2,
                 crop_dimension_mm=(3.5,3.5),
                 blur_sz_mm=0.06,
                 median_filter_sz_mm=0.06
             )
         )
     )
+
     l = Logger('test_tracking.log', Logger.DEBUG)
     b = BackroundImage(
         image_file_name = '/home/martin/Documents/toy_data/19-40-44.png',
