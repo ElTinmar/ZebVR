@@ -117,7 +117,7 @@ class Display(WorkerNode):
 
 if __name__ == "__main__":
 
-    m = MovieFileCam(filename='/home/martin/Documents/toy_data/19-40-44.avi')
+    m = MovieFileCam(filename='/home/martin/Development/ZebVR/toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
 
     o = MultiFishOverlay_opencv(
@@ -128,9 +128,10 @@ if __name__ == "__main__":
     )
     
     t = MultiFishTracker_CPU(
-        GridAssignment(LUT=np.zeros((h,w), dtype=np.int_)), 
-        None, 
-        AnimalTracker_CPU(
+        max_num_animals=1,
+        assignment=GridAssignment(LUT=np.zeros((h,w), dtype=np.int_)), 
+        accumulator=None, 
+        animal=AnimalTracker_CPU(
             tracking_param=AnimalTrackerParamTracking(
                 animal_contrast=1.0,
                 animal_gamma=1.0,
@@ -149,7 +150,7 @@ if __name__ == "__main__":
                 target_pix_per_mm=7.5
             )
         ),
-        BodyTracker_CPU(
+        body=BodyTracker_CPU(
             tracking_param=BodyTrackerParamTracking(
                 pix_per_mm=40,
                 target_pix_per_mm=7.5,
@@ -167,7 +168,7 @@ if __name__ == "__main__":
                 median_filter_sz_mm=0.13
             )
         ),
-        EyesTracker_CPU(
+        eyes=EyesTracker_CPU(
             tracking_param=EyesTrackerParamTracking(
                 pix_per_mm=40,
                 target_pix_per_mm=40,
@@ -183,7 +184,7 @@ if __name__ == "__main__":
                 median_filter_sz_mm=0.06
             )
         ),
-        TailTracker_CPU(
+        tail=TailTracker_CPU(
             tracking_param=TailTrackerParamTracking(
                 pix_per_mm=40,
                 target_pix_per_mm=20,
@@ -206,7 +207,7 @@ if __name__ == "__main__":
 
     l = Logger('test_tracking.log', Logger.DEBUG)
     b = BackroundImage(
-        image_file_name = '/home/martin/Documents/toy_data/19-40-44.png',
+        image_file_name = '/home/martin/Development/ZebVR/toy_data/freely_swimming_param.png',
         polarity = Polarity.DARK_ON_BRIGHT
     )
     
