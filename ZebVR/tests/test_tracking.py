@@ -66,7 +66,10 @@ class TrackerWorker(WorkerNode):
 
     def work(self, data: NDArray) -> Dict:
         if data is not None:
-            tracking = self.tracker.track(data)
+            # IMPORTANT: need to copy the data out of the 
+            # circular buffer otherwise it can be modified after the fact
+            data_copy = data.copy() 
+            tracking = self.tracker.track(data_copy)
             if tracking is not None:
                 res = {}
                 k = list(tracking.body.keys())[0]
