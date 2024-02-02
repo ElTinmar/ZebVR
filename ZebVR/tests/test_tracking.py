@@ -66,10 +66,7 @@ class TrackerWorker(WorkerNode):
 
     def work(self, data: NDArray) -> Dict:
         if data is not None:
-            # IMPORTANT: need to copy the data out of the 
-            # circular buffer otherwise it can be modified after the fact
-            data_copy = data.copy() 
-            tracking = self.tracker.track(data_copy)
+            tracking = self.tracker.track(data)
             if tracking is not None:
                 res = {}
                 k = list(tracking.body.keys())[0]
@@ -239,11 +236,15 @@ if __name__ == "__main__":
             data_type = np.uint8
         )
     )
+
+    # IMPORTANT: need to copy the data out of the 
+    # circular buffer otherwise it can be modified after the fact
     q_back = MonitoredQueue(
         RingBuffer(
             num_items = 100,
             item_shape = (h, w),
-            data_type = np.float32
+            data_type = np.float32,
+            copy=True
         )
     )
     q_display = MonitoredQueue(
