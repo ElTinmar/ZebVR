@@ -276,16 +276,20 @@ if __name__ == "__main__":
 
     dag = ProcessingDAG()
     dag.connect(sender=cam, receiver=bckg, queue=q_cam, name='cam_image')
+    
     dag.connect(sender=bckg, receiver=trck0, queue=q_back, name='background_subtracted')
     dag.connect(sender=bckg, receiver=trck1, queue=q_back, name='background_subtracted')
     dag.connect(sender=bckg, receiver=trck2, queue=q_back, name='background_subtracted')
     #dag.connect(sender=trck, receiver=prt, queue=q_tracking, name='tracking')
+
     dag.connect(sender=trck0, receiver=stim, queue=q_tracking, name='stimulus')
     dag.connect(sender=trck1, receiver=stim, queue=q_tracking, name='stimulus')
     dag.connect(sender=trck2, receiver=stim, queue=q_tracking, name='stimulus')
+
     dag.connect(sender=trck0, receiver=oly, queue=q_overlay, name='overlay')
     dag.connect(sender=trck1, receiver=oly, queue=q_overlay, name='overlay')
     dag.connect(sender=trck2, receiver=oly, queue=q_overlay, name='overlay')
+
     dag.connect(sender=oly, receiver=dis, queue=q_display, name='disp')
 
     l.start()
