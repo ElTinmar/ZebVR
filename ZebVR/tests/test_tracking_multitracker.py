@@ -10,7 +10,7 @@ from multiprocessing_logger import Logger
 from ipc_tools import RingBuffer, QueueMP, MonitoredQueue
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
-from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
+from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG, plot_logs
 from ZebVR.stimulus import Phototaxis, VisualStimWorker
 
 import numpy as np
@@ -118,6 +118,7 @@ class Display(WorkerNode):
 if __name__ == "__main__":
 
     PIX_PER_MM = 40  
+    LOGFILE = 'test_tracking.log'
 
     m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
@@ -208,7 +209,7 @@ if __name__ == "__main__":
         )
     )
 
-    l = Logger('test_tracking.log', Logger.DEBUG)
+    l = Logger(LOGFILE, Logger.INFO)
     b = BackroundImage(
         image_file_name = 'toy_data/freely_swimming_param.png',
         polarity = Polarity.DARK_ON_BRIGHT
@@ -309,3 +310,5 @@ if __name__ == "__main__":
     print(q_overlay.get_average_freq())
     print(q_display.get_average_freq())
     print(q_tracking.get_average_freq())
+
+    plot_logs(LOGFILE)
