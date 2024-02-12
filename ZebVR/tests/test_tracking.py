@@ -208,7 +208,7 @@ if __name__ == "__main__":
         )
     )
 
-    l = Logger('test_tracking.log', Logger.DEBUG)
+    l = Logger('test_tracking.log', Logger.INFO)
     b = BackroundImage(
         image_file_name = 'toy_data/freely_swimming_param.png',
         polarity = Polarity.DARK_ON_BRIGHT
