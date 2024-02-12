@@ -233,7 +233,8 @@ if __name__ == "__main__":
         RingBuffer(
             num_items = 100,
             item_shape = (h, w, 3),
-            data_type = np.uint8
+            data_type = np.uint8,
+            t_refresh=0.0000000001
         )
     )
 
@@ -244,14 +245,16 @@ if __name__ == "__main__":
             num_items = 100,
             item_shape = (h, w),
             data_type = np.float32,
-            copy=True
+            copy=True,
+            t_refresh=0.0000000001
         )
     )
     q_display = MonitoredQueue(
         RingBuffer(
             num_items = 100,
             item_shape = (h, w, 3),
-            data_type = np.uint8
+            data_type = np.uint8,
+            t_refresh=0.0000000001
         )
     )
     q_display = MonitoredQueue(QueueMP())
