@@ -2,6 +2,7 @@ toy_data/
 
 # logs
 *.log
+*.prof 
 
 # Video examples
 *.avi
