@@ -1,3 +1,6 @@
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+
 from camera_tools import Camera, MovieFileCam
 from tracker import (
     GridAssignment, MultiFishTracker, MultiFishTracker_CPU, MultiFishOverlay, MultiFishOverlay_opencv,
@@ -225,13 +228,13 @@ if __name__ == "__main__":
         window_decoration=False
     )
     
-    cam = CameraWorker(cam = m, fps = 200, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT)
-    trck = TrackerWorker(t, name='tracker', logger = l, send_strategy=send_strategy.BROADCAST, profile=True)
-    prt = Printer(name='printer', logger = l)
-    bckg = BackgroundSubWorker(b, name='background', logger = l)
-    dis = Display(fps = 30, name='display', logger = l)
-    stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l) 
-    oly = OverlayWorker(overlay=o, name="overlay", logger=l)
+    cam = CameraWorker(cam = m, fps = 200, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    trck = TrackerWorker(t, name='tracker', logger = l, send_strategy=send_strategy.BROADCAST, profile=True, receive_timeout=1.0)
+    prt = Printer(name='printer', logger = l, receive_timeout=1.0)
+    bckg = BackgroundSubWorker(b, name='background', logger = l, receive_timeout=1.0)
+    dis = Display(fps = 30, name='display', logger = l, receive_timeout=1.0)
+    stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
+    oly = OverlayWorker(overlay=o, name="overlay", logger=l, receive_timeout=1.0)
 
     q_cam = MonitoredQueue(
         RingBuffer(
