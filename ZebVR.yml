@@ -9,6 +9,7 @@ dependencies:
 - numpy
 - vispy
 - pip
+- snakeviz
 - pip:
   - git+https://github.com/ElTinmar/tracker.git@main
   - git+https://github.com/ElTinmar/Lightcrafter.git@main  

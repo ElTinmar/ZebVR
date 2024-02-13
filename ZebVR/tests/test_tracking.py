@@ -68,11 +68,14 @@ class TrackerWorker(WorkerNode):
         if data is not None:
             tracking = self.tracker.track(data)
             if tracking is not None:
-                res = {}
-                k = list(tracking.body.keys())[0]
-                res['stimulus'] = tracking.body[k]
-                res['overlay'] = tracking
-                return res
+                if tracking.body is not None:
+                    res = {}
+                    indices = list(tracking.body.keys())
+                    if indices:
+                        k = indices[0]
+                        res['stimulus'] = tracking.body[k]
+                        res['overlay'] = tracking
+                    return res
         
 class OverlayWorker(WorkerNode):
 
