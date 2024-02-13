@@ -1,3 +1,6 @@
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+
 from camera_tools import Camera, MovieFileCam
 from tracker import (
     GridAssignment, MultiFishTracker, MultiFishTracker_CPU, MultiFishOverlay, MultiFishOverlay_opencv,
@@ -68,11 +71,14 @@ class TrackerWorker(WorkerNode):
         if data is not None:
             tracking = self.tracker.track(data)
             if tracking is not None:
-                res = {}
-                k = list(tracking.body.keys())[0]
-                res['stimulus'] = tracking.body[k]
-                res['overlay'] = tracking
-                return res
+                if tracking.body is not None:
+                    res = {}
+                    indices = list(tracking.body.keys())
+                    if indices:
+                        k = indices[0]
+                        res['stimulus'] = tracking.body[k]
+                        res['overlay'] = tracking
+                    return res
         
 class OverlayWorker(WorkerNode):
 
@@ -222,15 +228,15 @@ if __name__ == "__main__":
         window_decoration=False
     )
     
-    cam = CameraWorker(cam = m, fps = 200, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT)
-    trck0 = TrackerWorker(t, name='tracker0', logger = l, send_strategy=send_strategy.BROADCAST)
-    trck1 = TrackerWorker(t, name='tracker1', logger = l, send_strategy=send_strategy.BROADCAST)
-    trck2 = TrackerWorker(t, name='tracker2', logger = l, send_strategy=send_strategy.BROADCAST)
-    prt = Printer(name='printer', logger = l)
-    bckg = BackgroundSubWorker(b, name='background', logger = l)
-    dis = Display(fps = 30, name='display', logger = l)
-    stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l) 
-    oly = OverlayWorker(overlay=o, name="overlay", logger=l)
+    cam = CameraWorker(cam = m, fps = 200, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    trck0 = TrackerWorker(t, name='tracker0', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
+    trck1 = TrackerWorker(t, name='tracker1', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
+    trck2 = TrackerWorker(t, name='tracker2', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
+    prt = Printer(name='printer', logger = l, receive_timeout=1.0)
+    bckg = BackgroundSubWorker(b, name='background', logger = l, receive_timeout=1.0)
+    dis = Display(fps = 30, name='display', logger = l, receive_timeout=1.0)
+    stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
+    oly = OverlayWorker(overlay=o, name="overlay", logger=l, receive_timeout=1.0)
 
     q_cam = MonitoredQueue(
         RingBuffer(
