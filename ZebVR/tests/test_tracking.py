@@ -1,3 +1,5 @@
+# This is apparently very important to set. Otherwise OpenCV warpAffine
+# takes way to much time when run in a separate process
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
