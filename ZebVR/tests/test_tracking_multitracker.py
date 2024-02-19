@@ -92,12 +92,6 @@ class OverlayWorker(WorkerNode):
                 return data.image
             else:
                 return self.overlay.overlay(data.image, data)
-    
-class Printer(WorkerNode):
-
-    def work(self, data: Any) -> None:
-        if data is not None:
-            print(data)
 
 class Display(WorkerNode):
 
@@ -232,7 +226,6 @@ if __name__ == "__main__":
     trck0 = TrackerWorker(t, name='tracker0', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
     trck1 = TrackerWorker(t, name='tracker1', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
     trck2 = TrackerWorker(t, name='tracker2', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
-    prt = Printer(name='printer', logger = l, receive_timeout=1.0)
     bckg = BackgroundSubWorker(b, name='background', logger = l, receive_timeout=1.0)
     dis = Display(fps = 30, name='display', logger = l, receive_timeout=1.0)
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
@@ -286,16 +279,15 @@ if __name__ == "__main__":
     
     dag.connect(sender=bckg, receiver=trck0, queue=q_back, name='background_subtracted')
     dag.connect(sender=bckg, receiver=trck1, queue=q_back, name='background_subtracted')
-    dag.connect(sender=bckg, receiver=trck2, queue=q_back, name='background_subtracted')
-    #dag.connect(sender=trck, receiver=prt, queue=q_tracking, name='tracking')
+    #dag.connect(sender=bckg, receiver=trck2, queue=q_back, name='background_subtracted')
 
     dag.connect(sender=trck0, receiver=stim, queue=q_tracking, name='stimulus')
     dag.connect(sender=trck1, receiver=stim, queue=q_tracking, name='stimulus')
-    dag.connect(sender=trck2, receiver=stim, queue=q_tracking, name='stimulus')
+    #dag.connect(sender=trck2, receiver=stim, queue=q_tracking, name='stimulus')
 
     dag.connect(sender=trck0, receiver=oly, queue=q_overlay, name='overlay')
     dag.connect(sender=trck1, receiver=oly, queue=q_overlay, name='overlay')
-    dag.connect(sender=trck2, receiver=oly, queue=q_overlay, name='overlay')
+    #dag.connect(sender=trck2, receiver=oly, queue=q_overlay, name='overlay')
 
     dag.connect(sender=oly, receiver=dis, queue=q_display, name='disp')
 
