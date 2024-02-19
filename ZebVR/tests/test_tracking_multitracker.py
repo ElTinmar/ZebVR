@@ -217,12 +217,12 @@ if __name__ == "__main__":
     
     ptx = Phototaxis(
         window_size=(1024,1024),
-        window_position=(1400,0),
+        window_position=(0,0),
         color=(1.0, 0.0, 0.0, 1.0),
         window_decoration=False
     )
     
-    cam = CameraWorker(cam = m, fps = 200, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    cam = CameraWorker(cam = m, fps = 400, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
     trck0 = TrackerWorker(t, name='tracker0', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
     trck1 = TrackerWorker(t, name='tracker1', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
     trck2 = TrackerWorker(t, name='tracker2', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
@@ -279,15 +279,15 @@ if __name__ == "__main__":
     
     dag.connect(sender=bckg, receiver=trck0, queue=q_back, name='background_subtracted')
     dag.connect(sender=bckg, receiver=trck1, queue=q_back, name='background_subtracted')
-    #dag.connect(sender=bckg, receiver=trck2, queue=q_back, name='background_subtracted')
+    dag.connect(sender=bckg, receiver=trck2, queue=q_back, name='background_subtracted')
 
     dag.connect(sender=trck0, receiver=stim, queue=q_tracking, name='stimulus')
     dag.connect(sender=trck1, receiver=stim, queue=q_tracking, name='stimulus')
-    #dag.connect(sender=trck2, receiver=stim, queue=q_tracking, name='stimulus')
+    dag.connect(sender=trck2, receiver=stim, queue=q_tracking, name='stimulus')
 
     dag.connect(sender=trck0, receiver=oly, queue=q_overlay, name='overlay')
     dag.connect(sender=trck1, receiver=oly, queue=q_overlay, name='overlay')
-    #dag.connect(sender=trck2, receiver=oly, queue=q_overlay, name='overlay')
+    dag.connect(sender=trck2, receiver=oly, queue=q_overlay, name='overlay')
 
     dag.connect(sender=oly, receiver=dis, queue=q_display, name='disp')
 
