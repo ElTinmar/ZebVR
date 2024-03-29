@@ -58,7 +58,7 @@ class BackgroundSubWorker(WorkerNode):
 
     def work(self, data: NDArray) -> NDArray:
         if data is not None:
-            image = im2single(data[:,:,0])
+            image = im2single(im2gray(data))
             return self.sub.subtract_background(image)
          
 class TrackerWorker(WorkerNode):
