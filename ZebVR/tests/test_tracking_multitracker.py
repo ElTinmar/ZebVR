@@ -22,6 +22,8 @@ import time
 from typing import Any, Dict
 import cv2
 
+#TODO make a worker that monitors the queues ? 
+
 class CameraWorker(WorkerNode):
 
     def __init__(self, cam: Camera, fps: int = 200, *args, **kwargs):
