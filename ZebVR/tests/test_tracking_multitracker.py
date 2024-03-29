@@ -309,4 +309,4 @@ if __name__ == "__main__":
     print(q_display.get_average_freq())
     print(q_tracking.get_average_freq())
 
-    plot_logs(LOGFILE)
+    plot_logs(LOGFILE, outlier_thresh=1000)
