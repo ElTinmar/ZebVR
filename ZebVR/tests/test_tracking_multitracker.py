@@ -22,8 +22,6 @@ import time
 from typing import Any, Dict
 import cv2
 
-#TODO make a worker that monitors the queues ? 
-
 class CameraWorker(WorkerNode):
 
     def __init__(self, cam: Camera, fps: int = 200, *args, **kwargs):
@@ -224,7 +222,7 @@ if __name__ == "__main__":
         window_decoration=False
     )
     
-    cam = CameraWorker(cam = m, fps = 400, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    cam = CameraWorker(cam = m, fps = 200, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
     trck0 = TrackerWorker(t, name='tracker0', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
     trck1 = TrackerWorker(t, name='tracker1', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
     trck2 = TrackerWorker(t, name='tracker2', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
@@ -258,7 +256,7 @@ if __name__ == "__main__":
             data_type = np.uint8
         )
     )
-    q_display = MonitoredQueue(QueueMP())
+    #q_display = MonitoredQueue(QueueMP())
     q_tracking = MonitoredQueue(QueueMP())
     q_overlay = MonitoredQueue(QueueMP())
 
@@ -299,16 +297,11 @@ if __name__ == "__main__":
     dag.stop()
     l.stop()
     
-    '''
-    print(q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
-    print(q_back.get_average_freq(), q_back.queue.num_lost_item.value)
-    print(q_display.get_average_freq(), q_display.queue.num_lost_item.value)
-    '''
 
-    print(q_cam.get_average_freq())
-    print(q_back.get_average_freq())
-    print(q_overlay.get_average_freq())
-    print(q_display.get_average_freq())
-    print(q_tracking.get_average_freq())
+    print('cam to background', q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
+    print('background to trackers', q_back.get_average_freq(), q_back.queue.num_lost_item.value)
+    print('trackers to visual stim', q_tracking.get_average_freq())
+    print('trackers to overlay', q_overlay.get_average_freq())
+    print('overlay to display', q_display.get_average_freq(), q_display.queue.num_lost_item.value)
 
     plot_logs(LOGFILE, outlier_thresh=1000)
