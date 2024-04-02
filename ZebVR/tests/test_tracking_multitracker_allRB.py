@@ -70,20 +70,29 @@ class BackgroundSubWorker(WorkerNode):
 
     def work(self, data: NDArray) -> NDArray:
         if data is not None:
+            
+            #0
+            t0_ns = time.monotonic_ns()
             timestamp = data['timestamp'][0,0]
             index = data['index'][0,0]
             image = data['image'][0]
+            print('indexing', 1e-6*(time.monotonic_ns()-t0_ns))
 
+            #1
             res = self.sub.subtract_background(im2single(im2gray(image)))
 
+            #2 NOTE this step takes a lot of extra time
+            t0_ns = time.monotonic_ns()
             arr = np.array(
                 (timestamp, index, res),
                 dtype = np.dtype([
                     ('timestamp', np.float64, (1,)), 
                     ('index', int, (1,)),
                     ('image', np.float32, (h,w))
-                ])
+                ], align=True)
             )
+            print('creation', 1e-6*(time.monotonic_ns()-t0_ns))
+
             return arr
          
 class TrackerWorker(WorkerNode):
