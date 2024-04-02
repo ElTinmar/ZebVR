@@ -41,12 +41,22 @@ class CameraWorker(WorkerNode):
         self.cam.stop_acquisition()
     
     def work(self, data: None) -> NDArray: 
-        res = self.cam.get_frame().image
+        
+        res = self.cam.get_frame()
         elapsed = (time.monotonic_ns() - self.prev_time) 
         while elapsed < 1e9/self.fps:
             elapsed = (time.monotonic_ns() - self.prev_time) 
         self.prev_time = time.monotonic_ns()
-        return res
+
+        arr = np.array(
+            (res.timestamp, res.index, res.image),
+            dtype = np.dtype([
+                ('timestamp', np.float64, (1,)), 
+                ('index', int, (1,)),
+                ('image', np.uint8, (h,w,3))
+            ])
+        )
+        return arr
     
 class BackgroundSubWorker(WorkerNode):
 
@@ -60,8 +70,21 @@ class BackgroundSubWorker(WorkerNode):
 
     def work(self, data: NDArray) -> NDArray:
         if data is not None:
-            image = im2single(im2gray(data))
-            return self.sub.subtract_background(image)
+            timestamp = data['timestamp'][0,0]
+            index = data['index'][0,0]
+            image = data['image'][0]
+
+            res = self.sub.subtract_background(im2single(im2gray(image)))
+
+            arr = np.array(
+                (timestamp, index, res),
+                dtype = np.dtype([
+                    ('timestamp', np.float64, (1,)), 
+                    ('index', int, (1,)),
+                    ('image', np.float32, (h,w))
+                ])
+            )
+            return arr
          
 class TrackerWorker(WorkerNode):
     
@@ -71,7 +94,7 @@ class TrackerWorker(WorkerNode):
 
     def work(self, data: NDArray) -> Dict:
         if data is not None:
-            tracking = self.tracker.track(data)
+            tracking = self.tracker.track(data['image'][0])
             if tracking is not None:
                 if tracking.body is not None:
                     res = {}
@@ -236,8 +259,12 @@ if __name__ == "__main__":
     q_cam = MonitoredQueue(
         RingBuffer(
             num_items = 100,
-            item_shape = (h, w, 3),
-            data_type = np.uint8
+            item_shape = (1,),
+            data_type = np.dtype([
+                ('timestamp', np.float64, (1,)), 
+                ('index', int, (1,)),
+                ('image', np.uint8, (h,w,3))
+            ])
         )
     )
 
@@ -246,8 +273,12 @@ if __name__ == "__main__":
     q_back = MonitoredQueue(
         RingBuffer(
             num_items = 100,
-            item_shape = (h, w),
-            data_type = np.float32,
+            item_shape = (1,),
+            data_type = np.dtype([
+                ('timestamp', np.float64, (1,)), 
+                ('index', int, (1,)),
+                ('image', np.float32, (h,w))
+            ]),
             copy=True
         )
     )
