@@ -81,7 +81,7 @@ class BackgroundSubWorker(WorkerNode):
             #1
             res = self.sub.subtract_background(im2single(im2gray(image)))
 
-            #2 NOTE this step takes a lot of extra time
+            #2 NOTE this step takes a lot of extra time, use MultiRingBuffer instead
             t0_ns = time.monotonic_ns()
             arr = np.array(
                 (timestamp, index, res),
