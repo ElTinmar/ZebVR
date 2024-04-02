@@ -47,7 +47,7 @@ class CameraWorker(WorkerNode):
         while elapsed < 1e9/self.fps:
             elapsed = (time.monotonic_ns() - self.prev_time) 
         self.prev_time = time.monotonic_ns()
-
+                
         arr = np.array(
             (res.timestamp, res.index, res.image),
             dtype = np.dtype([
