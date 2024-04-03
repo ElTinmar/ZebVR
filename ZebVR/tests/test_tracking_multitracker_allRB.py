@@ -72,26 +72,24 @@ class BackgroundSubWorker(WorkerNode):
         if data is not None:
             
             #0
-            t0_ns = time.monotonic_ns()
-            timestamp = data['timestamp'][0,0]
-            index = data['index'][0,0]
-            image = data['image'][0]
-            print('indexing', 1e-6*(time.monotonic_ns()-t0_ns))
+            #t0_ns = time.monotonic_ns()
+            timestamp, index, image = data[0]
+            #print('indexing', 1e-6*(time.monotonic_ns()-t0_ns))
 
             #1
             res = self.sub.subtract_background(im2single(im2gray(image)))
 
             #2 NOTE structured arrays are SLOW. This step takes a lot of extra time, use MultiRingBuffer instead
-            t0_ns = time.monotonic_ns()
+            #t0_ns = time.monotonic_ns()
             arr = np.array(
-                (timestamp, index, res),
+                (timestamp[0], index[0], res),
                 dtype = np.dtype([
                     ('timestamp', np.float64, (1,)), 
                     ('index', int, (1,)),
                     ('image', np.float32, (h,w))
                 ], align=True)
             )
-            print('creation', 1e-6*(time.monotonic_ns()-t0_ns))
+            #print('creation', 1e-6*(time.monotonic_ns()-t0_ns))
 
             return arr
          
@@ -103,7 +101,7 @@ class TrackerWorker(WorkerNode):
 
     def work(self, data: NDArray) -> Dict:
         if data is not None:
-            tracking = self.tracker.track(data['image'][0])
+            tracking = self.tracker.track(data[0]['image'])
             if tracking is not None:
                 if tracking.body is not None:
                     res = {}
@@ -257,10 +255,14 @@ if __name__ == "__main__":
     )
     
     cam = CameraWorker(cam = m, fps = 200, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+
+    bckg0 = BackgroundSubWorker(b, name='background0', logger = l, receive_timeout=1.0)
+    bckg1 = BackgroundSubWorker(b, name='background1', logger = l, receive_timeout=1.0)
+
     trck0 = TrackerWorker(t, name='tracker0', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
     trck1 = TrackerWorker(t, name='tracker1', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
     trck2 = TrackerWorker(t, name='tracker2', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
-    bckg = BackgroundSubWorker(b, name='background', logger = l, receive_timeout=1.0)
+
     dis = Display(fps = 30, name='display', logger = l, receive_timeout=1.0)
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
     oly = OverlayWorker(overlay=o, name="overlay", logger=l, receive_timeout=1.0)
@@ -317,11 +319,16 @@ if __name__ == "__main__":
     '''
 
     dag = ProcessingDAG()
-    dag.connect(sender=cam, receiver=bckg, queue=q_cam, name='cam_image')
+    dag.connect(sender=cam, receiver=bckg0, queue=q_cam, name='cam_image')
+    dag.connect(sender=cam, receiver=bckg1, queue=q_cam, name='cam_image')
     
-    dag.connect(sender=bckg, receiver=trck0, queue=q_back, name='background_subtracted')
-    dag.connect(sender=bckg, receiver=trck1, queue=q_back, name='background_subtracted')
-    dag.connect(sender=bckg, receiver=trck2, queue=q_back, name='background_subtracted')
+    dag.connect(sender=bckg0, receiver=trck0, queue=q_back, name='background_subtracted')
+    dag.connect(sender=bckg0, receiver=trck1, queue=q_back, name='background_subtracted')
+    dag.connect(sender=bckg0, receiver=trck2, queue=q_back, name='background_subtracted')
+
+    dag.connect(sender=bckg1, receiver=trck0, queue=q_back, name='background_subtracted')
+    dag.connect(sender=bckg1, receiver=trck1, queue=q_back, name='background_subtracted')
+    dag.connect(sender=bckg1, receiver=trck2, queue=q_back, name='background_subtracted')
 
     dag.connect(sender=trck0, receiver=stim, queue=q_tracking, name='stimulus')
     dag.connect(sender=trck1, receiver=stim, queue=q_tracking, name='stimulus')
