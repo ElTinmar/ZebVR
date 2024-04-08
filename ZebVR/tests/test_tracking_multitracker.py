@@ -84,16 +84,19 @@ class TrackerWorker(WorkerNode):
         
 class OverlayWorker(WorkerNode):
 
-    def __init__(self, overlay: MultiFishOverlay, *args, **kwargs):
+    def __init__(self, overlay: MultiFishOverlay, fps: int = 30, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.overlay = overlay
+        self.fps = fps
+        self.prev_time = 0
 
     def work(self, data: Any) -> Dict:
         if data is not None:
-            if data.animals.identities is None:
-                return data.image
-            else:
-                return self.overlay.overlay(data.image, data)
+            if time.monotonic() - self.prev_time > 1/self.fps:
+                if data.animals.identities is None:
+                    return data.image
+                else:
+                    return self.overlay.overlay(data.image, data)
 
 class Display(WorkerNode):
 
@@ -231,7 +234,7 @@ if __name__ == "__main__":
     bckg = BackgroundSubWorker(b, name='background', logger = l, receive_timeout=1.0)
     dis = Display(fps = 30, name='display', logger = l, receive_timeout=1.0)
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
-    oly = OverlayWorker(overlay=o, name="overlay", logger=l, receive_timeout=1.0)
+    oly = OverlayWorker(overlay=o, fps=30, name="overlay", logger=l, receive_timeout=1.0)
 
     q_cam = MonitoredQueue(
         RingBuffer(

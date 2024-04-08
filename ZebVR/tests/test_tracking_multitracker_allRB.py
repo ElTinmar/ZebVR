@@ -109,7 +109,7 @@ class TrackerWorker(WorkerNode):
                     if indices:
                         k = indices[0]
                         res['stimulus'] = tracking.body[k]
-                        res['overlay'] = tracking
+                        res['overlay'] = tracking.to_numpy()
                     return res
         
 class OverlayWorker(WorkerNode):
