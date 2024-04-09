@@ -5,18 +5,19 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 from camera_tools import Camera, MovieFileCam
 from tracker import (
-    GridAssignment, MultiFishTracker, MultiFishTracker_CPU, MultiFishOverlay, MultiFishOverlay_opencv,
-    AnimalTracker_CPU, AnimalOverlay_opencv, AnimalTrackerParamTracking, AnimalTrackerParamOverlay,
-    BodyTracker_CPU, BodyOverlay_opencv, BodyTrackerParamTracking, BodyTrackerParamOverlay,
-    EyesTracker_CPU, EyesOverlay_opencv, EyesTrackerParamTracking, EyesTrackerParamOverlay,
-    TailTracker_CPU, TailOverlay_opencv, TailTrackerParamTracking, TailTrackerParamOverlay
+    GridAssignment, MultiFishTracker, MultiFishTracker_CPU, MultiFishOverlay, MultiFishOverlay_opencv, MultiFishTracking,
+    AnimalTracker_CPU, AnimalOverlay_opencv, AnimalTrackerParamTracking, AnimalTrackerParamOverlay,  AnimalTracking,
+    BodyTracker_CPU, BodyOverlay_opencv, BodyTrackerParamTracking, BodyTrackerParamOverlay,  BodyTracking,
+    EyesTracker_CPU, EyesOverlay_opencv, EyesTrackerParamTracking, EyesTrackerParamOverlay,  EyesTracking,
+    TailTracker_CPU, TailOverlay_opencv, TailTrackerParamTracking, TailTrackerParamOverlay,  TailTracking
 )
 from multiprocessing_logger import Logger
 from ipc_tools import RingBuffer, QueueMP, MonitoredQueue
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG, plot_logs
-from ZebVR.stimulus import Phototaxis, VisualStimWorker
+from ZebVR.stimulus import VisualStimWorker
+from ZebVR.stimulus.phototaxis_RB import Phototaxis
 
 import numpy as np
 from numpy.typing import NDArray
@@ -108,7 +109,7 @@ class TrackerWorker(WorkerNode):
                     indices = list(tracking.body.keys())
                     if indices:
                         k = indices[0]
-                        res['stimulus'] = tracking.body[k]
+                        res['stimulus'] = tracking.body[k].to_numpy()
                         res['overlay'] = tracking.to_numpy()
                     return res
         
@@ -122,11 +123,12 @@ class OverlayWorker(WorkerNode):
 
     def work(self, data: Any) -> Dict:
         if data is not None:
+            tracking = MultiFishTracking.from_numpy(data)
             if time.monotonic() - self.prev_time > 1/self.fps:
-                if data.animals.identities is None:
-                    return data.image
+                if tracking.animals.identities is None:
+                    return tracking.image
                 else:
-                    return self.overlay.overlay(data.image, data)
+                    return self.overlay.overlay(tracking.image, tracking)
 
 class Display(WorkerNode):
 
@@ -304,8 +306,26 @@ if __name__ == "__main__":
         )
     )
     #q_display = MonitoredQueue(QueueMP())
-    q_tracking = MonitoredQueue(QueueMP())
-    q_overlay = MonitoredQueue(QueueMP())
+
+    # get dtype and itemsize for tracker results
+    tracking = t.track(np.zeros((h,w), dtype=np.float32))
+    arr_multifish = tracking.to_numpy()
+
+    q_tracking = MonitoredQueue(
+        RingBuffer(
+            num_items = 100,
+            item_shape = (1,),
+            data_type = arr_multifish['bodies'].dtype
+        )
+    )
+
+    q_overlay = MonitoredQueue(
+        RingBuffer(
+            num_items = 100,
+            item_shape = (1,),
+            data_type = arr_multifish.dtype
+        )
+    )
 
     '''
     q_cam = MonitoredQueue(QueueMP())
@@ -352,7 +372,7 @@ if __name__ == "__main__":
 
     print('cam to background', q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
     print('background to trackers', q_back.get_average_freq(), q_back.queue.num_lost_item.value)
-    print('trackers to visual stim', q_tracking.get_average_freq())
+    print('trackers to visual stim', q_tracking.get_average_freq(),  q_tracking.queue.num_lost_item.value)
     print('trackers to overlay', q_overlay.get_average_freq())
     print('overlay to display', q_display.get_average_freq(), q_display.queue.num_lost_item.value)
 
