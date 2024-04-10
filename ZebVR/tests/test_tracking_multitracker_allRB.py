@@ -159,8 +159,8 @@ if __name__ == "__main__":
 
     PIX_PER_MM = 40  
     LOGFILE = 'test_tracking_RB.log'
-    N_BACKGROUND_WORKERS = 3
-    N_TRACKER_WORKERS = 7
+    N_BACKGROUND_WORKERS = 1
+    N_TRACKER_WORKERS = 1 
 
     m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
@@ -264,7 +264,7 @@ if __name__ == "__main__":
         window_decoration=False
     )
     
-    cam = CameraWorker(cam = m, fps = 300, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    cam = CameraWorker(cam = m, fps = 60, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
@@ -375,3 +375,6 @@ if __name__ == "__main__":
     print('overlay to display', q_display.get_average_freq(), q_display.queue.num_lost_item.value)
 
     plot_logs(LOGFILE, outlier_thresh=1000)
+    # NOTE: if you have more worker than necessary, you will see a heavy tail in the receive time.
+    # This is perfectly normal, each tracker may be skip a few cycles if the others are already 
+    # filling the job
