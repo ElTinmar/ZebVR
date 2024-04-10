@@ -109,8 +109,9 @@ class TrackerWorker(WorkerNode):
                     indices = list(tracking.body.keys())
                     if indices:
                         k = indices[0]
-                        res['stimulus'] = tracking.body[k].to_numpy()
-                        res['overlay'] = tracking.to_numpy()
+                        tracking_arr = tracking.to_numpy()
+                        res['stimulus'] = tracking_arr['bodies'][k] 
+                        res['overlay'] = tracking_arr
                     return res
         
 class OverlayWorker(WorkerNode):
@@ -155,7 +156,7 @@ class Display(WorkerNode):
 if __name__ == "__main__":
 
     PIX_PER_MM = 40  
-    LOGFILE = 'test_tracking.log'
+    LOGFILE = 'test_tracking_RB.log'
 
     m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
@@ -372,8 +373,8 @@ if __name__ == "__main__":
 
     print('cam to background', q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
     print('background to trackers', q_back.get_average_freq(), q_back.queue.num_lost_item.value)
-    print('trackers to visual stim', q_tracking.get_average_freq(),  q_tracking.queue.num_lost_item.value)
-    print('trackers to overlay', q_overlay.get_average_freq())
+    print('trackers to visual stim', q_tracking.get_average_freq(), q_tracking.queue.num_lost_item.value)
+    print('trackers to overlay', q_overlay.get_average_freq()), q_overlay.queue.num_lost_item.value
     print('overlay to display', q_display.get_average_freq(), q_display.queue.num_lost_item.value)
 
     plot_logs(LOGFILE, outlier_thresh=1000)
