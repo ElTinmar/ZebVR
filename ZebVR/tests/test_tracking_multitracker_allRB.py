@@ -371,12 +371,11 @@ if __name__ == "__main__":
     time.sleep(30)
     dag.stop()
     l.stop()
-    
 
     print('cam to background', q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
     print('background to trackers', q_back.get_average_freq(), q_back.queue.num_lost_item.value)
     print('trackers to visual stim', q_tracking.get_average_freq(), q_tracking.queue.num_lost_item.value)
-    print('trackers to overlay', q_overlay.get_average_freq()), q_overlay.queue.num_lost_item.value
+    print('trackers to overlay', q_overlay.get_average_freq(), q_overlay.queue.num_lost_item.value)
     print('overlay to display', q_display.get_average_freq(), q_display.queue.num_lost_item.value)
 
     plot_logs(LOGFILE, outlier_thresh=1000)
