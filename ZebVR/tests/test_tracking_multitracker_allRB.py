@@ -25,6 +25,8 @@ import time
 from typing import Any, Dict
 import cv2
 
+#TODO do something with that [0] indexing
+
 class CameraWorker(WorkerNode):
 
     def __init__(self, cam: Camera, fps: int = 200, *args, **kwargs):
