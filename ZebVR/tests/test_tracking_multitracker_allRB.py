@@ -3,7 +3,7 @@
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
-from camera_tools import Camera, MovieFileCam
+from camera_tools import Camera, MovieFileCam, BufferedMovieFileCam
 from tracker import (
     GridAssignment, MultiFishTracker, MultiFishTracker_CPU, MultiFishOverlay, MultiFishOverlay_opencv, MultiFishTracking,
     AnimalTracker_CPU, AnimalOverlay_opencv, AnimalTrackerParamTracking, AnimalTrackerParamOverlay,  AnimalTracking,
@@ -104,7 +104,8 @@ class TrackerWorker(WorkerNode):
 
     def work(self, data: NDArray) -> Dict:
         if data is not None:
-            tracking = self.tracker.track(data[0]['image'])
+            timestamp, index, image = data[0]
+            tracking = self.tracker.track(image)
             if tracking is not None:
                 if tracking.body is not None:
                     res = {}
@@ -163,6 +164,7 @@ if __name__ == "__main__":
     N_TRACKER_WORKERS = 7
     CAM_FPS = 400
 
+    #m = BufferedMovieFileCam(filename='toy_data/freely_swimming_param.avi')
     m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
 
