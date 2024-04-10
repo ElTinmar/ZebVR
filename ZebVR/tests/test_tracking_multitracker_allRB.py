@@ -83,7 +83,7 @@ class BackgroundSubWorker(WorkerNode):
             res = self.sub.subtract_background(im2single(im2gray(image)))
 
             #2 NOTE structured arrays with heterogeneous data are slower than normal arrays. SLOWER on faster computer WTF?
-            t0_ns = time.monotonic_ns()
+            #t0_ns = time.monotonic_ns()
             arr = np.array(
                 (timestamp[0], index[0], res),
                 dtype = np.dtype([
@@ -92,7 +92,7 @@ class BackgroundSubWorker(WorkerNode):
                     ('image', np.float32, (h,w))
                 ], align=True)
             )
-            print('creation', 1e-6*(time.monotonic_ns()-t0_ns))
+            #print('creation', 1e-6*(time.monotonic_ns()-t0_ns))
 
             return arr
          
@@ -126,12 +126,11 @@ class OverlayWorker(WorkerNode):
 
     def work(self, data: Any) -> Dict:
         if data is not None:
-            tracking = MultiFishTracking.from_numpy(data[0])
             if time.monotonic() - self.prev_time > 1/self.fps:
-                if tracking.animals.identities is None:
-                    return tracking.image
-                else:
+                tracking = MultiFishTracking.from_numpy(data[0])
+                if tracking.animals.identities is not None:
                     overlay = self.overlay.overlay(tracking.image, tracking)
+                    self.prev_time = time.monotonic()
                     return overlay
 
 class Display(WorkerNode):
@@ -160,6 +159,8 @@ if __name__ == "__main__":
 
     PIX_PER_MM = 40  
     LOGFILE = 'test_tracking_RB.log'
+    N_BACKGROUND_WORKERS = 3
+    N_TRACKER_WORKERS = 7
 
     m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
@@ -265,13 +266,13 @@ if __name__ == "__main__":
     
     cam = CameraWorker(cam = m, fps = 300, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
 
-    bckg0 = BackgroundSubWorker(b, name='background0', logger = l, receive_timeout=1.0)
-    bckg1 = BackgroundSubWorker(b, name='background1', logger = l, receive_timeout=1.0)
+    bckg = []
+    for i in range(N_BACKGROUND_WORKERS):
+        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger = l, receive_timeout=1.0))
 
-    trck0 = TrackerWorker(t, name='tracker0', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
-    trck1 = TrackerWorker(t, name='tracker1', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
-    trck2 = TrackerWorker(t, name='tracker2', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
-    trck3 = TrackerWorker(t, name='tracker3', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
+    trck = []
+    for i in range(N_TRACKER_WORKERS):
+        trck.append(TrackerWorker(t, name=f'tracker{i}', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0))
 
     dis = Display(fps = 30, name='display', logger = l, receive_timeout=1.0)
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
@@ -347,28 +348,17 @@ if __name__ == "__main__":
     '''
 
     dag = ProcessingDAG()
-    dag.connect(sender=cam, receiver=bckg0, queue=q_cam, name='cam_image')
-    dag.connect(sender=cam, receiver=bckg1, queue=q_cam, name='cam_image')
+
+    for i in range(N_BACKGROUND_WORKERS):   
+        dag.connect(sender=cam, receiver=bckg[i], queue=q_cam, name='cam_image')
     
-    dag.connect(sender=bckg0, receiver=trck0, queue=q_back, name='background_subtracted')
-    dag.connect(sender=bckg0, receiver=trck1, queue=q_back, name='background_subtracted')
-    dag.connect(sender=bckg0, receiver=trck2, queue=q_back, name='background_subtracted')
-    dag.connect(sender=bckg0, receiver=trck3, queue=q_back, name='background_subtracted')
+    for i in range(N_BACKGROUND_WORKERS):
+        for j in range(N_TRACKER_WORKERS):
+            dag.connect(sender=bckg[i], receiver=trck[j], queue=q_back, name='background_subtracted')
 
-    dag.connect(sender=bckg1, receiver=trck0, queue=q_back, name='background_subtracted')
-    dag.connect(sender=bckg1, receiver=trck1, queue=q_back, name='background_subtracted')
-    dag.connect(sender=bckg1, receiver=trck2, queue=q_back, name='background_subtracted')
-    dag.connect(sender=bckg1, receiver=trck3, queue=q_back, name='background_subtracted')
-
-    dag.connect(sender=trck0, receiver=stim, queue=q_tracking, name='stimulus')
-    dag.connect(sender=trck1, receiver=stim, queue=q_tracking, name='stimulus')
-    dag.connect(sender=trck2, receiver=stim, queue=q_tracking, name='stimulus')
-    dag.connect(sender=trck3, receiver=stim, queue=q_tracking, name='stimulus')
-
-    dag.connect(sender=trck0, receiver=oly, queue=q_overlay, name='overlay')
-    dag.connect(sender=trck1, receiver=oly, queue=q_overlay, name='overlay')
-    dag.connect(sender=trck2, receiver=oly, queue=q_overlay, name='overlay')
-    dag.connect(sender=trck3, receiver=oly, queue=q_overlay, name='overlay')
+    for i in range(N_TRACKER_WORKERS):
+        dag.connect(sender=trck[i], receiver=stim, queue=q_tracking, name='stimulus')
+        dag.connect(sender=trck[i], receiver=oly, queue=q_overlay, name='overlay')
 
     dag.connect(sender=oly, receiver=dis, queue=q_display, name='disp')
 
