@@ -159,8 +159,9 @@ if __name__ == "__main__":
 
     PIX_PER_MM = 40  
     LOGFILE = 'test_tracking_RB.log'
-    N_BACKGROUND_WORKERS = 1
-    N_TRACKER_WORKERS = 1 
+    N_BACKGROUND_WORKERS = 3
+    N_TRACKER_WORKERS = 7
+    CAM_FPS = 400
 
     m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
@@ -264,7 +265,7 @@ if __name__ == "__main__":
         window_decoration=False
     )
     
-    cam = CameraWorker(cam = m, fps = 60, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    cam = CameraWorker(cam = m, fps = CAM_FPS, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
