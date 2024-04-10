@@ -131,7 +131,8 @@ class OverlayWorker(WorkerNode):
                 if tracking.animals.identities is None:
                     return tracking.image
                 else:
-                    return self.overlay.overlay(tracking.image, tracking)
+                    overlay = self.overlay.overlay(tracking.image, tracking)
+                    return overlay
 
 class Display(WorkerNode):
 
@@ -151,7 +152,7 @@ class Display(WorkerNode):
     def work(self, data: NDArray) -> None:
         if data is not None:
             if time.monotonic() - self.prev_time > 1/self.fps:
-                cv2.imshow('display', data[0])
+                cv2.imshow('display', data) # NOT data[0]
                 cv2.waitKey(1)
                 self.prev_time = time.monotonic()
 
@@ -262,7 +263,7 @@ if __name__ == "__main__":
         window_decoration=False
     )
     
-    cam = CameraWorker(cam = m, fps = 200, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    cam = CameraWorker(cam = m, fps = 300, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
 
     bckg0 = BackgroundSubWorker(b, name='background0', logger = l, receive_timeout=1.0)
     bckg1 = BackgroundSubWorker(b, name='background1', logger = l, receive_timeout=1.0)
@@ -270,6 +271,7 @@ if __name__ == "__main__":
     trck0 = TrackerWorker(t, name='tracker0', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
     trck1 = TrackerWorker(t, name='tracker1', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
     trck2 = TrackerWorker(t, name='tracker2', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
+    trck3 = TrackerWorker(t, name='tracker3', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
 
     dis = Display(fps = 30, name='display', logger = l, receive_timeout=1.0)
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
@@ -351,18 +353,22 @@ if __name__ == "__main__":
     dag.connect(sender=bckg0, receiver=trck0, queue=q_back, name='background_subtracted')
     dag.connect(sender=bckg0, receiver=trck1, queue=q_back, name='background_subtracted')
     dag.connect(sender=bckg0, receiver=trck2, queue=q_back, name='background_subtracted')
+    dag.connect(sender=bckg0, receiver=trck3, queue=q_back, name='background_subtracted')
 
     dag.connect(sender=bckg1, receiver=trck0, queue=q_back, name='background_subtracted')
     dag.connect(sender=bckg1, receiver=trck1, queue=q_back, name='background_subtracted')
     dag.connect(sender=bckg1, receiver=trck2, queue=q_back, name='background_subtracted')
+    dag.connect(sender=bckg1, receiver=trck3, queue=q_back, name='background_subtracted')
 
     dag.connect(sender=trck0, receiver=stim, queue=q_tracking, name='stimulus')
     dag.connect(sender=trck1, receiver=stim, queue=q_tracking, name='stimulus')
     dag.connect(sender=trck2, receiver=stim, queue=q_tracking, name='stimulus')
+    dag.connect(sender=trck3, receiver=stim, queue=q_tracking, name='stimulus')
 
     dag.connect(sender=trck0, receiver=oly, queue=q_overlay, name='overlay')
     dag.connect(sender=trck1, receiver=oly, queue=q_overlay, name='overlay')
     dag.connect(sender=trck2, receiver=oly, queue=q_overlay, name='overlay')
+    dag.connect(sender=trck3, receiver=oly, queue=q_overlay, name='overlay')
 
     dag.connect(sender=oly, receiver=dis, queue=q_display, name='disp')
 
