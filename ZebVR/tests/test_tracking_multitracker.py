@@ -93,10 +93,10 @@ class OverlayWorker(WorkerNode):
     def work(self, data: Any) -> Dict:
         if data is not None:
             if time.monotonic() - self.prev_time > 1/self.fps:
-                if data.animals.identities is None:
-                    return data.image
-                else:
-                    return self.overlay.overlay(data.image, data)
+                if data.animals.identities is not None:
+                    overlay = self.overlay.overlay(data.image, data)
+                    self.prev_time = time.monotonic()
+                    return overlay
 
 class Display(WorkerNode):
 
