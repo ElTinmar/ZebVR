@@ -82,8 +82,8 @@ class BackgroundSubWorker(WorkerNode):
             #1
             res = self.sub.subtract_background(im2single(im2gray(image)))
 
-            #2 NOTE structured arrays are SLOW. This step takes a lot of extra time, use MultiRingBuffer instead
-            #t0_ns = time.monotonic_ns()
+            #2 NOTE structured arrays with heterogeneous data are slower than normal arrays. SLOWER on faster computer WTF?
+            t0_ns = time.monotonic_ns()
             arr = np.array(
                 (timestamp[0], index[0], res),
                 dtype = np.dtype([
@@ -92,7 +92,7 @@ class BackgroundSubWorker(WorkerNode):
                     ('image', np.float32, (h,w))
                 ], align=True)
             )
-            #print('creation', 1e-6*(time.monotonic_ns()-t0_ns))
+            print('creation', 1e-6*(time.monotonic_ns()-t0_ns))
 
             return arr
          
