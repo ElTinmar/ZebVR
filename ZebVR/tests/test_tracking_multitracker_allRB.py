@@ -124,7 +124,7 @@ class OverlayWorker(WorkerNode):
 
     def work(self, data: Any) -> Dict:
         if data is not None:
-            tracking = MultiFishTracking.from_numpy(data)
+            tracking = MultiFishTracking.from_numpy(data[0])
             if time.monotonic() - self.prev_time > 1/self.fps:
                 if tracking.animals.identities is None:
                     return tracking.image
@@ -149,7 +149,7 @@ class Display(WorkerNode):
     def work(self, data: NDArray) -> None:
         if data is not None:
             if time.monotonic() - self.prev_time > 1/self.fps:
-                cv2.imshow('display', data)
+                cv2.imshow('display', data[0])
                 cv2.waitKey(1)
                 self.prev_time = time.monotonic()
 
