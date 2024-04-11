@@ -66,28 +66,9 @@ class BackgroundSubWorker(WorkerNode):
 
     def work(self, data):
         if data is not None:
-            
-            #0
-            #t0_ns = time.monotonic_ns()
             index, timestamp, image = data
-            #print('indexing', 1e-6*(time.monotonic_ns()-t0_ns))
-
-            #1
             res = self.sub.subtract_background(im2single(im2gray(image)))
-
-            #2 NOTE structured arrays with heterogeneous data are slower than normal arrays. SLOWER on faster computer WTF?
-            #t0_ns = time.monotonic_ns()
-            arr = np.array(
-                (timestamp, index, res),
-                dtype = np.dtype([
-                    ('timestamp', np.float64, (1,)), 
-                    ('index', int, (1,)),
-                    ('image', np.float32, (h,w))
-                ], align=True)
-            )
-            #print('creation', 1e-6*(time.monotonic_ns()-t0_ns))
-
-            return arr
+            return (index, timestamp, res)
          
 class TrackerWorker(WorkerNode):
     
@@ -105,7 +86,7 @@ class TrackerWorker(WorkerNode):
                     indices = list(tracking.body.keys())
                     if indices:
                         k = indices[0]
-                        res['stimulus'] = (index, timestamp, tracking.bodies[k])
+                        res['stimulus'] = (index, timestamp, tracking.body[k])
                         res['overlay'] = (index, timestamp, tracking)
                 
                     return res
@@ -289,7 +270,7 @@ if __name__ == "__main__":
     def deserialize_image(arr: NDArray) -> Tuple[int, float, NDArray]:
         index = arr['index'].item()
         timestamp = arr['timestamp'].item()
-        image = arr['image']
+        image = arr[0]['image']
         return (index, timestamp, image)
 
     q_cam = MonitoredQueue(
@@ -300,6 +281,16 @@ if __name__ == "__main__":
             deserialize = deserialize_image
         )
     )
+
+    q_display = MonitoredQueue(
+        ObjectRingBuffer(
+            num_items = 100,
+            data_type = dt_uint8_RGB,
+            serialize = partial(serialize_image, data_type=dt_uint8_RGB),
+            deserialize = deserialize_image
+        )
+    )
+
 
     # ring buffer background ------------------------------------------------------------------
     # IMPORTANT: need to copy the data out of the 
@@ -321,16 +312,6 @@ if __name__ == "__main__":
         )
     )
 
-
-    q_display = MonitoredQueue(
-        ObjectRingBuffer(
-            num_items = 100,
-            data_type = dt_uint8_RGB,
-            serialize = partial(serialize_image, data_type=dt_uint8_RGB),
-            deserialize = deserialize_image
-        )
-    )
-
     # tracking ring buffer -------------------------------------------------------------------
     # get dtype and itemsize for tracker results
     tracking = t.track(np.zeros((h,w), dtype=np.float32))
@@ -349,7 +330,7 @@ if __name__ == "__main__":
     def deserialize_tracking_multifish(arr: NDArray) -> Tuple[int, float, MultiFishTracking]:
         index = arr['index'].item()
         timestamp = arr['timestamp'].item()
-        tracking = MultiFishTracking.from_numpy(arr['tracking'])
+        tracking = MultiFishTracking.from_numpy(arr[0]['tracking'][0])
         return (index, timestamp, tracking)
 
     # ---
@@ -366,7 +347,7 @@ if __name__ == "__main__":
     def deserialize_tracking_body(arr: NDArray) -> Tuple[int, float, BodyTracking]:
         index = arr['index'].item()
         timestamp = arr['timestamp'].item()
-        tracking = BodyTracking.from_numpy(arr['tracking'])
+        tracking = BodyTracking.from_numpy(arr[0]['tracking'][0])
         return (index, timestamp, tracking)
     
 
