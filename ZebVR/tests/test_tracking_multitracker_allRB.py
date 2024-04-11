@@ -152,12 +152,12 @@ if __name__ == "__main__":
 
     PIX_PER_MM = 40  
     LOGFILE = 'test_tracking_RB.log'
-    N_BACKGROUND_WORKERS = 3
-    N_TRACKER_WORKERS = 7
-    CAM_FPS = 400
+    N_BACKGROUND_WORKERS = 2
+    N_TRACKER_WORKERS = 6
+    CAM_FPS = 550
 
-    #m = BufferedMovieFileCam(filename='toy_data/freely_swimming_param.avi')
-    m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
+    m = BufferedMovieFileCam(filename='toy_data/freely_swimming_param.avi', memsize_bytes=16e9)
+    #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
 
     o = MultiFishOverlay_opencv(
