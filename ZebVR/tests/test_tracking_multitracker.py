@@ -3,7 +3,7 @@
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
-from camera_tools import Camera, MovieFileCam
+from camera_tools import Camera, MovieFileCam,  BufferedMovieFileCam
 from tracker import (
     GridAssignment, MultiFishTracker, MultiFishTracker_CPU, MultiFishOverlay, MultiFishOverlay_opencv,
     AnimalTracker_CPU, AnimalOverlay_opencv, AnimalTrackerParamTracking, AnimalTrackerParamOverlay,
@@ -124,8 +124,12 @@ if __name__ == "__main__":
 
     PIX_PER_MM = 40  
     LOGFILE = 'test_tracking.log'
+    N_BACKGROUND_WORKERS = 2
+    N_TRACKER_WORKERS = 6
+    CAM_FPS = 550
 
-    m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
+    m = BufferedMovieFileCam(filename='toy_data/freely_swimming_param.avi', memsize_bytes=16e9)
+    #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
 
     o = MultiFishOverlay_opencv(
@@ -227,11 +231,15 @@ if __name__ == "__main__":
         window_decoration=False
     )
     
-    cam = CameraWorker(cam = m, fps = 200, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
-    trck0 = TrackerWorker(t, name='tracker0', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
-    trck1 = TrackerWorker(t, name='tracker1', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
-    trck2 = TrackerWorker(t, name='tracker2', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0)
-    bckg = BackgroundSubWorker(b, name='background', logger = l, receive_timeout=1.0)
+    cam = CameraWorker(cam = m, fps = CAM_FPS, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    bckg = []
+    for i in range(N_BACKGROUND_WORKERS):
+        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger = l, receive_timeout=1.0, profile=False))
+
+    trck = []
+    for i in range(N_TRACKER_WORKERS):
+        trck.append(TrackerWorker(t, name=f'tracker{i}', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0))
+
     dis = Display(fps = 30, name='display', logger = l, receive_timeout=1.0)
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
     oly = OverlayWorker(overlay=o, fps=30, name="overlay", logger=l, receive_timeout=1.0)
@@ -280,21 +288,20 @@ if __name__ == "__main__":
     '''
 
     dag = ProcessingDAG()
-    dag.connect(sender=cam, receiver=bckg, queue=q_cam, name='cam_image')
+
+    for i in range(N_BACKGROUND_WORKERS):   
+        dag.connect(sender=cam, receiver=bckg[i], queue=q_cam, name='cam_image')
     
-    dag.connect(sender=bckg, receiver=trck0, queue=q_back, name='background_subtracted')
-    dag.connect(sender=bckg, receiver=trck1, queue=q_back, name='background_subtracted')
-    dag.connect(sender=bckg, receiver=trck2, queue=q_back, name='background_subtracted')
+    for i in range(N_BACKGROUND_WORKERS):
+        for j in range(N_TRACKER_WORKERS):
+            dag.connect(sender=bckg[i], receiver=trck[j], queue=q_back, name='background_subtracted')
 
-    dag.connect(sender=trck0, receiver=stim, queue=q_tracking, name='stimulus')
-    dag.connect(sender=trck1, receiver=stim, queue=q_tracking, name='stimulus')
-    dag.connect(sender=trck2, receiver=stim, queue=q_tracking, name='stimulus')
-
-    dag.connect(sender=trck0, receiver=oly, queue=q_overlay, name='overlay')
-    dag.connect(sender=trck1, receiver=oly, queue=q_overlay, name='overlay')
-    dag.connect(sender=trck2, receiver=oly, queue=q_overlay, name='overlay')
+    for i in range(N_TRACKER_WORKERS):
+        dag.connect(sender=trck[i], receiver=stim, queue=q_tracking, name='stimulus')
+        dag.connect(sender=trck[i], receiver=oly, queue=q_overlay, name='overlay')
 
     dag.connect(sender=oly, receiver=dis, queue=q_display, name='disp')
+
 
     l.start()
     dag.start()
