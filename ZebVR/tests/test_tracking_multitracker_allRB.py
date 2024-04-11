@@ -22,7 +22,7 @@ from ZebVR.stimulus.phototaxis_RB import Phototaxis
 import numpy as np
 from numpy.typing import NDArray
 import time
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 import cv2
 
 #TODO do something with that [0] indexing
@@ -43,7 +43,7 @@ class CameraWorker(WorkerNode):
         super().cleanup()
         self.cam.stop_acquisition()
     
-    def work(self, data: None) -> NDArray: 
+    def work(self, data: None): 
         
         res = self.cam.get_frame()
         elapsed = (time.monotonic_ns() - self.prev_time) 
@@ -51,7 +51,7 @@ class CameraWorker(WorkerNode):
             elapsed = (time.monotonic_ns() - self.prev_time) 
         self.prev_time = time.monotonic_ns()
 
-        return [res.index, res.timestamp, res.image]
+        return (res.index, res.timestamp, res.image)
     
 class BackgroundSubWorker(WorkerNode):
 
@@ -63,7 +63,7 @@ class BackgroundSubWorker(WorkerNode):
         super().initialize()
         self.sub.initialize()
 
-    def work(self, data: NDArray) -> NDArray:
+    def work(self, data):
         if data is not None:
             
             #0
@@ -77,7 +77,7 @@ class BackgroundSubWorker(WorkerNode):
             #2 NOTE structured arrays with heterogeneous data are slower than normal arrays. SLOWER on faster computer WTF?
             #t0_ns = time.monotonic_ns()
             arr = np.array(
-                (timestamp[0], index[0], res),
+                (timestamp, index, res),
                 dtype = np.dtype([
                     ('timestamp', np.float64, (1,)), 
                     ('index', int, (1,)),
@@ -152,11 +152,11 @@ if __name__ == "__main__":
 
     PIX_PER_MM = 40  
     LOGFILE = 'test_tracking_RB.log'
-    N_BACKGROUND_WORKERS = 2
-    N_TRACKER_WORKERS = 6
-    CAM_FPS = 550
+    N_BACKGROUND_WORKERS = 1
+    N_TRACKER_WORKERS = 3
+    CAM_FPS = 120
 
-    m = BufferedMovieFileCam(filename='toy_data/freely_swimming_param.avi', memsize_bytes=16e9)
+    m = BufferedMovieFileCam(filename='toy_data/freely_swimming_param.avi', memsize_bytes=4e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
 
@@ -273,26 +273,31 @@ if __name__ == "__main__":
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
     oly = OverlayWorker(overlay=o, fps=30, name="overlay", logger=l, receive_timeout=1.0)
 
-    def serialize_cam(obj):
+    def serialize_cam(obj: Tuple[int, float, NDArray]) -> NDArray:
         index, timestamp, image = obj
         data_type = np.dtype([
                 ('index', int, (1,)),
-                ('timestamp', np.float64, (1,)), 
+                ('timestamp', float, (1,)), 
                 ('image', image.dtype, image.shape)
             ])
-        return np.array((index,timestamp, image), dtype = data_type)
+        return np.array((index, timestamp, image), dtype = data_type)
 
-    def deserialize_cam(arr):
+    def deserialize_cam(arr: NDArray) -> Tuple[int, float, NDArray]:
         index = arr['index'].item()
         timestamp = arr['timestamp'].item()
         image = arr['image']
-        return [index, timestamp, image]
+        return (index, timestamp, image)
 
     q_cam = MonitoredQueue(
         ObjectRingBuffer(
             num_items = 100,
-            serialize=serialize_cam,
-            deserialize=deserialize_cam
+            data_type = np.dtype([
+                ('index', int, (1,)),
+                ('timestamp', float, (1,)), 
+                ('image', np.uint8, (h,w,3))
+            ]),
+            serialize = serialize_cam,
+            deserialize = deserialize_cam
         )
     )
 
