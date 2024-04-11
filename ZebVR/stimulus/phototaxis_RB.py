@@ -1,9 +1,8 @@
-from typing import Tuple, Dict
+from typing import Tuple
 from .visual_stim import VisualStim
 from vispy import gloo, app
 from multiprocessing import Value
-from typing import Any
-from tracker import BodyTracking
+import time
 
 # TODO add transformation from camera coords to proj coords
 
@@ -98,5 +97,6 @@ class Phototaxis(VisualStim):
                 self.fish_orientation_y.value = tracking.heading[1,1]
                 self.fish_centroid_x.value = tracking.centroid[0]
                 self.fish_centroid_y.value = tracking.centroid[1]
+            print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
 
     

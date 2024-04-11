@@ -52,7 +52,7 @@ class CameraWorker(WorkerNode):
             elapsed = (time.monotonic_ns() - self.prev_time) 
         self.prev_time = time.monotonic_ns()
 
-        return (res.index, res.timestamp, res.image)
+        return (res.index, time.perf_counter_ns(), res.image)
     
 class BackgroundSubWorker(WorkerNode):
 
