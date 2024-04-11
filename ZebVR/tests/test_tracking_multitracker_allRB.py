@@ -20,10 +20,11 @@ from ZebVR.stimulus import VisualStimWorker
 from ZebVR.stimulus.phototaxis_RB import Phototaxis
 
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import NDArray, DTypeLike
 import time
 from typing import Any, Dict, Tuple
 import cv2
+from functools import partial
 
 #TODO do something with that [0] indexing
 
@@ -273,13 +274,8 @@ if __name__ == "__main__":
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
     oly = OverlayWorker(overlay=o, fps=30, name="overlay", logger=l, receive_timeout=1.0)
 
-    def serialize_cam(obj: Tuple[int, float, NDArray]) -> NDArray:
+    def serialize_cam(obj: Tuple[int, float, NDArray], data_type: DTypeLike) -> NDArray:
         index, timestamp, image = obj
-        data_type = np.dtype([
-                ('index', int, (1,)),
-                ('timestamp', float, (1,)), 
-                ('image', image.dtype, image.shape)
-            ])
         return np.array((index, timestamp, image), dtype = data_type)
 
     def deserialize_cam(arr: NDArray) -> Tuple[int, float, NDArray]:
@@ -288,15 +284,17 @@ if __name__ == "__main__":
         image = arr['image']
         return (index, timestamp, image)
 
+    data_type = np.dtype([
+        ('index', int, (1,)),
+        ('timestamp', float, (1,)), 
+        ('image', np.uint8, (h,w,3))
+    ])
+
     q_cam = MonitoredQueue(
         ObjectRingBuffer(
             num_items = 100,
-            data_type = np.dtype([
-                ('index', int, (1,)),
-                ('timestamp', float, (1,)), 
-                ('image', np.uint8, (h,w,3))
-            ]),
-            serialize = serialize_cam,
+            data_type = data_type,
+            serialize = partial(serialize_cam, data_type=data_type),
             deserialize = deserialize_cam
         )
     )
