@@ -152,11 +152,11 @@ if __name__ == "__main__":
 
     PIX_PER_MM = 40  
     LOGFILE = 'test_tracking_RB.log'
-    N_BACKGROUND_WORKERS = 1
-    N_TRACKER_WORKERS = 3
-    CAM_FPS = 120
+    N_BACKGROUND_WORKERS = 2
+    N_TRACKER_WORKERS = 6
+    CAM_FPS = 600
 
-    m = BufferedMovieFileCam(filename='toy_data/freely_swimming_param.avi', memsize_bytes=4e9)
+    m = BufferedMovieFileCam(filename='toy_data/freely_swimming_param.avi', memsize_bytes=16e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
 
