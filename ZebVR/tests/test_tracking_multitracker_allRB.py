@@ -97,7 +97,7 @@ class TrackerWorker(WorkerNode):
 
     def work(self, data: NDArray) -> Dict:
         if data is not None:
-            timestamp, index, image = data[0]
+            index, timestamp, image = data
             tracking = self.tracker.track(image)
             if tracking is not None:
                 if tracking.body is not None:
@@ -105,9 +105,9 @@ class TrackerWorker(WorkerNode):
                     indices = list(tracking.body.keys())
                     if indices:
                         k = indices[0]
-                        tracking_arr = tracking.to_numpy()
-                        res['stimulus'] = tracking_arr['bodies'][k] 
-                        res['overlay'] = tracking_arr
+                        res['stimulus'] = (index, timestamp, tracking.bodies[k])
+                        res['overlay'] = (index, timestamp, tracking)
+                
                     return res
         
 class OverlayWorker(WorkerNode):
@@ -120,12 +120,12 @@ class OverlayWorker(WorkerNode):
 
     def work(self, data: Any) -> Dict:
         if data is not None:
+            index, timestamp, tracking = data
             if time.monotonic() - self.prev_time > 1/self.fps:
-                tracking = MultiFishTracking.from_numpy(data[0])
                 if tracking.animals.identities is not None:
                     overlay = self.overlay.overlay(tracking.image, tracking)
                     self.prev_time = time.monotonic()
-                    return overlay
+                    return (index, timestamp, overlay)
 
 class Display(WorkerNode):
 
@@ -144,8 +144,9 @@ class Display(WorkerNode):
 
     def work(self, data: NDArray) -> None:
         if data is not None:
+            index, timestamp, image = data
             if time.monotonic() - self.prev_time > 1/self.fps:
-                cv2.imshow('display', data) # NOT data[0]
+                cv2.imshow('display', image) # NOT data[0]
                 cv2.waitKey(1)
                 self.prev_time = time.monotonic()
 
@@ -153,11 +154,11 @@ if __name__ == "__main__":
 
     PIX_PER_MM = 40  
     LOGFILE = 'test_tracking_RB.log'
-    N_BACKGROUND_WORKERS = 2
-    N_TRACKER_WORKERS = 6
-    CAM_FPS = 600
+    N_BACKGROUND_WORKERS = 1
+    N_TRACKER_WORKERS = 3
+    CAM_FPS = 120
 
-    m = BufferedMovieFileCam(filename='toy_data/freely_swimming_param.avi', memsize_bytes=16e9)
+    m = BufferedMovieFileCam(filename='toy_data/freely_swimming_param.avi', memsize_bytes=3e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
 
@@ -274,87 +275,118 @@ if __name__ == "__main__":
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
     oly = OverlayWorker(overlay=o, fps=30, name="overlay", logger=l, receive_timeout=1.0)
 
-    def serialize_cam(obj: Tuple[int, float, NDArray], data_type: DTypeLike) -> NDArray:
-        index, timestamp, image = obj
-        return np.array((index, timestamp, image), dtype = data_type)
-
-    def deserialize_cam(arr: NDArray) -> Tuple[int, float, NDArray]:
-        index = arr['index'].item()
-        timestamp = arr['timestamp'].item()
-        image = arr['image']
-        return (index, timestamp, image)
-
-    data_type = np.dtype([
+    # ring buffer camera ------------------------------------------------------------------ 
+    dt_uint8_RGB = np.dtype([
         ('index', int, (1,)),
         ('timestamp', float, (1,)), 
         ('image', np.uint8, (h,w,3))
     ])
 
+    def serialize_image(obj: Tuple[int, float, NDArray], data_type: DTypeLike) -> NDArray:
+        index, timestamp, image = obj
+        return np.array((index, timestamp, image), dtype = data_type)
+
+    def deserialize_image(arr: NDArray) -> Tuple[int, float, NDArray]:
+        index = arr['index'].item()
+        timestamp = arr['timestamp'].item()
+        image = arr['image']
+        return (index, timestamp, image)
+
     q_cam = MonitoredQueue(
         ObjectRingBuffer(
             num_items = 100,
-            data_type = data_type,
-            serialize = partial(serialize_cam, data_type=data_type),
-            deserialize = deserialize_cam
+            data_type = dt_uint8_RGB,
+            serialize = partial(serialize_image, data_type=dt_uint8_RGB),
+            deserialize = deserialize_image
         )
     )
 
+    # ring buffer background ------------------------------------------------------------------
     # IMPORTANT: need to copy the data out of the 
     # circular buffer otherwise it can be modified after the fact
+    
+    dt_single_gray = np.dtype([
+        ('index', int, (1,)),
+        ('timestamp', float, (1,)), 
+        ('image', np.float32, (h,w))
+    ])
+
     q_back = MonitoredQueue(
-        RingBuffer(
+        ObjectRingBuffer(
             num_items = 100,
-            item_shape = (1,),
-            data_type = np.dtype([
-                ('timestamp', np.float64, (1,)), 
-                ('index', int, (1,)),
-                ('image', np.float32, (h,w))
-            ]),
+            data_type = dt_single_gray,
+            serialize = partial(serialize_image, data_type=dt_single_gray),
+            deserialize = deserialize_image,
             copy=True
         )
     )
+
+
     q_display = MonitoredQueue(
-        RingBuffer(
+        ObjectRingBuffer(
             num_items = 100,
-            item_shape = (h, w, 3),
-            data_type = np.uint8
+            data_type = dt_uint8_RGB,
+            serialize = partial(serialize_image, data_type=dt_uint8_RGB),
+            deserialize = deserialize_image
         )
     )
-    #q_display = MonitoredQueue(QueueMP())
 
+    # tracking ring buffer -------------------------------------------------------------------
     # get dtype and itemsize for tracker results
     tracking = t.track(np.zeros((h,w), dtype=np.float32))
     arr_multifish = tracking.to_numpy()
 
+    dt_tracking_multifish = np.dtype([
+        ('index', int, (1,)),
+        ('timestamp', float, (1,)), 
+        ('tracking', arr_multifish.dtype, (1,))
+    ])
+
+    def serialize_tracking_multifish(obj: Tuple[int, float, MultiFishTracking], data_type: DTypeLike) -> NDArray:
+        index, timestamp, tracking = obj
+        return np.array((index, timestamp, tracking.to_numpy()), dtype = data_type)
+
+    def deserialize_tracking_multifish(arr: NDArray) -> Tuple[int, float, MultiFishTracking]:
+        index = arr['index'].item()
+        timestamp = arr['timestamp'].item()
+        tracking = MultiFishTracking.from_numpy(arr['tracking'])
+        return (index, timestamp, tracking)
+
+    # ---
+    dt_tracking_body = np.dtype([
+        ('index', int, (1,)),
+        ('timestamp', float, (1,)), 
+        ('tracking', arr_multifish['bodies'].dtype, (1,))
+    ])
+
+    def serialize_tracking_body(obj: Tuple[int, float, BodyTracking], data_type: DTypeLike) -> NDArray:
+        index, timestamp, tracking = obj
+        return np.array((index, timestamp, tracking.to_numpy()), dtype = data_type)
+
+    def deserialize_tracking_body(arr: NDArray) -> Tuple[int, float, BodyTracking]:
+        index = arr['index'].item()
+        timestamp = arr['timestamp'].item()
+        tracking = BodyTracking.from_numpy(arr['tracking'])
+        return (index, timestamp, tracking)
+    
+
     q_tracking = MonitoredQueue(
-        RingBuffer(
+        ObjectRingBuffer(
             num_items = 100,
-            item_shape = (1,),
-            data_type = arr_multifish['bodies'].dtype
+            data_type = dt_tracking_body,
+            serialize = partial(serialize_tracking_body, data_type=dt_tracking_body),
+            deserialize = deserialize_tracking_body
         )
     )
 
     q_overlay = MonitoredQueue(
-        RingBuffer(
+        ObjectRingBuffer(
             num_items = 100,
-            item_shape = (1,),
-            data_type = arr_multifish.dtype
+            data_type = dt_tracking_multifish,
+            serialize = partial(serialize_tracking_multifish, data_type=dt_tracking_multifish),
+            deserialize = deserialize_tracking_multifish
         )
     )
-
-    '''
-    q_cam = MonitoredQueue(QueueMP())
-    q_back = MonitoredQueue(QueueMP())
-    q_display = MonitoredQueue(QueueMP())
-    q_tracking = MonitoredQueue(QueueMP())
-    '''
-
-    '''
-    q_cam = MonitoredQueue(ZMQ_PushPullObj(port=5556))
-    q_back = MonitoredQueue(ZMQ_PushPullObj(port=5557))
-    q_display = MonitoredQueue(ZMQ_PushPullObj(port=5558))
-    q_tracking = MonitoredQueue(ZMQ_PushPullObj(port=5559)) 
-    '''
 
     dag = ProcessingDAG()
 

@@ -92,7 +92,7 @@ class Phototaxis(VisualStim):
 
     def work(self, data) -> None:
         if data is not None:
-            tracking = BodyTracking.from_numpy(data[0])
+            index, timestamp, tracking = data
             if tracking.heading is not None:
                 self.fish_orientation_x.value = tracking.heading[0,1]
                 self.fish_orientation_y.value = tracking.heading[1,1]
