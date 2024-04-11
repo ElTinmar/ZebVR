@@ -133,13 +133,21 @@ class Display(WorkerNode):
 
 if __name__ == "__main__":
 
-    PIX_PER_MM = 40  
     LOGFILE = 'test_tracking_RB.log'
     N_BACKGROUND_WORKERS = 1
-    N_TRACKER_WORKERS = 3
-    CAM_FPS = 120
+    N_TRACKER_WORKERS = 5
+    CAM_FPS = 240
 
-    m = BufferedMovieFileCam(filename='toy_data/freely_swimming_param.avi', memsize_bytes=3e9)
+    DATA = [
+        ('toy_data/multi_freelyswimming_1800x1800px.avi', 'toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 40),
+        ('toy_data/single_freelyswimming_504x500px.avi', 'toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
+        ('toy_data/single_headembedded_544x380px_noparam.avi', 'toy_data/single_headembedded_544x380px_noparam.png', Polarity.DARK_ON_BRIGHT, 100),
+        ('toy_data/single_headembedded_544x380px_param.avi', 'toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
+    ]
+    # background subtracted video
+    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
+
+    m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=8e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
 
@@ -231,8 +239,8 @@ if __name__ == "__main__":
 
     l = Logger(LOGFILE, Logger.INFO)
     b = BackroundImage(
-        image_file_name = 'toy_data/freely_swimming_param.png',
-        polarity = Polarity.DARK_ON_BRIGHT
+        image_file_name = BACKGROUND_IMAGE,
+        polarity = POLARITY
     )
     
     ptx = Phototaxis(
