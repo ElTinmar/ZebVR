@@ -12,7 +12,7 @@ from tracker import (
     TailTracker_CPU, TailOverlay_opencv, TailTrackerParamTracking, TailTrackerParamOverlay,  TailTracking
 )
 from multiprocessing_logger import Logger
-from ipc_tools import RingBuffer, QueueMP, MonitoredQueue
+from ipc_tools import RingBuffer, QueueMP, MonitoredQueue, ObjectRingBuffer
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG, plot_logs
@@ -50,16 +50,8 @@ class CameraWorker(WorkerNode):
         while elapsed < 1e9/self.fps:
             elapsed = (time.monotonic_ns() - self.prev_time) 
         self.prev_time = time.monotonic_ns()
-                
-        arr = np.array(
-            (res.timestamp, res.index, res.image),
-            dtype = np.dtype([
-                ('timestamp', np.float64, (1,)), 
-                ('index', int, (1,)),
-                ('image', np.uint8, (h,w,3))
-            ])
-        )
-        return arr
+
+        return [res.index, res.timestamp, res.image]
     
 class BackgroundSubWorker(WorkerNode):
 
@@ -76,7 +68,7 @@ class BackgroundSubWorker(WorkerNode):
             
             #0
             #t0_ns = time.monotonic_ns()
-            timestamp, index, image = data[0]
+            index, timestamp, image = data
             #print('indexing', 1e-6*(time.monotonic_ns()-t0_ns))
 
             #1
@@ -281,15 +273,26 @@ if __name__ == "__main__":
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
     oly = OverlayWorker(overlay=o, fps=30, name="overlay", logger=l, receive_timeout=1.0)
 
-    q_cam = MonitoredQueue(
-        RingBuffer(
-            num_items = 100,
-            item_shape = (1,),
-            data_type = np.dtype([
-                ('timestamp', np.float64, (1,)), 
+    def serialize_cam(obj):
+        index, timestamp, image = obj
+        data_type = np.dtype([
                 ('index', int, (1,)),
-                ('image', np.uint8, (h,w,3))
+                ('timestamp', np.float64, (1,)), 
+                ('image', image.dtype, image.shape)
             ])
+        return np.array((index,timestamp, image), dtype = data_type)
+
+    def deserialize_cam(arr):
+        index = arr['index'].item()
+        timestamp = arr['timestamp'].item()
+        image = arr['image']
+        return [index, timestamp, image]
+
+    q_cam = MonitoredQueue(
+        ObjectRingBuffer(
+            num_items = 100,
+            serialize=serialize_cam,
+            deserialize=deserialize_cam
         )
     )
 
