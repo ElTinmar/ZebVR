@@ -134,9 +134,9 @@ class Display(WorkerNode):
 if __name__ == "__main__":
 
     LOGFILE = 'test_tracking_RB.log'
-    N_BACKGROUND_WORKERS = 1
-    N_TRACKER_WORKERS = 1
-    CAM_FPS = 60
+    N_BACKGROUND_WORKERS = 6
+    N_TRACKER_WORKERS = 3
+    CAM_FPS = 150
     DATA = [
         ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 40),
         ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     t = MultiFishTracker_CPU(
         max_num_animals=1,
         accumulator=None, 
-        export_fullres_image=True,
+        export_fullres_image=False,
         animal=AnimalTracker_CPU(
             assignment=GridAssignment(LUT=np.zeros((h,w), dtype=np.int_)), 
             tracking_param=AnimalTrackerParamTracking(
@@ -392,9 +392,9 @@ if __name__ == "__main__":
 
     for i in range(N_TRACKER_WORKERS):
         dag.connect(sender=trck[i], receiver=stim, queue=q_tracking, name='stimulus')
-        dag.connect(sender=trck[i], receiver=oly, queue=q_overlay, name='overlay')
+        #dag.connect(sender=trck[i], receiver=oly, queue=q_overlay, name='overlay')
 
-    dag.connect(sender=oly, receiver=dis, queue=q_display, name='disp')
+    #dag.connect(sender=oly, receiver=dis, queue=q_display, name='disp')
 
     l.start()
     dag.start()
@@ -405,8 +405,8 @@ if __name__ == "__main__":
     print('cam to background', q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
     print('background to trackers', q_back.get_average_freq(), q_back.queue.num_lost_item.value)
     print('trackers to visual stim', q_tracking.get_average_freq(), q_tracking.queue.num_lost_item.value)
-    print('trackers to overlay', q_overlay.get_average_freq(), q_overlay.queue.num_lost_item.value)
-    print('overlay to display', q_display.get_average_freq(), q_display.queue.num_lost_item.value)
+    #print('trackers to overlay', q_overlay.get_average_freq(), q_overlay.queue.num_lost_item.value)
+    #print('overlay to display', q_display.get_average_freq(), q_display.queue.num_lost_item.value)
 
     plot_logs(LOGFILE, outlier_thresh=1000)
     # NOTE: if you have more worker than necessary, you will see a heavy tail in the receive time.
