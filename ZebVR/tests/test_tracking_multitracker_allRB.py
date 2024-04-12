@@ -134,15 +134,15 @@ class Display(WorkerNode):
 if __name__ == "__main__":
 
     LOGFILE = 'test_tracking_RB.log'
-    N_BACKGROUND_WORKERS = 1
-    N_TRACKER_WORKERS = 5
-    CAM_FPS = 240
+    N_BACKGROUND_WORKERS = 6
+    N_TRACKER_WORKERS = 7
+    CAM_FPS = 60
 
     DATA = [
-        ('toy_data/multi_freelyswimming_1800x1800px.avi', 'toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 40),
-        ('toy_data/single_freelyswimming_504x500px.avi', 'toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
-        ('toy_data/single_headembedded_544x380px_noparam.avi', 'toy_data/single_headembedded_544x380px_noparam.png', Polarity.DARK_ON_BRIGHT, 100),
-        ('toy_data/single_headembedded_544x380px_param.avi', 'toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
+        ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 40),
+        ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
+        ('../toy_data/single_headembedded_544x380px_noparam.avi', '../toy_data/single_headembedded_544x380px_noparam.png', Polarity.DARK_ON_BRIGHT, 100),
+        ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
     ]
     # background subtracted video
     INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
@@ -176,7 +176,7 @@ if __name__ == "__main__":
                 max_animal_length_mm=0,
                 min_animal_width_mm=0,
                 max_animal_width_mm=0,
-                pad_value_mm=4.0,
+                pad_value_mm=2.75,
                 blur_sz_mm=1/7.5,
                 median_filter_sz_mm=0,
             )
@@ -240,7 +240,8 @@ if __name__ == "__main__":
     l = Logger(LOGFILE, Logger.INFO)
     b = BackroundImage(
         image_file_name = BACKGROUND_IMAGE,
-        polarity = POLARITY
+        polarity = POLARITY,
+        use_gpu=True
     )
     
     ptx = Phototaxis(
