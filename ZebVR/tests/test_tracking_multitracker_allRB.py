@@ -67,7 +67,7 @@ class BackgroundSubWorker(WorkerNode):
     def work(self, data):
         if data is not None:
             index, timestamp, image = data
-            res = self.sub.subtract_background(im2single(im2gray(image)))
+            res = self.sub.subtract_background(image)
             return (index, timestamp, res)
          
 class TrackerWorker(WorkerNode):
@@ -134,10 +134,9 @@ class Display(WorkerNode):
 if __name__ == "__main__":
 
     LOGFILE = 'test_tracking_RB.log'
-    N_BACKGROUND_WORKERS = 6
-    N_TRACKER_WORKERS = 7
+    N_BACKGROUND_WORKERS = 1
+    N_TRACKER_WORKERS = 1
     CAM_FPS = 60
-
     DATA = [
         ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 40),
         ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
@@ -165,7 +164,7 @@ if __name__ == "__main__":
             assignment=GridAssignment(LUT=np.zeros((h,w), dtype=np.int_)), 
             tracking_param=AnimalTrackerParamTracking(
                 pix_per_mm=PIX_PER_MM,
-                target_pix_per_mm=7.5,
+                target_pix_per_mm=5,
                 animal_intensity=0.07,
                 animal_brightness=0.0,
                 animal_gamma=1.0,
@@ -177,7 +176,7 @@ if __name__ == "__main__":
                 min_animal_width_mm=0,
                 max_animal_width_mm=0,
                 pad_value_mm=2.75,
-                blur_sz_mm=1/7.5,
+                blur_sz_mm=1/5,
                 median_filter_sz_mm=0,
             )
         ),
@@ -255,11 +254,11 @@ if __name__ == "__main__":
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
-        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger = l, receive_timeout=1.0, profile=False))
+        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger = l, receive_timeout=1.0, profile=True))
 
     trck = []
     for i in range(N_TRACKER_WORKERS):
-        trck.append(TrackerWorker(t, name=f'tracker{i}', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0))
+        trck.append(TrackerWorker(t, name=f'tracker{i}', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0, profile=True))
 
     dis = Display(fps = 30, name='display', logger = l, receive_timeout=1.0)
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
@@ -273,8 +272,11 @@ if __name__ == "__main__":
     ])
 
     def serialize_image(obj: Tuple[int, float, NDArray], data_type: DTypeLike) -> NDArray:
+        #tic = time.monotonic_ns() 
         index, timestamp, image = obj
-        return np.array((index, timestamp, image), dtype = data_type)
+        arr = np.array((index, timestamp, image), dtype = data_type)
+        #print(1e-6*(time.monotonic_ns() - tic))
+        return arr
 
     def deserialize_image(arr: NDArray) -> Tuple[int, float, NDArray]:
         index = arr['index'].item()
@@ -304,6 +306,7 @@ if __name__ == "__main__":
     # ring buffer background ------------------------------------------------------------------
     # IMPORTANT: need to copy the data out of the 
     # circular buffer otherwise it can be modified after the fact
+    # set copy=True
     
     dt_single_gray = np.dtype([
         ('index', int, (1,)),
@@ -358,7 +361,6 @@ if __name__ == "__main__":
         timestamp = arr['timestamp'].item()
         tracking = BodyTracking.from_numpy(arr[0]['tracking'][0])
         return (index, timestamp, tracking)
-    
 
     q_tracking = MonitoredQueue(
         ObjectRingBuffer(
