@@ -137,6 +137,7 @@ if __name__ == "__main__":
     N_BACKGROUND_WORKERS = 1
     N_TRACKER_WORKERS = 1
     CAM_FPS = 60
+    BACKGROUND_GPU = False
     DATA = [
         ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 40),
         ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
@@ -241,7 +242,7 @@ if __name__ == "__main__":
     b = BackroundImage(
         image_file_name = BACKGROUND_IMAGE,
         polarity = POLARITY,
-        use_gpu=True
+        use_gpu=BACKGROUND_GPU
     )
     
     ptx = Phototaxis(
