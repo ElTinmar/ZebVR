@@ -134,9 +134,9 @@ class Display(WorkerNode):
 if __name__ == "__main__":
 
     LOGFILE = 'test_tracking_RB.log'
-    N_BACKGROUND_WORKERS = 6
-    N_TRACKER_WORKERS = 3
-    CAM_FPS = 150
+    N_BACKGROUND_WORKERS = 4
+    N_TRACKER_WORKERS = 4
+    CAM_FPS = 75
     DATA = [
         ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 40),
         ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
