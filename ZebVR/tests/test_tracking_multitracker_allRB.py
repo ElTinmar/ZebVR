@@ -78,20 +78,17 @@ class TrackerWorker(WorkerNode):
         self.tracker = tracker
 
     def work(self, data: NDArray) -> Dict:
-        if data is not None:
+        try:
             index, timestamp, image = data
             tracking = self.tracker.track(image)
-            if tracking is not None:
-                if tracking.body is not None:
-                    res = {}
-                    indices = list(tracking.body.keys())
-                    if indices:
-                        k = indices[0]
-                        res['stimulus'] = (index, timestamp, tracking.body[k])
-                        res['overlay'] = (index, timestamp, tracking)
-                
-                    return res
-        
+            res = {}
+            k = tracking.animals.identities[0]
+            res['stimulus'] = (index, timestamp, tracking.animals.centroids[k,:], tracking.body[k].heading[:,1])
+            res['overlay'] = (index, timestamp, tracking)
+            return res
+        except:
+            return None  
+
 class OverlayWorker(WorkerNode):
 
     def __init__(self, overlay: MultiFishOverlay, fps: int = 30, *args, **kwargs):
@@ -363,18 +360,20 @@ if __name__ == "__main__":
     dt_tracking_body = np.dtype([
         ('index', int, (1,)),
         ('timestamp', float, (1,)), 
-        ('tracking', arr_multifish['bodies'].dtype, (1,))
+        ('centroid', np.float32, (1,2)),
+        ('heading', np.float32, (2,))
     ])
 
-    def serialize_tracking_body(obj: Tuple[int, float, BodyTracking], data_type: DTypeLike) -> NDArray:
-        index, timestamp, tracking = obj
-        return np.array((index, timestamp, tracking.to_numpy()), dtype = data_type)
+    def serialize_tracking_body(obj: Tuple[int, float, NDArray, NDArray], data_type: DTypeLike) -> NDArray:
+        index, timestamp, centroid, heading = obj
+        return np.array((index, timestamp, centroid, heading), dtype = data_type)
 
-    def deserialize_tracking_body(arr: NDArray) -> Tuple[int, float, BodyTracking]:
+    def deserialize_tracking_body(arr: NDArray) -> Tuple[int, float, NDArray, NDArray]:
         index = arr['index'].item()
         timestamp = arr['timestamp'].item()
-        tracking = BodyTracking.from_numpy(arr[0]['tracking'][0])
-        return (index, timestamp, tracking)
+        centroid = arr[0]['centroid']
+        heading = arr[0]['heading']
+        return (index, timestamp, centroid, heading)
 
     q_tracking = MonitoredQueue(
         ObjectRingBuffer(

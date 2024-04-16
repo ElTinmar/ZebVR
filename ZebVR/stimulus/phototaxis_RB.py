@@ -24,7 +24,7 @@ varying vec2 v_fish_centroid;
 void main()
 {
     vec3 fish_centroid =  u_transformation_matrix * vec3(a_fish_centroid, 1.0);
-    vec3 fish_orientation =  u_transformation_matrix * vec3(a_fish_orientation, 1.0);
+    vec3 fish_orientation =  u_transformation_matrix * vec3(a_fish_centroid+a_fish_orientation, 1.0);
 
     gl_Position = vec4(a_position, 0.0, 1.0);
     v_fish_centroid = fish_centroid.xy;
@@ -49,7 +49,7 @@ varying vec4 v_color;
 
 void main()
 {
-    if ( dot(gl_FragCoord.xy-v_fish_centroid, v_fish_orientation)>0 ) {
+    if ( dot(gl_FragCoord.xy-v_fish_centroid, v_fish_orientation-v_fish_centroid)>0 ) {
         gl_FragColor = v_color;
     } 
 }
@@ -98,12 +98,11 @@ class Phototaxis(VisualStim):
 
     def work(self, data) -> None:
         if data is not None:
-            index, timestamp, tracking = data
-            if tracking.heading is not None:
-                self.fish_orientation_x.value = tracking.heading[0,1]
-                self.fish_orientation_y.value = tracking.heading[1,1]
-                self.fish_centroid_x.value = tracking.centroid[0]
-                self.fish_centroid_y.value = tracking.centroid[1]
+            index, timestamp, centroid, heading = data
+            if heading is not None:
+                self.fish_orientation_x.value, self.fish_orientation_y.value = heading
+                self.fish_centroid_x.value, self.fish_centroid_y.value = centroid[0]
+                
             # NOTE: not quite exact, image is displayed after next timer tick and update
             print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
 
