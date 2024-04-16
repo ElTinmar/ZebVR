@@ -29,9 +29,6 @@ from functools import partial
 from dagline import plot_logs as plot_worker_logs
 from ipc_tools import plot_logs as plot_queue_logs
 
-
-#TODO do something with that [0] indexing
-
 class CameraWorker(WorkerNode):
 
     def __init__(self, cam: Camera, fps: int = 200, *args, **kwargs):
