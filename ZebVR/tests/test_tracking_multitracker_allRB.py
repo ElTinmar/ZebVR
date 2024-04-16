@@ -139,7 +139,7 @@ if __name__ == "__main__":
 
     N_BACKGROUND_WORKERS = 2
     N_TRACKER_WORKERS = 6
-    CAM_FPS = 200
+    CAM_FPS = 30
     BACKGROUND_GPU = False
     DATA = [
         ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 50),
@@ -251,11 +251,11 @@ if __name__ == "__main__":
     )
     
     ptx = Phototaxis(
-        window_size=(1024,1024),
+        window_size=(1280,720),
         window_position=(0,0),
-        color=(1.0, 0.0, 0.0, 1.0),
+        color=(1.0, 1.0, 1.0, 1.0),
         window_decoration=False,
-        transformation_matrix=np.array([[1.0,0,0],[0,-1.0,1024],[0,0,1.0]], dtype=np.float32)
+        transformation_matrix=np.array([[1.0,0,0],[0,-1.0,720],[0,0,1.0]], dtype=np.float32)
     )
     
     cam = CameraWorker(cam = m, fps = CAM_FPS, name='camera', logger = worker_logger, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
@@ -416,7 +416,7 @@ if __name__ == "__main__":
     worker_logger.start()
     queue_logger.start()
     dag.start()
-    time.sleep(30)
+    time.sleep(60)
     dag.stop()
     queue_logger.stop()
     worker_logger.stop()

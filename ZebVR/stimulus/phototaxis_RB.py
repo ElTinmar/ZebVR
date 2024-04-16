@@ -23,10 +23,10 @@ varying vec2 v_fish_orientation;
 varying vec2 v_fish_centroid;
 void main()
 {
-    vec3 position = u_transformation_matrix * vec3(a_position, 1.0);
     vec3 fish_centroid =  u_transformation_matrix * vec3(a_fish_centroid, 1.0);
     vec3 fish_orientation =  u_transformation_matrix * vec3(a_fish_orientation, 1.0);
-    gl_Position = vec4(position.xy, 0.0, 1.0);
+
+    gl_Position = vec4(a_position, 0.0, 1.0);
     v_fish_centroid = fish_centroid.xy;
     v_fish_orientation = fish_orientation.xy;
     v_color = a_color;
