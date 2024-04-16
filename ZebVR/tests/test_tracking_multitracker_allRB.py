@@ -15,7 +15,7 @@ from multiprocessing_logger import Logger
 from ipc_tools import RingBuffer, QueueMP, MonitoredQueue, ObjectRingBuffer
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
-from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG, plot_logs
+from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
 from ZebVR.stimulus import VisualStimWorker
 from ZebVR.stimulus.phototaxis_RB import Phototaxis
 
@@ -25,6 +25,10 @@ import time
 from typing import Any, Dict, Tuple
 import cv2
 from functools import partial
+
+from dagline import plot_logs as plot_worker_logs
+from ipc_tools import plot_logs as plot_queue_logs
+
 
 #TODO do something with that [0] indexing
 
@@ -133,11 +137,13 @@ class Display(WorkerNode):
 
 if __name__ == "__main__":
 
-    LOGFILE = 'test_tracking_RB.log'
-    N_BACKGROUND_WORKERS = 1
-    N_TRACKER_WORKERS = 1
-    CAM_FPS = 60
-    BACKGROUND_GPU = False
+    LOGFILE_WORKERS = 'test_tracking_RB_workers.log'
+    LOGFILE_QUEUES = 'test_tracking_RB_queues.log'
+
+    N_BACKGROUND_WORKERS = 6
+    N_TRACKER_WORKERS = 4
+    CAM_FPS = 10
+    BACKGROUND_GPU = True
     DATA = [
         ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 40),
         ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
@@ -238,7 +244,9 @@ if __name__ == "__main__":
         )
     )
 
-    l = Logger(LOGFILE, Logger.INFO)
+    worker_logger = Logger(LOGFILE_WORKERS, Logger.INFO)
+    queue_logger = Logger(LOGFILE_QUEUES, Logger.INFO)
+
     b = BackroundImage(
         image_file_name = BACKGROUND_IMAGE,
         polarity = POLARITY,
@@ -252,19 +260,19 @@ if __name__ == "__main__":
         window_decoration=False
     )
     
-    cam = CameraWorker(cam = m, fps = CAM_FPS, name='camera', logger = l, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    cam = CameraWorker(cam = m, fps = CAM_FPS, name='camera', logger = worker_logger, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
-        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger = l, receive_timeout=1.0, profile=True))
+        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger = worker_logger, receive_timeout=1.0, profile=True))
 
     trck = []
     for i in range(N_TRACKER_WORKERS):
-        trck.append(TrackerWorker(t, name=f'tracker{i}', logger = l, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0, profile=True))
+        trck.append(TrackerWorker(t, name=f'tracker{i}', logger = worker_logger, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0, profile=True))
 
-    dis = Display(fps = 30, name='display', logger = l, receive_timeout=1.0)
-    stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=l, receive_timeout=1.0) 
-    oly = OverlayWorker(overlay=o, fps=30, name="overlay", logger=l, receive_timeout=1.0)
+    dis = Display(fps = 30, name='display', logger = worker_logger, receive_timeout=1.0)
+    stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=worker_logger, receive_timeout=1.0) 
+    oly = OverlayWorker(overlay=o, fps=30, name="overlay", logger=worker_logger, receive_timeout=1.0)
 
     # ring buffer camera ------------------------------------------------------------------ 
     dt_uint8_RGB = np.dtype([
@@ -291,7 +299,9 @@ if __name__ == "__main__":
             num_items = 100,
             data_type = dt_uint8_RGB,
             serialize = partial(serialize_image, data_type=dt_uint8_RGB),
-            deserialize = deserialize_image
+            deserialize = deserialize_image,
+            logger = queue_logger,
+            name = 'camera_to_background'
         )
     )
 
@@ -300,7 +310,9 @@ if __name__ == "__main__":
             num_items = 100,
             data_type = dt_uint8_RGB,
             serialize = partial(serialize_image, data_type=dt_uint8_RGB),
-            deserialize = deserialize_image
+            deserialize = deserialize_image,
+            logger = queue_logger,
+            name = 'overlay_to_display'
         )
     )
 
@@ -322,7 +334,9 @@ if __name__ == "__main__":
             data_type = dt_single_gray,
             serialize = partial(serialize_image, data_type=dt_single_gray),
             deserialize = deserialize_image,
-            copy=True
+            copy=True,
+            logger = queue_logger,
+            name = 'background_to_trackers'
         )
     )
 
@@ -369,7 +383,9 @@ if __name__ == "__main__":
             num_items = 100,
             data_type = dt_tracking_body,
             serialize = partial(serialize_tracking_body, data_type=dt_tracking_body),
-            deserialize = deserialize_tracking_body
+            deserialize = deserialize_tracking_body,
+            logger = queue_logger,
+            name = 'tracker_to_phototaxis'
         )
     )
 
@@ -378,7 +394,9 @@ if __name__ == "__main__":
             num_items = 100,
             data_type = dt_tracking_multifish,
             serialize = partial(serialize_tracking_multifish, data_type=dt_tracking_multifish),
-            deserialize = deserialize_tracking_multifish
+            deserialize = deserialize_tracking_multifish,
+            logger = queue_logger,
+            name = 'tracker_to_overlay'
         )
     )
 
@@ -397,11 +415,13 @@ if __name__ == "__main__":
 
     dag.connect(sender=oly, receiver=dis, queue=q_display, name='disp')
 
-    l.start()
+    worker_logger.start()
+    queue_logger.start()
     dag.start()
     time.sleep(30)
     dag.stop()
-    l.stop()
+    queue_logger.stop()
+    worker_logger.stop()
 
     print('cam to background', q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
     print('background to trackers', q_back.get_average_freq(), q_back.queue.num_lost_item.value)
@@ -409,7 +429,9 @@ if __name__ == "__main__":
     print('trackers to overlay', q_overlay.get_average_freq(), q_overlay.queue.num_lost_item.value)
     print('overlay to display', q_display.get_average_freq(), q_display.queue.num_lost_item.value)
 
-    plot_logs(LOGFILE, outlier_thresh=1000)
+    plot_worker_logs(LOGFILE_WORKERS, outlier_thresh=1000)
+    plot_queue_logs(LOGFILE_QUEUES)
+
     # NOTE: if you have more worker than necessary, you will see a heavy tail in the receive time.
     # This is perfectly normal, each tracker may be skip a few cycles if the others are already 
     # filling the job
