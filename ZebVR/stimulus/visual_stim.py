@@ -4,8 +4,8 @@ import time
 from dagline import WorkerNode
 from multiprocessing import Process
 import sys
-
-# TODO add transformation from camera coords to proj coords
+from numpy.typing import NDArray
+import numpy as np 
 
 class VisualStim(app.Canvas):
 
@@ -15,7 +15,8 @@ class VisualStim(app.Canvas):
             fragment_shader: str,
             window_size: Tuple[int, int],
             window_position: Tuple[int, int],
-            window_decoration: bool = False
+            window_decoration: bool = False,
+            transformation_matrix: NDArray = np.eye(3, dtype=np.float32)
         ) -> None:
             
             self.vertex_shader = vertex_shader
@@ -23,6 +24,7 @@ class VisualStim(app.Canvas):
             self.window_size = window_size
             self.window_position = window_position
             self.window_decoration = window_decoration 
+            self.transformation_matrix = transformation_matrix
 
     def initialize(self):
         # this needs to happen in the process where the window is displayed
@@ -32,6 +34,7 @@ class VisualStim(app.Canvas):
         self.program = gloo.Program(self.vertex_shader, self.fragment_shader)
 
         # set attributes, these must be present in the vertex shader
+        self.program['u_transformation_matrix'] = self.transformation_matrix
         self.program['a_resolution'] = self.window_size
         self.program['a_time'] = 0
         self.program['a_position'] = [(-1, -1), (-1, +1),

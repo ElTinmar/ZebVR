@@ -3,10 +3,12 @@ from .visual_stim import VisualStim
 from vispy import gloo, app
 from multiprocessing import Value
 import time
-
-# TODO add transformation from camera coords to proj coords
+from numpy.typing import NDArray
+import numpy as np 
 
 VERT_SHADER_PHOTOTAXIS = """
+uniform mat3 u_transformation_matrix;
+
 attribute vec2 a_position;
 attribute vec2 a_resolution;
 attribute float a_time;
@@ -21,9 +23,12 @@ varying vec2 v_fish_orientation;
 varying vec2 v_fish_centroid;
 void main()
 {
-    gl_Position = vec4(a_position, 0.0, 1.0);
-    v_fish_orientation = a_fish_orientation;
-    v_fish_centroid = a_fish_centroid;
+    vec3 position = u_transformation_matrix * vec3(a_position, 1.0);
+    vec3 fish_centroid =  u_transformation_matrix * vec3(a_fish_centroid, 1.0);
+    vec3 fish_orientation =  u_transformation_matrix * vec3(a_fish_orientation, 1.0);
+    gl_Position = vec4(position.xy, 0.0, 1.0);
+    v_fish_centroid = fish_centroid.xy;
+    v_fish_orientation = fish_orientation.xy;
     v_color = a_color;
     v_resolution = a_resolution;
     v_time = a_time;
@@ -57,16 +62,18 @@ class Phototaxis(VisualStim):
             window_size: Tuple[int, int], 
             window_position: Tuple[int, int], 
             color: Tuple[int, int, int, int],
-            window_decoration: bool = True
+            window_decoration: bool = True,
+            transformation_matrix: NDArray = np.eye(3, dtype=np.float32)
         ) -> None:
 
-        super().__init__(VERT_SHADER_PHOTOTAXIS, FRAG_SHADER_PHOTOTAXIS, window_size, window_position, window_decoration)
+        super().__init__(VERT_SHADER_PHOTOTAXIS, FRAG_SHADER_PHOTOTAXIS, window_size, window_position, window_decoration, transformation_matrix)
 
         self.color = color
         self.fish_orientation_x = Value('d',0)
         self.fish_orientation_y = Value('d',0)
         self.fish_centroid_x = Value('d',0)
         self.fish_centroid_y = Value('d',0)
+        self.transformation_matrix = transformation_matrix
         
     def initialize(self):
         super().initialize()
@@ -97,6 +104,7 @@ class Phototaxis(VisualStim):
                 self.fish_orientation_y.value = tracking.heading[1,1]
                 self.fish_centroid_x.value = tracking.centroid[0]
                 self.fish_centroid_y.value = tracking.centroid[1]
+            # NOTE: not quite exact, image is displayed after next timer tick and update
             print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
 
     

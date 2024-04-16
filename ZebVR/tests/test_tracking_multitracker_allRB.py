@@ -137,18 +137,18 @@ if __name__ == "__main__":
     LOGFILE_WORKERS = 'test_tracking_RB_workers.log'
     LOGFILE_QUEUES = 'test_tracking_RB_queues.log'
 
-    N_BACKGROUND_WORKERS = 6
-    N_TRACKER_WORKERS = 4
-    CAM_FPS = 10
-    BACKGROUND_GPU = True
+    N_BACKGROUND_WORKERS = 2
+    N_TRACKER_WORKERS = 6
+    CAM_FPS = 200
+    BACKGROUND_GPU = False
     DATA = [
-        ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 40),
+        ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 50),
         ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
         ('../toy_data/single_headembedded_544x380px_noparam.avi', '../toy_data/single_headembedded_544x380px_noparam.png', Polarity.DARK_ON_BRIGHT, 100),
         ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
     ]
     # background subtracted video
-    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
+    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[1]
 
     m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=8e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
@@ -254,7 +254,8 @@ if __name__ == "__main__":
         window_size=(1024,1024),
         window_position=(0,0),
         color=(1.0, 0.0, 0.0, 1.0),
-        window_decoration=False
+        window_decoration=False,
+        transformation_matrix=np.array([[1.0,0,0],[0,-1.0,1024],[0,0,1.0]], dtype=np.float32)
     )
     
     cam = CameraWorker(cam = m, fps = CAM_FPS, name='camera', logger = worker_logger, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)

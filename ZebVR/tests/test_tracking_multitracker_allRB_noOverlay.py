@@ -139,7 +139,7 @@ if __name__ == "__main__":
     CAM_FPS = 75
     BACKGROUND_GPU = False
     DATA = [
-        ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 40),
+        ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 50),
         ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
         ('../toy_data/single_headembedded_544x380px_noparam.avi', '../toy_data/single_headembedded_544x380px_noparam.png', Polarity.DARK_ON_BRIGHT, 100),
         ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
