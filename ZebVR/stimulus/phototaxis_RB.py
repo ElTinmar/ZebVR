@@ -12,23 +12,24 @@ uniform mat3 u_transformation_matrix;
 attribute vec2 a_position;
 attribute vec2 a_resolution;
 attribute float a_time;
-
 attribute vec4 a_color;
+attribute vec2 a_fish_pc2;
+attribute vec2 a_fish_centroid; 
+
+varying vec2 v_fish_orientation;
+varying vec2 v_fish_centroid;
 varying vec2 v_resolution;
 varying float v_time;
 varying vec4 v_color;
-attribute vec2 a_fish_orientation;
-attribute vec2 a_fish_centroid; 
-varying vec2 v_fish_orientation;
-varying vec2 v_fish_centroid;
+
 void main()
 {
-    vec3 fish_centroid =  u_transformation_matrix * vec3(a_fish_centroid, 1.0);
-    vec3 fish_orientation =  u_transformation_matrix * vec3(a_fish_centroid+a_fish_orientation, 1.0);
+    vec3 fish_centroid = u_transformation_matrix * vec3(a_fish_centroid, 1.0) ;
+    vec3 fish_orientation = u_transformation_matrix * vec3(a_fish_centroid+a_fish_pc2, 1.0);
 
     gl_Position = vec4(a_position, 0.0, 1.0);
     v_fish_centroid = fish_centroid.xy;
-    v_fish_orientation = fish_orientation.xy;
+    v_fish_orientation = fish_orientation.xy - fish_centroid.xy;
     v_color = a_color;
     v_resolution = a_resolution;
     v_time = a_time;
@@ -49,9 +50,12 @@ varying vec4 v_color;
 
 void main()
 {
-    if ( dot(gl_FragCoord.xy-v_fish_centroid, v_fish_orientation-v_fish_centroid)>0 ) {
+    if ( dot(gl_FragCoord.xy-v_fish_centroid, v_fish_orientation)>0 ) {
         gl_FragColor = v_color;
     } 
+    if (distance(gl_FragCoord.xy,v_fish_centroid) <= 10) {
+        gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+    }
 }
 """
 
@@ -73,13 +77,12 @@ class Phototaxis(VisualStim):
         self.fish_orientation_y = Value('d',0)
         self.fish_centroid_x = Value('d',0)
         self.fish_centroid_y = Value('d',0)
-        self.transformation_matrix = transformation_matrix
         
     def initialize(self):
         super().initialize()
                
         self.program['a_color'] = self.color
-        self.program['a_fish_orientation'] = [0,0]
+        self.program['a_fish_pc2'] = [0,0]
         self.program['a_fish_centroid'] = [0,0]
     
         self.timer = app.Timer('auto', self.on_timer)
@@ -92,7 +95,7 @@ class Phototaxis(VisualStim):
         self.program.draw('triangle_strip')
 
     def on_timer(self, event):
-        self.program['a_fish_orientation'] = [self.fish_orientation_x.value, self.fish_orientation_y.value]
+        self.program['a_fish_pc2'] = [self.fish_orientation_x.value, self.fish_orientation_y.value]
         self.program['a_fish_centroid'] = [self.fish_centroid_x.value, self.fish_centroid_y.value]
         self.update()
 
