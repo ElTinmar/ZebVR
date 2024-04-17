@@ -134,10 +134,11 @@ if __name__ == "__main__":
     LOGFILE_WORKERS = 'test_tracking_RB_workers.log'
     LOGFILE_QUEUES = 'test_tracking_RB_queues.log'
 
-    N_BACKGROUND_WORKERS = 2
+    # NOTE: to get a lower bound on the send time, use 1 background and 1 tracker with low fps
+    N_BACKGROUND_WORKERS = 3
     N_TRACKER_WORKERS = 6
-    CAM_FPS = 30
-    BACKGROUND_GPU = False
+    CAM_FPS = 100
+    BACKGROUND_GPU = True
     DATA = [
         ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 50),
         ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
@@ -145,7 +146,7 @@ if __name__ == "__main__":
         ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
     ]
     # background subtracted video
-    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[1]
+    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
 
     m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=8e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
@@ -431,4 +432,4 @@ if __name__ == "__main__":
 
     # NOTE: if you have more worker than necessary, you will see a heavy tail in the receive time.
     # This is perfectly normal, each tracker may be skip a few cycles if the others are already 
-    # filling the job
+    # filling the job.
