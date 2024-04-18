@@ -443,3 +443,13 @@ if __name__ == "__main__":
     # NOTE: if you have more worker than necessary, you will see a heavy tail in the receive time.
     # This is perfectly normal, each tracker may be skip a few cycles if the others are already 
     # filling the job
+    # NOTE: send time = serialization (one copy) + writing (one copy) and acquiring lock
+    # NOTE: receive time = deserialization + reading (sometimes one copy) from queue and acquiring lock
+    # NOTE: check that total_time/#workers is <= to cam for all workers (except workers with reduced fps like display)
+
+    plot_queue_logs(LOGFILE_QUEUES)
+
+    # NOTE: memory bandwidth ~10GB/s. 1800x1800x3 uint8 = 9.3 MB, 1800x1800 float32 = 12.4 MB
+    # camera: creation, serialization, put on buffer
+    # background: creation, serialization, put on buffer
+    # tracker: serialization, put on buffer
