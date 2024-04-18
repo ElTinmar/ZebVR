@@ -132,8 +132,8 @@ class Display(WorkerNode):
 
 if __name__ == "__main__":
 
-    LOGFILE_WORKERS = 'test_tracking_RB_workers.log'
-    LOGFILE_QUEUES = 'test_tracking_RB_queues.log'
+    LOGFILE_WORKERS = 'workers.log'
+    LOGFILE_QUEUES = 'queues.log'
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 3
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     # background subtracted video
     INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
 
-    m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=24e9)
+    m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=4e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
 
@@ -244,8 +244,6 @@ if __name__ == "__main__":
 
     worker_logger = Logger(LOGFILE_WORKERS, Logger.INFO)
     queue_logger = Logger(LOGFILE_QUEUES, Logger.INFO)
-    queue_logger.configure_emitter()
-
 
     b = BackroundImage(
         image_file_name = BACKGROUND_IMAGE,
@@ -428,7 +426,7 @@ if __name__ == "__main__":
     worker_logger.start()
     queue_logger.start()
     dag.start()
-    time.sleep(60)
+    time.sleep(10)
     dag.stop()
     queue_logger.stop()
     worker_logger.stop()
@@ -455,3 +453,4 @@ if __name__ == "__main__":
     # tracker: serialization, put on buffer
 
     # with larger image, bottleneck transition from CPU to memory bandwidth ?
+    
