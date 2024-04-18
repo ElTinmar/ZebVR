@@ -136,9 +136,9 @@ if __name__ == "__main__":
     LOGFILE_QUEUES = 'test_tracking_RB_queues.log'
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
-    N_BACKGROUND_WORKERS = 3
-    N_TRACKER_WORKERS = 5
-    CAM_FPS = 60
+    N_BACKGROUND_WORKERS = 2
+    N_TRACKER_WORKERS = 4
+    CAM_FPS = 120
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
         ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
     ]
     # background subtracted video
-    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
+    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[1]
 
     m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=8e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
@@ -244,6 +244,8 @@ if __name__ == "__main__":
 
     worker_logger = Logger(LOGFILE_WORKERS, Logger.INFO)
     queue_logger = Logger(LOGFILE_QUEUES, Logger.INFO)
+    queue_logger.configure_emitter()
+
 
     b = BackroundImage(
         image_file_name = BACKGROUND_IMAGE,
