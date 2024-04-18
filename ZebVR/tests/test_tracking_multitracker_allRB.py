@@ -136,9 +136,9 @@ if __name__ == "__main__":
     LOGFILE_QUEUES = 'queues.log'
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
-    N_BACKGROUND_WORKERS = 3
-    N_TRACKER_WORKERS = 5
-    CAM_FPS = 50
+    N_BACKGROUND_WORKERS = 4
+    N_TRACKER_WORKERS = 7
+    CAM_FPS = 70
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     # background subtracted video
     INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
 
-    m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=4e9)
+    m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=8e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
 
@@ -248,7 +248,7 @@ if __name__ == "__main__":
     b = BackroundImage(
         image_file_name = BACKGROUND_IMAGE,
         polarity = POLARITY,
-        use_gpu=BACKGROUND_GPU
+        use_gpu = BACKGROUND_GPU
     )
     
     ptx = Phototaxis(
@@ -259,19 +259,19 @@ if __name__ == "__main__":
         transformation_matrix=np.array([[1.0,0,0],[0,-1.0,720],[0,0,1.0]], dtype=np.float32)
     )
     
-    cam = CameraWorker(cam = m, fps = CAM_FPS, name='camera', logger = worker_logger, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    cam = CameraWorker(cam=m, fps=CAM_FPS, name='camera', logger=worker_logger, logger_queues=queue_logger, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
-        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger = worker_logger, receive_timeout=1.0, profile=False))
+        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0, profile=False))
 
     trck = []
     for i in range(N_TRACKER_WORKERS):
-        trck.append(TrackerWorker(t, name=f'tracker{i}', logger = worker_logger, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0, profile=False))
+        trck.append(TrackerWorker(t, name=f'tracker{i}', logger=worker_logger, logger_queues=queue_logger, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0, profile=False))
 
-    dis = Display(fps = 30, name='display', logger = worker_logger, receive_timeout=1.0)
-    stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=worker_logger, receive_timeout=1.0) 
-    oly = OverlayWorker(overlay=o, fps=30, name="overlay", logger=worker_logger, receive_timeout=1.0)
+    dis = Display(fps=30, name='display', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0)
+    stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0) 
+    oly = OverlayWorker(overlay=o, fps=30, name="overlay", logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0)
 
     # ring buffer camera ------------------------------------------------------------------ 
     dt_uint8_RGB = np.dtype([
@@ -426,7 +426,7 @@ if __name__ == "__main__":
     worker_logger.start()
     queue_logger.start()
     dag.start()
-    time.sleep(10)
+    time.sleep(30)
     dag.stop()
     queue_logger.stop()
     worker_logger.stop()
@@ -446,7 +446,6 @@ if __name__ == "__main__":
     # NOTE: check that total_time/#workers is <= to cam for all workers (except workers with reduced fps like display)
 
     plot_queue_logs(LOGFILE_QUEUES)
-
     # NOTE: memory bandwidth ~10GB/s. 1800x1800x3 uint8 = 9.3 MB, 1800x1800 float32 = 12.4 MB
     # camera: creation, serialization, put on buffer
     # background: creation, serialization, put on buffer
