@@ -51,6 +51,7 @@ class CameraWorker(WorkerNode):
         elapsed = (time.monotonic_ns() - self.prev_time) 
         while elapsed < 1e9/self.fps:
             elapsed = (time.monotonic_ns() - self.prev_time) 
+            time.sleep(0.00001)
         self.prev_time = time.monotonic_ns()
 
         return (res.index, time.perf_counter_ns(), res.image)
@@ -134,10 +135,13 @@ if __name__ == "__main__":
     LOGFILE_WORKERS = 'test_tracking_RB_workers.log'
     LOGFILE_QUEUES = 'test_tracking_RB_queues.log'
 
-    N_BACKGROUND_WORKERS = 2
-    N_TRACKER_WORKERS = 6
-    CAM_FPS = 30
-    BACKGROUND_GPU = False
+    # TODO profile with just one worker, otherwise lot of time waiting for data
+    N_BACKGROUND_WORKERS = 3
+    N_TRACKER_WORKERS = 5
+    CAM_FPS = 60
+    BACKGROUND_GPU = True
+    T_REFRESH = 1e-4
+
     DATA = [
         ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 50),
         ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
@@ -145,7 +149,7 @@ if __name__ == "__main__":
         ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
     ]
     # background subtracted video
-    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[1]
+    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
 
     m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=8e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
@@ -259,11 +263,11 @@ if __name__ == "__main__":
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
-        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger = worker_logger, receive_timeout=1.0, profile=True))
+        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger = worker_logger, receive_timeout=1.0, profile=False))
 
     trck = []
     for i in range(N_TRACKER_WORKERS):
-        trck.append(TrackerWorker(t, name=f'tracker{i}', logger = worker_logger, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0, profile=True))
+        trck.append(TrackerWorker(t, name=f'tracker{i}', logger = worker_logger, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0, profile=False))
 
     dis = Display(fps = 30, name='display', logger = worker_logger, receive_timeout=1.0)
     stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=worker_logger, receive_timeout=1.0) 
@@ -279,14 +283,16 @@ if __name__ == "__main__":
     def serialize_image(obj: Tuple[int, float, NDArray], data_type: DTypeLike) -> NDArray:
         #tic = time.monotonic_ns() 
         index, timestamp, image = obj
-        arr = np.array((index, timestamp, image), dtype = data_type)
-        #print(1e-6*(time.monotonic_ns() - tic))
+        arr = np.array((index, timestamp, image), dtype = data_type) # there is a memory copy happening here, slow for large arrays, use MultiRingBuffer instead ?
+        #print(data_type['image'], 1e-6*(time.monotonic_ns() - tic))
         return arr
 
     def deserialize_image(arr: NDArray) -> Tuple[int, float, NDArray]:
+        #tic = time.monotonic_ns() 
         index = arr['index'].item()
         timestamp = arr['timestamp'].item()
         image = arr[0]['image']
+        #print(1e-6*(time.monotonic_ns() - tic))
         return (index, timestamp, image)
 
     q_cam = MonitoredQueue(
@@ -296,7 +302,8 @@ if __name__ == "__main__":
             serialize = partial(serialize_image, data_type=dt_uint8_RGB),
             deserialize = deserialize_image,
             logger = queue_logger,
-            name = 'camera_to_background'
+            name = 'camera_to_background',
+            t_refresh=T_REFRESH
         )
     )
 
@@ -307,7 +314,8 @@ if __name__ == "__main__":
             serialize = partial(serialize_image, data_type=dt_uint8_RGB),
             deserialize = deserialize_image,
             logger = queue_logger,
-            name = 'overlay_to_display'
+            name = 'overlay_to_display',
+            t_refresh=T_REFRESH
         )
     )
 
@@ -329,9 +337,10 @@ if __name__ == "__main__":
             data_type = dt_single_gray,
             serialize = partial(serialize_image, data_type=dt_single_gray),
             deserialize = deserialize_image,
-            copy=True,
+            copy=False, # you probably don't need to copy if processing is fast enough
             logger = queue_logger,
-            name = 'background_to_trackers'
+            name = 'background_to_trackers',
+            t_refresh=T_REFRESH
         )
     )
 
@@ -382,7 +391,8 @@ if __name__ == "__main__":
             serialize = partial(serialize_tracking_body, data_type=dt_tracking_body),
             deserialize = deserialize_tracking_body,
             logger = queue_logger,
-            name = 'tracker_to_phototaxis'
+            name = 'tracker_to_phototaxis',
+            t_refresh=T_REFRESH
         )
     )
 
@@ -393,7 +403,8 @@ if __name__ == "__main__":
             serialize = partial(serialize_tracking_multifish, data_type=dt_tracking_multifish),
             deserialize = deserialize_tracking_multifish,
             logger = queue_logger,
-            name = 'tracker_to_overlay'
+            name = 'tracker_to_overlay',
+            t_refresh=T_REFRESH
         )
     )
 
@@ -427,8 +438,16 @@ if __name__ == "__main__":
     print('overlay to display', q_display.get_average_freq(), q_display.queue.num_lost_item.value)
 
     plot_worker_logs(LOGFILE_WORKERS, outlier_thresh=1000)
-    plot_queue_logs(LOGFILE_QUEUES)
-
     # NOTE: if you have more worker than necessary, you will see a heavy tail in the receive time.
     # This is perfectly normal, each tracker may be skip a few cycles if the others are already 
     # filling the job
+    # NOTE: send time = serialization (one copy) + writing (one copy) and acquiring lock
+    # NOTE: receive time = deserialization + reading (sometimes one copy) from queue and acquiring lock
+    # NOTE: check that total_time/#workers is <= to cam for all workers (except workers with reduced fps like display)
+
+    plot_queue_logs(LOGFILE_QUEUES)
+
+    # NOTE: memory bandwidth ~10GB/s. 1800x1800x3 uint8 = 9.3 MB, 1800x1800 float32 = 12.4 MB
+    # camera: creation, serialization, put on buffer
+    # background: creation, serialization, put on buffer
+    # tracker: serialization, put on buffer
