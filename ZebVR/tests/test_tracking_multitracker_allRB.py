@@ -446,6 +446,9 @@ if __name__ == "__main__":
     # NOTE: receive time = deserialization + reading (sometimes one copy) from queue and acquiring lock
     # NOTE: check that total_time/#workers is <= to cam for all workers (except workers with reduced fps like display)
 
+    # NOTE: the intial delay at the level of the tracker (~500ms), is most likely due to numba. When I remove the 
+    # tail tracker, the latency goes way down at the beginning. Maybe I can force the tracker to compile during initialization ?
+
     plot_queue_logs(LOGFILE_QUEUES)
     # NOTE: memory bandwidth ~10GB/s. 1800x1800x3 uint8 = 9.3 MB, 1800x1800 float32 = 12.4 MB
     # camera: creation, serialization, put on buffer
@@ -453,4 +456,5 @@ if __name__ == "__main__":
     # tracker: serialization, put on buffer
 
     # with larger image, bottleneck transition from CPU to memory bandwidth ?
+    
     
