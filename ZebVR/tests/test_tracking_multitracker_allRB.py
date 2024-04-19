@@ -79,6 +79,12 @@ class TrackerWorker(WorkerNode):
         super().__init__(*args, **kwargs)
         self.tracker = tracker
 
+    def initialize(self) -> None:
+        super().initialize()
+
+        # try to trigger numba compilation during init phase (doesn't work right now)
+        # self.tracker.tail.track(np.zeros((100,100),dtype=np.float32), centroid=np.array([0,0]))
+
     def work(self, data: NDArray) -> Dict:
         try:
             index, timestamp, image = data
