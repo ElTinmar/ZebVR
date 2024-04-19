@@ -48,13 +48,14 @@ class CameraWorker(WorkerNode):
     def work(self, data: None): 
         
         res = self.cam.get_frame()
-        elapsed = (time.monotonic_ns() - self.prev_time) 
-        while elapsed < 1e9/self.fps:
+        if res:
             elapsed = (time.monotonic_ns() - self.prev_time) 
-            time.sleep(0.00001)
-        self.prev_time = time.monotonic_ns()
+            while elapsed < 1e9/self.fps:
+                elapsed = (time.monotonic_ns() - self.prev_time) 
+                time.sleep(0.00001)
+            self.prev_time = time.monotonic_ns()
 
-        return (res.index, time.perf_counter_ns(), res.image)
+            return (res.index, time.perf_counter_ns(), res.image)
     
 class BackgroundSubWorker(WorkerNode):
 
@@ -136,9 +137,9 @@ if __name__ == "__main__":
     LOGFILE_QUEUES = 'queues.log'
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
-    N_BACKGROUND_WORKERS = 4
-    N_TRACKER_WORKERS = 7
-    CAM_FPS = 70
+    N_BACKGROUND_WORKERS = 3
+    N_TRACKER_WORKERS = 6
+    CAM_FPS = 120
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -259,7 +260,7 @@ if __name__ == "__main__":
         transformation_matrix=np.array([[1.0,0,0],[0,-1.0,720],[0,0,1.0]], dtype=np.float32)
     )
     
-    cam = CameraWorker(cam=m, fps=CAM_FPS, name='camera', logger=worker_logger, logger_queues=queue_logger, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    cam = CameraWorker(cam=m, fps=CAM_FPS, name='camera', logger=worker_logger, logger_queues=queue_logger, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0, profile=True)
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
