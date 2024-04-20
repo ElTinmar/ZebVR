@@ -141,10 +141,11 @@ class Display(WorkerNode):
 
 class ImageSaver(WorkerNode):
 
-    def __init__(self, folder: str, zero_padding: int = 8, *args, **kwargs):
+    def __init__(self, folder: str, zero_padding: int = 8, compress: bool = False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.folder = folder
         self.zero_padding = zero_padding
+        self.compress = compress
 
     def initialize(self) -> None:
         super().initialize()
@@ -159,7 +160,10 @@ class ImageSaver(WorkerNode):
                 dtype = np.dtype([('index',np.int64), ('timestamp',np.float32)]) 
             )
             filename = os.path.join(self.folder, f'{index:0{self.zero_padding}}')
-            np.savez_compressed(filename, image=image, metadata=metadata)
+            if self.compress:
+                np.savez_compressed(filename, image=image, metadata=metadata)
+            else:
+                np.savez(filename, image=image, metadata=metadata)
 
 if __name__ == "__main__":
 
