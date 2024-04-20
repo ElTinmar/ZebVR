@@ -1,5 +1,9 @@
 toy_data/
 
+# numpy arrays
+*.npy
+*.npz
+
 # logs
 *.log
 *.prof 

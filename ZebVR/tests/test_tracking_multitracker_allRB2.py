@@ -46,15 +46,18 @@ class CameraWorker(WorkerNode):
     
     def work(self, data: None): 
         
-        res = self.cam.get_frame()
-        if res:
+        frame = self.cam.get_frame()
+        if frame:
             elapsed = (time.monotonic_ns() - self.prev_time) 
             while elapsed < 1e9/self.fps:
                 elapsed = (time.monotonic_ns() - self.prev_time) 
                 time.sleep(0.00001)
             self.prev_time = time.monotonic_ns()
-
-            return (res.index, time.perf_counter_ns(), res.image)
+            
+            res = {}
+            res['background_subtraction'] = (frame.index, time.perf_counter_ns(), frame.image)
+            res['image_saver'] = (frame.index, time.perf_counter_ns(), frame.image)
+            return res
     
 class BackgroundSubWorker(WorkerNode):
 
@@ -136,6 +139,28 @@ class Display(WorkerNode):
                 cv2.waitKey(1)
                 self.prev_time = time.monotonic()
 
+class ImageSaver(WorkerNode):
+
+    def __init__(self, folder: str, zero_padding: int = 8, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.folder = folder
+        self.zero_padding = zero_padding
+
+    def initialize(self) -> None:
+        super().initialize()
+        if not os.path.exists(self.folder):
+            os.mkdir(self.folder)
+
+    def work(self, data: NDArray) -> None:
+        if data is not None:
+            index, timestamp, image = data
+            metadata = np.array( 
+                (index, timestamp), 
+                dtype = np.dtype([('index',np.int64), ('timestamp',np.float32)]) 
+            )
+            filename = os.path.join(self.folder, f'{index:0{self.zero_padding}}')
+            np.savez_compressed(filename, image=image, metadata=metadata)
+
 if __name__ == "__main__":
 
     LOGFILE_WORKERS = 'workers.log'
@@ -157,7 +182,7 @@ if __name__ == "__main__":
     # background subtracted video
     INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[1]
 
-    m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=8e9)
+    m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=4e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
 
@@ -265,7 +290,24 @@ if __name__ == "__main__":
         transformation_matrix=np.array([[1.0,0,0],[0,-1.0,720],[0,0,1.0]], dtype=np.float32)
     )
     
-    cam = CameraWorker(cam=m, fps=CAM_FPS, name='camera', logger=worker_logger, logger_queues=queue_logger, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    cam = CameraWorker(
+        cam=m, 
+        fps=CAM_FPS, 
+        name='camera', 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_strategy=receive_strategy.COLLECT, 
+        send_strategy=send_strategy.BROADCAST, 
+        receive_timeout=1.0
+    )
+
+    image_saver = ImageSaver(
+        folder='/home/martin/Development/ZebVR/recording_0', 
+        name='image_saver',  
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_timeout=1.0
+    )
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
@@ -275,9 +317,30 @@ if __name__ == "__main__":
     for i in range(N_TRACKER_WORKERS):
         trck.append(TrackerWorker(t, name=f'tracker{i}', logger=worker_logger, logger_queues=queue_logger, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0, profile=False))
 
-    dis = Display(fps=30, name='display', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0)
-    stim = VisualStimWorker(stim=ptx, name='phototaxis', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0) 
-    oly = OverlayWorker(overlay=o, fps=30, name="overlay", logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0)
+    dis = Display(
+        fps=30, 
+        name='display', 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_timeout=1.0
+    )
+
+    stim = VisualStimWorker(
+        stim=ptx, 
+        name='phototaxis', 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_timeout=1.0
+    )
+
+    oly = OverlayWorker(
+        overlay=o, 
+        fps=30, 
+        name="overlay", 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_timeout=1.0
+    )
 
     # ring buffer camera ------------------------------------------------------------------ 
     dt_uint8_RGB = np.dtype([
@@ -309,6 +372,18 @@ if __name__ == "__main__":
             deserialize = deserialize_image,
             logger = queue_logger,
             name = 'camera_to_background',
+            t_refresh=T_REFRESH
+        )
+    )
+
+    q_save_image = MonitoredQueue(
+        ObjectRingBuffer2(
+            num_items = 100,
+            data_type = dt_uint8_RGB,
+            serialize = serialize_image,
+            deserialize = deserialize_image,
+            logger = queue_logger,
+            name = 'camera_to_image_saver',
             t_refresh=T_REFRESH
         )
     )
@@ -424,8 +499,10 @@ if __name__ == "__main__":
 
     dag = ProcessingDAG()
 
+    dag.connect(sender=cam, receiver=image_saver, queue=q_save_image, name='image_saver')
+
     for i in range(N_BACKGROUND_WORKERS):   
-        dag.connect(sender=cam, receiver=bckg[i], queue=q_cam, name='cam_image')
+        dag.connect(sender=cam, receiver=bckg[i], queue=q_cam, name='background_subtraction')
     
     for i in range(N_BACKGROUND_WORKERS):
         for j in range(N_TRACKER_WORKERS):
@@ -446,6 +523,7 @@ if __name__ == "__main__":
     worker_logger.stop()
 
     print('cam to background', q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
+    print('cam to image saver', q_save_image.get_average_freq(), q_save_image.queue.num_lost_item.value)
     print('background to trackers', q_back.get_average_freq(), q_back.queue.num_lost_item.value)
     print('trackers to visual stim', q_tracking.get_average_freq(), q_tracking.queue.num_lost_item.value)
     print('trackers to overlay', q_overlay.get_average_freq(), q_overlay.queue.num_lost_item.value)
