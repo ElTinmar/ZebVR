@@ -48,6 +48,7 @@ class CameraWorker(WorkerNode):
         
         frame = self.cam.get_frame()
         if frame:
+            im_gray = im2gray(frame.image)
             elapsed = (time.monotonic_ns() - self.prev_time) 
             while elapsed < 1e9/self.fps:
                 elapsed = (time.monotonic_ns() - self.prev_time) 
@@ -55,8 +56,8 @@ class CameraWorker(WorkerNode):
             self.prev_time = time.monotonic_ns()
             
             res = {}
-            res['background_subtraction'] = (frame.index, time.perf_counter_ns(), frame.image)
-            res['image_saver'] = (frame.index, time.perf_counter_ns(), frame.image)
+            res['background_subtraction'] = (frame.index, time.perf_counter_ns(), im_gray)
+            res['image_saver'] = (frame.index, time.perf_counter_ns(), im_gray)
             return res
     
 class BackgroundSubWorker(WorkerNode):
@@ -171,9 +172,9 @@ if __name__ == "__main__":
     LOGFILE_QUEUES = 'queues.log'
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
-    N_BACKGROUND_WORKERS = 1
+    N_BACKGROUND_WORKERS = 2
     N_TRACKER_WORKERS = 3
-    CAM_FPS = 120
+    CAM_FPS = 60
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -184,7 +185,7 @@ if __name__ == "__main__":
         ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
     ]
     # background subtracted video
-    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[1]
+    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
 
     m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=4e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
@@ -353,6 +354,12 @@ if __name__ == "__main__":
         ('image', np.uint8, (h,w,3))
     ])
 
+    dt_uint8_gray = np.dtype([
+        ('index', int, (1,)),
+        ('timestamp', float, (1,)), 
+        ('image', np.uint8, (h,w))
+    ])
+
     def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
         #tic = time.monotonic_ns()
         #buffer[:] = obj # this is slower, why ?
@@ -371,7 +378,7 @@ if __name__ == "__main__":
     q_cam = MonitoredQueue(
         ObjectRingBuffer2(
             num_items = 100,
-            data_type = dt_uint8_RGB,
+            data_type = dt_uint8_gray,
             serialize = serialize_image,
             deserialize = deserialize_image,
             logger = queue_logger,
@@ -383,7 +390,7 @@ if __name__ == "__main__":
     q_save_image = MonitoredQueue(
         ObjectRingBuffer2(
             num_items = 100,
-            data_type = dt_uint8_RGB,
+            data_type = dt_uint8_gray,
             serialize = serialize_image,
             deserialize = deserialize_image,
             logger = queue_logger,
