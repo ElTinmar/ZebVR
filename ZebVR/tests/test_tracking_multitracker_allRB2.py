@@ -47,13 +47,14 @@ class CameraWorker(WorkerNode):
     def work(self, data: None): 
         
         res = self.cam.get_frame()
-        elapsed = (time.monotonic_ns() - self.prev_time) 
-        while elapsed < 1e9/self.fps:
+        if res:
             elapsed = (time.monotonic_ns() - self.prev_time) 
-            time.sleep(0.00001)
-        self.prev_time = time.monotonic_ns()
+            while elapsed < 1e9/self.fps:
+                elapsed = (time.monotonic_ns() - self.prev_time) 
+                time.sleep(0.00001)
+            self.prev_time = time.monotonic_ns()
 
-        return (res.index, time.perf_counter_ns(), res.image)
+            return (res.index, time.perf_counter_ns(), res.image)
     
 class BackgroundSubWorker(WorkerNode):
 
@@ -76,6 +77,12 @@ class TrackerWorker(WorkerNode):
     def __init__(self, tracker: MultiFishTracker, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.tracker = tracker
+
+    def initialize(self) -> None:
+        super().initialize()
+
+        # try to trigger numba compilation during init phase (doesn't work right now)
+        # self.tracker.tail.track(np.zeros((100,100),dtype=np.float32), centroid=np.array([0,0]))
 
     def work(self, data: NDArray) -> Dict:
         try:
@@ -438,6 +445,10 @@ if __name__ == "__main__":
     # NOTE: send time = serialization (one copy) + writing (one copy) and acquiring lock
     # NOTE: receive time = deserialization + reading (sometimes one copy) from queue and acquiring lock
     # NOTE: check that total_time/#workers is <= to cam for all workers (except workers with reduced fps like display)
+
+    # NOTE: the intial delay at the level of the tracker (~500ms), is most likely due to numba. When I remove the 
+    # tail tracker, the latency goes way down at the beginning. Maybe I can force the tracker to compile during initialization ?
+
 
     plot_queue_logs(LOGFILE_QUEUES)
     # NOTE: memory bandwidth ~10GB/s. 1800x1800x3 uint8 = 9.3 MB, 1800x1800 float32 = 12.4 MB
