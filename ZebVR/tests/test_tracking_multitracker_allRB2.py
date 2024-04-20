@@ -142,7 +142,7 @@ if __name__ == "__main__":
     LOGFILE_QUEUES = 'queues.log'
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
-    N_BACKGROUND_WORKERS = 1
+    N_BACKGROUND_WORKERS = 3
     N_TRACKER_WORKERS = 4
     CAM_FPS = 60
     BACKGROUND_GPU = True
@@ -269,7 +269,7 @@ if __name__ == "__main__":
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
-        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0, profile=False))
+        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0, profile=True))
 
     trck = []
     for i in range(N_TRACKER_WORKERS):
@@ -287,7 +287,13 @@ if __name__ == "__main__":
     ])
 
     def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
-        buffer[:] = obj
+        tic = time.monotonic_ns()
+        #buffer[:] = obj # this is slower, why ?
+        index, timestamp, image = obj 
+        buffer['index'] = index
+        buffer['timestamp'] = timestamp
+        buffer['image'] = image
+        print(buffer.dtype, 1e-6*(time.monotonic_ns() - tic))
 
     def deserialize_image(arr: NDArray) -> Tuple[int, float, NDArray]:
         index = arr['index'].item()
@@ -359,7 +365,7 @@ if __name__ == "__main__":
         index, timestamp, tracking = obj
         buffer['index'] = index
         buffer['timestamp'] = timestamp
-        buffer['tracking'] = tracking.to_numpy() # maybe it should be tracking.to_numpy(array_to_copy_into) to write directly to the buffer
+        buffer['tracking'] = tracking.to_numpy() # maybe it should be tracking.to_numpy(array_to_copy_into) to write directly to the buffer. Rewrite function as tracking(out: Optional[NDArray] = None)
 
     def deserialize_tracking_multifish(arr: NDArray) -> Tuple[int, float, MultiFishTracking]:
         index = arr['index'].item()
@@ -376,7 +382,11 @@ if __name__ == "__main__":
     ])
 
     def serialize_tracking_body(buffer: NDArray, obj: Tuple[int, float, NDArray, NDArray]) -> NDArray:
-        buffer[:] = obj
+        index, timestamp, centroid, heading = obj
+        buffer['index'] = index
+        buffer['timestamp'] = timestamp
+        buffer['centroid'] = centroid
+        buffer['heading'] = heading
 
     def deserialize_tracking_body(arr: NDArray) -> Tuple[int, float, NDArray, NDArray]:
         index = arr['index'].item()
