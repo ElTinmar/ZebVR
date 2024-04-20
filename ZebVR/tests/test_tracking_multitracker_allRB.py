@@ -48,13 +48,14 @@ class CameraWorker(WorkerNode):
     def work(self, data: None): 
         
         res = self.cam.get_frame()
-        elapsed = (time.monotonic_ns() - self.prev_time) 
-        while elapsed < 1e9/self.fps:
+        if res:
             elapsed = (time.monotonic_ns() - self.prev_time) 
-            time.sleep(0.00001)
-        self.prev_time = time.monotonic_ns()
+            while elapsed < 1e9/self.fps:
+                elapsed = (time.monotonic_ns() - self.prev_time) 
+                time.sleep(0.00001)
+            self.prev_time = time.monotonic_ns()
 
-        return (res.index, time.perf_counter_ns(), res.image)
+            return (res.index, time.perf_counter_ns(), res.image)
     
 class BackgroundSubWorker(WorkerNode):
 
@@ -77,6 +78,12 @@ class TrackerWorker(WorkerNode):
     def __init__(self, tracker: MultiFishTracker, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.tracker = tracker
+
+    def initialize(self) -> None:
+        super().initialize()
+
+        # try to trigger numba compilation during init phase (doesn't work right now)
+        # self.tracker.tail.track(np.zeros((100,100),dtype=np.float32), centroid=np.array([0,0]))
 
     def work(self, data: NDArray) -> Dict:
         try:
@@ -136,9 +143,9 @@ if __name__ == "__main__":
     LOGFILE_QUEUES = 'queues.log'
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
-    N_BACKGROUND_WORKERS = 4
-    N_TRACKER_WORKERS = 7
-    CAM_FPS = 70
+    N_BACKGROUND_WORKERS = 3
+    N_TRACKER_WORKERS = 6
+    CAM_FPS = 120
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -259,7 +266,7 @@ if __name__ == "__main__":
         transformation_matrix=np.array([[1.0,0,0],[0,-1.0,720],[0,0,1.0]], dtype=np.float32)
     )
     
-    cam = CameraWorker(cam=m, fps=CAM_FPS, name='camera', logger=worker_logger, logger_queues=queue_logger, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0)
+    cam = CameraWorker(cam=m, fps=CAM_FPS, name='camera', logger=worker_logger, logger_queues=queue_logger, receive_strategy=receive_strategy.COLLECT, receive_timeout=1.0, profile=True)
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
@@ -445,6 +452,9 @@ if __name__ == "__main__":
     # NOTE: receive time = deserialization + reading (sometimes one copy) from queue and acquiring lock
     # NOTE: check that total_time/#workers is <= to cam for all workers (except workers with reduced fps like display)
 
+    # NOTE: the intial delay at the level of the tracker (~500ms), is most likely due to numba. When I remove the 
+    # tail tracker, the latency goes way down at the beginning. Maybe I can force the tracker to compile during initialization ?
+
     plot_queue_logs(LOGFILE_QUEUES)
     # NOTE: memory bandwidth ~10GB/s. 1800x1800x3 uint8 = 9.3 MB, 1800x1800 float32 = 12.4 MB
     # camera: creation, serialization, put on buffer
@@ -452,4 +462,5 @@ if __name__ == "__main__":
     # tracker: serialization, put on buffer
 
     # with larger image, bottleneck transition from CPU to memory bandwidth ?
+    
     
