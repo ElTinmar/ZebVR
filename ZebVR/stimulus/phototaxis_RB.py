@@ -67,7 +67,8 @@ class Phototaxis(VisualStim):
             window_position: Tuple[int, int], 
             color: Tuple[int, int, int, int],
             window_decoration: bool = True,
-            transformation_matrix: NDArray = np.eye(3, dtype=np.float32)
+            transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
+            refresh_rate: int = 120
         ) -> None:
 
         super().__init__(VERT_SHADER_PHOTOTAXIS, FRAG_SHADER_PHOTOTAXIS, window_size, window_position, window_decoration, transformation_matrix)
@@ -77,6 +78,7 @@ class Phototaxis(VisualStim):
         self.fish_orientation_y = Value('d',0)
         self.fish_centroid_x = Value('d',0)
         self.fish_centroid_y = Value('d',0)
+        self.refresh_rate = refresh_rate
         
     def initialize(self):
         super().initialize()
@@ -85,7 +87,7 @@ class Phototaxis(VisualStim):
         self.program['a_fish_pc2'] = [0,0]
         self.program['a_fish_centroid'] = [0,0]
     
-        self.timer = app.Timer('auto', self.on_timer)
+        self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
         self.timer.start()
         self.show()
 

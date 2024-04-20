@@ -142,9 +142,9 @@ if __name__ == "__main__":
     LOGFILE_QUEUES = 'queues.log'
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
-    N_BACKGROUND_WORKERS = 3
-    N_TRACKER_WORKERS = 4
-    CAM_FPS = 60
+    N_BACKGROUND_WORKERS = 1
+    N_TRACKER_WORKERS = 3
+    CAM_FPS = 120
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -155,7 +155,7 @@ if __name__ == "__main__":
         ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
     ]
     # background subtracted video
-    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
+    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[1]
 
     m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=8e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
@@ -287,13 +287,13 @@ if __name__ == "__main__":
     ])
 
     def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
-        tic = time.monotonic_ns()
+        #tic = time.monotonic_ns()
         #buffer[:] = obj # this is slower, why ?
         index, timestamp, image = obj 
         buffer['index'] = index
         buffer['timestamp'] = timestamp
         buffer['image'] = image
-        print(buffer.dtype, 1e-6*(time.monotonic_ns() - tic))
+        #print(buffer.dtype, 1e-6*(time.monotonic_ns() - tic))
 
     def deserialize_image(arr: NDArray) -> Tuple[int, float, NDArray]:
         index = arr['index'].item()
@@ -362,10 +362,13 @@ if __name__ == "__main__":
     ])
 
     def serialize_tracking_multifish(buffer: NDArray, obj: Tuple[int, float, MultiFishTracking]) -> NDArray:
+        #tic = time.monotonic_ns()
         index, timestamp, tracking = obj
         buffer['index'] = index
         buffer['timestamp'] = timestamp
         buffer['tracking'] = tracking.to_numpy() # maybe it should be tracking.to_numpy(array_to_copy_into) to write directly to the buffer. Rewrite function as tracking(out: Optional[NDArray] = None)
+        #print(buffer.dtype, 1e-6*(time.monotonic_ns() - tic))
+
 
     def deserialize_tracking_multifish(arr: NDArray) -> Tuple[int, float, MultiFishTracking]:
         index = arr['index'].item()
