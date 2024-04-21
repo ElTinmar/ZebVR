@@ -1,5 +1,7 @@
 toy_data/
 
+*.json
+
 # numpy arrays
 *.npy
 *.npz

@@ -1,7 +1,7 @@
 from vispy import gloo, app
 from typing import Tuple
 import sys
-from multiprocessing import Process, Value, Event
+from multiprocessing import Process, Value
 import time
 import numpy as np
 import json
@@ -9,6 +9,8 @@ from camera_tools import OpenCV_Webcam
 #from camera_tools import XimeaCamera
 from image_tools import im2single, enhance, im2rgb, im2uint8, im2gray
 import cv2
+from geometry import to_homogeneous
+from tqdm import tqdm
 
 VERT_SHADER_CALIBRATION = """
 attribute float a_radius;
@@ -101,9 +103,9 @@ class Projector(app.Canvas, Process):
 
 if __name__ == '__main__':
     
-    
-    PROJ_HEIGHT = 720
-    PROJ_WIDTH = 1280
+    PROJ_HEIGHT = 1920
+    PROJ_WIDTH = 1080
+    PROJ_POS = (3840,0)
 
     CAM_EXPOSURE_MS = 1000
     CAM_GAIN = 0
@@ -113,7 +115,7 @@ if __name__ == '__main__':
     CAM_OFFSETX = 0
     CAM_OFFSETY = 0
 
-    DETECTION_TRESHOLD = 0.2
+    DETECTION_TRESHOLD = 0.4
     CONTRAST = 1
     GAMMA = 1
     BRIGHTNESS = 0
@@ -125,7 +127,7 @@ if __name__ == '__main__':
 
     cv2.namedWindow('calibration')
 
-    proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), radius=DOT_RADIUS)
+    proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, radius=DOT_RADIUS)
     proj.start()
 
     camera = OpenCV_Webcam()
@@ -137,20 +139,19 @@ if __name__ == '__main__':
     camera.set_offsetX(CAM_OFFSETX)
     camera.set_offsetY(CAM_OFFSETY)
 
-    X,Y = np.mgrid[0:PROJ_WIDTH:STEP_SIZE,0:PROJ_HEIGHT:STEP_SIZE]
-    pts_proj = np.vstack([X.ravel(),Y.ravel()]).T
+    X,Y = np.mgrid[100:PROJ_WIDTH:STEP_SIZE, 100:PROJ_HEIGHT:STEP_SIZE]
+    pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
     pts_cam = np.nan * np.ones_like(pts_proj)
 
-    for idx, pt in enumerate(pts_proj):
-
+    for idx, pt in tqdm(enumerate(pts_proj)):
+        
         # project point
         proj.draw_point(*pt)
-        
-        # make sure image is displayed
-        time.sleep(1)
 
-        # get camera frame
+        # get camera frame 
+        camera.start_acquisition() # looks like I need to restart to get the last frame
         frame = camera.get_frame()
+        camera.stop_acquisition()
         
         # smooth frame
         image = enhance(
@@ -170,16 +171,19 @@ if __name__ == '__main__':
             pos = np.unravel_index(np.argmax(image), image.shape)
             pts_cam[idx,:] = pos
 
+            print(idx,max_intensity,pos)
+
             image = im2rgb(im2uint8(image))
             overlay = cv2.circle(image, pos[::-1], 4, (0,0,255),-1)
             cv2.imshow('calibration', overlay)
             cv2.waitKey(1)
-        
+
     proj.terminate()
+    camera.stop_acquisition()
     cv2.destroyAllWindows()
 
     # compute least-square estimate of the transformation and output to json
-    transformation = np.linalg.lstsq(pts_cam, pts_proj, rcond=None)[0]
+    transformation = np.linalg.lstsq(to_homogeneous(pts_cam), to_homogeneous(pts_proj), rcond=None)[0]
     calibration = {}
     calibration['proj_to_cam'] = transformation.tolist()
     calibration['cam_to_proj'] = np.linalg.inv(transformation).tolist()
