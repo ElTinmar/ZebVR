@@ -174,8 +174,6 @@ if __name__ == '__main__':
             pos = np.unravel_index(np.argmax(image), image.shape)
             pts_cam[idx,:] = pos
 
-            print(idx,max_intensity,pos)
-
             image = im2rgb(im2uint8(image))
             overlay = cv2.circle(image, pos[::-1], 4, (0,0,255),-1)
             cv2.imshow('calibration', overlay)
