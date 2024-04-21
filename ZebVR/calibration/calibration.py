@@ -179,11 +179,11 @@ if __name__ == '__main__':
     cv2.destroyAllWindows()
 
     # compute least-square estimate of the transformation and output to json
-    transformation = np.linalg.lstsq(pts_cam, pts_proj, rcond=None)
+    transformation = np.linalg.lstsq(pts_cam, pts_proj, rcond=None)[0]
     calibration = {}
-    calibration['proj_to_cam'] = transformation
-    calibration['cam_to_proj'] = np.linalg.inv(transformation)
+    calibration['proj_to_cam'] = transformation.tolist()
+    calibration['cam_to_proj'] = np.linalg.inv(transformation).tolist()
     
     with open(CALIBRATION_FILE,'w') as f:
-        json.dump(transformation.to_list(), f)
+        json.dump(calibration, f)
     
