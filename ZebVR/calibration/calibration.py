@@ -143,13 +143,16 @@ if __name__ == '__main__':
     pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
     pts_cam = np.nan * np.ones_like(pts_proj)
 
+    # make sure that everything is initialized
+    time.sleep(1)
+
     for idx, pt in tqdm(enumerate(pts_proj)):
         
         # project point
         proj.draw_point(*pt)
 
         # get camera frame 
-        camera.start_acquisition() # looks like I need to restart to get the last frame
+        camera.start_acquisition() # looks like I need to restart to get the last frame ...
         frame = camera.get_frame()
         camera.stop_acquisition()
         
@@ -181,6 +184,11 @@ if __name__ == '__main__':
     proj.terminate()
     camera.stop_acquisition()
     cv2.destroyAllWindows()
+
+    # remove NaNs
+    nans = np.isnan(pts_cam).any(axis=1)
+    pts_cam = pts_cam[~nans]
+    pts_proj = pts_proj[~nans]
 
     # compute least-square estimate of the transformation and output to json
     transformation = np.linalg.lstsq(to_homogeneous(pts_cam), to_homogeneous(pts_proj), rcond=None)[0]
