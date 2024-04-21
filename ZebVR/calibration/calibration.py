@@ -152,7 +152,7 @@ if __name__ == '__main__':
         proj.draw_point(*pt)
 
         # get camera frame 
-        camera.start_acquisition() # looks like I need to restart to get the last frame ...
+        camera.start_acquisition() # looks like I need to restart to get the last frame with OpenCV...
         frame = camera.get_frame()
         camera.stop_acquisition()
         
