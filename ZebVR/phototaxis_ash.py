@@ -20,7 +20,7 @@ from ZebVR.stimulus.phototaxis_RB import Phototaxis
 import numpy as np
 from numpy.typing import NDArray, DTypeLike
 import time
-from typing import Any, Dict, Tuple
+from typing import Callable, Any, Dict, Tuple
 import cv2
 import json
 
@@ -29,12 +29,40 @@ from ipc_tools import plot_logs as plot_queue_logs
 
 class CameraWorker(WorkerNode):
 
-    def __init__(self, cam: Camera, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.cam = cam
+    def __init__(
+            self, 
+            camera_constructor: Callable[[Camera], None], 
+            exposure: float,
+            gain: float,
+            framerate: float,
+            height: int,
+            width: int,
+            offsetx: int,
+            offsety: int,
+            *args, 
+            **kwargs
+        ):
 
+        super().__init__(*args, **kwargs)
+        self.camera_constructor = camera_constructor
+        self.exposure = exposure
+        self.gain = gain
+        self.framerate = framerate
+        self.height = height
+        self.width = width
+        self.offsetx = offsetx
+        self.offsety = offsety
+    
     def initialize(self) -> None:
         super().initialize()
+        self.cam = self.camera_constructor()
+        self.cam.set_exposure(self.exposure)
+        self.cam.set_gain(self.gain)
+        self.cam.set_framerate(self.framerate)
+        self.cam.set_height(self.height)
+        self.cam.set_width(self.width)
+        self.cam.set_offsetX(self.offsetx)
+        self.cam.set_offsetY(self.offsety)
         self.cam.start_acquisition()
 
     def cleanup(self) -> None:
@@ -176,7 +204,7 @@ if __name__ == "__main__":
     PROJ_WIDTH = 1140
     PROJ_POS = (2560,0)
 
-    CAM_EXPOSURE_MS = 10000
+    CAM_EXPOSURE_MS = 1000
     CAM_GAIN = 0
     CAM_FPS = 10
     CAM_HEIGHT = 2048
@@ -186,17 +214,6 @@ if __name__ == "__main__":
 
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)
-
-    m = XimeaCamera()
-    m.set_exposure(CAM_EXPOSURE_MS)
-    m.set_gain(CAM_GAIN)
-    m.set_framerate(CAM_FPS)
-    m.set_height(CAM_HEIGHT)
-    m.set_width(CAM_WIDTH)
-    m.set_offsetX(CAM_OFFSETX)
-    m.set_offsetY(CAM_OFFSETY)
-
-    h, w = (m.get_height(), m.get_width())
 
     o = MultiFishOverlay_opencv(
         AnimalOverlay_opencv(AnimalTrackerParamOverlay()),
@@ -210,7 +227,7 @@ if __name__ == "__main__":
         accumulator=None, 
         export_fullres_image=True,
         animal=AnimalTracker_CPU(
-            assignment=GridAssignment(LUT=np.zeros((h,w), dtype=np.int_)), 
+            assignment=GridAssignment(LUT=np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.int_)), 
             tracking_param=AnimalTrackerParamTracking(
                 pix_per_mm=PIX_PER_MM,
                 target_pix_per_mm=5,
@@ -269,7 +286,14 @@ if __name__ == "__main__":
     )
     
     cam = CameraWorker(
-        cam=m, 
+        camera_constructor = XimeaCamera, 
+        exposure = CAM_EXPOSURE_MS,
+        gain = CAM_GAIN,
+        framerate = CAM_FPS,
+        height = CAM_HEIGHT,
+        width = CAM_WIDTH,
+        offsetx = CAM_OFFSETX,
+        offsety = CAM_OFFSETY,
         name='camera', 
         logger=worker_logger, 
         logger_queues=queue_logger, 
@@ -323,13 +347,13 @@ if __name__ == "__main__":
     dt_uint8_RGB = np.dtype([
         ('index', int, (1,)),
         ('timestamp', float, (1,)), 
-        ('image', np.uint8, (h,w,3))
+        ('image', np.uint8, (CAM_HEIGHT,CAM_WIDTH,3))
     ])
 
     dt_uint8_gray = np.dtype([
         ('index', int, (1,)),
         ('timestamp', float, (1,)), 
-        ('image', np.uint8, (h,w))
+        ('image', np.uint8, (CAM_HEIGHT,CAM_WIDTH))
     ])
 
     def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
@@ -392,7 +416,7 @@ if __name__ == "__main__":
     dt_single_gray = np.dtype([
         ('index', int, (1,)),
         ('timestamp', float, (1,)), 
-        ('image', np.float32, (h,w))
+        ('image', np.float32, (CAM_HEIGHT,CAM_WIDTH))
     ])
 
     q_back = MonitoredQueue(
@@ -410,7 +434,7 @@ if __name__ == "__main__":
 
     # tracking ring buffer -------------------------------------------------------------------
     # get dtype and itemsize for tracker results
-    tracking = t.track(np.zeros((h,w), dtype=np.float32))
+    tracking = t.track(np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.float32))
     arr_multifish = tracking.to_numpy()
 
     dt_tracking_multifish = np.dtype([
