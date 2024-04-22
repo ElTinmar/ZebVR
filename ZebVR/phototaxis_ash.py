@@ -206,7 +206,7 @@ if __name__ == "__main__":
 
     CAM_EXPOSURE_MS = 1000
     CAM_GAIN = 0
-    CAM_FPS = 10
+    CAM_FPS = 60
     CAM_HEIGHT = 2048
     CAM_WIDTH = 2048
     CAM_OFFSETX = 0
@@ -214,6 +214,7 @@ if __name__ == "__main__":
 
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)
+        print(np.array(calibration['cam_to_proj'], dtype=np.float32))
 
     o = MultiFishOverlay_opencv(
         AnimalOverlay_opencv(AnimalTrackerParamOverlay()),
@@ -282,7 +283,7 @@ if __name__ == "__main__":
         window_position=PROJ_POS,
         color=(1.0, 1.0, 1.0, 1.0),
         window_decoration=False,
-        transformation_matrix=np.array(calibration['cam_to_proj'])
+        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32)
     )
     
     cam = CameraWorker(
@@ -506,11 +507,13 @@ if __name__ == "__main__":
 
     dag = ProcessingDAG()
 
-    dag.connect(sender=cam, receiver=image_saver, queue=q_save_image, name='image_saver')
-
     for i in range(N_BACKGROUND_WORKERS):   
         dag.connect(sender=cam, receiver=bckg[i], queue=q_cam, name='background_subtraction')
     
+    # NOTE: the order in which you declare connections matter: background_subtraction will
+    # be served before image_saver
+    dag.connect(sender=cam, receiver=image_saver, queue=q_save_image, name='image_saver')
+
     for i in range(N_BACKGROUND_WORKERS):
         for j in range(N_TRACKER_WORKERS):
             dag.connect(sender=bckg[i], receiver=trck[j], queue=q_back, name='background_subtracted')
@@ -524,7 +527,7 @@ if __name__ == "__main__":
     worker_logger.start()
     queue_logger.start()
     dag.start()
-    time.sleep(200)
+    time.sleep(10)
     dag.stop()
     queue_logger.stop()
     worker_logger.stop()
