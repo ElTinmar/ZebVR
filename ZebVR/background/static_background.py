@@ -1,4 +1,4 @@
-from camera_tools import OpenCV_Webcam
+from camera_tools import XimeaCamera
 import time
 from video_tools import mode
 import numpy as np
@@ -11,8 +11,8 @@ if __name__ == '__main__':
     CAM_EXPOSURE_MS = 1000
     CAM_GAIN = 0
     CAM_FPS = 10
-    CAM_HEIGHT = 480
-    CAM_WIDTH = 640
+    CAM_HEIGHT = 2048
+    CAM_WIDTH = 2048
     CAM_OFFSETX = 0
     CAM_OFFSETY = 0
     
@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     BACKGROUND_FILE = 'background.npy'
 
-    camera = OpenCV_Webcam()
+    camera = XimeaCamera()
     camera.set_exposure(CAM_EXPOSURE_MS)
     camera.set_gain(CAM_GAIN)
     camera.set_framerate(CAM_FPS)
