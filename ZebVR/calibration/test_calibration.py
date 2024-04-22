@@ -102,6 +102,9 @@ class Projector(app.Canvas, Process):
             app.run()
 
 if __name__ == '__main__':
+
+    # TODO projects polygons and display with two different channels, what's expected and what you get
+    # this requires to change the shaders to display a mask instead of points
     
     PROJ_HEIGHT = 912
     PROJ_WIDTH = 1140
