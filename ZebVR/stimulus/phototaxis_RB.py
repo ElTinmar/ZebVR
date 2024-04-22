@@ -53,9 +53,6 @@ void main()
     if ( dot(gl_FragCoord.xy-v_fish_centroid, v_fish_orientation)>0 ) {
         gl_FragColor = v_color;
     } 
-    if (distance(gl_FragCoord.xy,v_fish_centroid) <= 10) {
-        gl_FragColor = vec4(1.0,0.0,0.0,1.0);
-    }
 }
 """
 
