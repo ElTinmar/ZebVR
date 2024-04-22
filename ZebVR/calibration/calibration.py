@@ -5,12 +5,12 @@ from multiprocessing import Process, Value
 import time
 import numpy as np
 import json
-from camera_tools import OpenCV_Webcam
-#from camera_tools import XimeaCamera
+from camera_tools import XimeaCamera
 from image_tools import im2single, enhance, im2rgb, im2uint8, im2gray
 import cv2
 from geometry import to_homogeneous
 from tqdm import tqdm
+import os
 
 VERT_SHADER_CALIBRATION = """
 attribute float a_radius;
@@ -103,34 +103,32 @@ class Projector(app.Canvas, Process):
 
 if __name__ == '__main__':
     
-    PROJ_HEIGHT = 1920
-    PROJ_WIDTH = 1080
-    PROJ_POS = (3840,0)
+    PROJ_HEIGHT = 912
+    PROJ_WIDTH = 1140
+    PROJ_POS = (2560,0)
 
     CAM_EXPOSURE_MS = 1000
     CAM_GAIN = 0
     CAM_FPS = 10
-    CAM_HEIGHT = 480
-    CAM_WIDTH = 640
+    CAM_HEIGHT = 2048
+    CAM_WIDTH = 2048
     CAM_OFFSETX = 0
     CAM_OFFSETY = 0
 
-    DETECTION_TRESHOLD = 0.4
+    DETECTION_TRESHOLD = 0.2
     CONTRAST = 1
     GAMMA = 1
     BRIGHTNESS = 0
-    BLUR_SIZE_PX = 10
-    DOT_RADIUS = 10
+    BLUR_SIZE_PX = 3
+    DOT_RADIUS = 1
     STEP_SIZE = 200
 
     CALIBRATION_FILE = 'calibration.json'
 
-    cv2.namedWindow('calibration')
-
     proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, radius=DOT_RADIUS)
     proj.start()
 
-    camera = OpenCV_Webcam()
+    camera = XimeaCamera()
     camera.set_exposure(CAM_EXPOSURE_MS)
     camera.set_gain(CAM_GAIN)
     camera.set_framerate(CAM_FPS)
@@ -139,9 +137,23 @@ if __name__ == '__main__':
     camera.set_offsetX(CAM_OFFSETX)
     camera.set_offsetY(CAM_OFFSETY)
 
-    X,Y = np.mgrid[100:PROJ_WIDTH:STEP_SIZE, 100:PROJ_HEIGHT:STEP_SIZE]
-    pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
+    # if a calibration already exists, use it to refine the position of dots for calibration
+    if os.path.exists(CALIBRATION_FILE):
+        print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
+        with open(CALIBRATION_FILE, 'r') as f:
+            prev_cal = json.load(f)
+            cam_to_proj = np.array(prev_cal['cam_to_proj'])
+            X,Y = np.mgrid[100:CAM_WIDTH:STEP_SIZE, 100:CAM_HEIGHT:STEP_SIZE]
+            pts = np.vstack([X.ravel(), Y.ravel(), np.ones(X.size)])
+            pts_proj = cam_to_proj @ pts
+            pts_proj = pts_proj[:2,:].T
+    else:
+        print('No pre-existing calibration found')
+        X,Y = np.mgrid[100:PROJ_WIDTH:STEP_SIZE, 100:PROJ_HEIGHT:STEP_SIZE]
+        pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
+
     pts_cam = np.nan * np.ones_like(pts_proj)
+    cv2.namedWindow('calibration')
 
     # make sure that everything is initialized
     time.sleep(1)
@@ -169,15 +181,18 @@ if __name__ == '__main__':
         # check that dot is detected
         max_intensity = np.max(image)
         if max_intensity >= DETECTION_TRESHOLD:
-
             # get dot position on image
             pos = np.unravel_index(np.argmax(image), image.shape)
             pts_cam[idx,:] = pos
 
             image = im2rgb(im2uint8(image))
-            overlay = cv2.circle(image, pos[::-1], 4, (0,0,255),-1)
-            cv2.imshow('calibration', overlay)
-            cv2.waitKey(1)
+            image = cv2.circle(image, pos[::-1], 4, (0,0,255),-1)
+        else:
+            image = im2rgb(im2uint8(image))
+
+        cv2.imshow('calibration', image)
+        cv2.waitKey(1)
+        
 
     proj.terminate()
     camera.stop_acquisition()
@@ -190,9 +205,10 @@ if __name__ == '__main__':
 
     # compute least-square estimate of the transformation and output to json
     transformation = np.linalg.lstsq(to_homogeneous(pts_cam), to_homogeneous(pts_proj), rcond=None)[0]
+    transformation = np.transpose(transformation)
     calibration = {}
-    calibration['proj_to_cam'] = transformation.tolist()
-    calibration['cam_to_proj'] = np.linalg.inv(transformation).tolist()
+    calibration['cam_to_proj'] = transformation.tolist()
+    calibration['proj_to_cam'] = np.linalg.inv(transformation).tolist()
     
     with open(CALIBRATION_FILE,'w') as f:
         json.dump(calibration, f)
