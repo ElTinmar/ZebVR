@@ -103,7 +103,8 @@ class Projector(app.Canvas, Process):
 
 if __name__ == '__main__':
 
-    # TODO projects polygons and display with two different channels, what's expected and what you get
+    # TODO create polygons in cam coords, transform and project 
+    # display RGB with two different channels, what's expected from cam coords and what you get out of the projector
     # this requires to change the shaders to display a mask instead of points
     
     PROJ_HEIGHT = 912
