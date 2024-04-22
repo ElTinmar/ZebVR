@@ -196,8 +196,8 @@ if __name__ == "__main__":
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
-    PIX_PER_MM = 40 # TODO write calibration procedure to get mm_per_pix
-    POLARITY = Polarity.BRIGHT_ON_DARK
+    PIX_PER_MM = 120 # TODO write calibration procedure to get mm_per_pix
+    POLARITY = Polarity.DARK_ON_BRIGHT
     BACKGROUND_IMAGE = 'background.npy'
 
     PROJ_HEIGHT = 912
