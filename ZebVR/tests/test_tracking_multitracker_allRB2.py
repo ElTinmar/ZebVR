@@ -170,11 +170,12 @@ if __name__ == "__main__":
 
     LOGFILE_WORKERS = 'workers.log'
     LOGFILE_QUEUES = 'queues.log'
+    IMAGE_FOLDER = os.path.join(os.getenv('HOME'), 'Development/ZebVR/recording_0')
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 2
     N_TRACKER_WORKERS = 3
-    CAM_FPS = 60
+    CAM_FPS = 120
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -307,7 +308,7 @@ if __name__ == "__main__":
     )
 
     image_saver = ImageSaver(
-        folder='/home/martin/Development/ZebVR/recording_0', 
+        folder = IMAGE_FOLDER, 
         name='image_saver',  
         logger=worker_logger, 
         logger_queues=queue_logger, 
