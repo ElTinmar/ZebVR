@@ -196,7 +196,7 @@ if __name__ == "__main__":
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
-    PIX_PER_MM = 120 # TODO write calibration procedure to get mm_per_pix
+    PIX_PER_MM = 100 # TODO write calibration procedure to get mm_per_pix
     POLARITY = Polarity.DARK_ON_BRIGHT
     BACKGROUND_IMAGE = 'background.npy'
 
@@ -206,7 +206,7 @@ if __name__ == "__main__":
 
     CAM_EXPOSURE_MS = 1000
     CAM_GAIN = 0
-    CAM_FPS = 60
+    CAM_FPS = 10
     CAM_HEIGHT = 2048
     CAM_WIDTH = 2048
     CAM_OFFSETX = 0
@@ -214,7 +214,6 @@ if __name__ == "__main__":
 
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)
-        print(np.array(calibration['cam_to_proj'], dtype=np.float32))
 
     o = MultiFishOverlay_opencv(
         AnimalOverlay_opencv(AnimalTrackerParamOverlay()),
@@ -283,7 +282,7 @@ if __name__ == "__main__":
         window_position=PROJ_POS,
         color=(1.0, 1.0, 1.0, 1.0),
         window_decoration=False,
-        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32)
+        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32) 
     )
     
     cam = CameraWorker(
@@ -527,7 +526,7 @@ if __name__ == "__main__":
     worker_logger.start()
     queue_logger.start()
     dag.start()
-    time.sleep(10)
+    time.sleep(200)
     dag.stop()
     queue_logger.stop()
     worker_logger.stop()
