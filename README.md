@@ -19,3 +19,9 @@ rm -f XIMEA_Linux_SP.tgz
 rm -rf package
 ```
 
+# Troubleshooting
+
+if error 57 device already open
+```
+sudo killall python
+```
