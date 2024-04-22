@@ -137,31 +137,30 @@ if __name__ == '__main__':
     camera.set_offsetX(CAM_OFFSETX)
     camera.set_offsetY(CAM_OFFSETY)
 
-    # if a calibration already exists, use it to refine the position of dots for calibration
-    if os.path.exists(CALIBRATION_FILE):
-        print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
-        with open(CALIBRATION_FILE, 'r') as f:
-            prev_cal = json.load(f)
-            cam_to_proj = np.array(prev_cal['cam_to_proj'])
-            X,Y = np.mgrid[100:CAM_WIDTH:STEP_SIZE, 100:CAM_HEIGHT:STEP_SIZE]
-            pts = np.vstack([X.ravel(), Y.ravel(), np.ones(X.size)])
-            pts_proj = cam_to_proj @ pts
-            pts_proj = pts_proj[:2,:].T
-    else:
-        print('No pre-existing calibration found')
-        X,Y = np.mgrid[100:PROJ_WIDTH:STEP_SIZE, 100:PROJ_HEIGHT:STEP_SIZE]
-        pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
 
-    pts_cam = np.nan * np.ones_like(pts_proj)
-    cv2.namedWindow('calibration')
+    print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
+    with open(CALIBRATION_FILE, 'r') as f:
+        prev_cal = json.load(f)
+
+    cam_to_proj = np.array(prev_cal['cam_to_proj'])
+    X,Y = np.mgrid[100:CAM_WIDTH:STEP_SIZE, 100:CAM_HEIGHT:STEP_SIZE]
+    pts_cam = np.vstack([X.ravel(), Y.ravel(), np.ones(X.size)])
+    pts_proj = cam_to_proj @ pts_cam
+
+    pts_proj = pts_proj[:2,:].T
+    pts_cam = pts_cam[:2,:].T
+    
+    cv2.namedWindow('calibration test')
 
     # make sure that everything is initialized
     time.sleep(1)
 
-    for idx, pt in tqdm(enumerate(pts_proj)):
+    for idx, pts in tqdm(enumerate(zip(pts_proj, pts_cam))):
         
+        p_proj, p_cam = pts
+
         # project point
-        proj.draw_point(*pt)
+        proj.draw_point(*p_proj)
 
         # get camera frame 
         camera.start_acquisition() # looks like I need to restart to get the last frame with OpenCV...
@@ -178,19 +177,10 @@ if __name__ == '__main__':
             medfilt_size_px=None
         )
 
-        # check that dot is detected
-        max_intensity = np.max(image)
-        if max_intensity >= DETECTION_TRESHOLD:
-            # get dot position on image
-            pos = np.unravel_index(np.argmax(image), image.shape)
-            pts_cam[idx,:] = pos
+        image = im2rgb(im2uint8(image))
+        image = cv2.circle(image, p_cam[::-1].astype(np.int32), 4, (0,255,0),-1)
 
-            image = im2rgb(im2uint8(image))
-            image = cv2.circle(image, pos[::-1], 4, (0,0,255),-1)
-        else:
-            image = im2rgb(im2uint8(image))
-
-        cv2.imshow('calibration', image)
+        cv2.imshow('calibration test', image)
         cv2.waitKey(1)
         
 
@@ -198,18 +188,4 @@ if __name__ == '__main__':
     camera.stop_acquisition()
     cv2.destroyAllWindows()
 
-    # remove NaNs
-    nans = np.isnan(pts_cam).any(axis=1)
-    pts_cam = pts_cam[~nans]
-    pts_proj = pts_proj[~nans]
-
-    # compute least-square estimate of the transformation and output to json
-    transformation = np.linalg.lstsq(to_homogeneous(pts_cam), to_homogeneous(pts_proj), rcond=None)[0]
-    transformation = np.transpose(transformation)
-    calibration = {}
-    calibration['cam_to_proj'] = transformation.tolist()
-    calibration['proj_to_cam'] = np.linalg.inv(transformation).tolist()
-    
-    with open(CALIBRATION_FILE,'w') as f:
-        json.dump(calibration, f)
     
