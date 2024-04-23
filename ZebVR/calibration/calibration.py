@@ -66,7 +66,7 @@ class Projector(app.Canvas, Process):
 
         app.Canvas.__init__(
             self, 
-            size=self.window_size, 
+            size=self.window_size, # (width, height)
             decorate=self.window_decoration, 
             position=self.window_position, 
             keys='interactive'
@@ -103,8 +103,8 @@ class Projector(app.Canvas, Process):
 
 if __name__ == '__main__':
     
-    PROJ_HEIGHT = 912
-    PROJ_WIDTH = 1140
+    PROJ_HEIGHT = 1140
+    PROJ_WIDTH = 912
     PROJ_POS = (2560,0)
 
     CAM_EXPOSURE_MS = 10000
@@ -115,15 +115,33 @@ if __name__ == '__main__':
     CAM_OFFSETX = 0
     CAM_OFFSETY = 0
 
-    DETECTION_TRESHOLD = 0.2
+    DETECTION_TRESHOLD = 0.4
     CONTRAST = 1
     GAMMA = 1
     BRIGHTNESS = 0
     BLUR_SIZE_PX = 3
-    DOT_RADIUS = 1
-    STEP_SIZE = 200
+    DOT_RADIUS = 10
+    STEP_SIZE = 50
 
     CALIBRATION_FILE = 'calibration.json'
+
+        # if a calibration already exists, use it to refine the position of dots for calibration
+    if os.path.exists(CALIBRATION_FILE):
+        print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
+        DOT_RADIUS = 1
+        STEP_SIZE = 200
+        with open(CALIBRATION_FILE, 'r') as f:
+            prev_cal = json.load(f)
+            cam_to_proj = np.array(prev_cal['cam_to_proj'])
+            X,Y = np.mgrid[100:CAM_WIDTH:STEP_SIZE, 100:CAM_HEIGHT:STEP_SIZE]
+            pts = np.vstack([X.ravel(), Y.ravel(), np.ones(X.size)])
+            pts_proj = cam_to_proj @ pts
+            pts_proj = pts_proj[:2,:].T
+    else:
+        print('No pre-existing calibration found')
+        X,Y = np.mgrid[100:PROJ_WIDTH:STEP_SIZE, 100:PROJ_HEIGHT:STEP_SIZE]
+        pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
+
 
     proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, radius=DOT_RADIUS)
     proj.start()
@@ -136,21 +154,6 @@ if __name__ == '__main__':
     camera.set_width(CAM_WIDTH)
     camera.set_offsetX(CAM_OFFSETX)
     camera.set_offsetY(CAM_OFFSETY)
-
-    # if a calibration already exists, use it to refine the position of dots for calibration
-    if os.path.exists(CALIBRATION_FILE):
-        print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
-        with open(CALIBRATION_FILE, 'r') as f:
-            prev_cal = json.load(f)
-            cam_to_proj = np.array(prev_cal['cam_to_proj'])
-            X,Y = np.mgrid[100:CAM_WIDTH:STEP_SIZE, 100:CAM_HEIGHT:STEP_SIZE]
-            pts = np.vstack([X.ravel(), Y.ravel(), np.ones(X.size)])
-            pts_proj = cam_to_proj @ pts
-            pts_proj = pts_proj[:2,:].T
-    else:
-        print('No pre-existing calibration found')
-        X,Y = np.mgrid[100:PROJ_WIDTH:STEP_SIZE, 100:PROJ_HEIGHT:STEP_SIZE]
-        pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
 
     pts_cam = np.nan * np.ones_like(pts_proj)
     cv2.namedWindow('calibration')
@@ -182,8 +185,8 @@ if __name__ == '__main__':
         max_intensity = np.max(image)
         if max_intensity >= DETECTION_TRESHOLD:
             # get dot position on image
-            pos = np.unravel_index(np.argmax(image), image.shape)
-            pts_cam[idx,:] = pos
+            pos = np.unravel_index(np.argmax(image), image.shape) # you get row, col
+            pts_cam[idx,:] = pos[::-1] # transform to x, y
 
             image = im2rgb(im2uint8(image))
             image = cv2.circle(image, pos[::-1], 4, (0,0,255),-1)
