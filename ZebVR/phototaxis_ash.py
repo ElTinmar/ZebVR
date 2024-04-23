@@ -200,8 +200,8 @@ if __name__ == "__main__":
     POLARITY = Polarity.DARK_ON_BRIGHT
     BACKGROUND_IMAGE = 'background.npy'
 
-    PROJ_HEIGHT = 912
-    PROJ_WIDTH = 1140
+    PROJ_HEIGHT = 1140
+    PROJ_WIDTH = 912
     PROJ_POS = (2560,0)
 
     CAM_EXPOSURE_MS = 1000
