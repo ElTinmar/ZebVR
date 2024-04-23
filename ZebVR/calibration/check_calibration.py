@@ -8,7 +8,6 @@ import json
 from camera_tools import XimeaCamera
 from image_tools import im2single, enhance, im2rgb, im2uint8, im2gray
 import cv2
-from tqdm import tqdm
 from numpy.typing import NDArray
 from image_tools import regular_polygon, star
 
@@ -79,6 +78,8 @@ class Projector(app.Canvas, Process):
 
     def on_timer(self, event):
         image = np.frombuffer(self.image, dtype=np.float32).reshape(self.window_size)
+        cv2.imshow('image',image)
+        cv2.waitKey(1)
         self.texture.set_data(image)
         self.update()
 
@@ -87,6 +88,7 @@ class Projector(app.Canvas, Process):
         self.program.draw('triangle_strip')
 
     def draw_image(self, I: NDArray):
+        I = I.T # I think vispy works with transposed matrices 
         buffer = np.frombuffer(self.image, dtype=np.float32) 
         buffer[:] = I.ravel()
 
@@ -123,8 +125,8 @@ if __name__ == '__main__':
     # display RGB with two different channels, what's expected from cam coords and what you get out of the projector
     # this requires to change the shaders to display a mask instead of points
     
-    PROJ_HEIGHT = 912
-    PROJ_WIDTH = 1140
+    PROJ_HEIGHT = 1140
+    PROJ_WIDTH = 912
     PROJ_POS = (2560,0)
 
     CAM_EXPOSURE_MS = 1000
@@ -159,11 +161,14 @@ if __name__ == '__main__':
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)
 
+    print(calibration)
+
     cam_to_proj = np.array(calibration['cam_to_proj'])
+    proj_to_cam = np.array(calibration['proj_to_cam'])
 
     mask_cam = im2single(im2gray(create_calibration_pattern(5, CAM_HEIGHT, CAM_WIDTH)))
-    mask_proj = cv2.warpAffine(mask_cam, cam_to_proj[:2,:],(PROJ_HEIGHT, PROJ_WIDTH))
-    
+    mask_proj = cv2.warpAffine(mask_cam, cam_to_proj[:2,:],(PROJ_WIDTH, PROJ_HEIGHT)) # dsize = (cols,rows)
+
     # project point
     proj.draw_image(mask_proj)
 
