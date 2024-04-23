@@ -125,10 +125,10 @@ if __name__ == '__main__':
 
     CALIBRATION_FILE = 'calibration.json'
 
-        # if a calibration already exists, use it to refine the position of dots for calibration
+    # if a calibration already exists, use it to refine the position of dots for calibration
     if os.path.exists(CALIBRATION_FILE):
         print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
-        DOT_RADIUS = 1
+        DOT_RADIUS = 0.5
         STEP_SIZE = 200
         with open(CALIBRATION_FILE, 'r') as f:
             prev_cal = json.load(f)
@@ -196,7 +196,6 @@ if __name__ == '__main__':
         cv2.imshow('calibration', image)
         cv2.waitKey(1)
         
-
     proj.terminate()
     camera.stop_acquisition()
     cv2.destroyAllWindows()

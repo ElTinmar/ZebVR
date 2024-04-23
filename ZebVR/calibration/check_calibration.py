@@ -64,7 +64,7 @@ class Projector(app.Canvas, Process):
 
         self.program = gloo.Program(VERT_SHADER_CALIBRATION, FRAG_SHADER_CALIBRATION)
 
-        image = np.frombuffer(self.image, dtype=np.float32).reshape(self.window_size)
+        image = np.frombuffer(self.image, dtype=np.float32).reshape(self.window_size[::-1])
         self.texture = gloo.Texture2D(image, interpolation='linear')
 
         # set attributes, these must be present in the vertex shader
@@ -77,9 +77,7 @@ class Projector(app.Canvas, Process):
         self.show()
 
     def on_timer(self, event):
-        image = np.frombuffer(self.image, dtype=np.float32).reshape(self.window_size)
-        cv2.imshow('image',image)
-        cv2.waitKey(1)
+        image = np.frombuffer(self.image, dtype=np.float32).reshape(self.window_size[::-1])
         self.texture.set_data(image)
         self.update()
 
@@ -88,7 +86,6 @@ class Projector(app.Canvas, Process):
         self.program.draw('triangle_strip')
 
     def draw_image(self, I: NDArray):
-        I = I.T # I think vispy works with transposed matrices 
         buffer = np.frombuffer(self.image, dtype=np.float32) 
         buffer[:] = I.ravel()
 
@@ -137,7 +134,6 @@ if __name__ == '__main__':
     CAM_OFFSETX = 0
     CAM_OFFSETY = 0
 
-    DETECTION_TRESHOLD = 0.2
     CONTRAST = 1
     GAMMA = 1
     BRIGHTNESS = 0
@@ -161,7 +157,7 @@ if __name__ == '__main__':
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)
 
-    print(calibration)
+    print(json.dumps(calibration, indent=2))
 
     cam_to_proj = np.array(calibration['cam_to_proj'])
     proj_to_cam = np.array(calibration['proj_to_cam'])
@@ -169,7 +165,7 @@ if __name__ == '__main__':
     mask_cam = im2single(im2gray(create_calibration_pattern(5, CAM_HEIGHT, CAM_WIDTH)))
     mask_proj = cv2.warpAffine(mask_cam, cam_to_proj[:2,:],(PROJ_WIDTH, PROJ_HEIGHT)) # dsize = (cols,rows)
 
-    # project point
+    # project point        
     proj.draw_image(mask_proj)
 
     time.sleep(2)
