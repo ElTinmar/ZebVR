@@ -128,7 +128,10 @@ if __name__ == '__main__':
     # if a calibration already exists, use it to refine the position of dots for calibration
     if os.path.exists(CALIBRATION_FILE):
         print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
-        DOT_RADIUS = 0.5
+        CONTRAST = 5
+        GAMMA = 1
+        DETECTION_TRESHOLD = 0.4
+        DOT_RADIUS = 0.25
         STEP_SIZE = 200
         with open(CALIBRATION_FILE, 'r') as f:
             prev_cal = json.load(f)

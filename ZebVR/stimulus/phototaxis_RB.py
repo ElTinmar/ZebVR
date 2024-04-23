@@ -48,11 +48,23 @@ varying vec2 v_resolution;
 varying float v_time;
 varying vec4 v_color;
 
+float lineSegment(vec2 p, vec2 a, vec2 b) {
+    vec2 pa = p - a, ba = b - a;
+    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+    return length(pa - ba*h);
+}
+
 void main()
 {
-    if ( dot(gl_FragCoord.xy-v_fish_centroid, v_fish_orientation)>0 ) {
+    vec2 fish_ego_coords = gl_FragCoord.xy - v_fish_centroid;
+
+    if ( dot(fish_ego_coords, v_fish_orientation) > 0.0 ) {
         gl_FragColor = v_color;
     } 
+    
+    if ( lineSegment(fish_ego_coords, vec2(0.0), 1000*v_fish_orientation) < 2) {
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    }
 }
 """
 
@@ -107,5 +119,3 @@ class Phototaxis(VisualStim):
                 
             # NOTE: not quite exact, image is displayed after next timer tick and update
             print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
-
-    
