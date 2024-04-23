@@ -56,7 +56,7 @@ float lineSegment(vec2 p, vec2 a, vec2 b) {
 
 void main()
 {
-    vec2 fish_ego_coords = gl_FragCoord.xy - v_fish_centroid;
+    vec2 fish_ego_coords = (gl_FragCoord.xy - v_fish_centroid);
 
     if ( dot(fish_ego_coords, v_fish_orientation) > 0.0 ) {
         gl_FragColor = v_color;
@@ -64,6 +64,11 @@ void main()
     
     if ( lineSegment(fish_ego_coords, vec2(0.0), 1000*v_fish_orientation) < 2) {
         gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    }
+
+    // something is broken
+    if ( dot(fish_ego_coords,fish_ego_coords) < 50 ) {
+        gl_FragColor = vec4(0.0,1.0,0.0,1.0);
     }
 }
 """

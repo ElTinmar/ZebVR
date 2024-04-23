@@ -117,10 +117,6 @@ def create_calibration_pattern(div: int, height: int, width: int) -> NDArray:
     return calibration_pattern
 
 if __name__ == '__main__':
-
-    # TODO create polygons in cam coords, transform and project 
-    # display RGB with two different channels, what's expected from cam coords and what you get out of the projector
-    # this requires to change the shaders to display a mask instead of points
     
     PROJ_HEIGHT = 1140
     PROJ_WIDTH = 912
