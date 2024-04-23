@@ -118,8 +118,8 @@ def create_calibration_pattern(div: int, height: int, width: int) -> NDArray:
 
 if __name__ == '__main__':
     
-    PROJ_HEIGHT = 1140
-    PROJ_WIDTH = 912
+    PROJ_HEIGHT = 800
+    PROJ_WIDTH = 1280
     PROJ_POS = (2560,0)
 
     CAM_EXPOSURE_MS = 1000
