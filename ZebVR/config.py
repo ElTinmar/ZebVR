@@ -1,4 +1,5 @@
 import os
+from video_tools import Polarity
 
 LCr = True
 
@@ -20,6 +21,8 @@ CAM_EXPOSURE_MS = 1000
 CAM_GAIN = 0
 CAM_FPS = 10
 
+PIX_PER_MM = 20.25
+
 # files
 CALIBRATION_FILE = 'calibration.json'
 BACKGROUND_FILE = 'background.npy'
@@ -37,4 +40,4 @@ STEP_SIZE = 50
 # static background
 NUM_IMAGES = 20
 TIME_BETWEEN_IMAGES = 1
-
+POLARITY = Polarity.DARK_ON_BRIGHT

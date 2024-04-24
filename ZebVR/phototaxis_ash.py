@@ -32,7 +32,8 @@ from ZebVR.config import (
     CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
     CAM_OFFSETX, CAM_OFFSETY, 
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
-    PIXEL_SCALING, BACKGROUND_FILE, IMAGE_FOLDER
+    PIXEL_SCALING, BACKGROUND_FILE, IMAGE_FOLDER,
+    PIX_PER_MM, POLARITY
 )
 
 class CameraWorker(WorkerNode):
@@ -201,9 +202,6 @@ if __name__ == "__main__":
     N_TRACKER_WORKERS = 1
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
-
-    PIX_PER_MM = 100 # TODO write calibration procedure to get mm_per_pix
-    POLARITY = Polarity.DARK_ON_BRIGHT
 
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)
