@@ -25,8 +25,7 @@ CAM_EXPOSURE_MS = 1000
 CAM_GAIN = 0
 CAM_FPS = 30
 
-#PIX_PER_MM = 20.25
-PIX_PER_MM = 50.25
+PIX_PER_MM = 34.36
 
 # files
 CALIBRATION_FILE = 'registration.json'

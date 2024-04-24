@@ -29,7 +29,6 @@ if __name__ == '__main__':
         0:checker_sz[1]*square_sz_mm:square_sz_mm
     ].T.reshape(-1,2)
 
-    
     px_per_mm = get_camera_px_per_mm(
         cam=camera, 
         checkerboard_size=checker_sz, 
