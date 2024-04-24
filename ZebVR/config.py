@@ -25,18 +25,18 @@ CAM_FPS = 10
 PIX_PER_MM = 50.25
 
 # files
-CALIBRATION_FILE = 'calibration.json'
+CALIBRATION_FILE = 'registration.json'
 BACKGROUND_FILE = 'background.npy'
 IMAGE_FOLDER = os.path.join(os.getenv('HOME'), 'Development/ZebVR/recording_0')
 
 # calibration
-DETECTION_THRESHOLD = 0.4
-CONTRAST = 3
-GAMMA = 1.5
+DETECTION_THRESHOLD = 0.6
+CONTRAST = 1
+GAMMA = 1
 BRIGHTNESS = 0
 BLUR_SIZE_PX = 3
 DOT_RADIUS = 10
-STEP_SIZE = 50
+STEP_SIZE = 200
 
 # static background
 NUM_IMAGES = 20

@@ -123,7 +123,6 @@ if __name__ == '__main__':
         CONTRAST = 5
         GAMMA = 1
         DOT_RADIUS = 0.3
-        STEP_SIZE = 200
         with open(CALIBRATION_FILE, 'r') as f:
             prev_cal = json.load(f)
             cam_to_proj = np.array(prev_cal['cam_to_proj'])
