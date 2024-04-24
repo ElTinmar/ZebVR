@@ -1,17 +1,19 @@
 import os
 from video_tools import Polarity
 
-LCr = True
+LCr = False
 
 # general settings
 if LCr:
     PROJ_HEIGHT = 1140
     PROJ_WIDTH = 912
+    PIXEL_SCALING = (1.0, 0.5)
 else:
     PROJ_HEIGHT = 800
     PROJ_WIDTH = 1280
+    PIXEL_SCALING = (1.0, 1.0)
+
 PROJ_POS = (2560,0)
-PIXEL_SCALING = (1.0, 0.5)
 
 CAM_HEIGHT = 2048
 CAM_WIDTH = 2048
