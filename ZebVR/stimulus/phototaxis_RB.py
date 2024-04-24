@@ -99,7 +99,7 @@ class Phototaxis(VisualStim):
         self.fish_centroid_x = Value('d',0)
         self.fish_centroid_y = Value('d',0)
         self.refresh_rate = refresh_rate
-        
+
     def initialize(self):
         super().initialize()
                
