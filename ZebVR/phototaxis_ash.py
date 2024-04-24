@@ -33,7 +33,8 @@ from ZebVR.config import (
     CAM_OFFSETX, CAM_OFFSETY, 
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
     PIXEL_SCALING, BACKGROUND_FILE, IMAGE_FOLDER,
-    PIX_PER_MM, POLARITY
+    POLARITY, ANIMAL_TRACKING_PARAM,
+    BODY_TRACKING_PARAM
 )
 
 class CameraWorker(WorkerNode):
@@ -221,42 +222,9 @@ if __name__ == "__main__":
         export_fullres_image=True,
         animal=AnimalTracker_CPU(
             assignment=GridAssignment(LUT=np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.int_)), 
-            tracking_param=AnimalTrackerParamTracking(
-                pix_per_mm=PIX_PER_MM,
-                target_pix_per_mm=5,
-                animal_intensity=0.07,
-                animal_brightness=0.0,
-                animal_gamma=1.0,
-                animal_contrast=1.0,
-                min_animal_size_mm=3.0,
-                max_animal_size_mm=30.0,
-                min_animal_length_mm=0,
-                max_animal_length_mm=0,
-                min_animal_width_mm=0,
-                max_animal_width_mm=0,
-                pad_value_mm=2.75,
-                blur_sz_mm=1/5,
-                median_filter_sz_mm=0,
-            )
+            tracking_param=AnimalTrackerParamTracking(**ANIMAL_TRACKING_PARAM)
         ),
-        body=BodyTracker_CPU(
-            tracking_param=BodyTrackerParamTracking(
-                pix_per_mm=PIX_PER_MM,
-                target_pix_per_mm=10,
-                body_intensity=0.20,
-                body_brightness=0.0,
-                body_gamma=1.0,
-                body_contrast=3.0,
-                min_body_size_mm=0.0,
-                max_body_size_mm=30.0,
-                min_body_length_mm=0,
-                max_body_length_mm=0,
-                min_body_width_mm=0,
-                max_body_width_mm=0,
-                blur_sz_mm=1/7.5,
-                median_filter_sz_mm=0,
-            )
-        ),
+        body=BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**BODY_TRACKING_PARAM)),
         eyes=None,
         tail=None
     )
