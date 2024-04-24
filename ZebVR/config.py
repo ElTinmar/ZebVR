@@ -30,13 +30,13 @@ BACKGROUND_FILE = 'background.npy'
 IMAGE_FOLDER = os.path.join(os.getenv('HOME'), 'Development/ZebVR/recording_0')
 
 # calibration
-DETECTION_THRESHOLD = 0.6
-CONTRAST = 1
-GAMMA = 1
+DETECTION_THRESHOLD = 0.4
+CONTRAST = 3
+GAMMA = 1.5
 BRIGHTNESS = 0
 BLUR_SIZE_PX = 3
-DOT_RADIUS = 10
-STEP_SIZE = 200
+DOT_RADIUS = 5
+STEP_SIZE = 100
 
 # static background
 NUM_IMAGES = 20

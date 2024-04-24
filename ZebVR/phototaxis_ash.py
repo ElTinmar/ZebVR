@@ -273,7 +273,8 @@ if __name__ == "__main__":
         window_position=PROJ_POS,
         color=(1.0, 1.0, 1.0, 1.0),
         window_decoration=False,
-        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32)
+        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
+        pixel_scaling=PIXEL_SCALING
     )
     
     cam = CameraWorker(

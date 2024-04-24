@@ -62,7 +62,7 @@ float lineSegment(vec2 p, vec2 a, vec2 b) {
 
 void main()
 {
-    vec2 fish_ego_coords = gl_FragCoord.xy*a_pixel_scaling - v_fish_centroid;
+    vec2 fish_ego_coords = gl_FragCoord.xy*u_pixel_scaling - v_fish_centroid;
 
     if ( dot(fish_ego_coords, v_fish_orientation) > 0.0 ) {
         gl_FragColor = v_color;

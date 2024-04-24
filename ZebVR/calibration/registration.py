@@ -123,6 +123,7 @@ if __name__ == '__main__':
         CONTRAST = 5
         GAMMA = 1
         DOT_RADIUS = 0.3
+        STEP_SIZE = 200
         with open(CALIBRATION_FILE, 'r') as f:
             prev_cal = json.load(f)
             cam_to_proj = np.array(prev_cal['cam_to_proj'])
@@ -186,7 +187,8 @@ if __name__ == '__main__':
         else:
             image = im2rgb(im2uint8(image))
 
-        cv2.imshow('calibration', image)
+        disp = cv2.resize(image,(512,512))
+        cv2.imshow('calibration', disp)
         cv2.waitKey(1)
         
     proj.terminate()

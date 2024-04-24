@@ -178,7 +178,8 @@ if __name__ == '__main__':
     image = im2rgb(im2uint8(image))
     image[:,:,0] = im2uint8(mask_cam)
 
-    cv2.imshow('calibration test', image)
+    disp = cv2.resize(image,(512,512))
+    cv2.imshow('calibration test', disp)
     cv2.waitKey(0)
         
     proj.terminate()
