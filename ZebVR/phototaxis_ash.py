@@ -203,6 +203,8 @@ if __name__ == "__main__":
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
+    DURATION_S = 200
+
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)
 
@@ -304,7 +306,7 @@ if __name__ == "__main__":
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
-        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0, profile=True))
+        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0, profile=False))
 
     trck = []
     for i in range(N_TRACKER_WORKERS):
@@ -518,7 +520,7 @@ if __name__ == "__main__":
     worker_logger.start()
     queue_logger.start()
     dag.start()
-    time.sleep(200)
+    time.sleep(DURATION_S)
     dag.stop()
     queue_logger.stop()
     worker_logger.stop()
