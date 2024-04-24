@@ -1,7 +1,7 @@
 import os
 from video_tools import Polarity
 
-LCr = False
+LCr = True
 
 # general settings
 if LCr:
