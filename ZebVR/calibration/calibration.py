@@ -11,18 +11,29 @@ import cv2
 from geometry import to_homogeneous
 from tqdm import tqdm
 import os
+from ZebVR.config import (
+    CALIBRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
+    CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
+    CAM_OFFSETX, CAM_OFFSETY, 
+    PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
+    BRIGHTNESS, BLUR_SIZE_PX, CONTRAST, GAMMA,
+    STEP_SIZE, DOT_RADIUS, DETECTION_THRESHOLD,
+    PIXEL_SCALING
+)
 
 VERT_SHADER_CALIBRATION = """
 attribute float a_radius;
 attribute vec2 a_point;
 attribute vec2 a_position;
+attribute vec2 a_pixel_scaling;
 
 varying vec2 v_point;
 varying float v_radius;
 
 void main()
 {
-    gl_Position = vec4(a_position, 0.0, 1.0);
+    vec2 position = a_pixel_scaling * a_position;
+    gl_Position = vec4(position, 0.0, 1.0);
     v_point = a_point;
     v_radius = a_radius;
 } 
@@ -47,6 +58,7 @@ class Projector(app.Canvas, Process):
             window_size: Tuple[int, int] = (1280, 720),
             window_position: Tuple[int, int] = (0,0),
             window_decoration: bool = False,
+            pixel_scaling: Tuple[float, float] = (1.0,1.0),
             radius: int = 10,
             *args,
             **kwargs
@@ -57,6 +69,7 @@ class Projector(app.Canvas, Process):
             self.window_size = window_size
             self.window_position = window_position
             self.window_decoration = window_decoration 
+            self.pixel_scaling = pixel_scaling
             self.radius = radius
             self.x = Value('f', 0)
             self.y = Value('f', 0)
@@ -79,6 +92,7 @@ class Projector(app.Canvas, Process):
         self.program['a_point'] =  [0, 0]
         self.program['a_position'] = [(-1, -1), (-1, +1),
                                     (+1, -1), (+1, +1)]
+        self.program['a_pixel_scaling'] = self.pixel_scaling
         
         self.timer = app.Timer('auto', self.on_timer)
         self.timer.start()
@@ -102,36 +116,14 @@ class Projector(app.Canvas, Process):
             app.run()
 
 if __name__ == '__main__':
-    
-    PROJ_HEIGHT = 800
-    PROJ_WIDTH = 1280
-    PROJ_POS = (2560,0)
-
-    CAM_EXPOSURE_MS = 10000
-    CAM_GAIN = 0
-    CAM_FPS = 10
-    CAM_HEIGHT = 2048
-    CAM_WIDTH = 2048
-    CAM_OFFSETX = 0
-    CAM_OFFSETY = 0
-
-    DETECTION_TRESHOLD = 0.4
-    CONTRAST = 1
-    GAMMA = 1
-    BRIGHTNESS = 0
-    BLUR_SIZE_PX = 3
-    DOT_RADIUS = 10
-    STEP_SIZE = 50
-
-    CALIBRATION_FILE = 'calibration.json'
 
     # if a calibration already exists, use it to refine the position of dots for calibration
     if os.path.exists(CALIBRATION_FILE):
         print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
+        CAM_EXPOSURE_MS = 10_000
         CONTRAST = 5
         GAMMA = 1
-        DETECTION_TRESHOLD = 0.4
-        DOT_RADIUS = 0.25
+        DOT_RADIUS = 0.3
         STEP_SIZE = 200
         with open(CALIBRATION_FILE, 'r') as f:
             prev_cal = json.load(f)
@@ -146,7 +138,7 @@ if __name__ == '__main__':
         pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
 
 
-    proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, radius=DOT_RADIUS)
+    proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, radius=DOT_RADIUS, pixel_scaling=PIXEL_SCALING)
     proj.start()
 
     camera = XimeaCamera()
@@ -186,7 +178,7 @@ if __name__ == '__main__':
 
         # check that dot is detected
         max_intensity = np.max(image)
-        if max_intensity >= DETECTION_TRESHOLD:
+        if max_intensity >= DETECTION_THRESHOLD:
             # get dot position on image
             pos = np.unravel_index(np.argmax(image), image.shape) # you get row, col
             pts_cam[idx,:] = pos[::-1] # transform to x, y

@@ -25,12 +25,14 @@ attribute vec2 a_position;
 attribute vec2 a_texcoord;
 varying vec2 v_texcoord;
 attribute vec2 a_pixel_scaling;
+uniform mat3 u_transformation_matrix;
 
 void main (void)
 {
     vec2 position = a_pixel_scaling * a_position;
+    vec3 position_t = u_transformation_matrix * vec3(position, 1.0) ;
     v_texcoord = a_texcoord;
-    gl_Position = vec4(position,0.0,1.0);
+    gl_Position = vec4(position_t.xy,0.0,1.0);
 }
 """
 
@@ -51,6 +53,7 @@ class Projector(app.Canvas, Process):
             window_size: Tuple[int, int] = (1280, 720),
             window_position: Tuple[int, int] = (0,0),
             window_decoration: bool = False,
+            transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             *args,
             **kwargs
@@ -59,6 +62,7 @@ class Projector(app.Canvas, Process):
             Process.__init__(self, *args, **kwargs)
             
             self.window_size = window_size
+            self.transformation_matrix = transformation_matrix
             self.pixel_scaling = pixel_scaling
             self.window_position = window_position
             self.window_decoration = window_decoration
@@ -84,6 +88,7 @@ class Projector(app.Canvas, Process):
         self.program['a_position'] = np.array([[-1, -1], [-1, 1], [1, -1], [1, 1]], dtype=np.float32)
         self.program['a_texcoord'] = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32)
         self.program['u_texture'] = self.texture
+        self.program['a_transfromation_matrix'] = self.transformation_matrix
         self.program['a_pixel_scaling'] = self.pixel_scaling
         
         self.timer = app.Timer('auto', self.on_timer)
@@ -132,7 +137,16 @@ def create_calibration_pattern(div: int, height: int, width: int) -> NDArray:
 
 if __name__ == '__main__':
 
-    proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, pixel_scaling=PIXEL_SCALING)
+    print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
+    with open(CALIBRATION_FILE, 'r') as f:
+        calibration = json.load(f)
+
+    print(json.dumps(calibration, indent=2))
+
+    cam_to_proj = np.array(calibration['cam_to_proj'])
+    proj_to_cam = np.array(calibration['proj_to_cam'])
+
+    proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, transformation_matrix = cam_to_proj, pixel_scaling=PIXEL_SCALING)
     proj.start()
 
     camera = XimeaCamera()
@@ -144,20 +158,12 @@ if __name__ == '__main__':
     camera.set_offsetX(CAM_OFFSETX)
     camera.set_offsetY(CAM_OFFSETY)
 
-    print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
-    with open(CALIBRATION_FILE, 'r') as f:
-        calibration = json.load(f)
-
-    print(json.dumps(calibration, indent=2))
-
-    cam_to_proj = np.array(calibration['cam_to_proj'])
-    proj_to_cam = np.array(calibration['proj_to_cam'])
+ 
 
     mask_cam = im2single(im2gray(create_calibration_pattern(5, CAM_HEIGHT, CAM_WIDTH)))
-    mask_proj = cv2.warpAffine(mask_cam, cam_to_proj[:2,:],(PROJ_WIDTH, PROJ_HEIGHT)) # dsize = (cols,rows)
 
     # project point        
-    proj.draw_image(mask_proj)
+    proj.draw_image(mask_cam)
 
     time.sleep(2)
 

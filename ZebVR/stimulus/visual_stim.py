@@ -16,7 +16,8 @@ class VisualStim(app.Canvas):
             window_size: Tuple[int, int],
             window_position: Tuple[int, int],
             window_decoration: bool = False,
-            transformation_matrix: NDArray = np.eye(3, dtype=np.float32)
+            transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
+            pixel_scaling: Tuple[float, float] = (1.0,1.0)
         ) -> None:
             
             self.vertex_shader = vertex_shader
@@ -25,6 +26,7 @@ class VisualStim(app.Canvas):
             self.window_position = window_position
             self.window_decoration = window_decoration 
             self.transformation_matrix = transformation_matrix
+            self.pixel_scaling = pixel_scaling
 
     def initialize(self):
         # this needs to happen in the process where the window is displayed
@@ -39,6 +41,7 @@ class VisualStim(app.Canvas):
         self.program['a_time'] = 0
         self.program['a_position'] = [(-1, -1), (-1, +1),
                                     (+1, -1), (+1, +1)]
+        self.program['a_pixel_scaling'] = self.pixel_scaling
         
         self.t_start = None
         self.first_frame = True 

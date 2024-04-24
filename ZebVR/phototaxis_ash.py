@@ -27,6 +27,14 @@ import json
 from dagline import plot_logs as plot_worker_logs
 from ipc_tools import plot_logs as plot_queue_logs
 
+from ZebVR.config import (
+    CALIBRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
+    CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
+    CAM_OFFSETX, CAM_OFFSETY, 
+    PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
+    PIXEL_SCALING, BACKGROUND_FILE, IMAGE_FOLDER
+)
+
 class CameraWorker(WorkerNode):
 
     def __init__(
@@ -187,8 +195,6 @@ if __name__ == "__main__":
 
     LOGFILE_WORKERS = 'workers.log'
     LOGFILE_QUEUES = 'queues.log'
-    IMAGE_FOLDER = os.path.join(os.getenv('HOME'), 'Development/ZebVR/recording_0')
-    CALIBRATION_FILE = 'calibration.json'
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 1
@@ -198,19 +204,6 @@ if __name__ == "__main__":
 
     PIX_PER_MM = 100 # TODO write calibration procedure to get mm_per_pix
     POLARITY = Polarity.DARK_ON_BRIGHT
-    BACKGROUND_IMAGE = 'background.npy'
-
-    PROJ_HEIGHT = 800
-    PROJ_WIDTH = 1280
-    PROJ_POS = (2560,0)
-
-    CAM_EXPOSURE_MS = 1000
-    CAM_GAIN = 0
-    CAM_FPS = 10
-    CAM_HEIGHT = 2048
-    CAM_WIDTH = 2048
-    CAM_OFFSETX = 0
-    CAM_OFFSETY = 0
 
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)
@@ -272,7 +265,7 @@ if __name__ == "__main__":
     queue_logger = Logger(LOGFILE_QUEUES, Logger.INFO)
 
     b = BackroundImage(
-        image_file_name = BACKGROUND_IMAGE,
+        image_file_name = BACKGROUND_FILE,
         polarity = POLARITY,
         use_gpu = BACKGROUND_GPU
     )

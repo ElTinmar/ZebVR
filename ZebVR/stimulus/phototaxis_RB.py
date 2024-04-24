@@ -9,6 +9,7 @@ import numpy as np
 VERT_SHADER_PHOTOTAXIS = """
 uniform mat3 u_transformation_matrix;
 
+attribute vec2 a_pixel_scaling;
 attribute vec2 a_position;
 attribute vec2 a_resolution;
 attribute float a_time;
@@ -60,7 +61,8 @@ float lineSegment(vec2 p, vec2 a, vec2 b) {
 
 void main()
 {
-    vec2 fish_ego_coords = gl_FragCoord.xy - v_fish_centroid;
+    vec2 lightcrafter_4500 = vec2(0.5, 1);
+    vec2 fish_ego_coords = gl_FragCoord.xy*lightcrafter_4500 - v_fish_centroid;
 
     if ( dot(fish_ego_coords, v_fish_orientation) > 0.0 ) {
         gl_FragColor = v_color;
@@ -85,10 +87,11 @@ class Phototaxis(VisualStim):
             color: Tuple[int, int, int, int],
             window_decoration: bool = True,
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
+            pixel_scaling: Tuple[float, float] = (1.0,1.0),
             refresh_rate: int = 120
         ) -> None:
 
-        super().__init__(VERT_SHADER_PHOTOTAXIS, FRAG_SHADER_PHOTOTAXIS, window_size, window_position, window_decoration, transformation_matrix)
+        super().__init__(VERT_SHADER_PHOTOTAXIS, FRAG_SHADER_PHOTOTAXIS, window_size, window_position, window_decoration, transformation_matrix, pixel_scaling)
 
         self.color = color
         self.fish_orientation_x = Value('d',0)

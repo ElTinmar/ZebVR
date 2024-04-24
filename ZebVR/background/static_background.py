@@ -5,21 +5,14 @@ import numpy as np
 from tqdm import tqdm
 from image_tools import im2single, im2gray
 import cv2
+from ZebVR.config import (
+    CAM_WIDTH, CAM_HEIGHT,
+    CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
+    CAM_OFFSETX, CAM_OFFSETY, BACKGROUND_FILE,
+    NUM_IMAGES, TIME_BETWEEN_IMAGES
+)
 
 if __name__ == '__main__':
-
-    CAM_EXPOSURE_MS = 1000
-    CAM_GAIN = 0
-    CAM_FPS = 10
-    CAM_HEIGHT = 2048
-    CAM_WIDTH = 2048
-    CAM_OFFSETX = 0
-    CAM_OFFSETY = 0
-    
-    NUM_IMAGES = 20
-    TIME_BETWEEN_IMAGES = 1
-
-    BACKGROUND_FILE = 'background.npy'
 
     camera = XimeaCamera()
     camera.set_exposure(CAM_EXPOSURE_MS)
