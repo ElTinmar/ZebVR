@@ -25,15 +25,13 @@ VERT_SHADER_CALIBRATION = """
 attribute float a_radius;
 attribute vec2 a_point;
 attribute vec2 a_position;
-attribute vec2 a_pixel_scaling;
 
 varying vec2 v_point;
 varying float v_radius;
 
 void main()
 {
-    vec2 position = a_pixel_scaling * a_position;
-    gl_Position = vec4(position, 0.0, 1.0);
+    gl_Position = vec4(a_position, 0.0, 1.0);
     v_point = a_point;
     v_radius = a_radius;
 } 
@@ -42,10 +40,11 @@ void main()
 FRAG_SHADER_CALIBRATION = """
 varying vec2 v_point;
 varying float v_radius;
+uniform vec2 u_pixel_scaling;
 
 void main()
 {
-    if (distance(gl_FragCoord.xy,v_point) <= v_radius) {
+    if (distance(u_pixel_scaling * gl_FragCoord.xy,v_point) <= v_radius) {
         gl_FragColor = vec4(1.0,1.0,1.0,1.0);
     }
 }
@@ -92,7 +91,7 @@ class Projector(app.Canvas, Process):
         self.program['a_point'] =  [0, 0]
         self.program['a_position'] = [(-1, -1), (-1, +1),
                                     (+1, -1), (+1, +1)]
-        self.program['a_pixel_scaling'] = self.pixel_scaling
+        self.program['u_pixel_scaling'] = self.pixel_scaling
         
         self.timer = app.Timer('auto', self.on_timer)
         self.timer.start()

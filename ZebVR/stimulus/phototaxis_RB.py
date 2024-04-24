@@ -9,7 +9,6 @@ import numpy as np
 VERT_SHADER_PHOTOTAXIS = """
 uniform mat3 u_transformation_matrix;
 
-attribute vec2 a_pixel_scaling;
 attribute vec2 a_position;
 attribute vec2 a_resolution;
 attribute float a_time;
@@ -47,6 +46,8 @@ FRAG_SHADER_PHOTOTAXIS = """
 // THE ASPECT RATIO IS NOT CORRECT. THAT NEEDS TO BE TAKEN INTO
 // ACCOUNT 
 
+uniform vec2 u_pixel_scaling;
+
 varying vec2 v_fish_orientation;
 varying vec2 v_fish_centroid;
 varying vec2 v_resolution;
@@ -61,8 +62,7 @@ float lineSegment(vec2 p, vec2 a, vec2 b) {
 
 void main()
 {
-    vec2 lightcrafter_4500 = vec2(0.5, 1);
-    vec2 fish_ego_coords = gl_FragCoord.xy*lightcrafter_4500 - v_fish_centroid;
+    vec2 fish_ego_coords = gl_FragCoord.xy*a_pixel_scaling - v_fish_centroid;
 
     if ( dot(fish_ego_coords, v_fish_orientation) > 0.0 ) {
         gl_FragColor = v_color;

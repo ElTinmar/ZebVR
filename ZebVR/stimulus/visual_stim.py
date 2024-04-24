@@ -41,7 +41,7 @@ class VisualStim(app.Canvas):
         self.program['a_time'] = 0
         self.program['a_position'] = [(-1, -1), (-1, +1),
                                     (+1, -1), (+1, +1)]
-        self.program['a_pixel_scaling'] = self.pixel_scaling
+        self.program['u_pixel_scaling'] = self.pixel_scaling
         
         self.t_start = None
         self.first_frame = True 

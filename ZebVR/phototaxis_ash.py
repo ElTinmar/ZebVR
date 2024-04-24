@@ -226,7 +226,7 @@ if __name__ == "__main__":
                 animal_brightness=0.0,
                 animal_gamma=1.0,
                 animal_contrast=1.0,
-                min_animal_size_mm=1.0,
+                min_animal_size_mm=3.0,
                 max_animal_size_mm=30.0,
                 min_animal_length_mm=0,
                 max_animal_length_mm=0,

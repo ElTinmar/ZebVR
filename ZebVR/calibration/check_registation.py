@@ -24,22 +24,21 @@ VERT_SHADER_CALIBRATION = """
 attribute vec2 a_position;
 attribute vec2 a_texcoord;
 varying vec2 v_texcoord;
-attribute vec2 a_pixel_scaling;
 
 void main (void)
 {
-    vec2 position = a_pixel_scaling * a_position;
     v_texcoord = a_texcoord;
-    gl_Position = vec4(position,0.0,1.0);
+    gl_Position = vec4(a_position,0.0,1.0);
 }
 """
 
 FRAG_SHADER_CALIBRATION = """
+uniform vec2 u_pixel_scaling;
 uniform sampler2D u_texture;
 varying vec2 v_texcoord;
 void main()
 {
-    gl_FragColor = texture2D(u_texture, v_texcoord);
+    gl_FragColor = texture2D(u_texture, u_pixel_scaling*v_texcoord);
     gl_FragColor.a = 1.0;
 }
 """
@@ -84,7 +83,7 @@ class Projector(app.Canvas, Process):
         self.program['a_position'] = np.array([[-1, -1], [-1, 1], [1, -1], [1, 1]], dtype=np.float32)
         self.program['a_texcoord'] = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32)
         self.program['u_texture'] = self.texture
-        self.program['a_pixel_scaling'] = self.pixel_scaling
+        self.program['u_pixel_scaling'] = self.pixel_scaling
         
         self.timer = app.Timer('auto', self.on_timer)
         self.timer.start()
