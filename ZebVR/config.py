@@ -1,5 +1,6 @@
 import os
 from video_tools import Polarity
+import numpy as np
 
 LCr = True
 
@@ -8,6 +9,7 @@ if LCr:
     PROJ_HEIGHT = 1140
     PROJ_WIDTH = 912
     PIXEL_SCALING = (1.0, 0.5)
+    # PIXEL_SCALING = (2*np.sqrt(2/5), np.sqrt(2/5)) # norm is still sqrt(2)
 else:
     PROJ_HEIGHT = 800
     PROJ_WIDTH = 1280
