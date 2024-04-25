@@ -74,8 +74,11 @@ class VisualStimWorker(WorkerNode):
 
     def run(self) -> None:
         self.stim.initialize()
-        if sys.flags.interactive != 1:
-            app.run()
+        # NOTE: this replaces app.run() and gives access to the event loop.
+        # The same technique can be used directly with Qt using processEvents instead of exec
+        while not self.stop_event.is_set():
+            app.process_events()
+        self.stim.cleanup()
 
     def initialize(self) -> None:
         super().initialize()
@@ -85,8 +88,7 @@ class VisualStimWorker(WorkerNode):
         self.display_process.start()
 
     def cleanup(self) -> None:
-        self.display_process.terminate()
-        self.stim.cleanup()
+        self.display_process.join()
 
     def work(self, data: Any) -> None:
         return self.stim.work(data)
