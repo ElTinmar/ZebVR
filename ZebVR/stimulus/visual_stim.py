@@ -85,8 +85,8 @@ class VisualStimWorker(WorkerNode):
         self.display_process.start()
 
     def cleanup(self) -> None:
-        self.stim.cleanup()
         self.display_process.terminate()
+        self.stim.cleanup()
 
     def work(self, data: Any) -> None:
         return self.stim.work(data)

@@ -84,7 +84,8 @@ class Phototaxis(VisualStim):
             window_decoration: bool = True,
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
-            refresh_rate: int = 120
+            refresh_rate: int = 120,
+            timings_file: str = 'display_timings.csv'
         ) -> None:
 
         super().__init__(VERT_SHADER_PHOTOTAXIS, FRAG_SHADER_PHOTOTAXIS, window_size, window_position, window_decoration, transformation_matrix, pixel_scaling)
@@ -94,10 +95,18 @@ class Phototaxis(VisualStim):
         self.fish_orientation_y = Value('d',0)
         self.fish_centroid_x = Value('d',0)
         self.fish_centroid_y = Value('d',0)
+        self.index = Value('L',0)
+        self.timestamp = Value('f',0)
         self.refresh_rate = refresh_rate
+        self.timings_file = timings_file
+        self.fd = None
 
     def initialize(self):
         super().initialize()
+
+        self.fd = open(self.timings_file, 'w')
+        # write csv headers
+        self.fd.write('t_display, image_index, latency, centroid_x, centroid_y, pc2_x, pc2_y\n')
                
         self.program['a_color'] = self.color
         self.program['a_fish_pc2'] = [0,0]
@@ -109,6 +118,7 @@ class Phototaxis(VisualStim):
 
     def cleanup(self):
         super().cleanup()
+        self.fd.close()
 
     def on_draw(self, event):
         super().on_draw(event)
@@ -119,6 +129,8 @@ class Phototaxis(VisualStim):
         self.program['a_fish_pc2'] = [self.fish_orientation_x.value, self.fish_orientation_y.value]
         self.program['a_fish_centroid'] = [self.fish_centroid_x.value, self.fish_centroid_y.value]
         self.update()
+        t_display = time.perf_counter_ns()
+        self.fd.write(f'{t_display}, {self.index.value}, {1e-6*(t_display - self.timestamp.value)}, {self.fish_centroid_x.value}, {self.fish_centroid_y.value}, {self.fish_orientation_x.value}, {self.fish_orientation_y.value}\n')
 
     def work(self, data) -> None:
         if data is not None:
@@ -126,6 +138,6 @@ class Phototaxis(VisualStim):
             if heading is not None:
                 self.fish_orientation_x.value, self.fish_orientation_y.value = heading
                 self.fish_centroid_x.value, self.fish_centroid_y.value = centroid[0]
+                self.index.value = index
+                self.timestamp.value = timestamp
                 
-            # NOTE: not quite exact, image is displayed after next timer tick and update
-            print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
