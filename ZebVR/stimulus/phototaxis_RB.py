@@ -42,11 +42,7 @@ void main()
 # in vec2 gl_PointCoord;
 
 FRAG_SHADER_PHOTOTAXIS = """
-// IMPORTANT NOTE: WHEN USING THE LIGHTCRAFTER @ NATIVE 1140x920
-// THE ASPECT RATIO IS NOT CORRECT. THAT NEEDS TO BE TAKEN INTO
-// ACCOUNT 
-
-uniform vec2 u_pixel_scaling;
+uniform vec2 u_pixel_scaling; 
 
 varying vec2 v_fish_orientation;
 varying vec2 v_fish_centroid;
@@ -68,13 +64,13 @@ void main()
         gl_FragColor = v_color;
     } 
     
-    if ( lineSegment(fish_ego_coords, vec2(0.0), 1000*v_fish_orientation) < 2) {
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    }
+    //if ( lineSegment(fish_ego_coords, vec2(0.0), 1000*v_fish_orientation) < 2) {
+    //    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    //}
 
-    if ( dot(fish_ego_coords,fish_ego_coords) < 50 ) {
-        gl_FragColor = vec4(0.0,1.0,0.0,1.0);
-    }
+    //if ( dot(fish_ego_coords,fish_ego_coords) < 50 ) {
+    //    gl_FragColor = vec4(0.0,1.0,0.0,1.0);
+    //}
 }
 """
 
