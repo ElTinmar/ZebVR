@@ -81,4 +81,4 @@ class VisualStimWorker(WorkerNode):
         self.display_process.terminate()
 
     def work(self, data: Any) -> None:
-        self.stim.work(data)
+        return self.stim.work(data)
