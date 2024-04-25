@@ -111,6 +111,9 @@ class Phototaxis(VisualStim):
         self.timer.start()
         self.show()
 
+    def cleanup(self):
+        super().cleanup()
+
     def on_draw(self, event):
         super().on_draw(event)
         gloo.clear('black')

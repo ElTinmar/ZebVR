@@ -7,6 +7,10 @@ import sys
 from numpy.typing import NDArray
 import numpy as np 
 
+# TODO: add proj resolution (mm/pix) to be able to project stimuli 
+# of a given real world size. This can be derived from the camera 
+# calibration and came/proj registration
+
 class VisualStim(app.Canvas):
 
     def __init__(
@@ -45,6 +49,9 @@ class VisualStim(app.Canvas):
         
         self.t_start = None
         self.first_frame = True 
+
+    def cleanup(self):
+        pass
             
     def on_draw(self, event):
         if self.first_frame:
@@ -78,6 +85,7 @@ class VisualStimWorker(WorkerNode):
         self.display_process.start()
 
     def cleanup(self) -> None:
+        self.stim.cleanup()
         self.display_process.terminate()
 
     def work(self, data: Any) -> None:
