@@ -175,7 +175,7 @@ if __name__ == "__main__":
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 1
     N_TRACKER_WORKERS = 1
-    CAM_FPS = 30
+    CAM_FPS = 60
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -186,7 +186,7 @@ if __name__ == "__main__":
         ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
     ]
     # background subtracted video
-    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
+    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[1]
 
     m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=4e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')

@@ -106,7 +106,7 @@ class Phototaxis(VisualStim):
 
         self.fd = open(self.timings_file, 'w')
         # write csv headers
-        self.fd.write('t_display, image_index, latency, centroid_x, centroid_y, pc2_x, pc2_y\n')
+        self.fd.write('t_display,image_index,latency,centroid_x,centroid_y,pc2_x,pc2_y\n')
                
         self.program['a_color'] = self.color
         self.program['a_fish_pc2'] = [0,0]
@@ -130,7 +130,7 @@ class Phototaxis(VisualStim):
         self.program['a_fish_centroid'] = [self.fish_centroid_x.value, self.fish_centroid_y.value]
         self.update()
         t_display = time.perf_counter_ns()
-        self.fd.write(f'{t_display}, {self.index.value}, {1e-6*(t_display - self.timestamp.value)}, {self.fish_centroid_x.value}, {self.fish_centroid_y.value}, {self.fish_orientation_x.value}, {self.fish_orientation_y.value}\n')
+        self.fd.write(f'{t_display},{self.index.value},{1e-6*(t_display - self.timestamp.value)},{self.fish_centroid_x.value},{self.fish_centroid_y.value},{self.fish_orientation_x.value},{self.fish_orientation_y.value}\n')
 
     def work(self, data) -> None:
         if data is not None:
