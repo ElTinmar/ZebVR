@@ -176,7 +176,7 @@ if __name__ == "__main__":
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 1
     N_TRACKER_WORKERS = 1
-    CAM_FPS = 75
+    CAM_FPS = 20
     BACKGROUND_GPU = False
     T_REFRESH = 1e-4
 
@@ -227,7 +227,7 @@ if __name__ == "__main__":
             tracking_param=BodyTrackerParamTracking(
                 pix_per_mm=PIX_PER_MM,
                 target_pix_per_mm=10,
-                body_intensity=0.20,
+                body_intensity=0.1,
                 body_brightness=0.0,
                 body_gamma=1.0,
                 body_contrast=3.0,

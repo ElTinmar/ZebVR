@@ -141,4 +141,4 @@ class Phototaxis(VisualStim):
                 self.index.value = index
                 self.timestamp.value = timestamp
                 
-            #print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
+            print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")

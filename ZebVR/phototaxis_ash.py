@@ -410,7 +410,8 @@ if __name__ == "__main__":
         index, timestamp, tracking = obj
         buffer['index'] = index
         buffer['timestamp'] = timestamp
-        buffer['tracking'] = tracking.to_numpy() # maybe it should be tracking.to_numpy(array_to_copy_into) to write directly to the buffer. Rewrite function as tracking(out: Optional[NDArray] = None)
+        tracking.to_numpy(buffer['tracking'])
+        #buffer['tracking'] = tracking.to_numpy() # maybe it should be tracking.to_numpy(array_to_copy_into) to write directly to the buffer. Rewrite function as tracking(out: Optional[NDArray] = None)
         #print(buffer.dtype, 1e-6*(time.monotonic_ns() - tic))
 
 
