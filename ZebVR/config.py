@@ -67,7 +67,7 @@ ANIMAL_TRACKING_PARAM = {
 BODY_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 10,
-    'body_intensity': 0.20,
+    'body_intensity': 0.125,
     'body_brightness': 0.0,
     'body_gamma': 1.0,
     'body_contrast': 3.0,
