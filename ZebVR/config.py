@@ -60,7 +60,6 @@ ANIMAL_TRACKING_PARAM = {
     'max_animal_length_mm': 0,
     'min_animal_width_mm': 0,
     'max_animal_width_mm': 0,
-    'pad_value_mm': 2.75,
     'blur_sz_mm': 1/5,
     'median_filter_sz_mm': 0
 }
