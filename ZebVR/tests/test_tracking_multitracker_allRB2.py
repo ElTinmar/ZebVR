@@ -176,7 +176,7 @@ if __name__ == "__main__":
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 1
     N_TRACKER_WORKERS = 1
-    CAM_FPS = 60
+    CAM_FPS = 20
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -319,7 +319,7 @@ if __name__ == "__main__":
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
-        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0, profile=True))
+        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0, profile=False))
 
     trck = []
     for i in range(N_TRACKER_WORKERS):
