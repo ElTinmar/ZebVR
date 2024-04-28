@@ -171,13 +171,13 @@ if __name__ == "__main__":
     LOGFILE_WORKERS = 'workers.log'
     LOGFILE_QUEUES = 'queues.log'
     IMAGE_FOLDER = os.path.join(os.getenv('HOME'), 'Development/ZebVR/recording_0')
-    IMAGE_FOLDER = os.path.join(os.getenv('HOME'), 'Code/ZebVR/recording_0')
+    #IMAGE_FOLDER = os.path.join(os.getenv('HOME'), 'Code/ZebVR/recording_0')
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
-    N_BACKGROUND_WORKERS = 2
-    N_TRACKER_WORKERS = 6
-    CAM_FPS = 240
-    BACKGROUND_GPU = False
+    N_BACKGROUND_WORKERS = 1
+    N_TRACKER_WORKERS = 1
+    CAM_FPS = 60
+    BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
     DATA = [
@@ -187,7 +187,7 @@ if __name__ == "__main__":
         ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
     ]
     # background subtracted video
-    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[1]
+    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
 
     m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=4e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
