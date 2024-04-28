@@ -171,12 +171,13 @@ if __name__ == "__main__":
     LOGFILE_WORKERS = 'workers.log'
     LOGFILE_QUEUES = 'queues.log'
     IMAGE_FOLDER = os.path.join(os.getenv('HOME'), 'Development/ZebVR/recording_0')
+    IMAGE_FOLDER = os.path.join(os.getenv('HOME'), 'Code/ZebVR/recording_0')
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 1
     N_TRACKER_WORKERS = 1
-    CAM_FPS = 60
-    BACKGROUND_GPU = True
+    CAM_FPS = 75
+    BACKGROUND_GPU = False
     T_REFRESH = 1e-4
 
     DATA = [
@@ -186,7 +187,7 @@ if __name__ == "__main__":
         ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
     ]
     # background subtracted video
-    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[1]
+    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
 
     m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=4e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
@@ -218,7 +219,6 @@ if __name__ == "__main__":
                 max_animal_length_mm=0,
                 min_animal_width_mm=0,
                 max_animal_width_mm=0,
-                pad_value_mm=2.75,
                 blur_sz_mm=1/5,
                 median_filter_sz_mm=0,
             )
@@ -231,12 +231,13 @@ if __name__ == "__main__":
                 body_brightness=0.0,
                 body_gamma=1.0,
                 body_contrast=3.0,
-                min_body_size_mm=0.0,
+                min_body_size_mm=3.0,
                 max_body_size_mm=30.0,
                 min_body_length_mm=0,
                 max_body_length_mm=0,
                 min_body_width_mm=0,
                 max_body_width_mm=0,
+                crop_dimension_mm=(5.5,5.5),
                 blur_sz_mm=1/7.5,
                 median_filter_sz_mm=0,
             )
@@ -413,7 +414,6 @@ if __name__ == "__main__":
         )
     )
 
-
     # ring buffer background ------------------------------------------------------------------
     # IMPORTANT: need to copy the data out of the 
     # circular buffer otherwise it can be modified after the fact
@@ -454,7 +454,8 @@ if __name__ == "__main__":
         index, timestamp, tracking = obj
         buffer['index'] = index
         buffer['timestamp'] = timestamp
-        buffer['tracking'] = tracking.to_numpy() # maybe it should be tracking.to_numpy(array_to_copy_into) to write directly to the buffer. Rewrite function as tracking(out: Optional[NDArray] = None)
+        tracking.to_numpy(buffer['tracking'])
+        #buffer['tracking'] = tracking.to_numpy()
         #print(buffer.dtype, 1e-6*(time.monotonic_ns() - tic))
 
 
