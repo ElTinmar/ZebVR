@@ -3,7 +3,6 @@ from typing import Tuple, Any
 import time
 from dagline import WorkerNode
 from multiprocessing import Process
-import sys
 from numpy.typing import NDArray
 import numpy as np 
 
