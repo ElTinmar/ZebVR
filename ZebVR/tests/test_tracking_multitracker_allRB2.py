@@ -14,10 +14,11 @@ from tracker import (
 from multiprocessing_logger import Logger
 from ipc_tools import RingBuffer, QueueMP, MonitoredQueue, ObjectRingBuffer2
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
-from image_tools import im2single, im2gray
+from image_tools import im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
 from ZebVR.stimulus import VisualStimWorker
 from ZebVR.stimulus.phototaxis import Phototaxis
+from geometry import Affine2DTransform
 
 import numpy as np
 from numpy.typing import NDArray, DTypeLike
@@ -204,6 +205,7 @@ if __name__ == "__main__":
         max_num_animals=1,
         accumulator=None, 
         export_fullres_image=True,
+        downsample_fullres_export=0.25,
         animal=AnimalTracker_CPU(
             assignment=GridAssignment(LUT=np.zeros((h,w), dtype=np.int_)), 
             tracking_param=AnimalTrackerParamTracking(
@@ -363,6 +365,12 @@ if __name__ == "__main__":
         ('image', np.uint8, (h,w))
     ])
 
+    dt_downsampled_uint8_RGB = np.dtype([
+        ('index', int, (1,)),
+        ('timestamp', float, (1,)), 
+        ('image', np.uint8, (round(h*t.downsample_fullres_export), round(w*t.downsample_fullres_export), 3))
+    ])
+
     def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
         #tic = time.monotonic_ns()
         #buffer[:] = obj # this is slower, why ?
@@ -405,7 +413,7 @@ if __name__ == "__main__":
     q_display = MonitoredQueue(
         ObjectRingBuffer2(
             num_items = 100,
-            data_type = dt_uint8_RGB,
+            data_type = dt_downsampled_uint8_RGB,
             serialize = serialize_image,
             deserialize = deserialize_image,
             logger = queue_logger,
