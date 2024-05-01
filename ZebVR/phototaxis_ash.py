@@ -220,6 +220,7 @@ if __name__ == "__main__":
         max_num_animals=1,
         accumulator=None, 
         export_fullres_image=True,
+        downsample_fullres_export=0.5,
         animal=AnimalTracker_CPU(
             assignment=GridAssignment(LUT=np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.int_)), 
             tracking_param=AnimalTrackerParamTracking(**ANIMAL_TRACKING_PARAM)
@@ -318,6 +319,13 @@ if __name__ == "__main__":
         ('image', np.uint8, (CAM_HEIGHT,CAM_WIDTH))
     ])
 
+    dt_downsampled_uint8_RGB = np.dtype([
+        ('index', int, (1,)),
+        ('timestamp', float, (1,)), 
+        ('image', np.uint8, (round(CAM_HEIGHT*t.downsample_fullres_export), round(CAM_WIDTH*t.downsample_fullres_export), 3))
+    ])
+
+
     def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
         #tic = time.monotonic_ns()
         #buffer[:] = obj # this is slower, why ?
@@ -360,7 +368,7 @@ if __name__ == "__main__":
     q_display = MonitoredQueue(
         ObjectRingBuffer2(
             num_items = 100,
-            data_type = dt_uint8_RGB,
+            data_type = dt_downsampled_uint8_RGB,
             serialize = serialize_image,
             deserialize = deserialize_image,
             logger = queue_logger,

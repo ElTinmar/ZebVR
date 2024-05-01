@@ -176,8 +176,8 @@ if __name__ == "__main__":
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 1
-    N_TRACKER_WORKERS = 1
-    CAM_FPS = 20
+    N_TRACKER_WORKERS = 2
+    CAM_FPS = 75
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -205,7 +205,7 @@ if __name__ == "__main__":
         max_num_animals=1,
         accumulator=None, 
         export_fullres_image=True,
-        downsample_fullres_export=0.25,
+        downsample_fullres_export=0.5,
         animal=AnimalTracker_CPU(
             assignment=GridAssignment(LUT=np.zeros((h,w), dtype=np.int_)), 
             tracking_param=AnimalTrackerParamTracking(
