@@ -176,14 +176,14 @@ if __name__ == "__main__":
 
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 1
-    N_TRACKER_WORKERS = 2
-    CAM_FPS = 75
+    N_TRACKER_WORKERS = 1
+    CAM_FPS = 50
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
     DATA = [
         ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 50),
-        ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 40),
+        ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 33),
         ('../toy_data/single_headembedded_544x380px_noparam.avi', '../toy_data/single_headembedded_544x380px_noparam.png', Polarity.DARK_ON_BRIGHT, 100),
         ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
     ]
@@ -250,7 +250,9 @@ if __name__ == "__main__":
                 target_pix_per_mm=40,
                 eye_brightness=0.0,
                 eye_gamma=3.0,
-                eye_dyntresh_res=10,
+                eye_thresh_lo=0.3,
+                eye_thresh_hi=0.7,
+                eye_dyntresh_res=5,
                 eye_contrast=5.0,
                 eye_size_lo_mm=0.8,
                 eye_size_hi_mm=10.0,
