@@ -220,7 +220,7 @@ if __name__ == "__main__":
         max_num_animals=1,
         accumulator=None, 
         export_fullres_image=True,
-        downsample_fullres_export=0.5,
+        downsample_fullres_export=0.25,
         animal=AnimalTracker_CPU(
             assignment=GridAssignment(LUT=np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.int_)), 
             tracking_param=AnimalTrackerParamTracking(**ANIMAL_TRACKING_PARAM)

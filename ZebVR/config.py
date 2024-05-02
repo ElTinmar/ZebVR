@@ -23,7 +23,7 @@ CAM_OFFSETX = 0
 CAM_OFFSETY = 0
 CAM_EXPOSURE_MS = 1000
 CAM_GAIN = 0
-CAM_FPS = 30
+CAM_FPS = 60
 
 PIX_PER_MM = 34.36
 
@@ -54,8 +54,8 @@ ANIMAL_TRACKING_PARAM = {
     'animal_brightness': 0.0,
     'animal_gamma': 1.0,
     'animal_contrast': 1.0,
-    'min_animal_size_mm': 3.0,
-    'max_animal_size_mm': 30.0,
+    'min_animal_size_mm': 10.0,
+    'max_animal_size_mm': 60.0,
     'min_animal_length_mm': 0,
     'max_animal_length_mm': 0,
     'min_animal_width_mm': 0,
@@ -67,12 +67,12 @@ ANIMAL_TRACKING_PARAM = {
 BODY_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 10,
-    'body_intensity': 0.125,
+    'body_intensity': 0.1,
     'body_brightness': 0.0,
     'body_gamma': 1.0,
     'body_contrast': 3.0,
-    'min_body_size_mm': 3.0,
-    'max_body_size_mm': 30.0,
+    'min_body_size_mm': 10.0,
+    'max_body_size_mm': 60.0,
     'min_body_length_mm': 0,
     'max_body_length_mm': 0,
     'min_body_width_mm': 0,

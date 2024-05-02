@@ -177,7 +177,7 @@ if __name__ == "__main__":
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 1
     N_TRACKER_WORKERS = 1
-    CAM_FPS = 50
+    CAM_FPS = 60
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     # background subtracted video
     INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
 
-    m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=4e9)
+    m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=12e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
     h, w = (m.get_height(), m.get_width())
 
@@ -541,7 +541,7 @@ if __name__ == "__main__":
     worker_logger.start()
     queue_logger.start()
     dag.start()
-    time.sleep(30)
+    time.sleep(40)
     dag.stop()
     queue_logger.stop()
     worker_logger.stop()
