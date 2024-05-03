@@ -391,13 +391,10 @@ if __name__ == "__main__":
     ])
 
     def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
-        #tic = time.monotonic_ns()
-        #buffer[:] = obj # this is slower, why ?
         index, timestamp, image = obj 
         buffer['index'] = index
         buffer['timestamp'] = timestamp
         buffer['image'] = image
-        #print(buffer.dtype, 1e-6*(time.monotonic_ns() - tic))
 
     def deserialize_image(arr: NDArray) -> Tuple[int, float, NDArray]:
         index = arr['index'].item()
