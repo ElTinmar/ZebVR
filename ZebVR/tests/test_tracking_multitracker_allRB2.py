@@ -176,7 +176,7 @@ if __name__ == "__main__":
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 1
     N_TRACKER_WORKERS = 1
-    CAM_FPS = 60
+    CAM_FPS = 20
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -321,11 +321,30 @@ if __name__ == "__main__":
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
-        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0, profile=False))
+        bckg.append(
+            BackgroundSubWorker(
+                b, 
+                name=f'background{i}', 
+                logger=worker_logger, 
+                logger_queues=queue_logger, 
+                receive_timeout=1.0, 
+                profile=False
+            )
+        )
 
     trck = []
     for i in range(N_TRACKER_WORKERS):
-        trck.append(TrackerWorker(t, name=f'tracker{i}', logger=worker_logger, logger_queues=queue_logger, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0, profile=False))
+        trck.append(
+            TrackerWorker(
+                t, 
+                name=f'tracker{i}', 
+                logger=worker_logger, 
+                logger_queues=queue_logger, 
+                send_strategy=send_strategy.BROADCAST, 
+                receive_timeout=1.0, 
+                profile=True
+            )
+        )
 
     dis = Display(
         fps=30, 
@@ -553,13 +572,13 @@ if __name__ == "__main__":
 
     plot_worker_logs(LOGFILE_WORKERS, outlier_thresh=1000)
     # NOTE: if you have more worker than necessary, you will see a heavy tail in the receive time.
-    # This is perfectly normal, each tracker may be skip a few cycles if the others are already 
+    # This is perfectly normal, each tracker may skip a few cycles if the others are already 
     # filling the job
-    # NOTE: send time = serialization (one copy) + writing (one copy) and acquiring lock
-    # NOTE: receive time = deserialization + reading (sometimes one copy) from queue and acquiring lock
+    # NOTE: send time = serialization + writing (one copy) and acquiring lock
+    # NOTE: receive time = deserialization + reading (copy or no copy depending on settings) from queue and acquiring lock
     # NOTE: check that total_time/#workers is <= to cam for all workers (except workers with reduced fps like display)
 
-    # NOTE: the intial delay at the level of the tracker (~500ms), is most likely due to numba. When I remove the 
+    # NOTE: the initial delay at the level of the tracker (~500ms), is most likely due to numba. When I remove the 
     # tail tracker, the latency goes way down at the beginning. Maybe I can force the tracker to compile during initialization ?
 
 
@@ -569,5 +588,5 @@ if __name__ == "__main__":
     # background: creation, serialization, put on buffer
     # tracker: serialization, put on buffer
 
-    # with larger image, bottleneck transition from CPU to memory bandwidth ?
+    # with larger images, bottleneck transition from CPU to memory bandwidth ?
     
