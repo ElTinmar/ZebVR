@@ -177,6 +177,7 @@ if __name__ == "__main__":
     N_BACKGROUND_WORKERS = 1
     N_TRACKER_WORKERS = 1
     CAM_FPS = 20
+    PROJ_FPS = 75
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
@@ -297,7 +298,8 @@ if __name__ == "__main__":
         color=(1.0, 1.0, 1.0, 1.0),
         window_decoration=False,
         transformation_matrix=np.array([[1.0,0,0],[0,-1.0,720],[0,0,1.0]], dtype=np.float32),
-        refresh_rate = CAM_FPS
+        refresh_rate = PROJ_FPS,
+        vsync=False
     )
     
     cam = CameraWorker(
