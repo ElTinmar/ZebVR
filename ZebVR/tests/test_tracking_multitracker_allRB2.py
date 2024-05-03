@@ -3,25 +3,24 @@
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
-from camera_tools import Camera, MovieFileCam, BufferedMovieFileCam
+from camera_tools import Camera, BufferedMovieFileCam
 from tracker import (
     GridAssignment, MultiFishTracker, MultiFishTracker_CPU, MultiFishOverlay, MultiFishOverlay_opencv, MultiFishTracking,
-    AnimalTracker_CPU, AnimalOverlay_opencv, AnimalTrackerParamTracking, AnimalTrackerParamOverlay,  AnimalTracking,
-    BodyTracker_CPU, BodyOverlay_opencv, BodyTrackerParamTracking, BodyTrackerParamOverlay,  BodyTracking,
-    EyesTracker_CPU, EyesOverlay_opencv, EyesTrackerParamTracking, EyesTrackerParamOverlay,  EyesTracking,
-    TailTracker_CPU, TailOverlay_opencv, TailTrackerParamTracking, TailTrackerParamOverlay,  TailTracking
+    AnimalTracker_CPU, AnimalOverlay_opencv, AnimalTrackerParamTracking, AnimalTrackerParamOverlay,
+    BodyTracker_CPU, BodyOverlay_opencv, BodyTrackerParamTracking, BodyTrackerParamOverlay,
+    EyesTracker_CPU, EyesOverlay_opencv, EyesTrackerParamTracking, EyesTrackerParamOverlay,
+    TailTracker_CPU, TailOverlay_opencv, TailTrackerParamTracking, TailTrackerParamOverlay
 )
 from multiprocessing_logger import Logger
-from ipc_tools import RingBuffer, QueueMP, MonitoredQueue, ObjectRingBuffer2
+from ipc_tools import MonitoredQueue, ObjectRingBuffer2
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
 from ZebVR.stimulus import VisualStimWorker
 from ZebVR.stimulus.phototaxis import Phototaxis
-from geometry import Affine2DTransform
 
 import numpy as np
-from numpy.typing import NDArray, DTypeLike
+from numpy.typing import NDArray
 import time
 from typing import Any, Dict, Tuple
 import cv2
