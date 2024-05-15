@@ -20,7 +20,8 @@ class VisualStim(app.Canvas):
             window_position: Tuple[int, int],
             window_decoration: bool = False,
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
-            pixel_scaling: Tuple[float, float] = (1.0,1.0)
+            pixel_scaling: Tuple[float, float] = (1.0,1.0),
+            vsync: bool = True
         ) -> None:
             
             self.vertex_shader = vertex_shader
@@ -30,11 +31,12 @@ class VisualStim(app.Canvas):
             self.window_decoration = window_decoration 
             self.transformation_matrix = transformation_matrix
             self.pixel_scaling = pixel_scaling
+            self.vsync = vsync
 
     def initialize(self):
         # this needs to happen in the process where the window is displayed
 
-        app.Canvas.__init__(self, size=self.window_size, decorate=self.window_decoration, position=self.window_position, keys='interactive')
+        app.Canvas.__init__(self, size=self.window_size, decorate=self.window_decoration, position=self.window_position, keys='interactive', vsync=self.vsync)
 
         self.program = gloo.Program(self.vertex_shader, self.fragment_shader)
 

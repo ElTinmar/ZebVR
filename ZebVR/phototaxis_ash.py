@@ -31,7 +31,7 @@ from ZebVR.config import (
     CALIBRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
     CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
     CAM_OFFSETX, CAM_OFFSETY, 
-    PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
+    PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS, PROJ_FPS,
     PIXEL_SCALING, BACKGROUND_FILE, IMAGE_FOLDER,
     POLARITY, ANIMAL_TRACKING_PARAM,
     BODY_TRACKING_PARAM
@@ -245,6 +245,8 @@ if __name__ == "__main__":
         color=(1.0, 1.0, 1.0, 1.0),
         window_decoration=False,
         transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
+        refresh_rate=PROJ_FPS,
+        vsync=True,
         pixel_scaling=PIXEL_SCALING
     )
     

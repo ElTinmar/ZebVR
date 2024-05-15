@@ -85,10 +85,11 @@ class Phototaxis(VisualStim):
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             refresh_rate: int = 120,
+            vsync: bool = True,
             timings_file: str = 'display_timings.csv'
         ) -> None:
 
-        super().__init__(VERT_SHADER_PHOTOTAXIS, FRAG_SHADER_PHOTOTAXIS, window_size, window_position, window_decoration, transformation_matrix, pixel_scaling)
+        super().__init__(VERT_SHADER_PHOTOTAXIS, FRAG_SHADER_PHOTOTAXIS, window_size, window_position, window_decoration, transformation_matrix, pixel_scaling, vsync)
 
         self.color = color
         self.fish_orientation_x = Value('d',0)

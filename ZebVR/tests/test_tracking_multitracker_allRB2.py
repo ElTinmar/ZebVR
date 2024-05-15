@@ -3,25 +3,24 @@
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
-from camera_tools import Camera, MovieFileCam, BufferedMovieFileCam
+from camera_tools import Camera, BufferedMovieFileCam
 from tracker import (
     GridAssignment, MultiFishTracker, MultiFishTracker_CPU, MultiFishOverlay, MultiFishOverlay_opencv, MultiFishTracking,
-    AnimalTracker_CPU, AnimalOverlay_opencv, AnimalTrackerParamTracking, AnimalTrackerParamOverlay,  AnimalTracking,
-    BodyTracker_CPU, BodyOverlay_opencv, BodyTrackerParamTracking, BodyTrackerParamOverlay,  BodyTracking,
-    EyesTracker_CPU, EyesOverlay_opencv, EyesTrackerParamTracking, EyesTrackerParamOverlay,  EyesTracking,
-    TailTracker_CPU, TailOverlay_opencv, TailTrackerParamTracking, TailTrackerParamOverlay,  TailTracking
+    AnimalTracker_CPU, AnimalOverlay_opencv, AnimalTrackerParamTracking, AnimalTrackerParamOverlay,
+    BodyTracker_CPU, BodyOverlay_opencv, BodyTrackerParamTracking, BodyTrackerParamOverlay,
+    EyesTracker_CPU, EyesOverlay_opencv, EyesTrackerParamTracking, EyesTrackerParamOverlay,
+    TailTracker_CPU, TailOverlay_opencv, TailTrackerParamTracking, TailTrackerParamOverlay
 )
 from multiprocessing_logger import Logger
-from ipc_tools import RingBuffer, QueueMP, MonitoredQueue, ObjectRingBuffer2
+from ipc_tools import MonitoredQueue, ObjectRingBuffer2
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
 from ZebVR.stimulus import VisualStimWorker
 from ZebVR.stimulus.phototaxis import Phototaxis
-from geometry import Affine2DTransform
 
 import numpy as np
-from numpy.typing import NDArray, DTypeLike
+from numpy.typing import NDArray
 import time
 from typing import Any, Dict, Tuple
 import cv2
@@ -177,17 +176,17 @@ if __name__ == "__main__":
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 1
     N_TRACKER_WORKERS = 1
-    CAM_FPS = 60
+    CAM_FPS = 20
+    PROJ_FPS = 75
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
     DATA = [
         ('../toy_data/multi_freelyswimming_1800x1800px.avi', '../toy_data/multi_freelyswimming_1800x1800px.png', Polarity.BRIGHT_ON_DARK, 50),
         ('../toy_data/single_freelyswimming_504x500px.avi', '../toy_data/single_freelyswimming_504x500px.png', Polarity.DARK_ON_BRIGHT, 33),
-        ('../toy_data/single_headembedded_544x380px_noparam.avi', '../toy_data/single_headembedded_544x380px_noparam.png', Polarity.DARK_ON_BRIGHT, 100),
-        ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 100)
+        ('../toy_data/single_headembedded_544x380px_noparam.avi', '../toy_data/single_headembedded_544x380px_noparam.png', Polarity.DARK_ON_BRIGHT, 150),
+        ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 150)
     ]
-    # background subtracted video
     INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
 
     m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=12e9)
@@ -299,7 +298,8 @@ if __name__ == "__main__":
         color=(1.0, 1.0, 1.0, 1.0),
         window_decoration=False,
         transformation_matrix=np.array([[1.0,0,0],[0,-1.0,720],[0,0,1.0]], dtype=np.float32),
-        refresh_rate = CAM_FPS
+        refresh_rate = PROJ_FPS,
+        vsync=False
     )
     
     cam = CameraWorker(
@@ -323,11 +323,30 @@ if __name__ == "__main__":
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
-        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0, profile=False))
+        bckg.append(
+            BackgroundSubWorker(
+                b, 
+                name=f'background{i}', 
+                logger=worker_logger, 
+                logger_queues=queue_logger, 
+                receive_timeout=1.0, 
+                profile=False
+            )
+        )
 
     trck = []
     for i in range(N_TRACKER_WORKERS):
-        trck.append(TrackerWorker(t, name=f'tracker{i}', logger=worker_logger, logger_queues=queue_logger, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0, profile=False))
+        trck.append(
+            TrackerWorker(
+                t, 
+                name=f'tracker{i}', 
+                logger=worker_logger, 
+                logger_queues=queue_logger, 
+                send_strategy=send_strategy.BROADCAST, 
+                receive_timeout=1.0, 
+                profile=True
+            )
+        )
 
     dis = Display(
         fps=30, 
@@ -374,13 +393,10 @@ if __name__ == "__main__":
     ])
 
     def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
-        #tic = time.monotonic_ns()
-        #buffer[:] = obj # this is slower, why ?
         index, timestamp, image = obj 
         buffer['index'] = index
         buffer['timestamp'] = timestamp
         buffer['image'] = image
-        #print(buffer.dtype, 1e-6*(time.monotonic_ns() - tic))
 
     def deserialize_image(arr: NDArray) -> Tuple[int, float, NDArray]:
         index = arr['index'].item()
@@ -555,13 +571,13 @@ if __name__ == "__main__":
 
     plot_worker_logs(LOGFILE_WORKERS, outlier_thresh=1000)
     # NOTE: if you have more worker than necessary, you will see a heavy tail in the receive time.
-    # This is perfectly normal, each tracker may be skip a few cycles if the others are already 
+    # This is perfectly normal, each tracker may skip a few cycles if the others are already 
     # filling the job
-    # NOTE: send time = serialization (one copy) + writing (one copy) and acquiring lock
-    # NOTE: receive time = deserialization + reading (sometimes one copy) from queue and acquiring lock
+    # NOTE: send time = serialization + writing (one copy) and acquiring lock
+    # NOTE: receive time = deserialization + reading (copy or no copy depending on settings) from queue and acquiring lock
     # NOTE: check that total_time/#workers is <= to cam for all workers (except workers with reduced fps like display)
 
-    # NOTE: the intial delay at the level of the tracker (~500ms), is most likely due to numba. When I remove the 
+    # NOTE: the initial delay at the level of the tracker (~500ms), is most likely due to numba. When I remove the 
     # tail tracker, the latency goes way down at the beginning. Maybe I can force the tracker to compile during initialization ?
 
 
@@ -571,5 +587,5 @@ if __name__ == "__main__":
     # background: creation, serialization, put on buffer
     # tracker: serialization, put on buffer
 
-    # with larger image, bottleneck transition from CPU to memory bandwidth ?
+    # with larger images, bottleneck transition from CPU to memory bandwidth ?
     
