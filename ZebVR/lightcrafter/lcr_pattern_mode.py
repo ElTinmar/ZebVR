@@ -74,4 +74,4 @@ if res[0] == lcr.ERROR.OK: # and res[1]:
 dev.getMainStatus()
 dev.getSystemStatus()
 
-#dev.disconnect()
+dev.disconnect()
