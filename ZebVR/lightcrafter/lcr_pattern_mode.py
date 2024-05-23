@@ -21,6 +21,7 @@ dev.getMainStatus()
 dev.getSystemStatus()
 dev.getVideoSignalDetectStatus()
 
+# Stop pattern
 dev.stopPatternSequence()
 
 # Set video source
@@ -37,7 +38,7 @@ dev.setPatternTriggerMode(lcr.PatTrigMode.Vsync_fixedExposure)
 
 # Set exposure time, frame rate (in usec)
 # In external video input pattern sequence modes, the pattern exposure time must equal the frame period.
-dev.setPatternExpTimeFrPer(9000, 9000)
+dev.setPatternExpTimeFrPer(8333, 8333)
 
 # Setup LUT:
 # 1 LUT entries, repeat sequence, 1 patterns/sequence, n/a

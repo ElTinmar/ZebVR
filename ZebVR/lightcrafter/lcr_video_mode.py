@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import Devices.lightcrafter as lcr
-import time
+import lightcrafter as lcr
 
 # Generate lightcrafter object and try to connect to it
 dev = lcr.Lightcrafter(_isCheckOnly=False, _logLevel=3)
