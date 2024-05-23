@@ -8,7 +8,7 @@ for 1/120 s
 """
 
 # Generate lightcrafter object and try to connect to it
-dev = lcr.Lightcrafter()
+dev = lcr.Lightcrafter(_isCheckOnly=False,_logLevel=3)
 res = dev.connect()
 if res[0] is not lcr.ERROR.OK:
     # No connection
@@ -24,7 +24,7 @@ dev.getVideoSignalDetectStatus()
 dev.stopPatternSequence()
 
 # Set video source
-dev.setInputSource(lcr.SourceSel.HDMI, lcr.SourcePar.Bit30)
+dev.setInputSource(lcr.SourceSel.HDMI, lcr.SourcePar.Bit24)
 
 # Select pattern sequence mode
 dev.setDisplayMode(lcr.DispMode.Pattern)
@@ -52,9 +52,9 @@ dev.setPatternDispLUTAccessControl(lcr.MailboxCmd.OpenPat)
 
 # LUT entry #0 ...
 dev.setPatternDispLUTOffsetPointer(0)
-# Pattern R0-R7, internal trigger, 8 bit, red LED
-dev.setPatternDispLUTData(lcr.MailboxPat.R76543210,
-                        lcr.MailboxTrig.Internal,
+# Pattern G0-G7, internal trigger, 8 bit, red LED
+dev.setPatternDispLUTData(lcr.MailboxPat.G76543210,
+                        lcr.MailboxTrig.ExternalPos,
                         8, lcr.MailboxLED.Red)
 
 # Close LUT mailbox
