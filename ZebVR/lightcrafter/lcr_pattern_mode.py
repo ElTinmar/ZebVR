@@ -56,7 +56,7 @@ dev.setPatternDispLUTOffsetPointer(0)
 # Pattern G0-G7, internal trigger, 8 bit, red LED
 dev.setPatternDispLUTData(lcr.MailboxPat.G76543210,
                         lcr.MailboxTrig.ExternalPos,
-                        8, lcr.MailboxLED.Red)
+                        8, lcr.MailboxLED.Red,False,True)
 
 # Close LUT mailbox
 dev.setPatternDispLUTAccessControl(lcr.MailboxCmd.Close)
