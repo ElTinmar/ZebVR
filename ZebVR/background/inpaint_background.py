@@ -1,9 +1,6 @@
 from camera_tools import XimeaCamera
-import time
-from video_tools import mode
 from image_tools import polymask
 import numpy as np
-from image_tools import im2single, im2gray
 import cv2
 from ZebVR.config import (
     CAM_WIDTH, CAM_HEIGHT,
