@@ -46,7 +46,8 @@ if __name__ == '__main__':
     background = mode(sample_frames)
 
     print('Background done, press key to save...')
-    cv2.imshow('background', background)
+    background_resized = cv2.resize(background,(512,512))
+    cv2.imshow('background', background_resized)
     cv2.waitKey(0)
 
     print(f'Saving image to {BACKGROUND_FILE}')
