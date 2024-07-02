@@ -35,7 +35,9 @@ if __name__ == '__main__':
 
         image = im2single(im2gray(frame.image))
         sample_frames[:,:,i] = image
-        cv2.imshow('acquisition', image)
+
+        image_resized = cv2.resize(image,(512,512))
+        cv2.imshow('acquisition', image_resized)
         cv2.waitKey(1)
 
         time.sleep(TIME_BETWEEN_IMAGES)
