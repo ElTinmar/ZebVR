@@ -183,15 +183,16 @@ class ImageSaver(WorkerNode):
     def work(self, data: NDArray) -> None:
         if data is not None:
             index, timestamp, image = data
+            image_resized = cv2.resize(image,None,None,0.25,0.25,cv2.INTER_NEAREST)
             metadata = np.array( 
                 (index, timestamp), 
                 dtype = np.dtype([('index',np.int64), ('timestamp',np.float32)]) 
             )
             filename = os.path.join(self.folder, f'{index:0{self.zero_padding}}')
             if self.compress:
-                np.savez_compressed(filename, image=image, metadata=metadata)
+                np.savez_compressed(filename, image=image_resized, metadata=metadata)
             else:
-                np.savez(filename, image=image, metadata=metadata)
+                np.savez(filename, image=image_resized, metadata=metadata)
 
 if __name__ == "__main__":
 
@@ -204,7 +205,8 @@ if __name__ == "__main__":
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
-    DURATION_S = 60*60
+    DURATION_S = 60 * 60
+    RECORD_VIDEO = False
 
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)
@@ -484,7 +486,8 @@ if __name__ == "__main__":
     
     # NOTE: the order in which you declare connections matter: background_subtraction will
     # be served before image_saver
-    #dag.connect(sender=cam, receiver=image_saver, queue=q_save_image, name='image_saver')
+    if RECORD_VIDEO:
+        dag.connect(sender=cam, receiver=image_saver, queue=q_save_image, name='image_saver')
 
     for i in range(N_BACKGROUND_WORKERS):
         for j in range(N_TRACKER_WORKERS):
@@ -505,7 +508,8 @@ if __name__ == "__main__":
     worker_logger.stop()
 
     print('cam to background', q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
-    #print('cam to image saver', q_save_image.get_average_freq(), q_save_image.queue.num_lost_item.value)
+    if RECORD_VIDEO:
+        print('cam to image saver', q_save_image.get_average_freq(), q_save_image.queue.num_lost_item.value)
     print('background to trackers', q_back.get_average_freq(), q_back.queue.num_lost_item.value)
     print('trackers to visual stim', q_tracking.get_average_freq(), q_tracking.queue.num_lost_item.value)
     print('trackers to overlay', q_overlay.get_average_freq(), q_overlay.queue.num_lost_item.value)
