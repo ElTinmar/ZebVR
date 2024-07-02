@@ -45,7 +45,7 @@ if __name__ == '__main__':
     print('Compute background')
     background = mode(sample_frames)
 
-    print('Bavkground done, press key to save...')
+    print('Background done, press key to save...')
     cv2.imshow('background', background)
     cv2.waitKey(0)
 

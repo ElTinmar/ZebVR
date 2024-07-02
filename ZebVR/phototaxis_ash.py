@@ -204,7 +204,7 @@ if __name__ == "__main__":
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
-    DURATION_S = 200
+    DURATION_S = 60*60
 
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)
@@ -242,7 +242,7 @@ if __name__ == "__main__":
     ptx = Phototaxis(
         window_size=(PROJ_WIDTH, PROJ_HEIGHT),
         window_position=PROJ_POS,
-        color=(1.0, 1.0, 1.0, 1.0),
+        color=(0.1, 0.1, 0.1, 1.0),
         window_decoration=False,
         transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
         refresh_rate=PROJ_FPS,
@@ -484,7 +484,7 @@ if __name__ == "__main__":
     
     # NOTE: the order in which you declare connections matter: background_subtraction will
     # be served before image_saver
-    dag.connect(sender=cam, receiver=image_saver, queue=q_save_image, name='image_saver')
+    #dag.connect(sender=cam, receiver=image_saver, queue=q_save_image, name='image_saver')
 
     for i in range(N_BACKGROUND_WORKERS):
         for j in range(N_TRACKER_WORKERS):
@@ -505,13 +505,13 @@ if __name__ == "__main__":
     worker_logger.stop()
 
     print('cam to background', q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
-    print('cam to image saver', q_save_image.get_average_freq(), q_save_image.queue.num_lost_item.value)
+    #print('cam to image saver', q_save_image.get_average_freq(), q_save_image.queue.num_lost_item.value)
     print('background to trackers', q_back.get_average_freq(), q_back.queue.num_lost_item.value)
     print('trackers to visual stim', q_tracking.get_average_freq(), q_tracking.queue.num_lost_item.value)
     print('trackers to overlay', q_overlay.get_average_freq(), q_overlay.queue.num_lost_item.value)
     print('overlay to display', q_display.get_average_freq(), q_display.queue.num_lost_item.value)
 
-    plot_worker_logs(LOGFILE_WORKERS, outlier_thresh=1000)
+    #plot_worker_logs(LOGFILE_WORKERS, outlier_thresh=1000)
     # NOTE: if you have more worker than necessary, you will see a heavy tail in the receive time.
     # This is perfectly normal, each tracker may be skip a few cycles if the others are already 
     # filling the job
@@ -523,7 +523,7 @@ if __name__ == "__main__":
     # tail tracker, the latency goes way down at the beginning. Maybe I can force the tracker to compile during initialization ?
 
 
-    plot_queue_logs(LOGFILE_QUEUES)
+    #plot_queue_logs(LOGFILE_QUEUES)
     # NOTE: memory bandwidth ~10GB/s. 1800x1800x3 uint8 = 9.3 MB, 1800x1800 float32 = 12.4 MB
     # camera: creation, serialization, put on buffer
     # background: creation, serialization, put on buffer
