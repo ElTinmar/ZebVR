@@ -205,7 +205,7 @@ if __name__ == "__main__":
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
-    DURATION_S = 60 * 60
+    DURATION_S = 60*60
     RECORD_VIDEO = False
 
     with open(CALIBRATION_FILE, 'r') as f:
