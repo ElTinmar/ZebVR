@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     sample_frames = np.empty((CAM_HEIGHT, CAM_WIDTH, NUM_IMAGES), dtype=np.float32)
 
-    camera.start_acquisition() # looks like I need to restart to get the last frame with OpenCV...
+    camera.start_acquisition() 
     frame = camera.get_frame()
     camera.stop_acquisition()
     image = frame.image
