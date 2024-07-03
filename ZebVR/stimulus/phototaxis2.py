@@ -125,7 +125,7 @@ class Phototaxis(VisualStim):
 
         self.fd = open(self.timings_file, 'w')
         # write csv headers
-        self.fd.write('t_display,image_index,latency,centroid_x,centroid_y,pc2_x,pc2_y\n')
+        self.fd.write('t_display,image_index,latency,centroid_x,centroid_y,pc2_x,pc2_y,t_local\n')
                
         self.program['a_color'] = self.color
         self.program['a_fish_pc2'] = [0,0]
