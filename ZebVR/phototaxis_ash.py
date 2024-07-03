@@ -15,7 +15,7 @@ from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
 from ZebVR.stimulus import VisualStimWorker
-from ZebVR.stimulus.phototaxis import Phototaxis
+from ZebVR.stimulus.phototaxis2 import Phototaxis
 
 import numpy as np
 from numpy.typing import NDArray, DTypeLike
@@ -205,8 +205,9 @@ if __name__ == "__main__":
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
-    DURATION_S = 60*60
+    DURATION_S = 3*60
     RECORD_VIDEO = False
+    DARKLEFT = True
 
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)
@@ -249,7 +250,8 @@ if __name__ == "__main__":
         transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
         refresh_rate=PROJ_FPS,
         vsync=True,
-        pixel_scaling=PIXEL_SCALING
+        pixel_scaling=PIXEL_SCALING,
+        darkleft = DARKLEFT
     )
     
     cam = CameraWorker(
