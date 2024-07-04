@@ -5,6 +5,7 @@ from multiprocessing import Value
 import time
 from numpy.typing import NDArray
 import numpy as np 
+import os
 
 VERT_SHADER_PHOTOTAXIS = """
 uniform mat3 u_transformation_matrix;
@@ -115,10 +116,16 @@ class Phototaxis(VisualStim):
         self.index = Value('L',0)
         self.timestamp = Value('f',0)
         self.refresh_rate = refresh_rate
-        self.timings_file = timings_file
         self.fd = None
         self.tstart = 0
         self.darkleft = darkleft
+
+        if os.path.exists(timings_file):
+            prefix, ext = os.path.splitext(timings_file)
+            timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
+
+        self.timings_file = timings_file
+
 
     def initialize(self):
         super().initialize()
