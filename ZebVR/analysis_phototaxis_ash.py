@@ -5,7 +5,9 @@ import matplotlib
 import matplotlib.animation as animation
 import numpy as np
 
-FILENAME = '02072024_11dpf_LD__1_1.csv'
+## Visualization of the results --------------------------------------------------------------------
+
+FILENAME = '20240703_7dpf_RD_03_01.csv'
 
 data = pd.read_csv(FILENAME)
 data_filtered = data.groupby('image_index').first()
@@ -89,3 +91,35 @@ def update(frame, history:int = 250):
 
 ani = animation.FuncAnimation(fig=fig, func=update, frames=range(0,len(time),5), interval=200)
 plt.show()
+
+## Plotting 7dpf together
+# positive angle: the larva turns left?
+# negative angle: the larva turns right?
+
+LEFT = True
+RIGHT = False
+FILENAME = [
+    ('20240703_7dpf_LD_01_01.csv',LEFT,7),
+    ('20240703_7dpf_LD_02_01.csv',LEFT,7),
+    ('20240703_7dpf_RD_03_01.csv',RIGHT,7)
+]
+color = {LEFT: 'b', RIGHT: 'r'}
+
+fig, ax = plt.subplots() 
+
+for filename, direction, age in FILENAME:
+
+    data = pd.read_csv(filename)
+    data_filtered = data.groupby('image_index').first()
+    data_filtered = data_filtered[1:]
+
+    time = 1e-9*(data_filtered['t_display'] - data_filtered['t_display'].iloc[0])
+    time = time.values
+
+    angle = np.arctan2(data_filtered['pc2_y'],data_filtered['pc2_x'])
+    angle_unwrapped = np.unwrap(angle) 
+    ax.plot(time,angle_unwrapped, color=color[direction])
+
+plt.show()
+
+# 7 dpf larvae turn towards the dark side
