@@ -93,8 +93,6 @@ ani = animation.FuncAnimation(fig=fig, func=update, frames=range(0,len(time),5),
 plt.show()
 
 ## Plotting 7dpf together
-# positive angle: the larva turns left?
-# negative angle: the larva turns right?
 
 LEFT = True
 RIGHT = False
@@ -121,4 +119,3 @@ for filename, direction, age in FILENAME:
 
 plt.show()
 
-# 7 dpf larvae turn towards the dark side
