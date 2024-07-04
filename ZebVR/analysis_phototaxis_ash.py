@@ -7,7 +7,7 @@ import numpy as np
 
 ## Visualization of the results --------------------------------------------------------------------
 
-FILENAME = '20240703_7dpf_LD_01_01.csv'
+FILENAME = 'darkleft_Thu_04_Jul_2024_18h00min54sec.csv'
 
 data = pd.read_csv(FILENAME)
 data_filtered = data.groupby('image_index').first()
@@ -45,6 +45,7 @@ for x0,x1 in zip(start,stop):
     rect = matplotlib.patches.Rectangle((time[x0],0), time[x1]-time[x0], 100, color='lightgray')
     ax.add_patch(rect)
 plt.plot(time,distance_ewm)
+plt.plot(time,distance)
 plt.show()
 
 # angle
@@ -110,7 +111,7 @@ FILENAME = [
 color = {LEFT: 'b', RIGHT: 'r'}
 
 fig, ax = plt.subplots() 
-
+ 
 for filename, direction, age in FILENAME:
 
     data = pd.read_csv(filename)
