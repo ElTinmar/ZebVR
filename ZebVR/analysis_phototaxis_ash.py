@@ -7,7 +7,7 @@ import numpy as np
 
 ## Visualization of the results --------------------------------------------------------------------
 
-FILENAME = '20240703_7dpf_RD_03_01.csv'
+FILENAME = '20240703_7dpf_LD_01_01.csv'
 
 data = pd.read_csv(FILENAME)
 data_filtered = data.groupby('image_index').first()
@@ -99,7 +99,6 @@ plt.show()
 LEFT = True
 RIGHT = False
 FILENAME = [
-    ('20240703_7dpf_LD_01_01.csv',LEFT,7),
     ('20240703_7dpf_LD_02_01.csv',LEFT,7),
     ('20240703_7dpf_RD_03_01.csv',RIGHT,7)
 ]
