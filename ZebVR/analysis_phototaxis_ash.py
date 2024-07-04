@@ -16,6 +16,13 @@ data_filtered = data_filtered[1:]
 time = 1e-9*(data_filtered['t_display'] - data_filtered['t_display'].iloc[0])
 time = time.values
 
+# time
+plt.plot(1/data['t_local'].diff())
+plt.show()
+
+plt.plot(1/np.diff(time))
+plt.show()
+
 # trajectories
 plt.plot(data_filtered['centroid_x'],data_filtered['centroid_y'])
 plt.axis('square')
