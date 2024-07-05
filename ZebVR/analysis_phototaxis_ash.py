@@ -16,24 +16,24 @@ data_filtered = data_filtered[1:]
 time = 1e-9*(data_filtered['t_display'] - data_filtered['t_display'].iloc[0])
 time = time.values
 
-# time
+## time
 plt.plot(1/data['t_local'].diff())
 plt.show()
 
 plt.plot(1/np.diff(time))
 plt.show()
 
-# trajectories
+## trajectories
 plt.plot(data_filtered['centroid_x'],data_filtered['centroid_y'])
 plt.axis('square')
 plt.show()
 
-# distance
+## distance
 x_diff = data_filtered['centroid_x'].diff()
 y_diff = data_filtered['centroid_y'].diff()
 distance = np.sqrt(x_diff**2+y_diff**2)
 
-# bout detection 
+## bout detection 
 distance_ewm = distance.ewm(alpha=0.05).mean()
 bouts = 1*(distance_ewm > 5)
 start = np.where(bouts.diff()>0)[0]
@@ -48,13 +48,15 @@ plt.plot(time,distance_ewm)
 plt.plot(time,distance)
 plt.show()
 
-# angle
+## angle
+# positive angles: fish turning right
+# negative angles: fish turning left
 angle = np.arctan2(data_filtered['pc2_y'],data_filtered['pc2_x'])
 angle_unwrapped = np.unwrap(angle) 
 plt.plot(time,angle_unwrapped)
 plt.show()
 
-# animation with trajectories and angle
+## animation with trajectories and angle
 fig = plt.figure() 
 
 ax0 = fig.add_subplot(311) 
@@ -106,24 +108,29 @@ LEFT = True
 RIGHT = False
 FILENAME = [
     ('20240703_7dpf_LD_02_01.csv',LEFT,7),
-    ('20240703_7dpf_RD_03_01.csv',RIGHT,7)
+    ('20240703_7dpf_RD_03_01.csv',RIGHT,7),
+    ('20240703_7dpf_RD_04_01.csv',RIGHT,7),
+    ('20240704_8dpf_LD_02_01.csv',LEFT,8),
+    ('20240704_8dpf_LD_03_01.csv',LEFT,8),
+    ('20240704_8dpf_RD_01_01.csv',RIGHT,8)
 ]
 color = {LEFT: 'b', RIGHT: 'r'}
 
-fig, ax = plt.subplots() 
- 
-for filename, direction, age in FILENAME:
+fig, ax = plt.subplots(1,2) 
 
-    data = pd.read_csv(filename)
-    data_filtered = data.groupby('image_index').first()
-    data_filtered = data_filtered[1:]
+for n, target_dpf in enumerate([7,8]):
+    for filename, direction, age in FILENAME:
+        if age == target_dpf:
+            data = pd.read_csv(filename)
+            data_filtered = data.groupby('image_index').first()
+            data_filtered = data_filtered[1:]
 
-    time = 1e-9*(data_filtered['t_display'] - data_filtered['t_display'].iloc[0])
-    time = time.values
+            time = 1e-9*(data_filtered['t_display'] - data_filtered['t_display'].iloc[0])
+            time = time.values
 
-    angle = np.arctan2(data_filtered['pc2_y'],data_filtered['pc2_x'])
-    angle_unwrapped = np.unwrap(angle) 
-    ax.plot(time,angle_unwrapped, color=color[direction])
+            angle = np.arctan2(data_filtered['pc2_y'],data_filtered['pc2_x'])
+            angle_unwrapped = np.unwrap(angle) 
+            ax[n].plot(time,angle_unwrapped, color=color[direction])
 
 plt.show()
 
