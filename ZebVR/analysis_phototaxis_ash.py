@@ -112,13 +112,17 @@ FILENAME = [
     ('20240703_7dpf_RD_04_01.csv',RIGHT,7),
     ('20240704_8dpf_LD_02_01.csv',LEFT,8),
     ('20240704_8dpf_LD_03_01.csv',LEFT,8),
-    ('20240704_8dpf_RD_01_01.csv',RIGHT,8)
+    ('20240704_8dpf_RD_01_01.csv',RIGHT,8),
+    ('20240705_9dpf_LD_01_01.csv',LEFT,9),
+    ('20240705_9dpf_LD_02_01.csv',LEFT,9),
+    ('20240705_9dpf_RD_03_01.csv',RIGHT,9)
 ]
 color = {LEFT: 'b', RIGHT: 'r'}
+dpfs = np.unique([c for a,b,c in FILENAME])
 
-fig, ax = plt.subplots(1,2) 
+fig, ax = plt.subplots(1,len(dpfs)) 
 
-for n, target_dpf in enumerate([7,8]):
+for n, target_dpf in enumerate(dpfs):
     for filename, direction, age in FILENAME:
         if age == target_dpf:
             data = pd.read_csv(filename)
