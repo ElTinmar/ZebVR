@@ -51,11 +51,11 @@ POLARITY = Polarity.DARK_ON_BRIGHT
 ANIMAL_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 5,
-    'animal_intensity': 0.07,
+    'animal_intensity': 0.04,
     'animal_brightness': 0.0,
     'animal_gamma': 1.0,
     'animal_contrast': 1.0,
-    'min_animal_size_mm': 10.0,
+    'min_animal_size_mm': 2.0,
     'max_animal_size_mm': 60.0,
     'min_animal_length_mm': 0,
     'max_animal_length_mm': 0,
