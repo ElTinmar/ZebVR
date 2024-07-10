@@ -66,19 +66,10 @@ void main()
 {
     vec2 fish_ego_coords = gl_FragCoord.xy*u_pixel_scaling - v_fish_centroid;
 
-    if ( v_time <= 40*60 ) {
-        if ( v_darkleft * dot(fish_ego_coords, v_fish_orientation) > 0.0 ) {
-            gl_FragColor = v_color;
-        } 
-    }
-    else {
-        if ( mod(floor(v_time/60),2) == 0) {
-            gl_FragColor = v_color;
-        }
-        else {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        }
-    }
+
+    if ( v_darkleft * sin(dot(fish_ego_coords, v_fish_orientation)+10*v_time) > 0.0 ) {
+        gl_FragColor = v_color;
+    } 
     
     //if ( lineSegment(fish_ego_coords, vec2(0.0), 1000*v_fish_orientation) < 2) {
     //    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
