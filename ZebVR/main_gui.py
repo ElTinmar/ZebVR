@@ -11,7 +11,7 @@ from tracker import (
 )
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ObjectRingBuffer2
-from video_tools import BackgroundSubtractor, BackroundImage, Polarity
+from video_tools import BackgroundSubtractor, BackroundImage
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
 from ZebVR.stimulus import VisualStimWorker, Phototaxis, OMR, OKR, PreyCapture, Looming, DotMotion
