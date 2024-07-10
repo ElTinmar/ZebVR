@@ -59,21 +59,13 @@ varying float v_darkleft;
 void main()
 {
     vec2 fish_ego_coords = gl_FragCoord.xy*u_pixel_scaling - v_fish_centroid;
+    vec2 pos = vec2(50,50);
 
-    if ( v_time <= 40*60 ) {
-        if ( v_darkleft * dot(fish_ego_coords, v_fish_orientation) > 0.0 ) {
-            gl_FragColor = v_color;
-        } 
-    }
-    else {
-        if ( mod(floor(v_time/60),2) == 0) {
+    if (mod(v_time,60) > 30) { 
+        if ( distance(fish_ego_coords, pos) <= 10 ) {
             gl_FragColor = v_color;
         }
-        else {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        }
     }
-    
 }
 """
 

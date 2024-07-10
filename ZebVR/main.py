@@ -357,7 +357,7 @@ if __name__ == "__main__":
     )
 
     stim = VisualStimWorker(
-        stim=ptx, 
+        stim=looming, 
         name='phototaxis', 
         logger=worker_logger, 
         logger_queues=queue_logger, 
