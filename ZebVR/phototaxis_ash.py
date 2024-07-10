@@ -15,7 +15,7 @@ from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
 from ZebVR.stimulus import VisualStimWorker
-from ZebVR.stimulus.phototaxis2 import Phototaxis
+from ZebVR.stimulus.phototaxis import Phototaxis
 
 import numpy as np
 from numpy.typing import NDArray, DTypeLike
