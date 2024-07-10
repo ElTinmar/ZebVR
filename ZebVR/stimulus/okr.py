@@ -7,7 +7,7 @@ from numpy.typing import NDArray
 import numpy as np 
 import os
 
-VERT_SHADER_PHOTOTAXIS = """
+VERT_SHADER_OKR = """
 uniform mat3 u_transformation_matrix;
 
 attribute vec2 a_position;
@@ -68,7 +68,7 @@ void main()
 }
 """
 
-class Phototaxis(VisualStim):
+class OKR(VisualStim):
 
     def __init__(
             self,  
@@ -84,7 +84,7 @@ class Phototaxis(VisualStim):
             darkleft: bool = True
         ) -> None:
 
-        super().__init__(VERT_SHADER_PHOTOTAXIS, FRAG_SHADER_PHOTOTAXIS, window_size, window_position, window_decoration, transformation_matrix, pixel_scaling, vsync)
+        super().__init__(VERT_SHADER_OKR, FRAG_SHADER_OKR, window_size, window_position, window_decoration, transformation_matrix, pixel_scaling, vsync)
 
         self.color = color
         self.fish_orientation_x = Value('d',0)
