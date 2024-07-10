@@ -53,10 +53,6 @@ class CameraGui(WorkerNode):
             'framerate', 
             'exposure', 
             'gain', 
-            'offsetX', 
-            'offsetY', 
-            'height', 
-            'width'
         ]
         self.declare_components()
         self.layout_components()
@@ -64,20 +60,9 @@ class CameraGui(WorkerNode):
 
     def declare_components(self):
 
-        # Basic camera controls ----------------------------------
-         
-        self.start_button = QPushButton()
-        self.start_button.setText('acquire')
-        self.start_button.setCheckable(True)
-        self.start_button.toggled.connect(self.on_change)
-
         # controls 
         for c in self.controls:
             self.create_spinbox(c)
-
-        # Region of interest ------------------------------------
-
-        self.ROI_groupbox = QGroupBox('ROI:')
 
     def create_spinbox(self, attr: str):
         '''
@@ -100,21 +85,11 @@ class CameraGui(WorkerNode):
 
     def layout_components(self):
 
-        layout_frame = QVBoxLayout(self.ROI_groupbox)
-        layout_frame.addStretch()
-        layout_frame.addWidget(self.offsetX_spinbox)
-        layout_frame.addWidget(self.offsetY_spinbox)
-        layout_frame.addWidget(self.height_spinbox)
-        layout_frame.addWidget(self.width_spinbox)
-        layout_frame.addStretch()
-
         layout_controls = QVBoxLayout(self.window)
         layout_controls.addStretch()
         layout_controls.addWidget(self.exposure_spinbox)
         layout_controls.addWidget(self.gain_spinbox)
         layout_controls.addWidget(self.framerate_spinbox)
-        layout_controls.addWidget(self.ROI_groupbox)
-        layout_controls.addWidget(self.start_button)
         layout_controls.addStretch()
 
     def on_change(self):
@@ -143,7 +118,6 @@ class CameraGui(WorkerNode):
         if self.updated:
             res = {}
             res['camera_control'] = {}
-            res['camera_control']['acquire'] = self.start_button.isChecked()
             for c in self.controls:
                 spinbox = getattr(self, c + '_spinbox')
                 res['camera_control'][c] = spinbox.value()
@@ -212,10 +186,6 @@ class CameraWorker(WorkerNode):
             self.cam.set_exposure(control['exposure'])
             self.cam.set_gain(control['gain'])
             self.cam.set_framerate(control['framerate'])
-            self.cam.set_height(control['height'])
-            self.cam.set_width(control['width'])
-            self.cam.set_offsetX(control['offsetX'])
-            self.cam.set_offsetY(control['offsetY'])
             self.cam.start_acquisition()
             self.updated = True
         
@@ -228,10 +198,6 @@ class CameraWorker(WorkerNode):
             res['camera_info']['exposure'] = {}
             res['camera_info']['gain'] = {}
             res['camera_info']['framerate'] = {}
-            res['camera_info']['height'] = {}
-            res['camera_info']['width'] = {}
-            res['camera_info']['offsetX'] = {}
-            res['camera_info']['offsetY'] = {}
             res['camera_info']['exposure']['value'] = self.cam.get_exposure()
             res['camera_info']['exposure']['min'], res['camera_info']['exposure']['max'] = self.cam.get_exposure_range()
             res['camera_info']['exposure']['increment'] = self.cam.get_exposure_increment()
@@ -241,18 +207,6 @@ class CameraWorker(WorkerNode):
             res['camera_info']['framerate']['value'] = self.cam.get_framerate()
             res['camera_info']['framerate']['min'], res['camera_info']['framerate']['max'] = self.cam.get_framerate_range()
             res['camera_info']['framerate']['increment'] = self.cam.get_framerate_increment()
-            res['camera_info']['height']['value'] = self.cam.get_height()
-            res['camera_info']['height']['min'], res['camera_info']['height']['max'] = self.cam.get_height_range()
-            res['camera_info']['height']['increment'] = self.cam.get_height_increment()
-            res['camera_info']['width']['value'] = self.cam.get_width()
-            res['camera_info']['width']['min'], res['camera_info']['width']['max'] = self.cam.get_width_range()
-            res['camera_info']['width']['increment'] = self.cam.get_width_increment()
-            res['camera_info']['offsetX']['value'] = self.cam.get_offsetX()
-            res['camera_info']['offsetX']['min'], res['camera_info']['offsetX']['max'] = self.cam.get_offsetX_range()
-            res['camera_info']['offsetX']['increment'] = self.cam.get_offsetX_increment()
-            res['camera_info']['offsetY']['value'] = self.cam.get_offsetY()
-            res['camera_info']['offsetY']['min'], res['camera_info']['offsetY']['max'] = self.cam.get_offsetY_range()
-            res['camera_info']['offsetY']['increment'] = self.cam.get_offsetY_increment()
             return res
 
 class BackgroundSubWorker(WorkerNode):
@@ -388,7 +342,7 @@ if __name__ == "__main__":
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
-    DURATION_S = 60
+    DURATION_S = 5*60
     RECORD_VIDEO = False
     DARKLEFT = True
 
