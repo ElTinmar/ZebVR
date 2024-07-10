@@ -56,12 +56,6 @@ varying float v_time;
 varying vec4 v_color;
 varying float v_darkleft;
 
-float lineSegment(vec2 p, vec2 a, vec2 b) {
-    vec2 pa = p - a, ba = b - a;
-    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
-    return length(pa - ba*h);
-}
-
 void main()
 {
     vec2 fish_ego_coords = gl_FragCoord.xy*u_pixel_scaling - v_fish_centroid;
@@ -70,14 +64,6 @@ void main()
     if ( v_darkleft * sin(dot(fish_ego_coords, v_fish_orientation)+10*v_time) > 0.0 ) {
         gl_FragColor = v_color;
     } 
-    
-    //if ( lineSegment(fish_ego_coords, vec2(0.0), 1000*v_fish_orientation) < 2) {
-    //    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    //}
-
-    //if ( dot(fish_ego_coords,fish_ego_coords) < 50 ) {
-    //    gl_FragColor = vec4(0.0,1.0,0.0,1.0);
-    //}
 }
 """
 
@@ -158,7 +144,7 @@ class OMR(VisualStim):
         self.update()
         self.fd.write(f'{t_display},{self.index.value},{1e-6*(t_display - self.timestamp.value)},{self.fish_centroid_x.value},{self.fish_centroid_y.value},{self.fish_orientation_x.value},{self.fish_orientation_y.value},{t_local}\n')
 
-    def work(self, data) -> None:
+    def process_data(self, data) -> None:
         if data is not None:
             index, timestamp, centroid, heading = data
             if heading is not None:

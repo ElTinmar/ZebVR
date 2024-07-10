@@ -14,8 +14,7 @@ from ipc_tools import MonitoredQueue, ObjectRingBuffer2
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
-from ZebVR.stimulus import VisualStimWorker
-from ZebVR.stimulus.phototaxis import Phototaxis
+from ZebVR.stimulus import VisualStimWorker, Phototaxis, OMR, OKR, PreyCapture, Looming, DotMotion
 
 import numpy as np
 from numpy.typing import NDArray, DTypeLike
@@ -270,6 +269,50 @@ if __name__ == "__main__":
         vsync=True,
         pixel_scaling=PIXEL_SCALING,
         darkleft = DARKLEFT
+    )
+
+    omr = OMR(
+        window_size=(PROJ_WIDTH, PROJ_HEIGHT),
+        window_position=PROJ_POS,
+        color=(0.1, 0.1, 0.1, 1.0),
+        window_decoration=False,
+        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
+        refresh_rate=PROJ_FPS,
+        vsync=True,
+        pixel_scaling=PIXEL_SCALING
+    )
+
+    okr = OKR(
+        window_size=(PROJ_WIDTH, PROJ_HEIGHT),
+        window_position=PROJ_POS,
+        color=(0.1, 0.1, 0.1, 1.0),
+        window_decoration=False,
+        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
+        refresh_rate=PROJ_FPS,
+        vsync=True,
+        pixel_scaling=PIXEL_SCALING
+    )
+
+    looming = Looming(
+        window_size=(PROJ_WIDTH, PROJ_HEIGHT),
+        window_position=PROJ_POS,
+        color=(0.1, 0.1, 0.1, 1.0),
+        window_decoration=False,
+        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
+        refresh_rate=PROJ_FPS,
+        vsync=True,
+        pixel_scaling=PIXEL_SCALING
+    )
+
+    preycapture = PreyCapture(
+        window_size=(PROJ_WIDTH, PROJ_HEIGHT),
+        window_position=PROJ_POS,
+        color=(0.1, 0.1, 0.1, 1.0),
+        window_decoration=False,
+        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
+        refresh_rate=PROJ_FPS,
+        vsync=True,
+        pixel_scaling=PIXEL_SCALING
     )
     
     cam = CameraWorker(

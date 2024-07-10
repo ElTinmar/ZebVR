@@ -61,7 +61,7 @@ void main()
 {
     vec2 fish_ego_coords = gl_FragCoord.xy*u_pixel_scaling - v_fish_centroid;
 
-    if (mod(atan(fish_ego_coords.y,fish_ego_coords.x),pi/4) > pi/8 ) {
+    if (mod(atan(fish_ego_coords.y,fish_ego_coords.x)+v_time,pi/4) > pi/8 ) {
         gl_FragColor = v_color;
     } 
 
@@ -145,7 +145,7 @@ class OKR(VisualStim):
         self.update()
         self.fd.write(f'{t_display},{self.index.value},{1e-6*(t_display - self.timestamp.value)},{self.fish_centroid_x.value},{self.fish_centroid_y.value},{self.fish_orientation_x.value},{self.fish_orientation_y.value},{t_local}\n')
 
-    def work(self, data) -> None:
+    def process_data(self, data) -> None:
         if data is not None:
             index, timestamp, centroid, heading = data
             if heading is not None:
