@@ -46,7 +46,7 @@ void main()
 # in bool gl_FrontFacing;
 # in vec2 gl_PointCoord;
 
-FRAG_SHADER_OKR = """
+FRAG_SHADER_PHOTOTAXIS = """
 uniform vec2 u_pixel_scaling; 
 
 varying vec2 v_fish_orientation;
@@ -55,16 +55,29 @@ varying vec2 v_resolution;
 varying float v_time;
 varying vec4 v_color;
 varying float v_darkleft;
-float pi = 3.14159265358;
+
+float lineSegment(vec2 p, vec2 a, vec2 b) {
+    vec2 pa = p - a, ba = b - a;
+    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+    return length(pa - ba*h);
+}
 
 void main()
 {
     vec2 fish_ego_coords = gl_FragCoord.xy*u_pixel_scaling - v_fish_centroid;
 
-    if (mod(atan(fish_ego_coords.y,fish_ego_coords.x),pi/4) > pi/8 ) {
+
+    if ( v_darkleft * sin(dot(fish_ego_coords, v_fish_orientation)+10*v_time) > 0.0 ) {
         gl_FragColor = v_color;
     } 
+    
+    //if ( lineSegment(fish_ego_coords, vec2(0.0), 1000*v_fish_orientation) < 2) {
+    //    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    //}
 
+    //if ( dot(fish_ego_coords,fish_ego_coords) < 50 ) {
+    //    gl_FragColor = vec4(0.0,1.0,0.0,1.0);
+    //}
 }
 """
 
