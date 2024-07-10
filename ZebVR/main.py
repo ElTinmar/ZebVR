@@ -15,7 +15,7 @@ from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
 from ZebVR.stimulus import VisualStimWorker
-from ZebVR.stimulus.phototaxis2 import Phototaxis
+from ZebVR.stimulus.phototaxis import Phototaxis
 
 import numpy as np
 from numpy.typing import NDArray, DTypeLike
@@ -284,9 +284,9 @@ if __name__ == "__main__":
         name='camera', 
         logger=worker_logger, 
         logger_queues=queue_logger, 
-        receive_strategy=receive_strategy.COLLECT, 
-        send_strategy=send_strategy.BROADCAST, 
-        receive_timeout=1.0
+        receive_data_strategy=receive_strategy.COLLECT, 
+        send_data_strategy=send_strategy.BROADCAST, 
+        receive_data_timeout=1.0
     )
 
     image_saver = ImageSaver(
@@ -294,23 +294,23 @@ if __name__ == "__main__":
         name='image_saver',  
         logger=worker_logger, 
         logger_queues=queue_logger, 
-        receive_timeout=1.0
+        receive_data_timeout=1.0
     )
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
-        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger=worker_logger, logger_queues=queue_logger, receive_timeout=1.0, profile=False))
+        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger=worker_logger, logger_queues=queue_logger, receive_data_timeout=1.0, profile=False))
 
     trck = []
     for i in range(N_TRACKER_WORKERS):
-        trck.append(TrackerWorker(t, name=f'tracker{i}', logger=worker_logger, logger_queues=queue_logger, send_strategy=send_strategy.BROADCAST, receive_timeout=1.0, profile=False))
+        trck.append(TrackerWorker(t, name=f'tracker{i}', logger=worker_logger, logger_queues=queue_logger, send_data_strategy=send_strategy.BROADCAST, receive_data_timeout=1.0, profile=False))
 
     dis = Display(
         fps=30, 
         name='display', 
         logger=worker_logger, 
         logger_queues=queue_logger, 
-        receive_timeout=1.0
+        receive_data_timeout=1.0
     )
 
     stim = VisualStimWorker(
@@ -318,7 +318,7 @@ if __name__ == "__main__":
         name='phototaxis', 
         logger=worker_logger, 
         logger_queues=queue_logger, 
-        receive_timeout=1.0
+        receive_data_timeout=1.0
     )
 
     oly = OverlayWorker(
@@ -327,7 +327,7 @@ if __name__ == "__main__":
         name="overlay", 
         logger=worker_logger, 
         logger_queues=queue_logger, 
-        receive_timeout=1.0
+        receive_data_timeout=1.0
     )
 
     # ring buffer camera ------------------------------------------------------------------ 
@@ -502,22 +502,22 @@ if __name__ == "__main__":
     dag = ProcessingDAG()
 
     for i in range(N_BACKGROUND_WORKERS):   
-        dag.connect(sender=cam, receiver=bckg[i], queue=q_cam, name='background_subtraction')
+        dag.connect_data(sender=cam, receiver=bckg[i], queue=q_cam, name='background_subtraction')
     
     # NOTE: the order in which you declare connections matter: background_subtraction will
     # be served before image_saver
     if RECORD_VIDEO:
-        dag.connect(sender=cam, receiver=image_saver, queue=q_save_image, name='image_saver')
+        dag.connect_data(sender=cam, receiver=image_saver, queue=q_save_image, name='image_saver')
 
     for i in range(N_BACKGROUND_WORKERS):
         for j in range(N_TRACKER_WORKERS):
-            dag.connect(sender=bckg[i], receiver=trck[j], queue=q_back, name='background_subtracted')
+            dag.connect_data(sender=bckg[i], receiver=trck[j], queue=q_back, name='background_subtracted')
 
     for i in range(N_TRACKER_WORKERS):
-        dag.connect(sender=trck[i], receiver=stim, queue=q_tracking, name='stimulus')
-        dag.connect(sender=trck[i], receiver=oly, queue=q_overlay, name='overlay')
+        dag.connect_data(sender=trck[i], receiver=stim, queue=q_tracking, name='stimulus')
+        dag.connect_data(sender=trck[i], receiver=oly, queue=q_overlay, name='overlay')
 
-    dag.connect(sender=oly, receiver=dis, queue=q_display, name='disp')
+    dag.connect_data(sender=oly, receiver=dis, queue=q_display, name='disp')
 
     worker_logger.start()
     queue_logger.start()

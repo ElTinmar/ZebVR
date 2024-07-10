@@ -62,7 +62,7 @@ class VisualStim(app.Canvas):
     def on_timer(self, event):
         pass
 
-    def work(self, data: Any) -> None:
+    def process_data(self, data: Any) -> None:
         '''define a mapping between the data argument and shader variables'''
         pass
 
@@ -91,5 +91,8 @@ class VisualStimWorker(WorkerNode):
     def cleanup(self) -> None:
         self.display_process.join()
 
-    def work(self, data: Any) -> None:
-        return self.stim.work(data)
+    def process_data(self, data: Any) -> None:
+        return self.stim.process_data(data)
+    
+    def process_metadata(self, metadata) -> Any:
+        pass
