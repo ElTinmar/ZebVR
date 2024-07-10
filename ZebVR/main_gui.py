@@ -123,11 +123,22 @@ class CameraGui(WorkerNode):
     def process_data(self, data: None) -> NDArray:
         self.app.processEvents()
 
+    def block_signals(self, block):
+        for widget in self.window.findChildren(QWidget):
+            widget.blockSignals(block)
+
     def process_metadata(self, metadata: Dict) -> Optional[Dict]:
         # receive cam inof
         info = metadata['camera_info']
         if info is not None: 
             print(info)
+            self.block_signals(True)
+            for c in self.controls:
+                spinbox = getattr(self, c + '_spinbox')
+                spinbox.setValue(info[c]['value'])
+                spinbox.setRange(info[c]['min'], info[c]['max'])
+                spinbox.setSingleStep(info[c]['increment'])
+            self.block_signals(False)
 
         # send only one message when things are changed
         if self.updated:
