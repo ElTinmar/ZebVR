@@ -68,7 +68,7 @@ class CameraGui(WorkerNode):
          
         self.start_button = QPushButton()
         self.start_button.setText('acquire')
-        self.button.setCheckable(True)
+        self.start_button.setCheckable(True)
         self.start_button.toggled.connect(self.on_change)
 
         # controls 
@@ -88,34 +88,17 @@ class CameraGui(WorkerNode):
         in the code. 
         '''
         if attr in ['framerate', 'exposure', 'gain']:
-            setattr(self, attr + '_spinbox', LabeledSliderDoubleSpinBox(self))
+            setattr(self, attr + '_spinbox', LabeledSliderDoubleSpinBox())
         else:
-            setattr(self, attr + '_spinbox', LabeledDoubleSpinBox(self))
+            setattr(self, attr + '_spinbox', LabeledDoubleSpinBox())
         spinbox = getattr(self, attr + '_spinbox')
         spinbox.setText(attr)
-        
-        value = getattr(self.camera, 'get_' + attr)()
-        range = getattr(self.camera, 'get_' + attr + '_range')()
-        increment = getattr(self.camera, 'get_' + attr + '_increment')()
-        
-        if (
-            value is not None 
-            and range is not None
-            and increment is not None
-        ):
-            spinbox.setRange(range[0],range[1])
-            spinbox.setSingleStep(increment)
-            spinbox.setValue(value)
-        else:
-            spinbox.setDisabled(True)
-
+        spinbox.setRange(0,100_000)
+        spinbox.setSingleStep(1)
+        spinbox.setValue(0)
         spinbox.valueChanged.connect(self.on_change)
 
     def layout_components(self):
-
-        layout_start_stop = QHBoxLayout()
-        layout_start_stop.addWidget(self.start_button)
-        layout_start_stop.addWidget(self.stop_button)
 
         layout_frame = QVBoxLayout(self.ROI_groupbox)
         layout_frame.addStretch()
@@ -131,7 +114,7 @@ class CameraGui(WorkerNode):
         layout_controls.addWidget(self.gain_spinbox)
         layout_controls.addWidget(self.framerate_spinbox)
         layout_controls.addWidget(self.ROI_groupbox)
-        layout_controls.addLayout(layout_start_stop)
+        layout_controls.addWidget(self.start_button)
         layout_controls.addStretch()
 
     def on_change(self):
@@ -150,7 +133,6 @@ class CameraGui(WorkerNode):
                 spinbox = getattr(self, c + '_spinbox')
                 res['camera_control'][c] = spinbox.value()
             self.updated = False
-            print(res)
             return res       
         else:
             return None
@@ -206,7 +188,10 @@ class CameraWorker(WorkerNode):
             return res
         
     def process_metadata(self, metadata) -> Any:
-        pass
+        # receive
+        control = metadata['camera_control']
+        if control is not None: 
+            print(control)
 
 class BackgroundSubWorker(WorkerNode):
 
@@ -439,7 +424,11 @@ if __name__ == "__main__":
         pixel_scaling=PIXEL_SCALING
     )
 
-    cam_control = CameraGui()
+    cam_control = CameraGui(
+        name='cam_gui',  
+        logger=worker_logger, 
+        logger_queues=queue_logger
+    )
     
     cam = CameraWorker(
         camera_constructor = XimeaCamera, 
