@@ -223,7 +223,7 @@ if __name__ == "__main__":
     BACKGROUND_GPU = True
     T_REFRESH = 1e-4
 
-    DURATION_S = 60
+    DURATION_S = 40*60
     RECORD_VIDEO = False
     DARKLEFT = True
 
