@@ -56,38 +56,16 @@ varying float v_time;
 varying vec4 v_color;
 varying float v_darkleft;
 
-float lineSegment(vec2 p, vec2 a, vec2 b) {
-    vec2 pa = p - a, ba = b - a;
-    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
-    return length(pa - ba*h);
-}
-
 void main()
 {
     vec2 fish_ego_coords = gl_FragCoord.xy*u_pixel_scaling - v_fish_centroid;
+    vec2 pos = fish_ego_coords+10*v_fish_orientation;
 
-    if ( v_time <= 40*60 ) {
-        if ( v_darkleft * dot(fish_ego_coords, v_fish_orientation) > 0.0 ) {
-            gl_FragColor = v_color;
-        } 
+    if ( distance(gl_FragCoord.xy, pos) <= 10*mod(v_time,30) ) {
+        gl_FragColor = v_color;
     }
-    else {
-        if ( mod(floor(v_time/60),2) == 0) {
-            gl_FragColor = v_color;
-        }
-        else {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        }
-    }
-    
-    //if ( lineSegment(fish_ego_coords, vec2(0.0), 1000*v_fish_orientation) < 2) {
-    //    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    //}
-
-    //if ( dot(fish_ego_coords,fish_ego_coords) < 50 ) {
-    //    gl_FragColor = vec4(0.0,1.0,0.0,1.0);
-    //}
 }
+
 """
 
 class Phototaxis(VisualStim):
