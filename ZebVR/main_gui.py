@@ -131,7 +131,6 @@ class CameraGui(WorkerNode):
         # receive cam inof
         info = metadata['camera_info']
         if info is not None: 
-            print(info)
             self.block_signals(True)
             for c in self.controls:
                 spinbox = getattr(self, c + '_spinbox')
@@ -237,22 +236,22 @@ class CameraWorker(WorkerNode):
             res['camera_info']['exposure']['min'], res['camera_info']['exposure']['max'] = self.cam.get_exposure_range()
             res['camera_info']['exposure']['increment'] = self.cam.get_exposure_increment()
             res['camera_info']['gain']['value'] = self.cam.get_gain()
-            res['camera_info']['gain']['min'], res['camera_info']['exposure']['max'] = self.cam.get_gain_range()
+            res['camera_info']['gain']['min'], res['camera_info']['gain']['max'] = self.cam.get_gain_range()
             res['camera_info']['gain']['increment'] = self.cam.get_gain_increment()
             res['camera_info']['framerate']['value'] = self.cam.get_framerate()
-            res['camera_info']['framerate']['min'], res['camera_info']['exposure']['max'] = self.cam.get_framerate_range()
+            res['camera_info']['framerate']['min'], res['camera_info']['framerate']['max'] = self.cam.get_framerate_range()
             res['camera_info']['framerate']['increment'] = self.cam.get_framerate_increment()
             res['camera_info']['height']['value'] = self.cam.get_height()
-            res['camera_info']['height']['min'], res['camera_info']['exposure']['max'] = self.cam.get_height_range()
+            res['camera_info']['height']['min'], res['camera_info']['height']['max'] = self.cam.get_height_range()
             res['camera_info']['height']['increment'] = self.cam.get_height_increment()
             res['camera_info']['width']['value'] = self.cam.get_width()
-            res['camera_info']['width']['min'], res['camera_info']['exposure']['max'] = self.cam.get_width_range()
+            res['camera_info']['width']['min'], res['camera_info']['width']['max'] = self.cam.get_width_range()
             res['camera_info']['width']['increment'] = self.cam.get_width_increment()
             res['camera_info']['offsetX']['value'] = self.cam.get_offsetX()
-            res['camera_info']['offsetX']['min'], res['camera_info']['exposure']['max'] = self.cam.get_offsetX_range()
+            res['camera_info']['offsetX']['min'], res['camera_info']['offsetX']['max'] = self.cam.get_offsetX_range()
             res['camera_info']['offsetX']['increment'] = self.cam.get_offsetX_increment()
             res['camera_info']['offsetY']['value'] = self.cam.get_offsetY()
-            res['camera_info']['offsetY']['min'], res['camera_info']['exposure']['max'] = self.cam.get_offsetY_range()
+            res['camera_info']['offsetY']['min'], res['camera_info']['offsetY']['max'] = self.cam.get_offsetY_range()
             res['camera_info']['offsetY']['increment'] = self.cam.get_offsetY_increment()
             return res
 
