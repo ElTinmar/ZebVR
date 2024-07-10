@@ -124,6 +124,11 @@ class CameraGui(WorkerNode):
         self.app.processEvents()
 
     def process_metadata(self, metadata: Dict) -> Optional[Dict]:
+        # receive cam inof
+        info = metadata['camera_info']
+        if info is not None: 
+            print(info)
+
         # send only one message when things are changed
         if self.updated:
             res = {}
@@ -162,6 +167,7 @@ class CameraWorker(WorkerNode):
         self.width = width
         self.offsetx = offsetx
         self.offsety = offsety
+        self.updated = False
     
     def initialize(self) -> None:
         super().initialize()
@@ -174,6 +180,7 @@ class CameraWorker(WorkerNode):
         self.cam.set_offsetX(self.offsetx)
         self.cam.set_offsetY(self.offsety)
         self.cam.start_acquisition()
+        self.updated = True
 
     def cleanup(self) -> None:
         super().cleanup()
@@ -191,7 +198,52 @@ class CameraWorker(WorkerNode):
         # receive
         control = metadata['camera_control']
         if control is not None: 
-            print(control)
+            self.cam.stop_acquisition()
+            self.cam.set_exposure(control['exposure'])
+            self.cam.set_gain(control['gain'])
+            self.cam.set_framerate(control['framerate'])
+            self.cam.set_height(control['height'])
+            self.cam.set_width(control['width'])
+            self.cam.set_offsetX(control['offsetX'])
+            self.cam.set_offsetY(control['offsetY'])
+            self.cam.start_acquisition()
+            self.updated = True
+        
+        # send
+        # if camera settings were updated, send info
+        if self.updated:
+            self.updated = False
+            res = {}
+            res['camera_info'] = {}
+            res['camera_info']['exposure'] = {}
+            res['camera_info']['gain'] = {}
+            res['camera_info']['framerate'] = {}
+            res['camera_info']['height'] = {}
+            res['camera_info']['width'] = {}
+            res['camera_info']['offsetX'] = {}
+            res['camera_info']['offsetY'] = {}
+            res['camera_info']['exposure']['value'] = self.cam.get_exposure()
+            res['camera_info']['exposure']['min'], res['camera_info']['exposure']['max'] = self.cam.get_exposure_range()
+            res['camera_info']['exposure']['increment'] = self.cam.get_exposure_increment()
+            res['camera_info']['gain']['value'] = self.cam.get_gain()
+            res['camera_info']['gain']['min'], res['camera_info']['exposure']['max'] = self.cam.get_gain_range()
+            res['camera_info']['gain']['increment'] = self.cam.get_gain_increment()
+            res['camera_info']['framerate']['value'] = self.cam.get_framerate()
+            res['camera_info']['framerate']['min'], res['camera_info']['exposure']['max'] = self.cam.get_framerate_range()
+            res['camera_info']['framerate']['increment'] = self.cam.get_framerate_increment()
+            res['camera_info']['height']['value'] = self.cam.get_height()
+            res['camera_info']['height']['min'], res['camera_info']['exposure']['max'] = self.cam.get_height_range()
+            res['camera_info']['height']['increment'] = self.cam.get_height_increment()
+            res['camera_info']['width']['value'] = self.cam.get_width()
+            res['camera_info']['width']['min'], res['camera_info']['exposure']['max'] = self.cam.get_width_range()
+            res['camera_info']['width']['increment'] = self.cam.get_width_increment()
+            res['camera_info']['offsetX']['value'] = self.cam.get_offsetX()
+            res['camera_info']['offsetX']['min'], res['camera_info']['exposure']['max'] = self.cam.get_offsetX_range()
+            res['camera_info']['offsetX']['increment'] = self.cam.get_offsetX_increment()
+            res['camera_info']['offsetY']['value'] = self.cam.get_offsetY()
+            res['camera_info']['offsetY']['min'], res['camera_info']['exposure']['max'] = self.cam.get_offsetY_range()
+            res['camera_info']['offsetY']['increment'] = self.cam.get_offsetY_increment()
+            return res
 
 class BackgroundSubWorker(WorkerNode):
 
@@ -585,6 +637,7 @@ if __name__ == "__main__":
     )
 
     q_camera_control = QueueMP()
+    q_camera_info = QueueMP()
 
     # tracking ring buffer -------------------------------------------------------------------
     # get dtype and itemsize for tracker results
@@ -682,6 +735,7 @@ if __name__ == "__main__":
 
     # metadata
     dag.connect_metadata(sender=cam_control, receiver=cam, queue=q_camera_control, name='camera_control')
+    dag.connect_metadata(sender=cam, receiver=cam_control, queue=q_camera_info, name='camera_info')
 
     worker_logger.start()
     queue_logger.start()
