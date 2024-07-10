@@ -2,14 +2,14 @@ import os
 from video_tools import Polarity
 import numpy as np
 
+# general settings
 LCr = True
 
-# general settings
+# stimulus projection
 if LCr:
     PROJ_HEIGHT = 1140
     PROJ_WIDTH = 912
     PIXEL_SCALING = (1.0, 0.5)
-    # PIXEL_SCALING = (2*np.sqrt(2/5), np.sqrt(2/5)) # norm is still sqrt(2)
 else:
     PROJ_HEIGHT = 800
     PROJ_WIDTH = 1280
@@ -17,7 +17,10 @@ else:
 
 PROJ_POS = (2560,0)
 PROJ_FPS = 60
+FOREGROUND_COLOR = (1.0, 0, 0, 1.0)
+BACKGROUND_COLOR = (0, 0, 0, 1.0)
 
+# camera
 CAM_HEIGHT = 2048
 CAM_WIDTH = 2048
 CAM_OFFSETX = 0

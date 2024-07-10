@@ -33,7 +33,8 @@ from ZebVR.config import (
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS, PROJ_FPS,
     PIXEL_SCALING, BACKGROUND_FILE, IMAGE_FOLDER,
     POLARITY, ANIMAL_TRACKING_PARAM,
-    BODY_TRACKING_PARAM
+    BODY_TRACKING_PARAM, FOREGROUND_COLOR, 
+    BACKGROUND_COLOR
 )
 
 class CameraWorker(WorkerNode):
@@ -262,7 +263,8 @@ if __name__ == "__main__":
     ptx = Phototaxis(
         window_size=(PROJ_WIDTH, PROJ_HEIGHT),
         window_position=PROJ_POS,
-        color=(0.1, 0.1, 0.1, 1.0),
+        foreground_color=FOREGROUND_COLOR,
+        background_color=BACKGROUND_COLOR,
         window_decoration=False,
         transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
         refresh_rate=PROJ_FPS,
@@ -274,7 +276,8 @@ if __name__ == "__main__":
     omr = OMR(
         window_size=(PROJ_WIDTH, PROJ_HEIGHT),
         window_position=PROJ_POS,
-        color=(0.1, 0.1, 0.1, 1.0),
+        foreground_color=FOREGROUND_COLOR,
+        background_color=BACKGROUND_COLOR,        
         window_decoration=False,
         transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
         refresh_rate=PROJ_FPS,
@@ -285,7 +288,8 @@ if __name__ == "__main__":
     okr = OKR(
         window_size=(PROJ_WIDTH, PROJ_HEIGHT),
         window_position=PROJ_POS,
-        color=(0.1, 0.1, 0.1, 1.0),
+        foreground_color=FOREGROUND_COLOR,
+        background_color=BACKGROUND_COLOR,        
         window_decoration=False,
         transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
         refresh_rate=PROJ_FPS,
@@ -296,7 +300,8 @@ if __name__ == "__main__":
     looming = Looming(
         window_size=(PROJ_WIDTH, PROJ_HEIGHT),
         window_position=PROJ_POS,
-        color=(0.1, 0.1, 0.1, 1.0),
+        foreground_color=FOREGROUND_COLOR,
+        background_color=BACKGROUND_COLOR,        
         window_decoration=False,
         transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
         refresh_rate=PROJ_FPS,
@@ -307,7 +312,8 @@ if __name__ == "__main__":
     preycapture = PreyCapture(
         window_size=(PROJ_WIDTH, PROJ_HEIGHT),
         window_position=PROJ_POS,
-        color=(0.1, 0.1, 0.1, 1.0),
+        foreground_color=FOREGROUND_COLOR,
+        background_color=BACKGROUND_COLOR,        
         window_decoration=False,
         transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
         refresh_rate=PROJ_FPS,
@@ -357,7 +363,7 @@ if __name__ == "__main__":
     )
 
     stim = VisualStimWorker(
-        stim=looming, 
+        stim=ptx, 
         name='phototaxis', 
         logger=worker_logger, 
         logger_queues=queue_logger, 

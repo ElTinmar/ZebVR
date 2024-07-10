@@ -14,7 +14,8 @@ attribute vec2 a_position;
 attribute float a_darkleft;
 attribute vec2 a_resolution;
 attribute float a_time;
-attribute vec4 a_color;
+attribute vec4 a_foreground_color;
+attribute vec4 a_background_color;
 attribute vec2 a_fish_pc2;
 attribute vec2 a_fish_centroid; 
 
@@ -22,7 +23,8 @@ varying vec2 v_fish_orientation;
 varying vec2 v_fish_centroid;
 varying vec2 v_resolution;
 varying float v_time;
-varying vec4 v_color;
+varying vec4 v_foreground_color;
+varying vec4 v_background_color;
 varying float v_darkleft;
 
 
@@ -34,7 +36,8 @@ void main()
     gl_Position = vec4(a_position, 0.0, 1.0);
     v_fish_centroid = fish_centroid.xy;
     v_fish_orientation = fish_orientation.xy - fish_centroid.xy;
-    v_color = a_color;
+    v_foreground_color = a_foreground_color;
+    v_background_color = a_background_color;
     v_resolution = a_resolution;
     v_time = a_time;
     v_darkleft = a_darkleft;
@@ -53,7 +56,8 @@ varying vec2 v_fish_orientation;
 varying vec2 v_fish_centroid;
 varying vec2 v_resolution;
 varying float v_time;
-varying vec4 v_color;
+varying vec4 v_foreground_color;
+varying vec4 v_background_color;
 varying float v_darkleft;
 float pi = 3.14159265358;
 
@@ -61,8 +65,9 @@ void main()
 {
     vec2 fish_ego_coords = gl_FragCoord.xy*u_pixel_scaling - v_fish_centroid;
 
+    gl_FragColor = v_background_color;
     if (mod(atan(fish_ego_coords.y,fish_ego_coords.x)+v_time,pi/4) > pi/8 ) {
-        gl_FragColor = v_color;
+        gl_FragColor = v_foreground_color;
     } 
 
 }
@@ -74,7 +79,8 @@ class OKR(VisualStim):
             self,  
             window_size: Tuple[int, int], 
             window_position: Tuple[int, int], 
-            color: Tuple[int, int, int, int],
+            foreground_color: Tuple[float, float, float, float] = (1.0,0,0,1.0),
+            background_color: Tuple[float, float, float, float] = (0,0,0,1.0),            
             window_decoration: bool = True,
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
@@ -84,9 +90,19 @@ class OKR(VisualStim):
             darkleft: bool = True
         ) -> None:
 
-        super().__init__(VERT_SHADER_OKR, FRAG_SHADER_OKR, window_size, window_position, window_decoration, transformation_matrix, pixel_scaling, vsync)
+        super().__init__(
+            VERT_SHADER_OKR, 
+            FRAG_SHADER_OKR, 
+            window_size, 
+            window_position, 
+            window_decoration, 
+            transformation_matrix, 
+            pixel_scaling, 
+            vsync, 
+            foreground_color, 
+            background_color
+        )
 
-        self.color = color
         self.fish_orientation_x = Value('d',0)
         self.fish_orientation_y = Value('d',0)
         self.fish_centroid_x = Value('d',0)
@@ -112,7 +128,6 @@ class OKR(VisualStim):
         # write csv headers
         self.fd.write('t_display,image_index,latency,centroid_x,centroid_y,pc2_x,pc2_y,t_local\n')
                
-        self.program['a_color'] = self.color
         self.program['a_fish_pc2'] = [0,0]
         self.program['a_fish_centroid'] = [0,0]
         if self.darkleft:
