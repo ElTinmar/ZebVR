@@ -56,7 +56,7 @@ ANIMAL_TRACKING_PARAM = {
     'animal_gamma': 1.0,
     'animal_contrast': 1.0,
     'min_animal_size_mm': 2.0,
-    'max_animal_size_mm': 60.0,
+    'max_animal_size_mm': 240.0, # 60.0
     'min_animal_length_mm': 0,
     'max_animal_length_mm': 0,
     'min_animal_width_mm': 0,
