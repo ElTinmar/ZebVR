@@ -10,7 +10,7 @@ from tracker import (
     BodyTracker_CPU, BodyOverlay_opencv, BodyTrackerParamTracking, BodyTrackerParamOverlay,  
 )
 from multiprocessing_logger import Logger
-from ipc_tools import MonitoredQueue, ObjectRingBuffer2
+from ipc_tools import MonitoredQueue, ObjectRingBuffer2, QueueMP
 from video_tools import BackgroundSubtractor, BackroundImage
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
@@ -19,12 +19,16 @@ from ZebVR.stimulus import VisualStimWorker, Phototaxis, OMR, OKR, PreyCapture, 
 import numpy as np
 from numpy.typing import NDArray, DTypeLike
 import time
-from typing import Callable, Any, Dict, Tuple
+from typing import Callable, Any, Dict, Tuple, Optional
 import cv2
 import json
 
 from dagline import plot_logs as plot_worker_logs
 from ipc_tools import plot_logs as plot_queue_logs
+
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QGroupBox
+from qt_widgets import LabeledDoubleSpinBox, LabeledSliderDoubleSpinBox, NDarray_to_QPixmap
+
 
 from ZebVR.config import (
     CALIBRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
@@ -37,6 +41,120 @@ from ZebVR.config import (
     BACKGROUND_COLOR
 )
 
+class CameraGui(WorkerNode):
+
+    def initialize(self) -> None:
+        super().initialize()
+        
+        self.updated = False
+        self.app = QApplication([])
+        self.window = QWidget()
+        self.controls = [
+            'framerate', 
+            'exposure', 
+            'gain', 
+            'offsetX', 
+            'offsetY', 
+            'height', 
+            'width'
+        ]
+        self.declare_components()
+        self.layout_components()
+        self.window.show()
+
+    def declare_components(self):
+
+        # Basic camera controls ----------------------------------
+         
+        self.start_button = QPushButton()
+        self.start_button.setText('acquire')
+        self.button.setCheckable(True)
+        self.start_button.toggled.connect(self.on_change)
+
+        # controls 
+        for c in self.controls:
+            self.create_spinbox(c)
+
+        # Region of interest ------------------------------------
+
+        self.ROI_groupbox = QGroupBox('ROI:')
+
+    def create_spinbox(self, attr: str):
+        '''
+        Creates spinbox with correct label, value, range and increment
+        as specified by the camera object. Connects to relevant
+        callback.
+        WARNING This is compact but a bit terse and introduces dependencies
+        in the code. 
+        '''
+        if attr in ['framerate', 'exposure', 'gain']:
+            setattr(self, attr + '_spinbox', LabeledSliderDoubleSpinBox(self))
+        else:
+            setattr(self, attr + '_spinbox', LabeledDoubleSpinBox(self))
+        spinbox = getattr(self, attr + '_spinbox')
+        spinbox.setText(attr)
+        
+        value = getattr(self.camera, 'get_' + attr)()
+        range = getattr(self.camera, 'get_' + attr + '_range')()
+        increment = getattr(self.camera, 'get_' + attr + '_increment')()
+        
+        if (
+            value is not None 
+            and range is not None
+            and increment is not None
+        ):
+            spinbox.setRange(range[0],range[1])
+            spinbox.setSingleStep(increment)
+            spinbox.setValue(value)
+        else:
+            spinbox.setDisabled(True)
+
+        spinbox.valueChanged.connect(self.on_change)
+
+    def layout_components(self):
+
+        layout_start_stop = QHBoxLayout()
+        layout_start_stop.addWidget(self.start_button)
+        layout_start_stop.addWidget(self.stop_button)
+
+        layout_frame = QVBoxLayout(self.ROI_groupbox)
+        layout_frame.addStretch()
+        layout_frame.addWidget(self.offsetX_spinbox)
+        layout_frame.addWidget(self.offsetY_spinbox)
+        layout_frame.addWidget(self.height_spinbox)
+        layout_frame.addWidget(self.width_spinbox)
+        layout_frame.addStretch()
+
+        layout_controls = QVBoxLayout(self.window)
+        layout_controls.addStretch()
+        layout_controls.addWidget(self.exposure_spinbox)
+        layout_controls.addWidget(self.gain_spinbox)
+        layout_controls.addWidget(self.framerate_spinbox)
+        layout_controls.addWidget(self.ROI_groupbox)
+        layout_controls.addLayout(layout_start_stop)
+        layout_controls.addStretch()
+
+    def on_change(self):
+        self.updated = True
+
+    def process_data(self, data: None) -> NDArray:
+        self.app.processEvents()
+
+    def process_metadata(self, metadata: Dict) -> Optional[Dict]:
+        # send only one message when things are changed
+        if self.updated:
+            res = {}
+            res['camera_control'] = {}
+            res['camera_control']['acquire'] = self.start_button.isChecked()
+            for c in self.controls:
+                spinbox = getattr(self, c + '_spinbox')
+                res['camera_control'][c] = spinbox.value()
+            self.updated = False
+            print(res)
+            return res       
+        else:
+            return None
+        
 class CameraWorker(WorkerNode):
 
     def __init__(
@@ -320,6 +438,8 @@ if __name__ == "__main__":
         vsync=True,
         pixel_scaling=PIXEL_SCALING
     )
+
+    cam_control = CameraGui()
     
     cam = CameraWorker(
         camera_constructor = XimeaCamera, 
@@ -475,6 +595,8 @@ if __name__ == "__main__":
         )
     )
 
+    q_camera_control = QueueMP()
+
     # tracking ring buffer -------------------------------------------------------------------
     # get dtype and itemsize for tracker results
     tracking = t.track(np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.float32))
@@ -550,6 +672,7 @@ if __name__ == "__main__":
 
     dag = ProcessingDAG()
 
+    # data
     for i in range(N_BACKGROUND_WORKERS):   
         dag.connect_data(sender=cam, receiver=bckg[i], queue=q_cam, name='background_subtraction')
     
@@ -567,6 +690,9 @@ if __name__ == "__main__":
         dag.connect_data(sender=trck[i], receiver=oly, queue=q_overlay, name='overlay')
 
     dag.connect_data(sender=oly, receiver=dis, queue=q_display, name='disp')
+
+    # metadata
+    dag.connect_metadata(sender=cam_control, receiver=cam, queue=q_camera_control, name='camera_control')
 
     worker_logger.start()
     queue_logger.start()
