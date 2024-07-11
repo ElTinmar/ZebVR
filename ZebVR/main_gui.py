@@ -41,7 +41,7 @@ from ZebVR.config import (
     BACKGROUND_COLOR
 )
 
-# TODO add gui to perform pixel size calibration, registration, check registration, background
+# TODO add calibratiob gui to perform pixel size calibration, registration, check registration, background
 # add experiment gui to choose experiment duration, file name, which stimulus to use 
 # (maybe start/stop for preview/modifying settings and record for actual experiment)
 
