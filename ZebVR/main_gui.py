@@ -106,6 +106,7 @@ class MainGui(QWidget):
         self.stimulus.addItem('OKR')
         self.stimulus.addItem('Looming')
         self.stimulus.addItem('PreyCapture')
+        self.stimulus.currentIndexChanged.connect(self.stimulus_changed)
         
         self.start_button = QPushButton()
         self.start_button.setText('start')
@@ -142,7 +143,6 @@ class MainGui(QWidget):
         layout.addWidget(self.stimulus)
         layout.addLayout(controls)
         layout.addStretch()
-        
 
     def experiment_data(self):
         pass
@@ -158,7 +158,10 @@ class MainGui(QWidget):
 
     def get_pix_per_mm(self):
         pass
-
+    
+    def stimulus_changed(self):
+        pass
+    
     def start(self):
         self.dag.start()
 
