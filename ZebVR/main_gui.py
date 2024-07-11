@@ -43,6 +43,7 @@ from ZebVR.config import (
 
 # TODO add gui to perform pixel size calibration, registration, check registration, background
 # add experiment gui to choose experiment duration, file name, which stimulus to use 
+# (maybe start/stop for preview/modifying settings and record for actual experiment)
 
 class TrackerGui(WorkerNode):
 
