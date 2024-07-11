@@ -41,6 +41,9 @@ from ZebVR.config import (
     BACKGROUND_COLOR
 )
 
+# TODO add gui to perform pixel size calibration, registration, check registration, background
+# add experiment gui to choose experiment duration, file name, which stimulus to use 
+
 class TrackerGui(WorkerNode):
 
     def initialize(self) -> None:
