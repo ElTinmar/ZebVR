@@ -41,6 +41,69 @@ from ZebVR.config import (
     BACKGROUND_COLOR
 )
 
+# TODO replace overlay and display nodes with this
+class TrackerGui(WorkerNode):
+
+    def initialize(self) -> None:
+        super().initialize()
+        
+        self.updated = False
+        self.app = QApplication([])
+        self.window = QWidget()
+        self.declare_components()
+        self.layout_components()
+        self.window.show()
+
+    def declare_components(self):
+        pass 
+
+    def layout_components(self):
+        pass
+
+    def process_data(self, data: None) -> NDArray:
+        # receive tracking results, overlay and display image
+
+
+        self.app.processEvents()
+
+    def process_metadata(self, metadata: Dict) -> Optional[Dict]:
+
+        # send tracking controls
+        if self.updated:
+            self.updated = False
+            res = {}
+            res['animal_tracking'] = {}
+            res['body_tracking'] = {}
+            res['animal_tracking']['pix_per_mm']=
+            res['animal_tracking']['target_pix_per_mm']=
+            res['animal_tracking']['animal_intensity']=
+            res['animal_tracking']['animal_brightness']=
+            res['animal_tracking']['animal_gamma']=
+            res['animal_tracking']['animal_contrast']=
+            res['animal_tracking']['min_animal_size_mm']=
+            res['animal_tracking']['max_animal_size_mm']=
+            res['animal_tracking']['min_animal_length_mm']=
+            res['animal_tracking']['max_animal_length_mm']=
+            res['animal_tracking']['min_animal_width_mm']=
+            res['animal_tracking']['max_animal_width_mm']=
+            res['animal_tracking']['blur_sz_mm']=
+            res['animal_tracking']['median_filter_sz_mm']=
+            res['body_tracking']['pix_per_mm']=
+            res['body_tracking']['target_pix_per_mm']=
+            res['body_tracking']['body_intensity']=
+            res['body_tracking']['body_brightness']=
+            res['body_tracking']['body_gamma']=
+            res['body_tracking']['body_contrast']=
+            res['body_tracking']['min_body_size_mm']=
+            res['body_tracking']['max_body_size_mm']=
+            res['body_tracking']['min_body_length_mm']=
+            res['body_tracking']['max_body_length_mm']=
+            res['body_tracking']['min_body_width_mm']=
+            res['body_tracking']['max_body_width_mm']=
+            res['body_tracking']['blur_sz_mm']=
+            res['body_tracking']['median_filter_sz_mm']=
+            return res
+
 class CameraGui(WorkerNode):
 
     def initialize(self) -> None:
@@ -253,7 +316,23 @@ class TrackerWorker(WorkerNode):
             return None  
         
     def process_metadata(self, metadata) -> Any:
-        pass
+        # reveive tracker settings and update tracker
+        control = metadata['tracker_control']
+        if control is not None: 
+            self.tracker = MultiFishTracker_CPU(
+                max_num_animals=1,
+                accumulator=None, 
+                export_fullres_image=True,
+                downsample_fullres_export=0.25,
+                animal=AnimalTracker_CPU(
+                    assignment=GridAssignment(LUT=np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.int_)), 
+                    tracking_param=AnimalTrackerParamTracking(**control['animal_tracking'])
+                ),
+                body=BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**control['body_tracking'])),
+                eyes=None,
+                tail=None
+            )
+
 
 class OverlayWorker(WorkerNode):
 
@@ -444,6 +523,12 @@ if __name__ == "__main__":
         name='cam_gui',  
         logger=worker_logger, 
         logger_queues=queue_logger
+    )
+
+    tracker_control = TrackerGui(
+        name='tracker_gui',  
+        logger=worker_logger, 
+        logger_queues=queue_logger   
     )
     
     cam = CameraWorker(
