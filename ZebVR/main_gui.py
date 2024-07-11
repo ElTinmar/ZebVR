@@ -26,8 +26,8 @@ import json
 from dagline import plot_logs as plot_worker_logs
 from ipc_tools import plot_logs as plot_queue_logs
 
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QGroupBox
-from qt_widgets import LabeledDoubleSpinBox, LabeledSliderDoubleSpinBox, NDarray_to_QPixmap
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLabel, QPushButton, QGroupBox
+from qt_widgets import LabeledEditLine, LabeledSpinBox, LabeledDoubleSpinBox, LabeledSliderDoubleSpinBox, NDarray_to_QPixmap
 
 
 from ZebVR.config import (
@@ -44,6 +44,131 @@ from ZebVR.config import (
 # TODO add calibratiob gui to perform pixel size calibration, registration, check registration, background
 # add experiment gui to choose experiment duration, file name, which stimulus to use 
 # (maybe start/stop for preview/modifying settings and record for actual experiment)
+
+class MainGui(QWidget):
+    
+    def __init__(self, dag: ProcessingDAG):
+        self.dag = dag
+        self.create_components()
+        self.layout_components()
+
+    def create_components(self):
+        
+        # calibration
+        self.registration_button = QPushButton()
+        self.registration_button.setText('registration')
+        self.registration_button.clicked.connect(self.registration)
+
+        self.check_registration_button = QPushButton()
+        self.check_registration_button.setText('check registration')
+        self.check_registration_button.clicked.connect(self.check_registration)
+
+        self.pixel_size_button = QPushButton()
+        self.pixel_size_button.setText('get pix/mm')
+        self.pixel_size_button.clicked.connect(self.get_pix_per_mm)
+
+        self.label_method = QLabel()
+        self.label_method.setText('Background type:')
+        self.background_method = QComboBox()
+        self.background_method.addItem('static')
+        self.background_method.addItem('inpaint')
+
+        self.background_button = QPushButton()
+        self.background_button.setText('background')
+        self.background_button.clicked.connect(self.background)
+
+        # experiment
+        self.fish_id = LabeledSpinBox()
+        self.fish_id.setText('Fish ID:')
+        self.fish_id.setValue(0)
+        self.fish_id.valueChanged.connect(self.experiment_data)
+
+        self.dpf = LabeledSpinBox()
+        self.dpf.setText('Fish age (dpf):')
+        self.dpf.setValue(7)
+        self.dpf.valueChanged.connect(self.experiment_data)
+
+        self.duration = LabeledSpinBox()
+        self.duration.setText('rec. duration (s)')
+        self.duration.setValue(60)
+        self.duration.valueChanged.connect(self.experiment_data)
+
+        self.filename = LabeledEditLine
+        self.filename.setLabel('result file:')
+
+        self.label_stimulus = QLabel()
+        self.label_stimulus.setText('Visual simulus:')
+        
+        # TODO maybe I need to reconstzruct the DAG each time
+        self.stimulus = QComboBox()
+        self.stimulus.addItem('Phototaxis')
+        self.stimulus.addItem('OMR')
+        self.stimulus.addItem('OKR')
+        self.stimulus.addItem('Looming')
+        self.stimulus.addItem('PreyCapture')
+        
+        self.start_button = QPushButton()
+        self.start_button.setText('start')
+        self.start_button.clicked.connect(self.start)
+
+        self.stop_button = QPushButton()
+        self.stop_button.setText('stop')
+        self.stop_button.click.connect(self.stop)
+
+        self.record_button = QPushButton()
+        self.record_button.setText('record')
+        self.record_button.clicked.connect(self.record)
+
+    def layout_components(self):
+        
+        controls = QHBoxLayout()
+        controls.addWidget(self.start_button)
+        controls.addWidget(self.stop_button)
+        controls.addWidget(self.record_button)
+
+        layout = QVBoxLayout(self)
+        layout.addStretch()
+        layout.addWidget(self.pixel_size)
+        layout.addWidget(self.registration)
+        layout.addWidget(self.check_registration)
+        layout.addWidget(self.label_method)
+        layout.addWidget(self.background_method)
+        layout.addWidget(self.background)
+        layout.addWidget(self.fish_id)
+        layout.addWidget(self.dpf)
+        layout.addWidget(self.duration)
+        layout.addWidget(self.filename)
+        layout.addWidget(self.label_stimulus)
+        layout.addWidget(self.stimulus)
+        layout.addLayout(controls)
+        layout.addStretch()
+        
+
+    def experiment_data(self):
+        pass
+
+    def registration(self):
+        pass
+
+    def check_registration(self):
+        pass
+
+    def background(self):
+        pass
+
+    def get_pix_per_mm(self):
+        pass
+
+    def start(self):
+        self.dag.start()
+
+    def stop(self):
+        self.dag.stop()
+
+    def record(self):
+        self.start()
+        time.sleep(self.duration.value)
+        self.stop()
 
 class TrackerGui(WorkerNode):
 
