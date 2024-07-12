@@ -3,7 +3,11 @@
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
-from camera_tools import Camera, XimeaCamera
+try:
+    from camera_tools import Camera, XimeaCamera
+except:
+    print('Ximea camera not imported')
+    
 from tracker import (
     GridAssignment, MultiFishTracker, MultiFishTracker_CPU, MultiFishOverlay, MultiFishOverlay_opencv, MultiFishTracking,
     AnimalTracker_CPU, AnimalOverlay_opencv, AnimalTrackerParamTracking, AnimalTrackerParamOverlay, 
