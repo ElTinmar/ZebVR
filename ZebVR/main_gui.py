@@ -43,16 +43,91 @@ from ZebVR.config import (
 
 class MainGui(QWidget):
     
-    def __init__(self, dag: ProcessingDAG, workers: Dict, queues: Dict):
-        self.dag = dag
+    def __init__(self, workers: Dict, queues: Dict):
+        self.dag = None
         self.workers = workers
         self.queues = queues
-        self.connect_dag()
+        self.create_dag()
         self.create_components()
         self.layout_components()
 
-    def connect_dag(self):
-        pass
+    def create_dag(self):
+
+        #TODO maybe reset queues to make sure they are empty and monitored queues timings are reset
+
+        self.dag = ProcessingDAG()
+
+        # data
+        for i in range(N_BACKGROUND_WORKERS):   
+            self.dag.connect_data(
+                sender=self.workers['camera'], 
+                receiver=self.workers[f'background_{i}'], 
+                queue=self.queues['camera_to_background'], 
+                name='background_subtraction'
+            )
+        
+        # NOTE: the order in which you declare connections matter: background_subtraction will
+        # be served before image_saver
+        if RECORD_VIDEO:
+            self.dag.connect_data(
+                sender=self.workers['camera'], 
+                receiver=self.workers['video_recorder'], 
+                queue=self.queues['camera_to_video_recorder'], 
+                name='image_saver'
+            )
+
+        for i in range(N_BACKGROUND_WORKERS):
+            for j in range(N_TRACKER_WORKERS):
+                self.dag.connect_data(
+                    sender=self.workers[f'background_{i}'], 
+                    receiver=self.workers[f'tracker_{j}'], 
+                    queue=self.queues['background_to_tracker'], 
+                    name='background_subtracted'
+                )
+
+        for i in range(N_TRACKER_WORKERS):
+            self.dag.connect_data(
+                sender=self.workers[f'tracker_{i}'], 
+                receiver=self.workers['visual_stim'], 
+                queue=self.queues['tracker_to_stim'], 
+                name='stimulus'
+            )
+            self.dag.connect_data(
+                sender=self.workers[f'tracker_{i}'], 
+                receiver=self.workers['overlay'], 
+                queue=self.queues['tracker_to_overlay'], 
+                name='overlay'
+            )
+
+        self.dag.connect_data(
+            sender=self.workers['overlay'], 
+            receiver=self.workers['display'], 
+            queue=self.queues['overlay_to_display'], 
+            name='disp'
+        )
+
+        # metadata
+        self.dag.connect_metadata(
+            sender=self.workers['camera_gui'], 
+            receiver=self.workers['camera'], 
+            queue=self.queues['camera_control_to_camera'], 
+            name='camera_control'
+        )
+        
+        self.dag.connect_metadata(
+            sender=self.workers['camera'], 
+            receiver=self.workers['camera_gui'], 
+            queue=self.queues['camera_to_camera_control'], 
+            name='camera_info'
+        )
+        
+        for i in range(N_TRACKER_WORKERS):
+            self.dag.connect_metadata(
+                sender=self.workers['tracker_gui'], 
+                receiver=self.workers[f'tracker_{i}'], 
+                queue=self.queues[f'tracker_control_to_tracker_{i}'], 
+                name=f'tracker_control_{i}'
+            )
 
     def create_components(self):
         
@@ -99,7 +174,7 @@ class MainGui(QWidget):
         self.duration.setValue(60)
         self.duration.valueChanged.connect(self.experiment_data)
 
-        self.filename = LabeledEditLine
+        self.filename = LabeledEditLine()
         self.filename.setLabel('result file:')
 
         self.label_stimulus = QLabel()
@@ -177,6 +252,13 @@ class MainGui(QWidget):
 
     def stop(self):
         self.dag.stop()
+        print('cam to background', self.queues['camera_to_background'].get_average_freq(), self.queues['camera_to_background'].queue.num_lost_item.value)
+        if RECORD_VIDEO:
+            print('cam to image saver', self.queues['camera_to_video_recorder'].get_average_freq(), self.queues['camera_to_video_recorder'].queue.num_lost_item.value)
+        print('background to trackers', self.queues['background_to_tracker'].get_average_freq(), self.queues['background_to_tracker'].queue.num_lost_item.value)
+        print('trackers to visual stim', self.queues['tracker_to_stim'].get_average_freq(), self.queues['tracker_to_stim'].queue.num_lost_item.value)
+        print('trackers to overlay', self.queues['tracker_to_overlay'].get_average_freq(), self.queues['tracker_to_overlay'].queue.num_lost_item.value)
+        print('overlay to display', self.queues['overlay_to_display'].get_average_freq(), self.queues['overlay_to_display'].queue.num_lost_item.value)
 
     def record(self):
         self.start()
@@ -751,7 +833,6 @@ if __name__ == "__main__":
     BACKGROUND_GPU = False
     T_REFRESH = 1e-4
 
-    DURATION_S = 5*60
     RECORD_VIDEO = False
     DARKLEFT = True
 
@@ -1089,8 +1170,6 @@ if __name__ == "__main__":
     )
 
     ## ----------------------------------------------------------------------
-    
-    dag = ProcessingDAG()
 
     workers = {
         'camera': cam,
@@ -1119,67 +1198,7 @@ if __name__ == "__main__":
     for i in range(N_TRACKER_WORKERS):
         queues[f'tracker_control_to_tracker_{i}'] = QueueMP()
 
-    main = MainGui(dag=dag,workers=workers,queues=queues)
-
-
-    # data
-    for i in range(N_BACKGROUND_WORKERS):   
-        dag.connect_data(sender=cam, receiver=bckg[i], queue=q_cam, name='background_subtraction')
-    
-    # NOTE: the order in which you declare connections matter: background_subtraction will
-    # be served before image_saver
-    if RECORD_VIDEO:
-        dag.connect_data(sender=cam, receiver=image_saver, queue=q_save_image, name='image_saver')
-
-    for i in range(N_BACKGROUND_WORKERS):
-        for j in range(N_TRACKER_WORKERS):
-            dag.connect_data(sender=bckg[i], receiver=trck[j], queue=q_back, name='background_subtracted')
-
-    for i in range(N_TRACKER_WORKERS):
-        dag.connect_data(sender=trck[i], receiver=stim, queue=q_tracking, name='stimulus')
-        dag.connect_data(sender=trck[i], receiver=oly, queue=q_overlay, name='overlay')
-
-    dag.connect_data(sender=oly, receiver=dis, queue=q_display, name='disp')
-
-    # metadata
-    dag.connect_metadata(sender=cam_control, receiver=cam, queue=QueueMP(), name='camera_control')
-    dag.connect_metadata(sender=cam, receiver=cam_control, queue=QueueMP(), name='camera_info')
-    for i in range(N_TRACKER_WORKERS):
-        dag.connect_metadata(sender=tracker_control, receiver=trck[i], queue=QueueMP(), name=f'tracker_control_{i}')
-
-    worker_logger.start()
-    queue_logger.start()
-    dag.start()
-    time.sleep(DURATION_S)
-    dag.stop()
-    queue_logger.stop()
-    worker_logger.stop()
-
-    print('cam to background', q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
-    if RECORD_VIDEO:
-        print('cam to image saver', q_save_image.get_average_freq(), q_save_image.queue.num_lost_item.value)
-    print('background to trackers', q_back.get_average_freq(), q_back.queue.num_lost_item.value)
-    print('trackers to visual stim', q_tracking.get_average_freq(), q_tracking.queue.num_lost_item.value)
-    print('trackers to overlay', q_overlay.get_average_freq(), q_overlay.queue.num_lost_item.value)
-    print('overlay to display', q_display.get_average_freq(), q_display.queue.num_lost_item.value)
-
-    #plot_worker_logs(LOGFILE_WORKERS, outlier_thresh=1000)
-    # NOTE: if you have more worker than necessary, you will see a heavy tail in the receive time.
-    # This is perfectly normal, each tracker may be skip a few cycles if the others are already 
-    # filling the job
-    # NOTE: send time = serialization (one copy) + writing (one copy) and acquiring lock
-    # NOTE: receive time = deserialization + reading (sometimes one copy) from queue and acquiring lock
-    # NOTE: check that total_time/#workers is <= to cam for all workers (except workers with reduced fps like display)
-
-    # NOTE: the intial delay at the level of the tracker (~500ms), is most likely due to numba. When I remove the 
-    # tail tracker, the latency goes way down at the beginning. Maybe I can force the tracker to compile during initialization ?
-
-
-    #plot_queue_logs(LOGFILE_QUEUES)
-    # NOTE: memory bandwidth ~10GB/s. 1800x1800x3 uint8 = 9.3 MB, 1800x1800 float32 = 12.4 MB
-    # camera: creation, serialization, put on buffer
-    # background: creation, serialization, put on buffer
-    # tracker: serialization, put on buffer
-
-    # with larger image, bottleneck transition from CPU to memory bandwidth ?
-    
+    app = QApplication([])
+    main = MainGui(workers=workers, queues=queues)
+    main.show()
+    app.exec_()
