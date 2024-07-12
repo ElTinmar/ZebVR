@@ -67,6 +67,10 @@ class MainGui(QWidget):
         self.pixel_size_button.setText('get pix/mm')
         self.pixel_size_button.clicked.connect(self.get_pix_per_mm)
 
+        self.check_pixel_size_button = QPushButton()
+        self.check_pixel_size_button.setText('check pix/mm')
+        self.check_pixel_size_button.clicked.connect(self.check_pix_per_mm)
+
         self.label_method = QLabel()
         self.label_method.setText('Background type:')
         self.background_method = QComboBox()
@@ -129,9 +133,10 @@ class MainGui(QWidget):
 
         layout = QVBoxLayout(self)
         layout.addStretch()
-        layout.addWidget(self.pixel_size)
-        layout.addWidget(self.registration)
-        layout.addWidget(self.check_registration)
+        layout.addWidget(self.pixel_size_button)
+        layout.addWidget(self.check_pixel_size_button)
+        layout.addWidget(self.registration_button)
+        layout.addWidget(self.check_registration_button)
         layout.addWidget(self.label_method)
         layout.addWidget(self.background_method)
         layout.addWidget(self.background)
@@ -157,6 +162,9 @@ class MainGui(QWidget):
         pass
 
     def get_pix_per_mm(self):
+        pass
+
+    def check_pix_per_mm(self):
         pass
     
     def stimulus_changed(self):
