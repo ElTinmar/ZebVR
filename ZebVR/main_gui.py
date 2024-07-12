@@ -571,22 +571,25 @@ class CameraWorker(WorkerNode):
         # if camera settings were updated, send info
         if self.updated:
             self.updated = False
-            res = {}
-            res['camera_info'] = {}
-            res['camera_info']['exposure'] = {}
-            res['camera_info']['gain'] = {}
-            res['camera_info']['framerate'] = {}
-            res['camera_info']['exposure']['value'] = self.cam.get_exposure()
-            res['camera_info']['exposure']['min'], res['camera_info']['exposure']['max'] = self.cam.get_exposure_range()
-            res['camera_info']['exposure']['increment'] = self.cam.get_exposure_increment()
-            res['camera_info']['gain']['value'] = self.cam.get_gain()
-            res['camera_info']['gain']['min'], res['camera_info']['gain']['max'] = self.cam.get_gain_range()
-            res['camera_info']['gain']['increment'] = self.cam.get_gain_increment()
-            res['camera_info']['framerate']['value'] = self.cam.get_framerate()
-            res['camera_info']['framerate']['min'], res['camera_info']['framerate']['max'] = self.cam.get_framerate_range()
-            res['camera_info']['framerate']['increment'] = self.cam.get_framerate_increment()
-            return res
-
+            try:
+                res = {}
+                res['camera_info'] = {}
+                res['camera_info']['exposure'] = {}
+                res['camera_info']['gain'] = {}
+                res['camera_info']['framerate'] = {}
+                res['camera_info']['exposure']['value'] = self.cam.get_exposure()
+                res['camera_info']['exposure']['min'], res['camera_info']['exposure']['max'] = self.cam.get_exposure_range()
+                res['camera_info']['exposure']['increment'] = self.cam.get_exposure_increment()
+                res['camera_info']['gain']['value'] = self.cam.get_gain()
+                res['camera_info']['gain']['min'], res['camera_info']['gain']['max'] = self.cam.get_gain_range()
+                res['camera_info']['gain']['increment'] = self.cam.get_gain_increment()
+                res['camera_info']['framerate']['value'] = self.cam.get_framerate()
+                res['camera_info']['framerate']['min'], res['camera_info']['framerate']['max'] = self.cam.get_framerate_range()
+                res['camera_info']['framerate']['increment'] = self.cam.get_framerate_increment()
+                return res
+            except:
+                pass
+            
 class BackgroundSubWorker(WorkerNode):
 
     def __init__(self, sub: BackgroundSubtractor, *args, **kwargs):
