@@ -550,9 +550,10 @@ class CameraWorker(WorkerNode):
     def process_data(self, data: None): 
         frame = self.cam.get_frame()
         if frame:
+            img = im2gray(frame.image)
             res = {}
-            res['background_subtraction'] = (frame.index, time.perf_counter_ns(), frame.image)
-            res['image_saver'] = (frame.index, time.perf_counter_ns(), frame.image)
+            res['background_subtraction'] = (frame.index, time.perf_counter_ns(), img)
+            res['image_saver'] = (frame.index, time.perf_counter_ns(), img)
             return res
         
     def process_metadata(self, metadata) -> Any:
