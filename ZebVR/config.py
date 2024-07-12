@@ -8,7 +8,7 @@ except:
     print('Ximea camera not imported')
 
 # general settings
-LCr = True
+LCr = False #True
 
 # stimulus projection
 if LCr:
