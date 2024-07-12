@@ -1,4 +1,3 @@
-from camera_tools import XimeaCamera
 import time
 from video_tools import mode
 import numpy as np
