@@ -18,6 +18,7 @@ from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
 from ZebVR.stimulus import VisualStimWorker, Phototaxis, OMR, OKR, PreyCapture, Looming, DotMotion
 
+import subprocess
 import numpy as np
 from numpy.typing import NDArray
 import time
@@ -40,8 +41,14 @@ from ZebVR.config import (
     PIXEL_SCALING, BACKGROUND_FILE, IMAGE_FOLDER,
     POLARITY, ANIMAL_TRACKING_PARAM,
     BODY_TRACKING_PARAM, FOREGROUND_COLOR, 
-    BACKGROUND_COLOR, CAMERA_CONSTRUCTOR
+    BACKGROUND_COLOR, CAMERA_CONSTRUCTOR,
+    LOGFILE_WORKERS, LOGFILE_QUEUES,
+    N_BACKGROUND_WORKERS, N_TRACKER_WORKERS,
+    BACKGROUND_GPU, T_REFRESH, RECORD_VIDEO
 )
+
+# TODO parametrize this and other args for different visual stim
+DARKLEFT = True
 
 class MainGui(QWidget):
     
@@ -234,19 +241,22 @@ class MainGui(QWidget):
         pass
 
     def registration(self):
-        pass
+        subprocess.Popen(['python', 'ZebVR/calibration/registration.py'])
 
     def check_registration(self):
-        pass
+        subprocess.Popen(['python', 'ZebVR/calibration/check_registration.py'])
 
     def background(self):
-        pass
+        if self.background_method.currentText() == 'inpaint':
+            subprocess.Popen(['python', 'ZebVR/background/inpaint_background.py'])
+        elif self.background_method.currentText() == 'static':
+            subprocess.Popen(['python', 'ZebVR/background/static_background.py'])
 
     def get_pix_per_mm(self):
-        pass
+        subprocess.Popen(['python', 'ZebVR/calibration/pix_per_mm.py'])
 
     def check_pix_per_mm(self):
-        pass
+        subprocess.Popen(['python', 'ZebVR/calibration/check_pix_per_mm.py'])
     
     def stimulus_changed(self):
         pass
@@ -256,7 +266,7 @@ class MainGui(QWidget):
         self.dag.start()
 
     def stop(self):
-        self.dag.stop()
+        self.dag.kill()
         print('cam to background', self.queues['camera_to_background'].get_average_freq(), self.queues['camera_to_background'].queue.num_lost_item.value)
         if RECORD_VIDEO:
             print('cam to image saver', self.queues['camera_to_video_recorder'].get_average_freq(), self.queues['camera_to_video_recorder'].queue.num_lost_item.value)
@@ -267,7 +277,7 @@ class MainGui(QWidget):
 
     def record(self):
         self.start()
-        time.sleep(self.duration.value)
+        time.sleep(self.duration.value())
         self.stop()
 
 class TrackerGui(WorkerNode):
@@ -877,18 +887,6 @@ def deserialize_tracking_body(arr: NDArray) -> Tuple[int, float, NDArray, NDArra
 if __name__ == "__main__":
 
     set_start_method('spawn')
-
-    LOGFILE_WORKERS = 'workers.log'
-    LOGFILE_QUEUES = 'queues.log'
-
-    # TODO profile with just one worker, otherwise lot of time waiting for data
-    N_BACKGROUND_WORKERS = 1
-    N_TRACKER_WORKERS = 1
-    BACKGROUND_GPU = False
-    T_REFRESH = 1e-4
-
-    RECORD_VIDEO = False
-    DARKLEFT = True
 
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)

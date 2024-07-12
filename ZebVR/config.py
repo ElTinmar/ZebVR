@@ -9,6 +9,11 @@ except:
 
 # general settings
 LCr = False #True
+N_BACKGROUND_WORKERS = 1
+N_TRACKER_WORKERS = 1
+BACKGROUND_GPU = False
+T_REFRESH = 1e-4
+RECORD_VIDEO = False
 
 # stimulus projection
 if LCr:
@@ -38,6 +43,8 @@ CAM_FPS = 60
 PIX_PER_MM = 34.36
 
 # files
+LOGFILE_WORKERS = 'workers.log'
+LOGFILE_QUEUES = 'queues.log'
 CALIBRATION_FILE = 'registration.json'
 BACKGROUND_FILE = 'background.npy'
 IMAGE_FOLDER = os.path.join(os.getenv('HOME'), 'Development/ZebVR/recording_0')
