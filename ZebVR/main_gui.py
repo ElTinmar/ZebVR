@@ -50,7 +50,6 @@ class MainGui(QWidget):
         self.dag = None
         self.workers = workers
         self.queues = queues
-        self.create_dag()
         self.create_components()
         self.layout_components()
 
@@ -251,6 +250,7 @@ class MainGui(QWidget):
         pass
     
     def start(self):
+        self.create_dag()
         self.dag.start()
 
     def stop(self):
@@ -842,6 +842,11 @@ if __name__ == "__main__":
     with open(CALIBRATION_FILE, 'r') as f:
         calibration = json.load(f)
 
+    worker_logger = Logger(LOGFILE_WORKERS, Logger.INFO)
+    queue_logger = Logger(LOGFILE_QUEUES, Logger.INFO)
+
+    ## Declare workers -----------------------------------------------------------------------------
+
     o = MultiFishOverlay_opencv(
         AnimalOverlay_opencv(AnimalTrackerParamOverlay()),
         BodyOverlay_opencv(BodyTrackerParamOverlay()),
@@ -862,9 +867,6 @@ if __name__ == "__main__":
         eyes=None,
         tail=None
     )
-
-    worker_logger = Logger(LOGFILE_WORKERS, Logger.INFO)
-    queue_logger = Logger(LOGFILE_QUEUES, Logger.INFO)
 
     b = BackroundImage(
         image_file_name = BACKGROUND_FILE,
@@ -972,11 +974,30 @@ if __name__ == "__main__":
 
     bckg = []
     for i in range(N_BACKGROUND_WORKERS):
-        bckg.append(BackgroundSubWorker(b, name=f'background{i}', logger=worker_logger, logger_queues=queue_logger, receive_data_timeout=1.0, profile=False))
+        bckg.append(
+            BackgroundSubWorker(
+                b, 
+                name=f'background{i}', 
+                logger=worker_logger, 
+                logger_queues=queue_logger, 
+                receive_data_timeout=1.0, 
+                profile=False
+            )
+        )
 
     trck = []
     for i in range(N_TRACKER_WORKERS):
-        trck.append(TrackerWorker(t, name=f'tracker{i}', logger=worker_logger, logger_queues=queue_logger, send_data_strategy=send_strategy.BROADCAST, receive_data_timeout=1.0, profile=False))
+        trck.append(
+            TrackerWorker(
+                t, 
+                name=f'tracker{i}', 
+                logger=worker_logger, 
+                logger_queues=queue_logger, 
+                send_data_strategy=send_strategy.BROADCAST, 
+                receive_data_timeout=1.0, 
+                profile=False
+            )
+        )
 
     dis = Display(
         fps=30, 
@@ -1002,6 +1023,8 @@ if __name__ == "__main__":
         logger_queues=queue_logger, 
         receive_data_timeout=1.0
     )
+
+    ## Declare queues -----------------------------------------------------------------------------
 
     # ring buffer camera ------------------------------------------------------------------ 
     dt_uint8_RGB = np.dtype([
@@ -1172,8 +1195,11 @@ if __name__ == "__main__":
         )
     )
 
-    ## ----------------------------------------------------------------------
+    ## DAG ----------------------------------------------------------------------
 
+    # TODO maybe create the DAG as a list of data edges and metadata edges
+    # (src, dest, queue, name) 
+    
     workers = {
         'camera': cam,
         'camera_gui': cam_control,
