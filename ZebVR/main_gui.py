@@ -195,7 +195,7 @@ class MainGui(QWidget):
 
         self.stop_button = QPushButton()
         self.stop_button.setText('stop')
-        self.stop_button.click.connect(self.stop)
+        self.stop_button.clicked.connect(self.stop)
 
         self.record_button = QPushButton()
         self.record_button.setText('record')
