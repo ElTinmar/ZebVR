@@ -571,6 +571,7 @@ class CameraWorker(WorkerNode):
         # if camera settings were updated, send info
         if self.updated:
             self.updated = False
+            # TODO make sure all cameras support these functions and reply something coherent
             try:
                 res = {}
                 res['camera_info'] = {}
