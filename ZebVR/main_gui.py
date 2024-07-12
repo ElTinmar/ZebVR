@@ -1,3 +1,5 @@
+from multiprocessing import set_start_method
+
 # This is apparently very important to set. Otherwise OpenCV warpAffine
 # takes way to much time when run in a separate process
 import os
@@ -824,8 +826,57 @@ class ImageSaver(WorkerNode):
 
     def process_metadata(self, metadata) -> Any:
         pass
-    
+
+##
+
+def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
+    #tic = time.monotonic_ns()
+    #buffer[:] = obj # this is slower, why ?
+    index, timestamp, image = obj 
+    buffer['index'] = index
+    buffer['timestamp'] = timestamp
+    buffer['image'] = image
+    #print(buffer.dtype, 1e-6*(time.monotonic_ns() - tic))
+
+def deserialize_image(arr: NDArray) -> Tuple[int, float, NDArray]:
+    index = arr['index'].item()
+    timestamp = arr['timestamp'].item()
+    image = arr[0]['image']
+    return (index, timestamp, image)
+
+def serialize_tracking_multifish(buffer: NDArray, obj: Tuple[int, float, MultiFishTracking]) -> NDArray:
+    #tic = time.monotonic_ns()
+    index, timestamp, tracking = obj
+    buffer['index'] = index
+    buffer['timestamp'] = timestamp
+    tracking.to_numpy(buffer['tracking'])
+    #buffer['tracking'] = tracking.to_numpy() # maybe it should be tracking.to_numpy(array_to_copy_into) to write directly to the buffer. Rewrite function as tracking(out: Optional[NDArray] = None)
+    #print(buffer.dtype, 1e-6*(time.monotonic_ns() - tic))
+
+
+def deserialize_tracking_multifish(arr: NDArray) -> Tuple[int, float, MultiFishTracking]:
+    index = arr['index'].item()
+    timestamp = arr['timestamp'].item()
+    tracking = MultiFishTracking.from_numpy(arr[0]['tracking'][0])
+    return (index, timestamp, tracking)
+
+def serialize_tracking_body(buffer: NDArray, obj: Tuple[int, float, NDArray, NDArray]) -> NDArray:
+    index, timestamp, centroid, heading = obj
+    buffer['index'] = index
+    buffer['timestamp'] = timestamp
+    buffer['centroid'] = centroid
+    buffer['heading'] = heading
+
+def deserialize_tracking_body(arr: NDArray) -> Tuple[int, float, NDArray, NDArray]:
+    index = arr['index'].item()
+    timestamp = arr['timestamp'].item()
+    centroid = arr[0]['centroid']
+    heading = arr[0]['heading']
+    return (index, timestamp, centroid, heading)
+
 if __name__ == "__main__":
+
+    set_start_method('spawn')
 
     LOGFILE_WORKERS = 'workers.log'
     LOGFILE_QUEUES = 'queues.log'
@@ -1026,7 +1077,6 @@ if __name__ == "__main__":
 
     ## Declare queues -----------------------------------------------------------------------------
 
-    # ring buffer camera ------------------------------------------------------------------ 
     dt_uint8_RGB = np.dtype([
         ('index', int, (1,)),
         ('timestamp', float, (1,)), 
@@ -1044,22 +1094,12 @@ if __name__ == "__main__":
         ('timestamp', float, (1,)), 
         ('image', np.uint8, (round(CAM_HEIGHT*t.downsample_fullres_export), round(CAM_WIDTH*t.downsample_fullres_export), 3))
     ])
-
-
-    def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
-        #tic = time.monotonic_ns()
-        #buffer[:] = obj # this is slower, why ?
-        index, timestamp, image = obj 
-        buffer['index'] = index
-        buffer['timestamp'] = timestamp
-        buffer['image'] = image
-        #print(buffer.dtype, 1e-6*(time.monotonic_ns() - tic))
-
-    def deserialize_image(arr: NDArray) -> Tuple[int, float, NDArray]:
-        index = arr['index'].item()
-        timestamp = arr['timestamp'].item()
-        image = arr[0]['image']
-        return (index, timestamp, image)
+        
+    dt_single_gray = np.dtype([
+        ('index', int, (1,)),
+        ('timestamp', float, (1,)), 
+        ('image', np.float32, (CAM_HEIGHT,CAM_WIDTH))
+    ])
 
     q_cam = MonitoredQueue(
         ObjectRingBuffer2(
@@ -1102,12 +1142,7 @@ if __name__ == "__main__":
     # IMPORTANT: need to copy the data out of the 
     # circular buffer otherwise it can be modified after the fact
     # set copy=True
-    
-    dt_single_gray = np.dtype([
-        ('index', int, (1,)),
-        ('timestamp', float, (1,)), 
-        ('image', np.float32, (CAM_HEIGHT,CAM_WIDTH))
-    ])
+
 
     q_back = MonitoredQueue(
         ObjectRingBuffer2(
@@ -1133,22 +1168,6 @@ if __name__ == "__main__":
         ('tracking', arr_multifish.dtype, (1,))
     ])
 
-    def serialize_tracking_multifish(buffer: NDArray, obj: Tuple[int, float, MultiFishTracking]) -> NDArray:
-        #tic = time.monotonic_ns()
-        index, timestamp, tracking = obj
-        buffer['index'] = index
-        buffer['timestamp'] = timestamp
-        tracking.to_numpy(buffer['tracking'])
-        #buffer['tracking'] = tracking.to_numpy() # maybe it should be tracking.to_numpy(array_to_copy_into) to write directly to the buffer. Rewrite function as tracking(out: Optional[NDArray] = None)
-        #print(buffer.dtype, 1e-6*(time.monotonic_ns() - tic))
-
-
-    def deserialize_tracking_multifish(arr: NDArray) -> Tuple[int, float, MultiFishTracking]:
-        index = arr['index'].item()
-        timestamp = arr['timestamp'].item()
-        tracking = MultiFishTracking.from_numpy(arr[0]['tracking'][0])
-        return (index, timestamp, tracking)
-
     # ---
     dt_tracking_body = np.dtype([
         ('index', int, (1,)),
@@ -1156,20 +1175,6 @@ if __name__ == "__main__":
         ('centroid', np.float32, (1,2)),
         ('heading', np.float32, (2,))
     ])
-
-    def serialize_tracking_body(buffer: NDArray, obj: Tuple[int, float, NDArray, NDArray]) -> NDArray:
-        index, timestamp, centroid, heading = obj
-        buffer['index'] = index
-        buffer['timestamp'] = timestamp
-        buffer['centroid'] = centroid
-        buffer['heading'] = heading
-
-    def deserialize_tracking_body(arr: NDArray) -> Tuple[int, float, NDArray, NDArray]:
-        index = arr['index'].item()
-        timestamp = arr['timestamp'].item()
-        centroid = arr[0]['centroid']
-        heading = arr[0]['heading']
-        return (index, timestamp, centroid, heading)
 
     q_tracking = MonitoredQueue(
         ObjectRingBuffer2(
