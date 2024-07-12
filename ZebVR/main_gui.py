@@ -43,7 +43,10 @@ from ZebVR.config import (
 
 class MainGui(QWidget):
     
-    def __init__(self, workers: Dict, queues: Dict):
+    def __init__(self, workers: Dict, queues: Dict, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
         self.dag = None
         self.workers = workers
         self.queues = queues
