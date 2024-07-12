@@ -17,7 +17,7 @@ from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG
 from ZebVR.stimulus import VisualStimWorker, Phototaxis, OMR, OKR, PreyCapture, Looming, DotMotion
 
 import numpy as np
-from numpy.typing import NDArray, DTypeLike
+from numpy.typing import NDArray
 import time
 from typing import Callable, Any, Dict, Tuple, Optional
 import cv2
@@ -41,16 +41,18 @@ from ZebVR.config import (
     BACKGROUND_COLOR, CAMERA_CONSTRUCTOR
 )
 
-# TODO add calibratiob gui to perform pixel size calibration, registration, check registration, background
-# add experiment gui to choose experiment duration, file name, which stimulus to use 
-# (maybe start/stop for preview/modifying settings and record for actual experiment)
-
 class MainGui(QWidget):
     
-    def __init__(self, dag: ProcessingDAG):
+    def __init__(self, dag: ProcessingDAG, workers: Dict, queues: Dict):
         self.dag = dag
+        self.workers = workers
+        self.queues = queues
+        self.connect_dag()
         self.create_components()
         self.layout_components()
+
+    def connect_dag(self):
+        pass
 
     def create_components(self):
         
@@ -139,7 +141,7 @@ class MainGui(QWidget):
         layout.addWidget(self.check_registration_button)
         layout.addWidget(self.label_method)
         layout.addWidget(self.background_method)
-        layout.addWidget(self.background)
+        layout.addWidget(self.background_button)
         layout.addWidget(self.fish_id)
         layout.addWidget(self.dpf)
         layout.addWidget(self.duration)
@@ -1086,7 +1088,39 @@ if __name__ == "__main__":
         )
     )
 
+    ## ----------------------------------------------------------------------
+    
     dag = ProcessingDAG()
+
+    workers = {
+        'camera': cam,
+        'camera_gui': cam_control,
+        'video_recorder': image_saver,
+        'visual_stim': stim,
+        'overlay': oly,
+        'display': dis,
+        'tracker_gui': tracker_control
+    }
+    for i in range(N_TRACKER_WORKERS):
+        workers[f'tracker_{i}'] = trck[i]
+    for i in range(N_BACKGROUND_WORKERS):
+        workers[f'background_{i}'] = bckg[i]
+        
+    queues = {
+        'camera_to_background': q_cam,
+        'camera_to_video_recorder': q_save_image,
+        'background_to_tracker': q_back,
+        'tracker_to_stim': q_tracking,
+        'tracker_to_overlay': q_overlay,
+        'overlay_to_display': q_display,
+        'camera_control_to_camera': QueueMP(),
+        'camera_to_camera_control': QueueMP()
+    }
+    for i in range(N_TRACKER_WORKERS):
+        queues[f'tracker_control_to_tracker_{i}'] = QueueMP()
+
+    main = MainGui(dag=dag,workers=workers,queues=queues)
+
 
     # data
     for i in range(N_BACKGROUND_WORKERS):   
