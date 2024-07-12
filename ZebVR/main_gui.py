@@ -3,11 +3,7 @@
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
-try:
-    from camera_tools import Camera, XimeaCamera
-except:
-    print('Ximea camera not imported')
-    
+from camera_tools import Camera
 from tracker import (
     GridAssignment, MultiFishTracker, MultiFishTracker_CPU, MultiFishOverlay, MultiFishOverlay_opencv, MultiFishTracking,
     AnimalTracker_CPU, AnimalOverlay_opencv, AnimalTrackerParamTracking, AnimalTrackerParamOverlay, 
@@ -42,7 +38,7 @@ from ZebVR.config import (
     PIXEL_SCALING, BACKGROUND_FILE, IMAGE_FOLDER,
     POLARITY, ANIMAL_TRACKING_PARAM,
     BODY_TRACKING_PARAM, FOREGROUND_COLOR, 
-    BACKGROUND_COLOR
+    BACKGROUND_COLOR, CAMERA_CONSTRUCTOR
 )
 
 # TODO add calibratiob gui to perform pixel size calibration, registration, check registration, background
@@ -851,7 +847,7 @@ if __name__ == "__main__":
     )
     
     cam = CameraWorker(
-        camera_constructor = XimeaCamera, 
+        camera_constructor = CAMERA_CONSTRUCTOR, 
         exposure = CAM_EXPOSURE_MS,
         gain = CAM_GAIN,
         framerate = CAM_FPS,

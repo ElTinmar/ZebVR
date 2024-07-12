@@ -1,4 +1,3 @@
-from camera_tools import XimeaCamera
 from image_tools import polymask
 import numpy as np
 import cv2
@@ -6,7 +5,7 @@ from ZebVR.config import (
     CAM_WIDTH, CAM_HEIGHT,
     CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
     CAM_OFFSETX, CAM_OFFSETY, BACKGROUND_FILE,
-    NUM_IMAGES
+    NUM_IMAGES, CAMERA_CONSTRUCTOR
 )
 
 if __name__ == '__main__':
@@ -14,7 +13,7 @@ if __name__ == '__main__':
     ALGO = cv2.INPAINT_NS
     RADIUS = 3
 
-    camera = XimeaCamera()
+    camera = CAMERA_CONSTRUCTOR()
     camera.set_exposure(CAM_EXPOSURE_MS)
     camera.set_gain(CAM_GAIN)
     camera.set_framerate(CAM_FPS)

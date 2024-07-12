@@ -1,6 +1,11 @@
 import os
 from video_tools import Polarity
 import numpy as np
+from camera_tools import OpenCV_Webcam
+try:
+    from camera_tools import XimeaCamera 
+except:
+    print('Ximea camera not imported')
 
 # general settings
 LCr = True
@@ -21,6 +26,7 @@ FOREGROUND_COLOR = (1.0, 0, 0, 1.0)
 BACKGROUND_COLOR = (0, 0, 0, 1.0)
 
 # camera
+CAMERA_CONSTRUCTOR = OpenCV_Webcam #XimeaCamera
 CAM_HEIGHT = 2048
 CAM_WIDTH = 2048
 CAM_OFFSETX = 0

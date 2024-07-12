@@ -1,9 +1,9 @@
 import numpy as np
-from camera_tools import XimeaCamera, get_camera_px_per_mm
+from camera_tools import get_camera_px_per_mm
 from ZebVR.config import (
     CAM_WIDTH, CAM_HEIGHT,
     CAM_GAIN, CAM_FPS,
-    CAM_OFFSETX, CAM_OFFSETY
+    CAM_OFFSETX, CAM_OFFSETY, CAMERA_CONSTRUCTOR
 )
 
 if __name__ == '__main__':
@@ -11,7 +11,7 @@ if __name__ == '__main__':
     CAM_EXPOSURE_MS = 20_000
     CAM_FPS = 5
 
-    camera = XimeaCamera()
+    camera = CAMERA_CONSTRUCTOR()
     camera.set_exposure(CAM_EXPOSURE_MS)
     camera.set_gain(CAM_GAIN)
     camera.set_framerate(CAM_FPS)

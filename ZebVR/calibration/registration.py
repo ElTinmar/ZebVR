@@ -5,7 +5,6 @@ from multiprocessing import Process, Value
 import time
 import numpy as np
 import json
-from camera_tools import XimeaCamera
 from image_tools import im2single, enhance, im2rgb, im2uint8, im2gray
 import cv2
 from geometry import to_homogeneous
@@ -18,7 +17,7 @@ from ZebVR.config import (
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
     BRIGHTNESS, BLUR_SIZE_PX, CONTRAST, GAMMA,
     STEP_SIZE, DOT_RADIUS, DETECTION_THRESHOLD,
-    PIXEL_SCALING
+    PIXEL_SCALING, CAMERA_CONSTRUCTOR
 )
 
 VERT_SHADER_CALIBRATION = """
@@ -140,7 +139,7 @@ if __name__ == '__main__':
     proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, radius=DOT_RADIUS, pixel_scaling=PIXEL_SCALING)
     proj.start()
 
-    camera = XimeaCamera()
+    camera = CAMERA_CONSTRUCTOR()
     camera.set_exposure(CAM_EXPOSURE_MS)
     camera.set_gain(CAM_GAIN)
     camera.set_framerate(CAM_FPS)

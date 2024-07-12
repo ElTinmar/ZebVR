@@ -4,14 +4,13 @@ import sys
 from multiprocessing import Process, RawArray
 import numpy as np
 import json
-from camera_tools import XimeaCamera
 import cv2
 from numpy.typing import NDArray
 
 from ZebVR.config import (
     CALIBRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
-    PIXEL_SCALING, PIX_PER_MM
+    PIXEL_SCALING, PIX_PER_MM, CAMERA_CONSTRUCTOR
 )
 
 VERT_SHADER_CALIBRATION = """

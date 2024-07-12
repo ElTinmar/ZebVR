@@ -9,12 +9,12 @@ from ZebVR.config import (
     CAM_WIDTH, CAM_HEIGHT,
     CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
     CAM_OFFSETX, CAM_OFFSETY, BACKGROUND_FILE,
-    NUM_IMAGES, TIME_BETWEEN_IMAGES
+    NUM_IMAGES, TIME_BETWEEN_IMAGES, CAMERA_CONSTRUCTOR
 )
 
 if __name__ == '__main__':
 
-    camera = XimeaCamera()
+    camera = CAMERA_CONSTRUCTOR()
     camera.set_exposure(CAM_EXPOSURE_MS)
     camera.set_gain(CAM_GAIN)
     camera.set_framerate(CAM_FPS)
