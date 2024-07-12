@@ -733,7 +733,7 @@ if __name__ == "__main__":
     # TODO profile with just one worker, otherwise lot of time waiting for data
     N_BACKGROUND_WORKERS = 1
     N_TRACKER_WORKERS = 1
-    BACKGROUND_GPU = True
+    BACKGROUND_GPU = False
     T_REFRESH = 1e-4
 
     DURATION_S = 5*60
