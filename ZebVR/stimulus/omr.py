@@ -65,7 +65,7 @@ void main()
     vec2 fish_ego_coords = gl_FragCoord.xy*u_pixel_scaling - v_fish_centroid;
 
     gl_FragColor = v_background_color;
-    if ( v_darkleft * sin(dot(fish_ego_coords, v_fish_orientation)+10*v_time) > 0.0 ) {
+    if (sin(1*dot(fish_ego_coords, v_fish_orientation)+10*v_time) > 0.0 ) {
         gl_FragColor = v_foreground_color;
     } 
 }

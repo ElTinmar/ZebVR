@@ -621,6 +621,7 @@ class PhototaxisGUI(WorkerNode):
         self.window.show()
 
     def declare_components(self):
+        # darkleft 
         pass
 
     def layout_components(self):
@@ -654,6 +655,8 @@ class OMR_GUI(WorkerNode):
         self.window.show()
 
     def declare_components(self):
+        # spatial freq
+        # speed
         pass
 
     def layout_components(self):
@@ -687,6 +690,8 @@ class OKR_GUI(WorkerNode):
         self.window.show()
 
     def declare_components(self):
+        # spatial freq (degrees)
+        # speed
         pass
 
     def layout_components(self):
@@ -720,6 +725,11 @@ class LoomingGUI(WorkerNode):
         self.window.show()
 
     def declare_components(self):
+        # looming start pos x
+        # looming start pos y
+        # looming speed
+        # looming duration
+        # looming repeat every
         pass
 
     def layout_components(self):
