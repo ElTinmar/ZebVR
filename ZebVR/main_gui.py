@@ -197,7 +197,6 @@ class MainGui(QWidget):
         self.stimulus.addItem('OMR')
         self.stimulus.addItem('OKR')
         self.stimulus.addItem('Looming')
-        self.stimulus.addItem('PreyCapture')
         self.stimulus.currentIndexChanged.connect(self.stimulus_changed)
         
         self.start_button = QPushButton()
@@ -610,6 +609,138 @@ class CameraGui(WorkerNode):
         else:
             return None
         
+class PhototaxisGUI(WorkerNode):
+
+    def initialize(self) -> None:
+        super().initialize()
+        self.updated = False
+        self.app = QApplication([])
+        self.window = QWidget()
+        self.declare_components()
+        self.layout_components()
+        self.window.show()
+
+    def declare_components(self):
+        pass
+
+    def layout_components(self):
+        pass
+
+    def on_change(self):
+        self.updated = True
+
+    def process_data(self, data: None) -> NDArray:
+        self.app.processEvents()
+
+    def process_metadata(self, metadata: Dict) -> Optional[Dict]:
+        # send only one message when things are changed
+        if self.updated:
+            res = {}
+            res['phototaxis_control'] = {}
+            self.updated = False
+            return res       
+        else:
+            return None
+        
+class OMR_GUI(WorkerNode):
+    
+    def initialize(self) -> None:
+        super().initialize()
+        self.updated = False
+        self.app = QApplication([])
+        self.window = QWidget()
+        self.declare_components()
+        self.layout_components()
+        self.window.show()
+
+    def declare_components(self):
+        pass
+
+    def layout_components(self):
+        pass
+
+    def on_change(self):
+        self.updated = True
+
+    def process_data(self, data: None) -> NDArray:
+        self.app.processEvents()
+
+    def process_metadata(self, metadata: Dict) -> Optional[Dict]:
+        # send only one message when things are changed
+        if self.updated:
+            res = {}
+            res['omr_control'] = {}
+            self.updated = False
+            return res       
+        else:
+            return None
+        
+class OKR_GUI(WorkerNode):
+    
+    def initialize(self) -> None:
+        super().initialize()
+        self.updated = False
+        self.app = QApplication([])
+        self.window = QWidget()
+        self.declare_components()
+        self.layout_components()
+        self.window.show()
+
+    def declare_components(self):
+        pass
+
+    def layout_components(self):
+        pass
+
+    def on_change(self):
+        self.updated = True
+
+    def process_data(self, data: None) -> NDArray:
+        self.app.processEvents()
+
+    def process_metadata(self, metadata: Dict) -> Optional[Dict]:
+        # send only one message when things are changed
+        if self.updated:
+            res = {}
+            res['okr_control'] = {}
+            self.updated = False
+            return res       
+        else:
+            return None
+        
+class LoomingGUI(WorkerNode):
+    
+    def initialize(self) -> None:
+        super().initialize()
+        self.updated = False
+        self.app = QApplication([])
+        self.window = QWidget()
+        self.declare_components()
+        self.layout_components()
+        self.window.show()
+
+    def declare_components(self):
+        pass
+
+    def layout_components(self):
+        pass
+
+    def on_change(self):
+        self.updated = True
+
+    def process_data(self, data: None) -> NDArray:
+        self.app.processEvents()
+
+    def process_metadata(self, metadata: Dict) -> Optional[Dict]:
+        # send only one message when things are changed
+        if self.updated:
+            res = {}
+            res['looming_control'] = {}
+            self.updated = False
+            return res       
+        else:
+            return None
+                
 class CameraWorker(WorkerNode):
 
     def __init__(
@@ -1056,13 +1187,65 @@ if __name__ == "__main__":
         receive_data_timeout=1.0
     )
 
-    stim = VisualStimWorker(
-        stim=omr, 
+    stim_phototaxis = VisualStimWorker(
+        stim=ptx, 
         name='phototaxis', 
         logger=worker_logger, 
         logger_queues=queue_logger, 
         receive_data_timeout=1.0
     )
+
+    phototaxis_control = PhototaxisGUI(
+        name='phototaxisGUI', 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_data_timeout=1.0
+    ) 
+
+    stim_omr = VisualStimWorker(
+        stim=omr, 
+        name='omr', 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_data_timeout=1.0
+    )
+
+    omr_control = OMR_GUI(
+        name='OMR_GUI', 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_data_timeout=1.0
+    ) 
+
+    stim_okr = VisualStimWorker(
+        stim=okr, 
+        name='okr', 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_data_timeout=1.0
+    )
+
+    okr_control = OKR_GUI(
+        name='OKR_GUI', 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_data_timeout=1.0
+    ) 
+
+    stim_looming = VisualStimWorker(
+        stim=looming, 
+        name='looming', 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_data_timeout=1.0
+    )
+
+    looming_control = LoomingGUI(
+        name='LoomingGUI', 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_data_timeout=1.0
+    ) 
 
     oly = OverlayWorker(
         overlay=o, 
@@ -1207,7 +1390,15 @@ if __name__ == "__main__":
         'camera': cam,
         'camera_gui': cam_control,
         'video_recorder': image_saver,
-        'visual_stim': stim,
+        'visual_stim': stim_omr,
+        'stim_phototaxis': stim_phototaxis,
+        'phototaxis_control': phototaxis_control,
+        'stim_omr': stim_omr,
+        'omr_control': omr_control,
+        'stim_okr': stim_okr,
+        'okr_control': okr_control,
+        'stim_looming': stim_looming,
+        'looming_control': looming_control,
         'overlay': oly,
         'display': dis,
         'tracker_gui': tracker_control
@@ -1225,7 +1416,11 @@ if __name__ == "__main__":
         'tracker_to_overlay': q_overlay,
         'overlay_to_display': q_display,
         'camera_control_to_camera': QueueMP(),
-        'camera_to_camera_control': QueueMP()
+        'camera_to_camera_control': QueueMP(),
+        'phototaxis_control': QueueMP(),
+        'omr_control': QueueMP(),
+        'okr_control': QueueMP(),
+        'looming_control': QueueMP(),
     }
     for i in range(N_TRACKER_WORKERS):
         queues[f'tracker_control_to_tracker_{i}'] = QueueMP()
