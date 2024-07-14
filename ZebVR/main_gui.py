@@ -266,7 +266,6 @@ class MainGui(QWidget):
         self.dag.start()
 
     def stop(self):
-        self.dag.kill()
         print('cam to background', self.queues['camera_to_background'].get_average_freq(), self.queues['camera_to_background'].queue.num_lost_item.value)
         if RECORD_VIDEO:
             print('cam to image saver', self.queues['camera_to_video_recorder'].get_average_freq(), self.queues['camera_to_video_recorder'].queue.num_lost_item.value)
@@ -274,6 +273,7 @@ class MainGui(QWidget):
         print('trackers to visual stim', self.queues['tracker_to_stim'].get_average_freq(), self.queues['tracker_to_stim'].queue.num_lost_item.value)
         print('trackers to overlay', self.queues['tracker_to_overlay'].get_average_freq(), self.queues['tracker_to_overlay'].queue.num_lost_item.value)
         print('overlay to display', self.queues['overlay_to_display'].get_average_freq(), self.queues['overlay_to_display'].queue.num_lost_item.value)
+        self.dag.kill()
 
     def record(self):
         self.start()
