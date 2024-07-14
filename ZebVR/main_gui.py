@@ -325,43 +325,43 @@ class TrackerGui(WorkerNode):
         
         self.animal_min_size_mm = LabeledDoubleSpinBox()
         self.animal_min_size_mm.setText('min area (mm2)')
-        self.animal_min_size_mm.setRange(0,1_000)
+        self.animal_min_size_mm.setRange(0,100_000)
         self.animal_min_size_mm.setValue(ANIMAL_TRACKING_PARAM['min_animal_size_mm'])
 
         self.animal_max_size_mm = LabeledDoubleSpinBox()
         self.animal_max_size_mm.setText('max area (mm2)')
-        self.animal_max_size_mm.setRange(0,1_000)
+        self.animal_max_size_mm.setRange(0,100_000)
         self.animal_max_size_mm.setValue(ANIMAL_TRACKING_PARAM['max_animal_size_mm'])
 
         self.animal_min_length_mm = LabeledDoubleSpinBox()
         self.animal_min_length_mm.setText('min öength (mm)')
-        self.animal_min_length_mm.setRange(0,1_000)
+        self.animal_min_length_mm.setRange(0,100_000)
         self.animal_min_length_mm.setValue(ANIMAL_TRACKING_PARAM['min_animal_length_mm'])
         
         self.animal_max_length_mm = LabeledDoubleSpinBox()
         self.animal_max_length_mm.setText('max length (mm)')
-        self.animal_max_length_mm.setRange(0,1_000)
+        self.animal_max_length_mm.setRange(0,100_000)
         self.animal_max_length_mm.setValue(ANIMAL_TRACKING_PARAM['max_animal_length_mm'])
 
         self.animal_min_width_mm = LabeledDoubleSpinBox()
         self.animal_min_width_mm.setText('min width (mm)')
-        self.animal_min_width_mm.setRange(0,1_000)
+        self.animal_min_width_mm.setRange(0,100_000)
         self.animal_min_width_mm.setValue(ANIMAL_TRACKING_PARAM['min_animal_width_mm'])
 
         self.animal_max_width_mm = LabeledDoubleSpinBox()
         self.animal_max_width_mm.setText('max width (mm)')
-        self.animal_max_width_mm.setRange(0,1_000)
+        self.animal_max_width_mm.setRange(0,100_000)
         self.animal_max_width_mm.setValue(ANIMAL_TRACKING_PARAM['max_animal_width_mm'])
         
         self.animal_blur_sz_mm = LabeledDoubleSpinBox()
         self.animal_blur_sz_mm.setText('blur size (mm)')
-        self.animal_blur_sz_mm.setRange(0,100)
+        self.animal_blur_sz_mm.setRange(0,1000)
         self.animal_blur_sz_mm.setSingleStep(1/ANIMAL_TRACKING_PARAM['target_pix_per_mm'])
         self.animal_blur_sz_mm.setValue(ANIMAL_TRACKING_PARAM['blur_sz_mm'])
 
         self.animal_median_filter_sz_mm = LabeledDoubleSpinBox()
         self.animal_median_filter_sz_mm.setText('medfilt size (mm)')
-        self.animal_median_filter_sz_mm.setRange(0,100)
+        self.animal_median_filter_sz_mm.setRange(0,1000)
         self.animal_median_filter_sz_mm.setSingleStep(1/ANIMAL_TRACKING_PARAM['target_pix_per_mm'])
         self.animal_median_filter_sz_mm.setValue(ANIMAL_TRACKING_PARAM['median_filter_sz_mm'])
         
@@ -397,43 +397,43 @@ class TrackerGui(WorkerNode):
         
         self.body_min_size_mm = LabeledDoubleSpinBox()
         self.body_min_size_mm.setText('min area (mm2)')
-        self.body_min_size_mm.setRange(0,1_000)
+        self.body_min_size_mm.setRange(0,100_000)
         self.body_min_size_mm.setValue(BODY_TRACKING_PARAM['min_body_size_mm'])
         
         self.body_max_size_mm = LabeledDoubleSpinBox()
         self.body_max_size_mm.setText('max area (mm2)')
-        self.body_max_size_mm.setRange(0,1_000)
+        self.body_max_size_mm.setRange(0,100_000)
         self.body_max_size_mm.setValue(BODY_TRACKING_PARAM['max_body_size_mm'])
         
         self.body_min_length_mm = LabeledDoubleSpinBox()
         self.body_min_length_mm.setText('min length (mm)')
-        self.body_min_length_mm.setRange(0,1_000)
+        self.body_min_length_mm.setRange(0,100_000)
         self.body_min_length_mm.setValue(BODY_TRACKING_PARAM['min_body_length_mm'])
         
         self.body_max_length_mm = LabeledDoubleSpinBox()
         self.body_max_length_mm.setText('max length (mm)')
-        self.body_max_length_mm.setRange(0,1_000)
+        self.body_max_length_mm.setRange(0,100_000)
         self.body_max_length_mm.setValue(BODY_TRACKING_PARAM['max_body_length_mm'])
         
         self.body_min_width_mm = LabeledDoubleSpinBox()
         self.body_min_width_mm.setText('min width (mm)')
-        self.body_min_width_mm.setRange(0,1_000)
+        self.body_min_width_mm.setRange(0,100_000)
         self.body_min_width_mm.setValue(BODY_TRACKING_PARAM['min_body_width_mm'])
         
         self.body_max_width_mm = LabeledDoubleSpinBox()
         self.body_max_width_mm.setText('max width (mm)')
-        self.body_max_width_mm.setRange(0,1_000)
+        self.body_max_width_mm.setRange(0,100_000)
         self.body_max_width_mm.setValue(BODY_TRACKING_PARAM['max_body_width_mm'])
         
         self.body_blur_sz_mm = LabeledDoubleSpinBox()
         self.body_blur_sz_mm.setText('blur size (mm)')
-        self.body_blur_sz_mm.setRange(0,100)
+        self.body_blur_sz_mm.setRange(0,1000)
         self.body_blur_sz_mm.setSingleStep(1/BODY_TRACKING_PARAM['target_pix_per_mm'])
         self.body_blur_sz_mm.setValue(BODY_TRACKING_PARAM['blur_sz_mm'])
         
         self.body_median_filter_sz_mm = LabeledDoubleSpinBox()
         self.body_median_filter_sz_mm.setText('medfilt size (mm)')
-        self.body_median_filter_sz_mm.setRange(0,100)
+        self.body_median_filter_sz_mm.setRange(0,1000)
         self.body_median_filter_sz_mm.setSingleStep(1/BODY_TRACKING_PARAM['target_pix_per_mm'])
         self.body_median_filter_sz_mm.setValue(BODY_TRACKING_PARAM['median_filter_sz_mm'])
 
