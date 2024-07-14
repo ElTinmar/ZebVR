@@ -19,6 +19,10 @@ rm -f XIMEA_Linux_SP.tgz
 rm -rf package
 ```
 
+# Install CUDA
+
+
+
 # Troubleshooting
 
 if error 57 device already open
