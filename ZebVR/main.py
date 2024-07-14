@@ -572,10 +572,6 @@ if __name__ == "__main__":
     queue_logger.start()
     dag.start()
     time.sleep(DURATION_S)
-    dag.stop()
-    queue_logger.stop()
-    worker_logger.stop()
-
     print('cam to background', q_cam.get_average_freq(), q_cam.queue.num_lost_item.value)
     if RECORD_VIDEO:
         print('cam to image saver', q_save_image.get_average_freq(), q_save_image.queue.num_lost_item.value)
@@ -583,6 +579,9 @@ if __name__ == "__main__":
     print('trackers to visual stim', q_tracking.get_average_freq(), q_tracking.queue.num_lost_item.value)
     print('trackers to overlay', q_overlay.get_average_freq(), q_overlay.queue.num_lost_item.value)
     print('overlay to display', q_display.get_average_freq(), q_display.queue.num_lost_item.value)
+    dag.stop()
+    queue_logger.stop()
+    worker_logger.stop()
 
     #plot_worker_logs(LOGFILE_WORKERS, outlier_thresh=1000)
     # NOTE: if you have more worker than necessary, you will see a heavy tail in the receive time.
