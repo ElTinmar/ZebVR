@@ -1154,13 +1154,15 @@ if __name__ == "__main__":
     cam_control = CameraGui(
         name='cam_gui',  
         logger=worker_logger, 
-        logger_queues=queue_logger
+        logger_queues=queue_logger,
+        receive_data_timeout=1.0
     )
 
     tracker_control = TrackerGui(
         name='tracker_gui',  
         logger=worker_logger, 
-        logger_queues=queue_logger   
+        logger_queues=queue_logger,
+        receive_data_timeout=1.0   
     )
     
     cam = CameraWorker(
