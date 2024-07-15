@@ -265,17 +265,17 @@ class MainGui(QWidget):
         subprocess.Popen(['python', 'ZebVR/calibration/check_pix_per_mm.py'])
     
     def stimulus_changed(self):
-
-        if self.stimulus.currentText == 'Phototaxis':
+        print(self.stimulus.currentText())
+        if self.stimulus.currentText() == 'Phototaxis':
             self.workers['visual_stim'] = self.workers['stim_phototaxis']
             self.workers['visual_stim_control'] = self.workers['phototaxis_control']
-        elif self.stimulus.currentText == 'OMR':
+        elif self.stimulus.currentText() == 'OMR':
             self.workers['visual_stim'] = self.workers['stim_omr']
             self.workers['visual_stim_control'] = self.workers['omr_control']
-        elif self.stimulus.currentText == 'OKR':
+        elif self.stimulus.currentText() == 'OKR':
             self.workers['visual_stim'] = self.workers['stim_okr']
             self.workers['visual_stim_control'] = self.workers['okr_control']
-        elif self.stimulus.currentText == 'Looming':
+        elif self.stimulus.currentText() == 'Looming':
             self.workers['visual_stim'] = self.workers['stim_looming']
             self.workers['visual_stim_control'] = self.workers['looming_control']
     
@@ -1426,17 +1426,17 @@ if __name__ == "__main__":
         'camera_gui': cam_control,
         'video_recorder': image_saver,
         'visual_stim': stim_omr,
-        'visual_stim_control': omr_control,
-        'stim_phototaxis': stim_phototaxis,
-        'phototaxis_control': phototaxis_control,
-        'stim_omr': stim_omr,
-        'omr_control': omr_control,
-        'stim_okr': stim_okr,
-        'okr_control': okr_control,
-        'stim_looming': stim_looming,
-        'looming_control': looming_control,
         'overlay': oly,
         'display': dis,
+        'stim_phototaxis': stim_phototaxis,
+        'stim_omr': stim_omr,
+        'stim_okr': stim_okr,
+        'stim_looming': stim_looming,
+        'visual_stim_control': omr_control,
+        'phototaxis_control': phototaxis_control,
+        'okr_control': okr_control,
+        'omr_control': omr_control,
+        'looming_control': looming_control,
         'tracker_gui': tracker_control
     }
     for i in range(N_TRACKER_WORKERS):
