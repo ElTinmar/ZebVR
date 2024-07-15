@@ -131,6 +131,13 @@ class MainGui(QWidget):
             queue=self.queues['camera_to_camera_control'], 
             name='camera_info'
         )
+
+        self.dag.connect_metadata(
+            sender=self.workers['visual_stim_control'], 
+            receiver=self.workers['visual_stim'], 
+            queue=self.queues['visual_stim_control'], 
+            name='visual_stim_control'
+        )
         
         for i in range(N_TRACKER_WORKERS):
             self.dag.connect_metadata(
@@ -258,7 +265,19 @@ class MainGui(QWidget):
         subprocess.Popen(['python', 'ZebVR/calibration/check_pix_per_mm.py'])
     
     def stimulus_changed(self):
-        pass
+
+        if self.stimulus.currentText == 'Phototaxis':
+            self.workers['visual_stim'] = self.workers['stim_phototaxis']
+            self.workers['visual_stim_control'] = self.workers['phototaxis_control']
+        elif self.stimulus.currentText == 'OMR':
+            self.workers['visual_stim'] = self.workers['stim_omr']
+            self.workers['visual_stim_control'] = self.workers['omr_control']
+        elif self.stimulus.currentText == 'OKR':
+            self.workers['visual_stim'] = self.workers['stim_okr']
+            self.workers['visual_stim_control'] = self.workers['okr_control']
+        elif self.stimulus.currentText == 'Looming':
+            self.workers['visual_stim'] = self.workers['stim_looming']
+            self.workers['visual_stim_control'] = self.workers['looming_control']
     
     def start(self):
         self.create_dag()
@@ -637,7 +656,7 @@ class PhototaxisGUI(WorkerNode):
         # send only one message when things are changed
         if self.updated:
             res = {}
-            res['phototaxis_control'] = {}
+            res['visual_stim_control'] = {}
             self.updated = False
             return res       
         else:
@@ -672,7 +691,7 @@ class OMR_GUI(WorkerNode):
         # send only one message when things are changed
         if self.updated:
             res = {}
-            res['omr_control'] = {}
+            res['visual_stim_control'] = {}
             self.updated = False
             return res       
         else:
@@ -707,7 +726,7 @@ class OKR_GUI(WorkerNode):
         # send only one message when things are changed
         if self.updated:
             res = {}
-            res['okr_control'] = {}
+            res['visual_stim_control'] = {}
             self.updated = False
             return res       
         else:
@@ -745,7 +764,7 @@ class LoomingGUI(WorkerNode):
         # send only one message when things are changed
         if self.updated:
             res = {}
-            res['looming_control'] = {}
+            res['visual_stim_control'] = {}
             self.updated = False
             return res       
         else:
@@ -1033,7 +1052,7 @@ if __name__ == "__main__":
         with open(CALIBRATION_FILE, 'r') as f:
             calibration = json.load(f)
     except FileNotFoundError:
-        print('Registratiom file not found, please run calibration first')
+        print('Registration file not found, please run calibration first')
         calibration = {}
         calibration['cam_to_proj'] = [[1,0,0],[0,1,0],[0,0,1]]
         calibration['proj_to_cam'] = [[1,0,0],[0,1,0],[0,0,1]]
@@ -1407,6 +1426,7 @@ if __name__ == "__main__":
         'camera_gui': cam_control,
         'video_recorder': image_saver,
         'visual_stim': stim_omr,
+        'visual_stim_control': omr_control,
         'stim_phototaxis': stim_phototaxis,
         'phototaxis_control': phototaxis_control,
         'stim_omr': stim_omr,
@@ -1433,10 +1453,7 @@ if __name__ == "__main__":
         'overlay_to_display': q_display,
         'camera_control_to_camera': QueueMP(),
         'camera_to_camera_control': QueueMP(),
-        'phototaxis_control': QueueMP(),
-        'omr_control': QueueMP(),
-        'okr_control': QueueMP(),
-        'looming_control': QueueMP(),
+        'visual_stim_control': QueueMP()
     }
     for i in range(N_TRACKER_WORKERS):
         queues[f'tracker_control_to_tracker_{i}'] = QueueMP()
