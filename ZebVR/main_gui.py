@@ -52,13 +52,15 @@ DARKLEFT = True
 
 class MainGui(QWidget):
     
-    def __init__(self, workers: Dict, queues: Dict, *args, **kwargs):
+    def __init__(self, workers: Dict, queues: Dict, worker_logger: Dict, queue_logger: Dict, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
 
         self.dag = None
         self.workers = workers
         self.queues = queues
+        self.worker_logger = worker_logger
+        self.queue_logger = queue_logger
         self.create_components()
         self.layout_components()
 
@@ -118,34 +120,34 @@ class MainGui(QWidget):
         )
 
         # metadata
-        self.dag.connect_metadata(
-            sender=self.workers['camera_gui'], 
-            receiver=self.workers['camera'], 
-            queue=self.queues['camera_control_to_camera'], 
-            name='camera_control'
-        )
+        #self.dag.connect_metadata(
+        #    sender=self.workers['camera_gui'], 
+        #    receiver=self.workers['camera'], 
+        #    queue=self.queues['camera_control_to_camera'], 
+        #    name='camera_control'
+        #)
         
-        self.dag.connect_metadata(
-            sender=self.workers['camera'], 
-            receiver=self.workers['camera_gui'], 
-            queue=self.queues['camera_to_camera_control'], 
-            name='camera_info'
-        )
+        #self.dag.connect_metadata(
+        #    sender=self.workers['camera'], 
+        #    receiver=self.workers['camera_gui'], 
+        #    queue=self.queues['camera_to_camera_control'], 
+        #    name='camera_info'
+        #)
 
-        self.dag.connect_metadata(
-            sender=self.workers['visual_stim_control'], 
-            receiver=self.workers['visual_stim'], 
-            queue=self.queues['visual_stim_control'], 
-            name='visual_stim_control'
-        )
+        #self.dag.connect_metadata(
+        #    sender=self.workers['visual_stim_control'], 
+        #    receiver=self.workers['visual_stim'], 
+        #    queue=self.queues['visual_stim_control'], 
+        #    name='visual_stim_control'
+        #)
         
-        for i in range(N_TRACKER_WORKERS):
-            self.dag.connect_metadata(
-                sender=self.workers['tracker_gui'], 
-                receiver=self.workers[f'tracker_{i}'], 
-                queue=self.queues[f'tracker_control_to_tracker_{i}'], 
-                name=f'tracker_control_{i}'
-            )
+        #for i in range(N_TRACKER_WORKERS):
+        #    self.dag.connect_metadata(
+        #        sender=self.workers['tracker_gui'], 
+        #        receiver=self.workers[f'tracker_{i}'], 
+        #        queue=self.queues[f'tracker_control_to_tracker_{i}'], 
+        #        name=f'tracker_control_{i}'
+        #    )
 
     def create_components(self):
         
@@ -205,7 +207,7 @@ class MainGui(QWidget):
         self.stimulus.addItem('Looming')
         self.stimulus.currentIndexChanged.connect(self.stimulus_changed)
         self.workers['visual_stim'] = self.workers['stim_phototaxis']
-        self.workers['visual_stim_control'] = self.workers['phototaxis_control']
+        #self.workers['visual_stim_control'] = self.workers['phototaxis_control']
         
         self.start_button = QPushButton()
         self.start_button.setText('start')
@@ -282,6 +284,8 @@ class MainGui(QWidget):
     
     def start(self):
         self.create_dag()
+        self.worker_logger.start()
+        self.queue_logger.start()
         self.dag.start()
 
     def stop(self):
@@ -292,6 +296,8 @@ class MainGui(QWidget):
         print('trackers to visual stim', self.queues['tracker_to_stim'].get_average_freq(), self.queues['tracker_to_stim'].queue.num_lost_item.value)
         print('trackers to overlay', self.queues['tracker_to_overlay'].get_average_freq(), self.queues['tracker_to_overlay'].queue.num_lost_item.value)
         print('overlay to display', self.queues['overlay_to_display'].get_average_freq(), self.queues['overlay_to_display'].queue.num_lost_item.value)
+        self.worker_logger.stop()
+        self.queue_logger.stop()
         self.dag.stop()
 
     def record(self):
@@ -605,7 +611,7 @@ class CameraGui(WorkerNode):
         for widget in self.window.findChildren(QWidget):
             widget.blockSignals(block)
 
-    def process_metadata(self, metadata: Dict) -> Optional[Dict]:
+    def process_metadata(self, metadata: Dict) -> Optional[Dict]:    
         # receive cam inof
         info = metadata['camera_info']
         if info is not None: 
@@ -825,6 +831,8 @@ class CameraWorker(WorkerNode):
             return res
         
     def process_metadata(self, metadata) -> Any:
+        return 
+    
         # receive
         control = metadata['camera_control']
         if control is not None: 
@@ -903,6 +911,8 @@ class TrackerWorker(WorkerNode):
             return None  
         
     def process_metadata(self, metadata) -> Any:
+        return
+    
         # reveive tracker settings and update tracker
         for i in range(N_TRACKER_WORKERS):
             control = metadata[f'tracker_control_{i}']
@@ -1426,7 +1436,6 @@ if __name__ == "__main__":
     
     workers = {
         'camera': cam,
-        'camera_gui': cam_control,
         'video_recorder': image_saver,
         'visual_stim': stim_omr,
         'overlay': oly,
@@ -1435,12 +1444,13 @@ if __name__ == "__main__":
         'stim_omr': stim_omr,
         'stim_okr': stim_okr,
         'stim_looming': stim_looming,
-        'visual_stim_control': omr_control,
-        'phototaxis_control': phototaxis_control,
-        'okr_control': okr_control,
-        'omr_control': omr_control,
-        'looming_control': looming_control,
-        'tracker_gui': tracker_control
+        #'camera_gui': cam_control,
+        #'visual_stim_control': omr_control,
+        #'phototaxis_control': phototaxis_control,
+        #'okr_control': okr_control,
+        #'omr_control': omr_control,
+        #'looming_control': looming_control,
+        #'tracker_gui': tracker_control
     }
     for i in range(N_TRACKER_WORKERS):
         workers[f'tracker_{i}'] = trck[i]
@@ -1454,14 +1464,14 @@ if __name__ == "__main__":
         'tracker_to_stim': q_tracking,
         'tracker_to_overlay': q_overlay,
         'overlay_to_display': q_display,
-        'camera_control_to_camera': QueueMP(),
-        'camera_to_camera_control': QueueMP(),
-        'visual_stim_control': QueueMP()
+        #'camera_control_to_camera': QueueMP(),
+        #'camera_to_camera_control': QueueMP(),
+        #'visual_stim_control': QueueMP()
     }
-    for i in range(N_TRACKER_WORKERS):
-        queues[f'tracker_control_to_tracker_{i}'] = QueueMP()
+    #for i in range(N_TRACKER_WORKERS):
+    #    queues[f'tracker_control_to_tracker_{i}'] = QueueMP()
 
     app = QApplication([])
-    main = MainGui(workers=workers, queues=queues)
+    main = MainGui(workers=workers, queues=queues, worker_logger=worker_logger, queue_logger=queue_logger)
     main.show()
     app.exec_()
