@@ -1029,8 +1029,14 @@ if __name__ == "__main__":
 
     set_start_method('spawn')
 
-    with open(CALIBRATION_FILE, 'r') as f:
-        calibration = json.load(f)
+    try:
+        with open(CALIBRATION_FILE, 'r') as f:
+            calibration = json.load(f)
+    except FileNotFoundError:
+        print('Registratiom file not found, please run calibration first')
+        calibration = {}
+        calibration['cam_to_proj'] = [[1,0,0],[0,1,0],[0,0,1]]
+        calibration['proj_to_cam'] = [[1,0,0],[0,1,0],[0,0,1]]
 
     worker_logger = Logger(LOGFILE_WORKERS, Logger.INFO)
     queue_logger = Logger(LOGFILE_QUEUES, Logger.INFO)
