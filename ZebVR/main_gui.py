@@ -198,13 +198,14 @@ class MainGui(QWidget):
         self.label_stimulus = QLabel()
         self.label_stimulus.setText('Visual simulus:')
         
-        # TODO maybe I need to reconstzruct the DAG each time
         self.stimulus = QComboBox()
         self.stimulus.addItem('Phototaxis')
         self.stimulus.addItem('OMR')
         self.stimulus.addItem('OKR')
         self.stimulus.addItem('Looming')
         self.stimulus.currentIndexChanged.connect(self.stimulus_changed)
+        self.workers['visual_stim'] = self.workers['stim_phototaxis']
+        self.workers['visual_stim_control'] = self.workers['phototaxis_control']
         
         self.start_button = QPushButton()
         self.start_button.setText('start')
