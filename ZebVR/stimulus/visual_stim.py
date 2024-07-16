@@ -95,6 +95,7 @@ class VisualStimWorker(WorkerNode):
         self.display_process.start()
 
     def cleanup(self) -> None:
+        super().cleanup()
         self.display_process.join()
 
     def process_data(self, data: Any) -> None:
