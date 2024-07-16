@@ -101,3 +101,13 @@ BODY_TRACKING_PARAM = {
     'blur_sz_mm': 1/7.5,
     'median_filter_sz_mm': 0
 }
+
+# Phototaxis
+DARKLEFT = True
+
+# OMR
+
+# OKR
+
+# Loomings
+

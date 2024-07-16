@@ -42,11 +42,9 @@ from ZebVR.config import (
     BACKGROUND_COLOR, CAMERA_CONSTRUCTOR,
     LOGFILE_WORKERS, LOGFILE_QUEUES,
     N_BACKGROUND_WORKERS, N_TRACKER_WORKERS,
-    BACKGROUND_GPU, T_REFRESH, RECORD_VIDEO
+    BACKGROUND_GPU, T_REFRESH, RECORD_VIDEO,
+    DARKLEFT
 )
-
-# TODO parametrize this and other args for different visual stim
-DARKLEFT = True
 
 class MainGui(QWidget):
     
