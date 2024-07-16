@@ -122,34 +122,34 @@ class MainGui(QWidget):
             )
 
         # metadata
-        #self.dag.connect_metadata(
-        #    sender=self.workers['camera_gui'], 
-        #    receiver=self.workers['camera'], 
-        #    queue=self.queues['camera_control_to_camera'], 
-        #    name='camera_control'
-        #)
+        self.dag.connect_metadata(
+            sender=self.workers['camera_gui'], 
+            receiver=self.workers['camera'], 
+            queue=self.queues['camera_control_to_camera'], 
+            name='camera_control'
+        )
         
-        #self.dag.connect_metadata(
-        #    sender=self.workers['camera'], 
-        #    receiver=self.workers['camera_gui'], 
-        #    queue=self.queues['camera_to_camera_control'], 
-        #    name='camera_info'
-        #)
+        self.dag.connect_metadata(
+            sender=self.workers['camera'], 
+            receiver=self.workers['camera_gui'], 
+            queue=self.queues['camera_to_camera_control'], 
+            name='camera_info'
+        )
 
-        #self.dag.connect_metadata(
-        #    sender=self.workers['visual_stim_control'], 
-        #    receiver=self.workers['visual_stim'], 
-        #    queue=self.queues['visual_stim_control'], 
-        #    name='visual_stim_control'
-        #)
+        self.dag.connect_metadata(
+            sender=self.workers['visual_stim_control'], 
+            receiver=self.workers['visual_stim'], 
+            queue=self.queues['visual_stim_control'], 
+            name='visual_stim_control'
+        )
         
-        #for i in range(N_TRACKER_WORKERS):
-        #    self.dag.connect_metadata(
-        #        sender=self.workers['tracker_gui'], 
-        #        receiver=self.workers[f'tracker_{i}'], 
-        #        queue=self.queues[f'tracker_control_to_tracker_{i}'], 
-        #        name=f'tracker_control_{i}'
-        #    )
+        for i in range(N_TRACKER_WORKERS):
+            self.dag.connect_metadata(
+                sender=self.workers['tracker_gui'], 
+                receiver=self.workers[f'tracker_{i}'], 
+                queue=self.queues[f'tracker_control_to_tracker_{i}'], 
+                name=f'tracker_control_{i}'
+            )
 
     def create_components(self):
         
@@ -209,7 +209,7 @@ class MainGui(QWidget):
         self.stimulus.addItem('Looming')
         self.stimulus.currentIndexChanged.connect(self.stimulus_changed)
         self.workers['visual_stim'] = self.workers['stim_phototaxis']
-        #self.workers['visual_stim_control'] = self.workers['phototaxis_control']
+        self.workers['visual_stim_control'] = self.workers['phototaxis_control']
         
         self.start_button = QPushButton()
         self.start_button.setText('start')
@@ -833,8 +833,6 @@ class CameraWorker(WorkerNode):
             return res
         
     def process_metadata(self, metadata) -> Any:
-        return 
-    
         # receive
         control = metadata['camera_control']
         if control is not None: 
@@ -913,8 +911,6 @@ class TrackerWorker(WorkerNode):
             return None  
         
     def process_metadata(self, metadata) -> Any:
-        return
-    
         # reveive tracker settings and update tracker
         for i in range(N_TRACKER_WORKERS):
             control = metadata[f'tracker_control_{i}']
@@ -1374,7 +1370,6 @@ if __name__ == "__main__":
     # circular buffer otherwise it can be modified after the fact
     # set copy=True
 
-
     q_back = MonitoredQueue(
         ObjectRingBuffer2(
             num_items = 100,
@@ -1446,13 +1441,13 @@ if __name__ == "__main__":
         'stim_omr': stim_omr,
         'stim_okr': stim_okr,
         'stim_looming': stim_looming,
-        #'camera_gui': cam_control,
-        #'visual_stim_control': omr_control,
-        #'phototaxis_control': phototaxis_control,
-        #'okr_control': okr_control,
-        #'omr_control': omr_control,
-        #'looming_control': looming_control,
-        #'tracker_gui': tracker_control
+        'camera_gui': cam_control,
+        'visual_stim_control': omr_control,
+        'phototaxis_control': phototaxis_control,
+        'okr_control': okr_control,
+        'omr_control': omr_control,
+        'looming_control': looming_control,
+        'tracker_gui': tracker_control
     }
     for i in range(N_TRACKER_WORKERS):
         workers[f'tracker_{i}'] = trck[i]
@@ -1466,12 +1461,12 @@ if __name__ == "__main__":
         'tracker_to_stim': q_tracking,
         'tracker_to_overlay': q_overlay,
         'overlay_to_display': q_display,
-        #'camera_control_to_camera': QueueMP(),
-        #'camera_to_camera_control': QueueMP(),
-        #'visual_stim_control': QueueMP()
+        'camera_control_to_camera': QueueMP(),
+        'camera_to_camera_control': QueueMP(),
+        'visual_stim_control': QueueMP()
     }
-    #for i in range(N_TRACKER_WORKERS):
-    #    queues[f'tracker_control_to_tracker_{i}'] = QueueMP()
+    for i in range(N_TRACKER_WORKERS):
+        queues[f'tracker_control_to_tracker_{i}'] = QueueMP()
 
     app = QApplication([])
     main = MainGui(workers=workers, queues=queues, worker_logger=worker_logger, queue_logger=queue_logger)
