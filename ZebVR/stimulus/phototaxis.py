@@ -130,6 +130,7 @@ class Phototaxis(VisualStim):
                
         self.program['a_fish_pc2'] = [0,0]
         self.program['a_fish_centroid'] = [0,0]
+        self.program['a_polarity'] = self.polarity.value
         self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
         self.timer.start()
         self.show()

@@ -7,7 +7,7 @@ from dagline import WorkerNode
 import numpy as np
 from numpy.typing import NDArray
 from typing import Any, Dict
-from ZebVR.config import CAM_WIDTH, CAM_HEIGHT,N_TRACKER_WORKERS
+from ZebVR.config import CAM_WIDTH, CAM_HEIGHT, N_TRACKER_WORKERS
 
 class TrackerWorker(WorkerNode):
     
