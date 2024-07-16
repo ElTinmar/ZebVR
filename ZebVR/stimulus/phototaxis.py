@@ -27,7 +27,6 @@ varying vec4 v_foreground_color;
 varying vec4 v_background_color;
 varying float v_darkleft;
 
-
 void main()
 {
     vec3 fish_centroid = u_transformation_matrix * vec3(a_fish_centroid, 1.0) ;
