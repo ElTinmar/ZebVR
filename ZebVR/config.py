@@ -32,7 +32,7 @@ FOREGROUND_COLOR = (1.0, 0, 0, 1.0)
 BACKGROUND_COLOR = (0, 0, 0, 1.0)
 
 # camera
-movie_file = "/home/martin/Development/toy_data/single_freelyswimming_504x500px.avi"
+movie_file = os.path.abspath(os.path.join(os.getcwd(), "../toy_data/single_freelyswimming_504x500px.avi"))
 mov = partial(MovieFileCam, filename=movie_file)
 
 CAMERA_CONSTRUCTOR = mov # OpenCV_Webcam #XimeaCamera
@@ -51,7 +51,7 @@ LOGFILE_WORKERS = 'workers.log'
 LOGFILE_QUEUES = 'queues.log'
 CALIBRATION_FILE = 'registration.json'
 BACKGROUND_FILE = 'background.npy'
-IMAGE_FOLDER = os.path.join(os.getenv('HOME'), 'Development/ZebVR/recording_0')
+IMAGE_FOLDER = os.path.join(os.getcwd(), 'recording_0')
 
 # calibration
 DETECTION_THRESHOLD = 0.4
