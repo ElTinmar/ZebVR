@@ -52,7 +52,7 @@ DARKLEFT = True
 
 class MainGui(QWidget):
     
-    def __init__(self, workers: Dict, queues: Dict, worker_logger: Dict, queue_logger: Dict, *args, **kwargs):
+    def __init__(self, workers: Dict, queues: Dict, worker_logger: Logger, queue_logger: Logger, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
 
@@ -284,8 +284,8 @@ class MainGui(QWidget):
     
     def start(self):
         self.create_dag()
-        self.worker_logger.start()
-        self.queue_logger.start()
+        #self.worker_logger.start()
+        #self.queue_logger.start()
         self.dag.start()
 
     def stop(self):
@@ -296,8 +296,8 @@ class MainGui(QWidget):
         print('trackers to visual stim', self.queues['tracker_to_stim'].get_average_freq(), self.queues['tracker_to_stim'].queue.num_lost_item.value)
         print('trackers to overlay', self.queues['tracker_to_overlay'].get_average_freq(), self.queues['tracker_to_overlay'].queue.num_lost_item.value)
         print('overlay to display', self.queues['overlay_to_display'].get_average_freq(), self.queues['overlay_to_display'].queue.num_lost_item.value)
-        self.worker_logger.stop()
-        self.queue_logger.stop()
+        #self.worker_logger.stop()
+        #self.queue_logger.stop()
         self.dag.stop()
 
     def record(self):

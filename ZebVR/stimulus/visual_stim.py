@@ -6,10 +6,6 @@ from multiprocessing import Process
 from numpy.typing import NDArray
 import numpy as np 
 
-# TODO: add proj resolution (mm/pix) to be able to project stimuli 
-# of a given real world size. This can be derived from the camera 
-# calibration and came/proj registration
-
 class VisualStim(app.Canvas):
 
     def __init__(
@@ -40,7 +36,14 @@ class VisualStim(app.Canvas):
     def initialize(self):
         # this needs to happen in the process where the window is displayed
 
-        app.Canvas.__init__(self, size=self.window_size, decorate=self.window_decoration, position=self.window_position, keys='interactive', vsync=self.vsync)
+        app.Canvas.__init__(
+            self, 
+            size=self.window_size, 
+            decorate=self.window_decoration, 
+            position=self.window_position, 
+            keys='interactive', 
+            vsync=self.vsync
+        )
 
         self.program = gloo.Program(self.vertex_shader, self.fragment_shader)
 
@@ -81,15 +84,12 @@ class VisualStimWorker(WorkerNode):
 
     def run(self) -> None:
         self.stim.initialize()
-        # NOTE: this replaces app.run() and gives access to the event loop.
-        # The same technique can be used directly with Qt using processEvents instead of exec
         while not self.stop_event.is_set():
             app.process_events()
         self.stim.cleanup()
 
     def initialize(self) -> None:
         super().initialize()
-
         # launch main window loop in a separate process 
         self.display_process = Process(target=self.run)
         self.display_process.start()
