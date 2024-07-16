@@ -43,7 +43,7 @@ from ZebVR.config import (
     LOGFILE_WORKERS, LOGFILE_QUEUES,
     N_BACKGROUND_WORKERS, N_TRACKER_WORKERS,
     BACKGROUND_GPU, T_REFRESH, RECORD_VIDEO,
-    DARKLEFT
+    PHOTOTAXIS_POLARITY
 )
 
 class MainGui(QWidget):
@@ -57,6 +57,7 @@ class MainGui(QWidget):
         self.queues = queues
         self.worker_logger = worker_logger
         self.queue_logger = queue_logger
+        self.setWindowTitle('Main controls')
         self.create_components()
         self.layout_components()
 
@@ -410,7 +411,7 @@ if __name__ == "__main__":
         refresh_rate=PROJ_FPS,
         vsync=True,
         pixel_scaling=PIXEL_SCALING,
-        darkleft = DARKLEFT
+        polarity=PHOTOTAXIS_POLARITY
     )
 
     omr = OMR(

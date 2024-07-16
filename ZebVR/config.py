@@ -103,7 +103,7 @@ BODY_TRACKING_PARAM = {
 }
 
 # Phototaxis
-DARKLEFT = True
+PHOTOTAXIS_POLARITY = True
 
 # OMR
 

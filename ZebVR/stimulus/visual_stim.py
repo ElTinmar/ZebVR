@@ -102,4 +102,4 @@ class VisualStimWorker(WorkerNode):
         return self.stim.process_data(data)
     
     def process_metadata(self, metadata) -> Any:
-        pass
+        return self.stim.process_metadata(metadata)

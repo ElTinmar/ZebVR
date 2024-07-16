@@ -19,6 +19,7 @@ class CameraGui(WorkerNode):
         ]
         self.declare_components()
         self.layout_components()
+        self.window.setWindowTitle('Camera controls')
         self.window.show()
 
     def declare_components(self):

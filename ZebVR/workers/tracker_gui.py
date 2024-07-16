@@ -15,6 +15,7 @@ class TrackerGui(WorkerNode):
         self.window = QWidget()
         self.declare_components()
         self.layout_components()
+        self.window.setWindowTitle('Tracking controls')
         self.window.show()
 
     def declare_components(self):

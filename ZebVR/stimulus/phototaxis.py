@@ -11,7 +11,7 @@ VERT_SHADER_PHOTOTAXIS = """
 uniform mat3 u_transformation_matrix;
 
 attribute vec2 a_position;
-attribute float a_darkleft;
+attribute float a_polarity;
 attribute vec2 a_resolution;
 attribute float a_time;
 attribute vec4 a_foreground_color;
@@ -25,7 +25,7 @@ varying vec2 v_resolution;
 varying float v_time;
 varying vec4 v_foreground_color;
 varying vec4 v_background_color;
-varying float v_darkleft;
+varying float v_polarity;
 
 void main()
 {
@@ -39,7 +39,7 @@ void main()
     v_background_color = a_background_color;
     v_resolution = a_resolution;
     v_time = a_time;
-    v_darkleft = a_darkleft;
+    v_polarity = a_polarity;
 } 
 """
 
@@ -57,14 +57,14 @@ varying vec2 v_resolution;
 varying float v_time;
 varying vec4 v_foreground_color;
 varying vec4 v_background_color;
-varying float v_darkleft;
+varying float v_polarity;
 
 void main()
 {
     vec2 fish_ego_coords = gl_FragCoord.xy*u_pixel_scaling - v_fish_centroid;
 
     gl_FragColor = v_background_color;
-    if ( v_darkleft * dot(fish_ego_coords, v_fish_orientation) > 0.0 ) {
+    if ( v_polarity * dot(fish_ego_coords, v_fish_orientation) > 0.0 ) {
         gl_FragColor = v_foreground_color;
     } 
 }
@@ -84,7 +84,7 @@ class Phototaxis(VisualStim):
             refresh_rate: int = 120,
             vsync: bool = True,
             timings_file: str = 'display_timings.csv',
-            darkleft: bool = True
+            polarity: bool = True
         ) -> None:
 
         super().__init__(
@@ -106,11 +106,14 @@ class Phototaxis(VisualStim):
         self.fish_centroid_y = Value('d',0)
         self.index = Value('L',0)
         self.timestamp = Value('f',0)
+        if polarity:
+            self.polarity = Value('d',1)
+        else:
+            self.polarity = Value('d',-1)
         self.refresh_rate = refresh_rate
         self.fd = None
         self.tstart = 0
-        self.darkleft = darkleft
-
+        
         if os.path.exists(timings_file):
             prefix, ext = os.path.splitext(timings_file)
             timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
@@ -127,11 +130,6 @@ class Phototaxis(VisualStim):
                
         self.program['a_fish_pc2'] = [0,0]
         self.program['a_fish_centroid'] = [0,0]
-        if self.darkleft:
-            self.program['a_darkleft'] = 1.0
-        else:
-            self.program['a_darkleft'] = -1.0
-    
         self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
         self.timer.start()
         self.show()
@@ -154,6 +152,7 @@ class Phototaxis(VisualStim):
         self.program['a_fish_pc2'] = [self.fish_orientation_x.value, self.fish_orientation_y.value]
         self.program['a_fish_centroid'] = [self.fish_centroid_x.value, self.fish_centroid_y.value]
         self.program['a_time'] = t_local
+        self.program['a_polarity'] = self.polarity.value
         self.update()
         self.fd.write(f'{t_display},{self.index.value},{1e-6*(t_display - self.timestamp.value)},{self.fish_centroid_x.value},{self.fish_centroid_y.value},{self.fish_orientation_x.value},{self.fish_orientation_y.value},{t_local}\n')
 
@@ -167,3 +166,11 @@ class Phototaxis(VisualStim):
                 self.timestamp.value = timestamp
                 
             print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
+
+    def process_metadata(self, metadata) -> None:
+        control = metadata['visual_stim_control']
+        if control is not None:
+            if control['polarity']:
+                self.polarity.value = 1
+            else:
+                self.polarity.value = -1
