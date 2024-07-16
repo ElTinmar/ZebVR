@@ -1,7 +1,8 @@
 import os
 from video_tools import Polarity
 import numpy as np
-from camera_tools import OpenCV_Webcam
+from functools import partial
+from camera_tools import OpenCV_Webcam, MovieFileCam
 try:
     from camera_tools import XimeaCamera 
 except:
@@ -31,9 +32,12 @@ FOREGROUND_COLOR = (1.0, 0, 0, 1.0)
 BACKGROUND_COLOR = (0, 0, 0, 1.0)
 
 # camera
-CAMERA_CONSTRUCTOR = OpenCV_Webcam #XimeaCamera
-CAM_HEIGHT = 480 #2048
-CAM_WIDTH = 640 #2048
+movie_file = "/home/martin/Development/toy_data/single_freelyswimming_504x500px.avi"
+mov = partial(MovieFileCam, filename=movie_file)
+
+CAMERA_CONSTRUCTOR = mov # OpenCV_Webcam #XimeaCamera
+CAM_HEIGHT = 500 #2048
+CAM_WIDTH = 504 #2048
 CAM_OFFSETX = 0
 CAM_OFFSETY = 0
 CAM_EXPOSURE_MS = 1000
@@ -61,7 +65,7 @@ STEP_SIZE = 100
 # static background
 NUM_IMAGES = 40
 TIME_BETWEEN_IMAGES = 10
-POLARITY = Polarity.BRIGHT_ON_DARK #Polarity.DARK_ON_BRIGHT 
+POLARITY = Polarity.DARK_ON_BRIGHT 
 
 # tracking
 ANIMAL_TRACKING_PARAM = {
