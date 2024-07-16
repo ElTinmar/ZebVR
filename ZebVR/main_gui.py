@@ -61,8 +61,6 @@ class MainGui(QWidget):
         self.queues = queues
         self.worker_logger = worker_logger
         self.queue_logger = queue_logger
-        self.p_worker_logger = Process(target=self.worker_logger.run)
-        self.p_queue_logger = Process(target=self.queue_logger.run)
         self.create_components()
         self.layout_components()
 
@@ -294,6 +292,8 @@ class MainGui(QWidget):
     
     def start(self):
         self.create_dag()
+        self.p_worker_logger = Process(target=self.worker_logger.run)
+        self.p_queue_logger = Process(target=self.queue_logger.run)
         self.p_worker_logger.start()
         self.p_queue_logger.start()
         print('Starting DAG')
