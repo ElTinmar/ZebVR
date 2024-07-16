@@ -74,6 +74,9 @@ class VisualStim(app.Canvas):
         '''define a mapping between the data argument and shader variables'''
         pass
 
+    def process_metadata(self, metadata) -> None:
+        pass
+    
 class VisualStimWorker(WorkerNode):
 
     def __init__(self, stim: VisualStim, *args, **kwargs):
