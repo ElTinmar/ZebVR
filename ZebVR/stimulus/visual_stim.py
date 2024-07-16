@@ -86,6 +86,7 @@ class VisualStimWorker(WorkerNode):
         while not self.stop_event.is_set():
             app.process_events()
         self.stim.cleanup()
+        app.quit()
 
     def initialize(self) -> None:
         super().initialize()
