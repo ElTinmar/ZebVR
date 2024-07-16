@@ -98,13 +98,14 @@ class MainGui(QWidget):
                     name='background_subtracted'
                 )
 
+        self.dag.connect_data(
+            sender=self.workers['overlay'], 
+            receiver=self.workers['display'], 
+            queue=self.queues['overlay_to_display'], 
+            name='disp'
+        )
+
         for i in range(N_TRACKER_WORKERS):
-            self.dag.connect_data(
-                sender=self.workers[f'tracker_{i}'], 
-                receiver=self.workers['visual_stim'], 
-                queue=self.queues['tracker_to_stim'], 
-                name='stimulus'
-            )
             self.dag.connect_data(
                 sender=self.workers[f'tracker_{i}'], 
                 receiver=self.workers['overlay'], 
@@ -112,12 +113,13 @@ class MainGui(QWidget):
                 name='overlay'
             )
 
-        self.dag.connect_data(
-            sender=self.workers['overlay'], 
-            receiver=self.workers['display'], 
-            queue=self.queues['overlay_to_display'], 
-            name='disp'
-        )
+        for i in range(N_TRACKER_WORKERS):
+            self.dag.connect_data(
+                sender=self.workers[f'tracker_{i}'], 
+                receiver=self.workers['visual_stim'], 
+                queue=self.queues['tracker_to_stim'], 
+                name='stimulus'
+            )
 
         # metadata
         #self.dag.connect_metadata(
