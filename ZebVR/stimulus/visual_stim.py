@@ -53,8 +53,7 @@ class VisualStim(app.Canvas):
         self.program['u_transformation_matrix'] = self.transformation_matrix.T
         self.program['a_resolution'] = self.window_size
         self.program['a_time'] = 0
-        self.program['a_position'] = [(-1, -1), (-1, +1),
-                                    (+1, -1), (+1, +1)]
+        self.program['a_position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
         self.program['u_pixel_scaling'] = self.pixel_scaling
         
         self.t_start = None
