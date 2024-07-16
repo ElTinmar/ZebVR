@@ -66,7 +66,13 @@ class MainGui(QWidget):
 
     def create_dag(self):
 
-        #TODO maybe reset queues to make sure they are empty and monitored queues timings are reset
+        # clear workers and queues
+        
+        for key, worker in self.workers.items():
+            worker.reset()
+
+        for key, queue in self.queues.items():
+            queue.clear()
 
         self.dag = ProcessingDAG()
 
@@ -1428,9 +1434,6 @@ if __name__ == "__main__":
 
     ## DAG ----------------------------------------------------------------------
 
-    # TODO maybe create the DAG as a list of data edges and metadata edges
-    # (src, dest, queue, name) 
-    
     workers = {
         'camera': cam,
         'video_recorder': image_saver,
