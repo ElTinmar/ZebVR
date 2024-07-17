@@ -18,6 +18,9 @@ attribute vec4 a_foreground_color;
 attribute vec4 a_background_color;
 attribute vec2 a_fish_pc2;
 attribute vec2 a_fish_centroid; 
+attribute float a_spatial_frequency_deg;
+attribute float a_speed_deg_per_sec;
+
 
 varying vec2 v_fish_orientation;
 varying vec2 v_fish_centroid;
@@ -25,8 +28,8 @@ varying vec2 v_resolution;
 varying float v_time;
 varying vec4 v_foreground_color;
 varying vec4 v_background_color;
-varying float v_darkleft;
-
+varying float v_spatial_frequency_deg;
+varying float v_speed_deg_per_sec;
 
 void main()
 {
@@ -40,7 +43,8 @@ void main()
     v_background_color = a_background_color;
     v_resolution = a_resolution;
     v_time = a_time;
-    v_darkleft = a_darkleft;
+    v_spatial_frequency_deg = a_spatial_frequency_deg;
+    v_speed_deg_per_sec = a_speed_deg_per_sec;
 } 
 """
 
@@ -58,7 +62,8 @@ varying vec2 v_resolution;
 varying float v_time;
 varying vec4 v_foreground_color;
 varying vec4 v_background_color;
-varying float v_darkleft;
+varying float v_spatial_frequency_deg;
+varying float v_speed_deg_per_sec;
 float pi = 3.14159265358;
 
 void main()
@@ -66,10 +71,12 @@ void main()
     vec2 fish_ego_coords = gl_FragCoord.xy*u_pixel_scaling - v_fish_centroid;
 
     gl_FragColor = v_background_color;
-    if (mod(atan(fish_ego_coords.y,fish_ego_coords.x)+v_time,pi/4) > 0.5*pi/4 ) {
+    float angle = atan(fish_ego_coords.y,fish_ego_coords.x);
+    float phase = v_speed_deg_per_sec*v_time;
+    float freq = pi/180*v_spatial_frequency_deg;
+    if (mod(angle+phase,freq) > freq/2) {
         gl_FragColor = v_foreground_color;
     } 
-
 }
 """
 
@@ -87,7 +94,8 @@ class OKR(VisualStim):
             refresh_rate: int = 120,
             vsync: bool = True,
             timings_file: str = 'display_timings.csv',
-            darkleft: bool = True
+            spatial_frequency_deg: float = 90,
+            speed_deg_per_sec: float = 180,
         ) -> None:
 
         super().__init__(
@@ -100,7 +108,7 @@ class OKR(VisualStim):
             pixel_scaling, 
             vsync, 
             foreground_color, 
-            background_color
+            background_color,
         )
 
         self.fish_orientation_x = Value('d',0)
@@ -109,10 +117,11 @@ class OKR(VisualStim):
         self.fish_centroid_y = Value('d',0)
         self.index = Value('L',0)
         self.timestamp = Value('f',0)
+        self.spatial_frequency_deg = Value('d',spatial_frequency_deg)
+        self.speed_deg_per_sec = Value('d',speed_deg_per_sec)
         self.refresh_rate = refresh_rate
         self.fd = None
         self.tstart = 0
-        self.darkleft = darkleft
 
         if os.path.exists(timings_file):
             prefix, ext = os.path.splitext(timings_file)
@@ -130,11 +139,8 @@ class OKR(VisualStim):
                
         self.program['a_fish_pc2'] = [0,0]
         self.program['a_fish_centroid'] = [0,0]
-        if self.darkleft:
-            self.program['a_darkleft'] = 1.0
-        else:
-            self.program['a_darkleft'] = -1.0
-    
+        self.program['a_spatial_frequency_deg'] = self.spatial_frequency_deg.value
+        self.program['a_speed_deg_per_sec'] = self.speed_deg_per_sec.value
         self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
         self.timer.start()
         self.show()
@@ -157,6 +163,8 @@ class OKR(VisualStim):
         self.program['a_fish_pc2'] = [self.fish_orientation_x.value, self.fish_orientation_y.value]
         self.program['a_fish_centroid'] = [self.fish_centroid_x.value, self.fish_centroid_y.value]
         self.program['a_time'] = t_local
+        self.program['a_spatial_frequency_deg'] = self.spatial_frequency_deg.value
+        self.program['a_speed_deg_per_sec'] = self.speed_deg_per_sec.value
         self.update()
         self.fd.write(f'{t_display},{self.index.value},{1e-6*(t_display - self.timestamp.value)},{self.fish_centroid_x.value},{self.fish_centroid_y.value},{self.fish_orientation_x.value},{self.fish_orientation_y.value},{t_local}\n')
 
@@ -170,3 +178,9 @@ class OKR(VisualStim):
                 self.timestamp.value = timestamp
                 
             print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
+
+    def process_metadata(self, metadata) -> None:
+        control = metadata['visual_stim_control']
+        if control is not None:
+            self.spatial_frequency_deg.value = control['okr_spatial_frequency_deg']
+            self.grating_speed_deg_per_sec.value = control['okr_grating_speed_deg_per_sec']

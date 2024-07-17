@@ -3,7 +3,7 @@ from numpy.typing import NDArray
 from typing import Dict, Optional
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout
 from qt_widgets import LabeledDoubleSpinBox
-from ZebVR.config import OKR_SPATIAL_FREQUENCY_DEG, OKR_GRATING_SPEED_DEG_PER_SEC
+from ZebVR.config import OKR_SPATIAL_FREQUENCY_DEG, OKR_SPEED_DEG_PER_SEC
 
 class OKR_GUI(WorkerNode):
     
@@ -28,7 +28,7 @@ class OKR_GUI(WorkerNode):
         self.speed = LabeledDoubleSpinBox()
         self.speed.setText('speed (deg/s)')
         self.speed.setRange(-10_000,10_000)
-        self.speed.setValue(OKR_GRATING_SPEED_DEG_PER_SEC)
+        self.speed.setValue(OKR_SPEED_DEG_PER_SEC)
         self.speed.valueChanged.connect(self.on_change)
 
     def layout_components(self):

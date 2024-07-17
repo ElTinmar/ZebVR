@@ -44,7 +44,8 @@ from ZebVR.config import (
     N_BACKGROUND_WORKERS, N_TRACKER_WORKERS,
     BACKGROUND_GPU, T_REFRESH, RECORD_VIDEO,
     PHOTOTAXIS_POLARITY, OMR_SPATIAL_FREQUENCY_DEG,
-    OMR_GRATING_SPEED_DEG_PER_SEC
+    OMR_GRATING_SPEED_DEG_PER_SEC, OKR_SPEED_DEG_PER_SEC,
+    OKR_SPATIAL_FREQUENCY_DEG
 )
 
 class MainGui(QWidget):
@@ -438,7 +439,9 @@ if __name__ == "__main__":
         transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
         refresh_rate=PROJ_FPS,
         vsync=True,
-        pixel_scaling=PIXEL_SCALING
+        pixel_scaling=PIXEL_SCALING,
+        spatial_frequency_deg=OKR_SPATIAL_FREQUENCY_DEG,
+        speed_deg_per_sec=OKR_SPEED_DEG_PER_SEC
     )
 
     looming = Looming(
