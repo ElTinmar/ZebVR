@@ -8,7 +8,7 @@ import cv2
 from numpy.typing import NDArray
 
 from ZebVR.config import (
-    CALIBRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
+    REGISTRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
     PIXEL_SCALING, PIX_PER_MM, CALIBRATION_CHECK_DIAMETER_MM
 )
@@ -106,8 +106,8 @@ if __name__ == '__main__':
     proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, pixel_scaling=PIXEL_SCALING)
     proj.start()
 
-    print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
-    with open(CALIBRATION_FILE, 'r') as f:
+    print(f'Loading pre-existing calibration: {REGISTRATION_FILE}')
+    with open(REGISTRATION_FILE, 'r') as f:
         calibration = json.load(f)
 
     cam_to_proj = np.array(calibration['cam_to_proj'])
