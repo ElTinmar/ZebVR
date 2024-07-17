@@ -180,5 +180,5 @@ class OMR(VisualStim):
     def process_metadata(self, metadata) -> None:
         control = metadata['visual_stim_control']
         if control is not None:
-            self.spatial_frequency_deg.value = control['spatial_frequency_deg']
-            self.grating_speed_deg_per_sec.value = control['grating_speed_deg_per_sec']
+            self.spatial_frequency_deg.value = control['omr_spatial_frequency_deg']
+            self.grating_speed_deg_per_sec.value = control['omr_grating_speed_deg_per_sec']
