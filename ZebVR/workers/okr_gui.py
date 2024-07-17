@@ -27,7 +27,7 @@ class OKR_GUI(WorkerNode):
 
         self.speed = LabeledDoubleSpinBox()
         self.speed.setText('speed (deg/s)')
-        self.speed.setRange(0,10_000)
+        self.speed.setRange(-10_000,10_000)
         self.speed.setValue(OKR_GRATING_SPEED_DEG_PER_SEC)
         self.speed.valueChanged.connect(self.on_change)
 
