@@ -40,7 +40,7 @@ CAM_HEIGHT = 2048
 CAM_WIDTH = 2048
 CAM_OFFSETX = 0
 CAM_OFFSETY = 0
-CAM_EXPOSURE_MS = 1000
+CAM_EXPOSURE_MS = 3000
 CAM_GAIN = 0
 CAM_FPS = 60
 
@@ -84,7 +84,7 @@ ANIMAL_TRACKING_PARAM = {
     'animal_gamma': 1.0,
     'animal_contrast': 1.0,
     'min_animal_size_mm': 2.0,
-    'max_animal_size_mm': 60.0, 
+    'max_animal_size_mm': 300.0, 
     'min_animal_length_mm': 0,
     'max_animal_length_mm': 0,
     'min_animal_width_mm': 0,
@@ -101,7 +101,7 @@ BODY_TRACKING_PARAM = {
     'body_gamma': 1.0,
     'body_contrast': 3.0,
     'min_body_size_mm': 10.0,
-    'max_body_size_mm': 60.0,
+    'max_body_size_mm': 300.0,
     'min_body_length_mm': 0,
     'max_body_length_mm': 0,
     'min_body_width_mm': 0,
