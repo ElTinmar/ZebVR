@@ -4,16 +4,16 @@ from ZebVR.config import (
     CAM_WIDTH, CAM_HEIGHT,
     CAM_GAIN, CAM_FPS,
     CAM_OFFSETX, CAM_OFFSETY, CAMERA_CONSTRUCTOR,
-    CALIBRATION_SQUARE_SIZE_MM
+    CALIBRATION_SQUARE_SIZE_MM, CALIBRATION_CAM_EXPOSURE_MS
 )
 
 if __name__ == '__main__':
 
-    CAM_EXPOSURE_MS = 20_000
+    CALIBRATION_CAM_EXPOSURE_MS = 20_000
     CAM_FPS = 5
 
     camera = CAMERA_CONSTRUCTOR()
-    camera.set_exposure(CAM_EXPOSURE_MS)
+    camera.set_exposure(CALIBRATION_CAM_EXPOSURE_MS)
     camera.set_gain(CAM_GAIN)
     camera.set_framerate(CAM_FPS)
     camera.set_height(CAM_HEIGHT)
