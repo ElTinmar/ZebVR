@@ -12,7 +12,7 @@ from tqdm import tqdm
 import os
 from ZebVR.config import (
     CALIBRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
-    CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
+    CAM_GAIN, CAM_REGISTRATION_EXPOSURE_MS, CAM_REGISTRATION_FPS,
     CAM_OFFSETX, CAM_OFFSETY, 
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
     BRIGHTNESS, BLUR_SIZE_PX, CONTRAST, GAMMA,
@@ -140,9 +140,9 @@ if __name__ == '__main__':
     proj.start()
 
     camera = CAMERA_CONSTRUCTOR()
-    camera.set_exposure(CAM_EXPOSURE_MS)
+    camera.set_exposure(CAM_REGISTRATION_EXPOSURE_MS)
     camera.set_gain(CAM_GAIN)
-    camera.set_framerate(CAM_FPS)
+    camera.set_framerate(CAM_REGISTRATION_FPS)
     camera.set_height(CAM_HEIGHT)
     camera.set_width(CAM_WIDTH)
     camera.set_offsetX(CAM_OFFSETX)

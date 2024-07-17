@@ -24,6 +24,8 @@ if __name__ == '__main__':
         0:CALIBRATION_CHECKER_SIZE[0]*CALIBRATION_SQUARE_SIZE_MM:CALIBRATION_SQUARE_SIZE_MM,
         0:CALIBRATION_CHECKER_SIZE[1]*CALIBRATION_SQUARE_SIZE_MM:CALIBRATION_SQUARE_SIZE_MM
     ].T.reshape(-1,2)
+    
+    print(f"Press y to snap picture, and y to validate when checker is found. Press any key to cancel.")
 
     px_per_mm = get_camera_px_per_mm(
         cam=camera, 

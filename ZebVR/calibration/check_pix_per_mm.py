@@ -10,7 +10,7 @@ from numpy.typing import NDArray
 from ZebVR.config import (
     CALIBRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
-    PIXEL_SCALING, PIX_PER_MM, CAMERA_CONSTRUCTOR
+    PIXEL_SCALING, PIX_PER_MM, CALIBRATION_CHECK_DIAMETER_MM
 )
 
 VERT_SHADER_CALIBRATION = """
@@ -102,8 +102,7 @@ class Projector(app.Canvas, Process):
 
 if __name__ == '__main__':
 
-    DIAMETER_MM = 30
-
+    
     proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, pixel_scaling=PIXEL_SCALING)
     proj.start()
 
@@ -116,12 +115,14 @@ if __name__ == '__main__':
     # create a circle with given radius. Measure that it's the right size in the real world 
     mask_cam = np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.float32) 
     y,x = np.mgrid[0:CAM_HEIGHT,0:CAM_WIDTH]
-    radius = DIAMETER_MM/2 * PIX_PER_MM
+    radius = CALIBRATION_CHECK_DIAMETER_MM/2 * PIX_PER_MM
     ind = (x-CAM_WIDTH//2)**2 + (y-CAM_HEIGHT//2)**2 < radius**2
     mask_cam[ind] = 1.0
 
     # transform to proj space and measure if accurate
     mask_proj = cv2.warpAffine(mask_cam, cam_to_proj[:2,:],(PROJ_WIDTH, PROJ_HEIGHT)) # dsize = (cols,rows)
+
+    print(f"displaying circle with radius {CALIBRATION_CHECK_DIAMETER_MM}mm")
 
     # project point        
     proj.draw_image(mask_proj)
