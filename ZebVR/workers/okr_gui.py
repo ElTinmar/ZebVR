@@ -1,7 +1,9 @@
 from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout
+from qt_widgets import LabeledDoubleSpinBox
+from ZebVR.config import OMR_SPATIAL_FREQUENCY_DEG, OMR_GRATING_SPEED_DEG_PER_SEC
 
 class OKR_GUI(WorkerNode):
     
@@ -16,11 +18,22 @@ class OKR_GUI(WorkerNode):
 
     def declare_components(self):
         # spatial freq (degrees)
-        # speed
-        pass
+        self.spatial_freq = LabeledDoubleSpinBox()
+        self.spatial_freq.setText('Spatial frequence (deg)')
+        self.spatial_freq.setRange(0,10_000)
+        self.spatial_freq.setValue(OMR_SPATIAL_FREQUENCY_DEG)
+        self.spatial_freq.valueChanged.connect(self.on_change)
+
+        self.speed = LabeledDoubleSpinBox()
+        self.speed.setText('Grating speed (deg/s)')
+        self.speed.setRange(0,10_000)
+        self.speed.setValue(OMR_GRATING_SPEED_DEG_PER_SEC)
+        self.speed.valueChanged.connect(self.on_change)
 
     def layout_components(self):
-        pass
+        layout = QVBoxLayout(self.window)
+        layout.addWidget(self.spatial_freq)
+        layout.addWidget(self.speed)
 
     def on_change(self):
         self.updated = True
@@ -33,6 +46,8 @@ class OKR_GUI(WorkerNode):
         if self.updated:
             res = {}
             res['visual_stim_control'] = {}
+            res['visual_stim_control']['grating_speed_deg_per_sec'] = self.speed.value() 
+            res['visual_stim_control']['spatial_frequency_deg'] = self.spatial_freq.value()
             self.updated = False
             return res       
         else:

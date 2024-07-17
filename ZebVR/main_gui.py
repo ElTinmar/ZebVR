@@ -43,7 +43,8 @@ from ZebVR.config import (
     LOGFILE_WORKERS, LOGFILE_QUEUES,
     N_BACKGROUND_WORKERS, N_TRACKER_WORKERS,
     BACKGROUND_GPU, T_REFRESH, RECORD_VIDEO,
-    PHOTOTAXIS_POLARITY
+    PHOTOTAXIS_POLARITY, OMR_SPATIAL_FREQUENCY_DEG,
+    OMR_GRATING_SPEED_DEG_PER_SEC
 )
 
 class MainGui(QWidget):
@@ -423,7 +424,9 @@ if __name__ == "__main__":
         transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
         refresh_rate=PROJ_FPS,
         vsync=True,
-        pixel_scaling=PIXEL_SCALING
+        pixel_scaling=PIXEL_SCALING,
+        spatial_frequency_deg=OMR_SPATIAL_FREQUENCY_DEG,
+        grating_speed_deg_per_sec=OMR_GRATING_SPEED_DEG_PER_SEC
     )
 
     okr = OKR(
