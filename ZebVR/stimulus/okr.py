@@ -72,7 +72,7 @@ void main()
 
     gl_FragColor = v_background_color;
     float angle = atan(fish_ego_coords.y,fish_ego_coords.x);
-    float phase = v_speed_deg_per_sec*v_time;
+    float phase = pi/180*v_speed_deg_per_sec*v_time;
     float freq = pi/180*v_spatial_frequency_deg;
     if (mod(angle+phase,freq) > freq/2) {
         gl_FragColor = v_foreground_color;
@@ -183,4 +183,4 @@ class OKR(VisualStim):
         control = metadata['visual_stim_control']
         if control is not None:
             self.spatial_frequency_deg.value = control['okr_spatial_frequency_deg']
-            self.grating_speed_deg_per_sec.value = control['okr_grating_speed_deg_per_sec']
+            self.speed_deg_per_sec.value = control['okr_speed_deg_per_sec']

@@ -47,7 +47,7 @@ class OKR_GUI(WorkerNode):
         if self.updated:
             res = {}
             res['visual_stim_control'] = {}
-            res['visual_stim_control']['okr_grating_speed_deg_per_sec'] = self.speed.value() 
+            res['visual_stim_control']['okr_speed_deg_per_sec'] = self.speed.value() 
             res['visual_stim_control']['okr_spatial_frequency_deg'] = self.spatial_freq.value()
             self.updated = False
             return res       
