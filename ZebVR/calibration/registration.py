@@ -11,7 +11,7 @@ from geometry import to_homogeneous
 from tqdm import tqdm
 import os
 from ZebVR.config import (
-    CALIBRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
+    REGISTRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
     CAM_GAIN, CAM_REGISTRATION_EXPOSURE_MS, CAM_REGISTRATION_FPS,
     CAM_OFFSETX, CAM_OFFSETY, 
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
@@ -116,14 +116,14 @@ class Projector(app.Canvas, Process):
 if __name__ == '__main__':
 
     # if a calibration already exists, use it to refine the position of dots for calibration
-    if os.path.exists(CALIBRATION_FILE):
-        print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
+    if os.path.exists(REGISTRATION_FILE):
+        print(f'Loading pre-existing calibration: {REGISTRATION_FILE}')
         CAM_EXPOSURE_MS = 10_000
         CONTRAST = 5
         GAMMA = 1
         DOT_RADIUS = 0.3
         STEP_SIZE = 200
-        with open(CALIBRATION_FILE, 'r') as f:
+        with open(REGISTRATION_FILE, 'r') as f:
             prev_cal = json.load(f)
             cam_to_proj = np.array(prev_cal['cam_to_proj'])
             X,Y = np.mgrid[100:CAM_WIDTH:STEP_SIZE, 100:CAM_HEIGHT:STEP_SIZE]
@@ -206,6 +206,6 @@ if __name__ == '__main__':
     calibration['cam_to_proj'] = transformation.tolist()
     calibration['proj_to_cam'] = np.linalg.inv(transformation).tolist()
     
-    with open(CALIBRATION_FILE,'w') as f:
+    with open(REGISTRATION_FILE,'w') as f:
         json.dump(calibration, f)
     

@@ -27,7 +27,7 @@ from dagline import plot_logs as plot_worker_logs
 from ipc_tools import plot_logs as plot_queue_logs
 
 from ZebVR.config import (
-    CALIBRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
+    REGISTRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
     CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
     CAM_OFFSETX, CAM_OFFSETY, 
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS, PROJ_FPS,
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     RECORD_VIDEO = False
     DARKLEFT = True
 
-    with open(CALIBRATION_FILE, 'r') as f:
+    with open(REGISTRATION_FILE, 'r') as f:
         calibration = json.load(f)
 
     o = MultiFishOverlay_opencv(

@@ -11,7 +11,7 @@ from numpy.typing import NDArray
 from image_tools import regular_polygon, star
 
 from ZebVR.config import (
-    CALIBRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
+    REGISTRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
     CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
     CAM_OFFSETX, CAM_OFFSETY, 
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
@@ -142,8 +142,8 @@ if __name__ == '__main__':
     camera.set_offsetX(CAM_OFFSETX)
     camera.set_offsetY(CAM_OFFSETY)
 
-    print(f'Loading pre-existing calibration: {CALIBRATION_FILE}')
-    with open(CALIBRATION_FILE, 'r') as f:
+    print(f'Loading pre-existing calibration: {REGISTRATION_FILE}')
+    with open(REGISTRATION_FILE, 'r') as f:
         calibration = json.load(f)
 
     print(json.dumps(calibration, indent=2))

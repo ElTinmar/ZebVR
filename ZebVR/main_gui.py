@@ -32,7 +32,7 @@ from workers import (
 )
 
 from ZebVR.config import (
-    CALIBRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
+    REGISTRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
     CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
     CAM_OFFSETX, CAM_OFFSETY, 
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS, PROJ_FPS,
@@ -236,10 +236,10 @@ class MainGui(QWidget):
 
         layout = QVBoxLayout(self)
         layout.addStretch()
-        layout.addWidget(self.pixel_size_button)
-        layout.addWidget(self.check_pixel_size_button)
         layout.addWidget(self.registration_button)
         layout.addWidget(self.check_registration_button)
+        layout.addWidget(self.pixel_size_button)
+        layout.addWidget(self.check_pixel_size_button)
         layout.addWidget(self.label_method)
         layout.addWidget(self.background_method)
         layout.addWidget(self.background_button)
@@ -362,7 +362,7 @@ if __name__ == "__main__":
     set_start_method('spawn')
 
     try:
-        with open(CALIBRATION_FILE, 'r') as f:
+        with open(REGISTRATION_FILE, 'r') as f:
             calibration = json.load(f)
     except FileNotFoundError:
         print('Registration file not found, please run calibration first')
