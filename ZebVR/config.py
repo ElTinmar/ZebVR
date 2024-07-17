@@ -9,10 +9,10 @@ except:
     print('Ximea camera not imported')
 
 # general settings
-LCr = False #True
+LCr = True
 N_BACKGROUND_WORKERS = 1
 N_TRACKER_WORKERS = 1
-BACKGROUND_GPU = False
+BACKGROUND_GPU = True
 T_REFRESH = 1e-4
 RECORD_VIDEO = False
 
@@ -35,14 +35,14 @@ BACKGROUND_COLOR = (0, 0, 0, 1.0)
 movie_file = os.path.abspath(os.path.join(os.getcwd(), "../toy_data/single_freelyswimming_504x500px.avi"))
 mov = partial(MovieFileCam, filename=movie_file)
 
-CAMERA_CONSTRUCTOR = mov # OpenCV_Webcam #XimeaCamera
-CAM_HEIGHT = 500 #2048
-CAM_WIDTH = 504 #2048
+CAMERA_CONSTRUCTOR = XimeaCamera
+CAM_HEIGHT = 2048
+CAM_WIDTH = 2048
 CAM_OFFSETX = 0
 CAM_OFFSETY = 0
 CAM_EXPOSURE_MS = 1000
 CAM_GAIN = 0
-CAM_FPS = 100 #60
+CAM_FPS = 60
 
 PIX_PER_MM = 34.36
 
@@ -62,6 +62,9 @@ BLUR_SIZE_PX = 3
 DOT_RADIUS = 5
 STEP_SIZE = 100
 
+# pix/mm
+CALIBRATION_SQUARE_SIZE_MM = 3
+
 # static background
 NUM_IMAGES = 40
 TIME_BETWEEN_IMAGES = 10
@@ -76,7 +79,7 @@ ANIMAL_TRACKING_PARAM = {
     'animal_gamma': 1.0,
     'animal_contrast': 1.0,
     'min_animal_size_mm': 2.0,
-    'max_animal_size_mm': 240.0, # 60.0
+    'max_animal_size_mm': 60.0, 
     'min_animal_length_mm': 0,
     'max_animal_length_mm': 0,
     'min_animal_width_mm': 0,

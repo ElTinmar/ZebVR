@@ -3,7 +3,8 @@ from camera_tools import get_camera_px_per_mm
 from ZebVR.config import (
     CAM_WIDTH, CAM_HEIGHT,
     CAM_GAIN, CAM_FPS,
-    CAM_OFFSETX, CAM_OFFSETY, CAMERA_CONSTRUCTOR
+    CAM_OFFSETX, CAM_OFFSETY, CAMERA_CONSTRUCTOR,
+    CALIBRATION_SQUARE_SIZE_MM
 )
 
 if __name__ == '__main__':
@@ -21,12 +22,12 @@ if __name__ == '__main__':
     camera.set_offsetY(CAM_OFFSETY)
 
     checker_sz = (9,6)
-    square_sz_mm = 2
+    CALIBRATION_SQUARE_SIZE_MM = 3
 
     objp = np.zeros((np.prod(checker_sz),3), np.float32)
     objp[:,:2] = np.mgrid[
-        0:checker_sz[0]*square_sz_mm:square_sz_mm,
-        0:checker_sz[1]*square_sz_mm:square_sz_mm
+        0:checker_sz[0]*CALIBRATION_SQUARE_SIZE_MM:CALIBRATION_SQUARE_SIZE_MM,
+        0:checker_sz[1]*CALIBRATION_SQUARE_SIZE_MM:CALIBRATION_SQUARE_SIZE_MM
     ].T.reshape(-1,2)
 
     px_per_mm = get_camera_px_per_mm(
