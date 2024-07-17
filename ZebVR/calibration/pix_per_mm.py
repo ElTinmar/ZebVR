@@ -9,7 +9,6 @@ from ZebVR.config import (
 
 if __name__ == '__main__':
 
-
     camera = CAMERA_CONSTRUCTOR()
     camera.set_exposure(CALIBRATION_CAM_EXPOSURE_MS)
     camera.set_gain(CAM_GAIN)

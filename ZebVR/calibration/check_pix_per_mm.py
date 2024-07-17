@@ -115,14 +115,13 @@ if __name__ == '__main__':
     # create a circle with given radius. Measure that it's the right size in the real world 
     mask_cam = np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.float32) 
     y,x = np.mgrid[0:CAM_HEIGHT,0:CAM_WIDTH]
-    radius = CALIBRATION_CHECK_DIAMETER_MM/2 * PIX_PER_MM
-    ind = (x-CAM_WIDTH//2)**2 + (y-CAM_HEIGHT//2)**2 < radius**2
-    mask_cam[ind] = 1.0
+    for d in CALIBRATION_CHECK_DIAMETER_MM:
+        radius = d/2 * PIX_PER_MM
+        ind = ((x-CAM_WIDTH//2)**2 + (y-CAM_HEIGHT//2)**2 <= (radius+10)**2) & ((radius-10)**2 <= (x-CAM_WIDTH//2)**2 + (y-CAM_HEIGHT//2)**2)
+        mask_cam[ind] = 1.0
 
     # transform to proj space and measure if accurate
     mask_proj = cv2.warpAffine(mask_cam, cam_to_proj[:2,:],(PROJ_WIDTH, PROJ_HEIGHT)) # dsize = (cols,rows)
-
-    print(f"displaying circle with radius {CALIBRATION_CHECK_DIAMETER_MM}mm")
 
     # project point        
     proj.draw_image(mask_proj)
