@@ -148,7 +148,7 @@ void main()
     gl_FragColor = v_background_color;
 
     if (v_stim_select == PHOTOTAXIS) {
-        if ( v_phototaxis_polarity * fish_ego_coords.x ) > 0.0 ) {
+        if ( v_phototaxis_polarity * fish_ego_coords.x > 0.0 ) {
             gl_FragColor = v_foreground_color;
         } 
     }
@@ -157,7 +157,7 @@ void main()
         float phase = deg2rad(v_omr_speed_deg_per_sec)*v_time;
         vec2 orientation_vector = rotate2d(deg2rad(v_omr_angle_deg)) * vec2(0,1);
         float angle = deg2rad(v_omr_spatial_frequency_deg)*dot(fish_ego_coords, orientation_vector);
-        if (sin(angle+phase) > 0.0) {
+        if ( sin(angle+phase) > 0.0 ) {
             gl_FragColor = v_foreground_color;
         } 
     }
@@ -166,7 +166,7 @@ void main()
         float angle = atan(fish_ego_coords.y, fish_ego_coords.x);
         float phase = deg2rad(v_okr_speed_deg_per_sec)*v_time;
         float freq = deg2rad(v_okr_spatial_frequency_deg);
-        if (mod(angle+phase,freq) > freq/2) {
+        if ( mod(angle+phase,freq) > freq/2 ) {
             gl_FragColor = v_foreground_color;
         } 
     }
@@ -174,8 +174,8 @@ void main()
     if (v_stim_select == LOOMING) {
         float rel_time = mod(v_time,v_looming_period_sec); 
         float looming_on = float(rel_time<=v_looming_expansion_time_sec);
-        if (rel_time <= v_looming_period_sec/2) { 
-            if (distance(fish_ego_coords, v_looming_center_mm) <= u_pix_per_mm*v_looming_expansion_speed_mm_per_sec*rel_time*looming_on)
+        if ( rel_time <= v_looming_period_sec/2 ) { 
+            if ( distance(fish_ego_coords, v_looming_center_mm) <= u_pix_per_mm*v_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
             {
                 gl_FragColor = v_foreground_color;
             }
