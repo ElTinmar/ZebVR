@@ -5,6 +5,8 @@ from typing import Any
 import cv2
 import os
 
+#TODO: check zarr, maybe try cv2.imwrite
+
 class ImageSaverWorker(WorkerNode):
 
     def __init__(self, folder: str, zero_padding: int = 8, compress: bool = False, *args, **kwargs):
