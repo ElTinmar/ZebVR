@@ -37,6 +37,8 @@ varying vec2 v_fish_centroid;
 varying float v_time;
 
 // stim parameters
+attribute vec4 a_foreground_color;
+attribute vec4 a_background_color;
 attribute float a_stim_select;
 attribute float a_phototaxis_polarity;
 attribute float a_omr_spatial_frequency_deg;
@@ -48,9 +50,9 @@ attribute vec2 a_looming_center_mm;
 attribute float a_looming_period_sec;
 attribute float a_looming_expansion_time_sec;
 attribute float a_looming_expansion_speed_mm_per_sec;
-attribute vec4 a_foreground_color;
-attribute vec4 a_background_color;
 
+varying vec4 v_foreground_color;
+varying vec4 v_background_color;
 varying float v_stim_select;
 varying float v_phototaxis_polarity;
 varying float v_omr_spatial_frequency_deg;
@@ -62,8 +64,7 @@ varying vec2 v_looming_center_mm;
 varying float v_looming_period_sec;
 varying float v_looming_expansion_time_sec;
 varying float v_looming_expansion_speed_mm_per_sec;
-varying vec4 v_foreground_color;
-varying vec4 v_background_color;
+
 
 void main()
 {
@@ -77,6 +78,8 @@ void main()
     v_fish_mediolateral_axis = fish_mediolateral_axis.xy - fish_centroid.xy;
     v_time = a_time;
 
+    v_foreground_color = a_foreground_color;
+    v_background_color = a_background_color;
     v_stim_select = a_stim_select;
     v_phototaxis_polarity = a_phototaxis_polarity;
     v_omr_spatial_frequency_deg = a_omr_spatial_frequency_deg;
@@ -88,8 +91,7 @@ void main()
     v_looming_period_sec = a_looming_period_sec;
     v_looming_expansion_time_sec = a_looming_expansion_time_sec;
     v_looming_expansion_speed_mm_per_sec = a_looming_expansion_speed_mm_per_sec;
-    v_foreground_color = a_foreground_color;
-    v_background_color = a_background_color;
+
 } 
 """
 
