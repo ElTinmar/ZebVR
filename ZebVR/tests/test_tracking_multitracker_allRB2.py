@@ -187,7 +187,7 @@ if __name__ == "__main__":
         ('../toy_data/single_headembedded_544x380px_noparam.avi', '../toy_data/single_headembedded_544x380px_noparam.png', Polarity.DARK_ON_BRIGHT, 150),
         ('../toy_data/single_headembedded_544x380px_param.avi', '../toy_data/single_headembedded_544x380px_param.png', Polarity.DARK_ON_BRIGHT, 150)
     ]
-    INPUT_VIDEO, BACKGROUND_IMAGE, POLARITY, PIX_PER_MM = DATA[0]
+    INPUT_VIDEO, BACKGROUND_IMAGE, BACKGROUND_POLARITY, PIX_PER_MM = DATA[0]
 
     m = BufferedMovieFileCam(filename=INPUT_VIDEO, memsize_bytes=12e9)
     #m = MovieFileCam(filename='toy_data/freely_swimming_param.avi')
@@ -288,7 +288,7 @@ if __name__ == "__main__":
 
     b = BackroundImage(
         image_file_name = BACKGROUND_IMAGE,
-        polarity = POLARITY,
+        polarity = BACKGROUND_POLARITY,
         use_gpu = BACKGROUND_GPU
     )
     

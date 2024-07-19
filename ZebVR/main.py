@@ -32,7 +32,7 @@ from ZebVR.config import (
     CAM_OFFSETX, CAM_OFFSETY, 
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS, PROJ_FPS,
     PIXEL_SCALING, BACKGROUND_FILE, IMAGE_FOLDER,
-    POLARITY, ANIMAL_TRACKING_PARAM,
+    BACKGROUND_POLARITY, ANIMAL_TRACKING_PARAM,
     BODY_TRACKING_PARAM, FOREGROUND_COLOR, 
     BACKGROUND_COLOR
 )
@@ -256,7 +256,7 @@ if __name__ == "__main__":
 
     b = BackroundImage(
         image_file_name = BACKGROUND_FILE,
-        polarity = POLARITY,
+        polarity = BACKGROUND_POLARITY,
         use_gpu = BACKGROUND_GPU
     )
     

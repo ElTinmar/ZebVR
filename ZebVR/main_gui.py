@@ -14,7 +14,7 @@ from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ObjectRingBuffer2, QueueMP
 from video_tools import BackroundImage
 from dagline import receive_strategy, send_strategy, ProcessingDAG
-from ZebVR.stimulus import VisualStimWorker, Phototaxis, OMR, OKR, PreyCapture, Looming
+from ZebVR.stimulus import VisualStimWorker, GeneralStim
 
 import subprocess
 import numpy as np
@@ -28,24 +28,49 @@ from qt_widgets import LabeledEditLine, LabeledSpinBox
 
 from workers import (
     BackgroundSubWorker, CameraWorker, DisplayWorker, TrackerWorker, OverlayWorker, ImageSaverWorker, 
-    CameraGui, TrackerGui, PhototaxisGUI, OMR_GUI, OKR_GUI, LoomingGUI
+    CameraGui, TrackerGui, StimGUI
 )
 
 from ZebVR.config import (
-    REGISTRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
-    CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
-    CAM_OFFSETX, CAM_OFFSETY, 
-    PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS, PROJ_FPS,
-    PIXEL_SCALING, BACKGROUND_FILE, IMAGE_FOLDER,
-    POLARITY, ANIMAL_TRACKING_PARAM,
-    BODY_TRACKING_PARAM, FOREGROUND_COLOR, 
-    BACKGROUND_COLOR, CAMERA_CONSTRUCTOR,
-    LOGFILE_WORKERS, LOGFILE_QUEUES,
-    N_BACKGROUND_WORKERS, N_TRACKER_WORKERS,
-    BACKGROUND_GPU, T_REFRESH, RECORD_VIDEO,
-    PHOTOTAXIS_POLARITY, OMR_SPATIAL_FREQUENCY_DEG,
-    OMR_GRATING_SPEED_DEG_PER_SEC, OKR_SPEED_DEG_PER_SEC,
-    OKR_SPATIAL_FREQUENCY_DEG
+    REGISTRATION_FILE, 
+    CAM_WIDTH, 
+    CAM_HEIGHT,
+    CAM_EXPOSURE_MS, 
+    CAM_GAIN, 
+    CAM_FPS,
+    CAM_OFFSETX, 
+    CAM_OFFSETY, 
+    PROJ_WIDTH, 
+    PROJ_HEIGHT, 
+    PROJ_POS, 
+    PROJ_FPS,
+    PIXEL_SCALING, 
+    PIX_PER_MM,
+    BACKGROUND_FILE, 
+    IMAGE_FOLDER,
+    ANIMAL_TRACKING_PARAM,
+    BODY_TRACKING_PARAM, 
+    CAMERA_CONSTRUCTOR,
+    LOGFILE_WORKERS, 
+    LOGFILE_QUEUES,
+    BACKGROUND_POLARITY,
+    N_BACKGROUND_WORKERS, 
+    N_TRACKER_WORKERS,
+    BACKGROUND_GPU, 
+    T_REFRESH, 
+    RECORD_VIDEO,
+    PHOTOTAXIS_POLARITY,
+    OMR_SPATIAL_FREQUENCY_DEG,
+    OMR_ANGLE_DEG,
+    OMR_SPEED_DEG_PER_SEC,
+    OKR_SPATIAL_FREQUENCY_DEG,
+    OKR_SPEED_DEG_PER_SEC,
+    LOOMING_CENTER_MM,
+    LOOMING_PERIOD_SEC,
+    LOOMING_EXPANSION_TIME_SEC,
+    LOOMING_EXPANSION_SPEED_MM_PER_SEC,
+    FOREGROUND_COLOR, 
+    BACKGROUND_COLOR, 
 )
 
 class MainGui(QWidget):
@@ -203,18 +228,6 @@ class MainGui(QWidget):
 
         self.filename = LabeledEditLine()
         self.filename.setLabel('result file:')
-
-        self.label_stimulus = QLabel()
-        self.label_stimulus.setText('Visual simulus:')
-        
-        self.stimulus = QComboBox()
-        self.stimulus.addItem('Phototaxis')
-        self.stimulus.addItem('OMR')
-        self.stimulus.addItem('OKR')
-        self.stimulus.addItem('Looming')
-        self.stimulus.currentIndexChanged.connect(self.stimulus_changed)
-        self.workers['visual_stim'] = self.workers['stim_phototaxis']
-        self.workers['visual_stim_control'] = self.workers['phototaxis_control']
         
         self.start_button = QPushButton()
         self.start_button.setText('start')
@@ -248,8 +261,6 @@ class MainGui(QWidget):
         layout.addWidget(self.dpf)
         layout.addWidget(self.duration)
         layout.addWidget(self.filename)
-        layout.addWidget(self.label_stimulus)
-        layout.addWidget(self.stimulus)
         layout.addLayout(controls)
         layout.addStretch()
 
@@ -273,21 +284,6 @@ class MainGui(QWidget):
 
     def check_pix_per_mm(self):
         subprocess.Popen(['python', 'ZebVR/calibration/check_pix_per_mm.py'])
-    
-    def stimulus_changed(self):
-        print(self.stimulus.currentText())
-        if self.stimulus.currentText() == 'Phototaxis':
-            self.workers['visual_stim'] = self.workers['stim_phototaxis']
-            self.workers['visual_stim_control'] = self.workers['phototaxis_control']
-        elif self.stimulus.currentText() == 'OMR':
-            self.workers['visual_stim'] = self.workers['stim_omr']
-            self.workers['visual_stim_control'] = self.workers['omr_control']
-        elif self.stimulus.currentText() == 'OKR':
-            self.workers['visual_stim'] = self.workers['stim_okr']
-            self.workers['visual_stim_control'] = self.workers['okr_control']
-        elif self.stimulus.currentText() == 'Looming':
-            self.workers['visual_stim'] = self.workers['stim_looming']
-            self.workers['visual_stim_control'] = self.workers['looming_control']
     
     def start(self):
         self.create_dag()
@@ -399,11 +395,11 @@ if __name__ == "__main__":
 
     b = BackroundImage(
         image_file_name = BACKGROUND_FILE,
-        polarity = POLARITY,
+        polarity = BACKGROUND_POLARITY,
         use_gpu = BACKGROUND_GPU
     )
     
-    ptx = Phototaxis(
+    stim = GeneralStim(
         window_size=(PROJ_WIDTH, PROJ_HEIGHT),
         window_position=PROJ_POS,
         foreground_color=FOREGROUND_COLOR,
@@ -413,60 +409,35 @@ if __name__ == "__main__":
         refresh_rate=PROJ_FPS,
         vsync=True,
         pixel_scaling=PIXEL_SCALING,
-        polarity=PHOTOTAXIS_POLARITY
+        timings_file = 'display_timings.csv',
+        pix_per_mm= PIX_PER_MM,
+        stim_select = 0,
+        phototaxis_polarity = PHOTOTAXIS_POLARITY,
+        omr_spatial_frequency_deg = OMR_SPATIAL_FREQUENCY_DEG,
+        omr_angle_deg = OMR_ANGLE_DEG,
+        omr_speed_deg_per_sec = OMR_SPEED_DEG_PER_SEC,
+        okr_spatial_frequency_deg = OKR_SPATIAL_FREQUENCY_DEG,
+        okr_speed_deg_per_sec = OKR_SPEED_DEG_PER_SEC,
+        looming_center_mm = LOOMING_CENTER_MM,
+        looming_period_sec = LOOMING_PERIOD_SEC,
+        looming_expansion_time_sec = LOOMING_EXPANSION_TIME_SEC,
+        looming_expansion_speed_mm_per_sec = LOOMING_EXPANSION_SPEED_MM_PER_SEC
     )
 
-    omr = OMR(
-        window_size=(PROJ_WIDTH, PROJ_HEIGHT),
-        window_position=PROJ_POS,
-        foreground_color=FOREGROUND_COLOR,
-        background_color=BACKGROUND_COLOR,        
-        window_decoration=False,
-        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
-        refresh_rate=PROJ_FPS,
-        vsync=True,
-        pixel_scaling=PIXEL_SCALING,
-        spatial_frequency_deg=OMR_SPATIAL_FREQUENCY_DEG,
-        grating_speed_deg_per_sec=OMR_GRATING_SPEED_DEG_PER_SEC
+    stim_worker = VisualStimWorker(
+        stim=stim, 
+        name='visual_stim', 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_data_timeout=1.0
     )
 
-    okr = OKR(
-        window_size=(PROJ_WIDTH, PROJ_HEIGHT),
-        window_position=PROJ_POS,
-        foreground_color=FOREGROUND_COLOR,
-        background_color=BACKGROUND_COLOR,        
-        window_decoration=False,
-        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
-        refresh_rate=PROJ_FPS,
-        vsync=True,
-        pixel_scaling=PIXEL_SCALING,
-        spatial_frequency_deg=OKR_SPATIAL_FREQUENCY_DEG,
-        speed_deg_per_sec=OKR_SPEED_DEG_PER_SEC
-    )
-
-    looming = Looming(
-        window_size=(PROJ_WIDTH, PROJ_HEIGHT),
-        window_position=PROJ_POS,
-        foreground_color=FOREGROUND_COLOR,
-        background_color=BACKGROUND_COLOR,        
-        window_decoration=False,
-        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
-        refresh_rate=PROJ_FPS,
-        vsync=True,
-        pixel_scaling=PIXEL_SCALING
-    )
-
-    preycapture = PreyCapture(
-        window_size=(PROJ_WIDTH, PROJ_HEIGHT),
-        window_position=PROJ_POS,
-        foreground_color=FOREGROUND_COLOR,
-        background_color=BACKGROUND_COLOR,        
-        window_decoration=False,
-        transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
-        refresh_rate=PROJ_FPS,
-        vsync=True,
-        pixel_scaling=PIXEL_SCALING
-    )
+    stim_control = StimGUI(
+        name='stim_gui', 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_data_timeout=1.0
+    ) 
 
     cam_control = CameraGui(
         name='cam_gui',  
@@ -541,66 +512,6 @@ if __name__ == "__main__":
         logger_queues=queue_logger, 
         receive_data_timeout=1.0
     )
-
-    stim_phototaxis = VisualStimWorker(
-        stim=ptx, 
-        name='phototaxis', 
-        logger=worker_logger, 
-        logger_queues=queue_logger, 
-        receive_data_timeout=1.0
-    )
-
-    phototaxis_control = PhototaxisGUI(
-        name='phototaxisGUI', 
-        logger=worker_logger, 
-        logger_queues=queue_logger, 
-        receive_data_timeout=1.0
-    ) 
-
-    stim_omr = VisualStimWorker(
-        stim=omr, 
-        name='omr', 
-        logger=worker_logger, 
-        logger_queues=queue_logger, 
-        receive_data_timeout=1.0
-    )
-
-    omr_control = OMR_GUI(
-        name='OMR_GUI', 
-        logger=worker_logger, 
-        logger_queues=queue_logger, 
-        receive_data_timeout=1.0
-    ) 
-
-    stim_okr = VisualStimWorker(
-        stim=okr, 
-        name='okr', 
-        logger=worker_logger, 
-        logger_queues=queue_logger, 
-        receive_data_timeout=1.0
-    )
-
-    okr_control = OKR_GUI(
-        name='OKR_GUI', 
-        logger=worker_logger, 
-        logger_queues=queue_logger, 
-        receive_data_timeout=1.0
-    ) 
-
-    stim_looming = VisualStimWorker(
-        stim=looming, 
-        name='looming', 
-        logger=worker_logger, 
-        logger_queues=queue_logger, 
-        receive_data_timeout=1.0
-    )
-
-    looming_control = LoomingGUI(
-        name='LoomingGUI', 
-        logger=worker_logger, 
-        logger_queues=queue_logger, 
-        receive_data_timeout=1.0
-    ) 
 
     oly = OverlayWorker(
         overlay=o, 
@@ -707,8 +618,8 @@ if __name__ == "__main__":
     dt_tracking_body = np.dtype([
         ('index', int, (1,)),
         ('timestamp', float, (1,)), 
-        ('centroid', np.float32, (1,2)),
-        ('heading', np.float32, (2,))
+        ('centroid', np.float32, (2,)),
+        ('heading', np.float32, (2,2))
     ])
 
     q_tracking = MonitoredQueue(
@@ -740,19 +651,11 @@ if __name__ == "__main__":
     workers = {
         'camera': cam,
         'video_recorder': image_saver,
-        'visual_stim': stim_omr,
+        'visual_stim': stim_worker,
         'overlay': oly,
         'display': dis,
-        'stim_phototaxis': stim_phototaxis,
-        'stim_omr': stim_omr,
-        'stim_okr': stim_okr,
-        'stim_looming': stim_looming,
         'camera_gui': cam_control,
-        'visual_stim_control': omr_control,
-        'phototaxis_control': phototaxis_control,
-        'okr_control': okr_control,
-        'omr_control': omr_control,
-        'looming_control': looming_control,
+        'visual_stim_control': stim_control,
         'tracker_gui': tracker_control
     }
     for i in range(N_TRACKER_WORKERS):

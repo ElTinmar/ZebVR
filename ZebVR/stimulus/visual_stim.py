@@ -5,6 +5,7 @@ from dagline import WorkerNode
 from multiprocessing import Process
 from numpy.typing import NDArray
 import numpy as np 
+from config import PIX_PER_MM
 
 class VisualStim(app.Canvas):
 
@@ -14,6 +15,7 @@ class VisualStim(app.Canvas):
             fragment_shader: str,
             window_size: Tuple[int, int],
             window_position: Tuple[int, int],
+            pix_per_mm: float,
             window_decoration: bool = False,
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
@@ -32,6 +34,7 @@ class VisualStim(app.Canvas):
             self.transformation_matrix = transformation_matrix
             self.pixel_scaling = pixel_scaling
             self.vsync = vsync
+            self.pix_per_mm = pix_per_mm
 
     def initialize(self):
         # this needs to happen in the process where the window is displayed
@@ -55,6 +58,7 @@ class VisualStim(app.Canvas):
         self.program['a_time'] = 0
         self.program['a_position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
         self.program['u_pixel_scaling'] = self.pixel_scaling
+        self.program['u_pix_per_mm'] = self.pix_per_mm
         
         self.t_start = None
         self.first_frame = True 

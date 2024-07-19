@@ -27,7 +27,7 @@ class TrackerWorker(WorkerNode):
             tracking = self.tracker.track(image)
             res = {}
             k = tracking.animals.identities[0]
-            res['stimulus'] = (index, timestamp, tracking.animals.centroids[k,:], tracking.body[k].heading[:,1])
+            res['stimulus'] = (index, timestamp, tracking.animals.centroids[k,:], tracking.body[k].heading)
             res['overlay'] = (index, timestamp, tracking)
             return res
         except:
