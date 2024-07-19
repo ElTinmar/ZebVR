@@ -8,7 +8,6 @@ try:
 except:
     print('Ximea camera not imported')
 
-
 # general settings
 LCr = False #True
 N_BACKGROUND_WORKERS = 1
@@ -101,7 +100,7 @@ BODY_TRACKING_PARAM = {
     'body_brightness': 0.0,
     'body_gamma': 1.0,
     'body_contrast': 3.0,
-    'min_body_size_mm': 10.0,
+    'min_body_size_mm': 5.0,
     'max_body_size_mm': 300.0,
     'min_body_length_mm': 0,
     'max_body_length_mm': 0,
@@ -121,10 +120,10 @@ OMR_ANGLE_DEG = 0
 
 # OKR
 OKR_SPATIAL_FREQUENCY_DEG = 45
-OKR_SPEED_DEG_PER_SEC = 20
+OKR_SPEED_DEG_PER_SEC = 60
 
 # Loomings
 LOOMING_CENTER_MM = (1,1)
-LOOMING_PERIOD_SEC = 60
+LOOMING_PERIOD_SEC = 30
 LOOMING_EXPANSION_TIME_SEC = 10
-LOOMING_EXPANSION_SPEED_MM_PER_SEC = 100
+LOOMING_EXPANSION_SPEED_MM_PER_SEC = 10
