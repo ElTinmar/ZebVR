@@ -37,7 +37,7 @@ varying vec2 v_fish_centroid;
 varying float v_time;
 
 // stim parameters
-attribute int a_stim_select;
+attribute float a_stim_select;
 attribute float a_phototaxis_polarity;
 attribute float a_omr_spatial_frequency_deg;
 attribute float a_omr_angle_deg;
@@ -51,7 +51,7 @@ attribute float a_looming_expansion_speed_mm_per_sec;
 attribute vec4 a_foreground_color;
 attribute vec4 a_background_color;
 
-varying int v_stim_select;
+varying float v_stim_select;
 varying float v_phototaxis_polarity;
 varying float v_omr_spatial_frequency_deg;
 varying float v_omr_angle_deg;
@@ -107,7 +107,7 @@ varying vec2 v_fish_mediolateral_axis;
 varying float v_time;
 
 // stim parameters
-varying int v_stim_select;
+varying float v_stim_select;
 varying float v_phototaxis_polarity;
 varying float v_omr_spatial_frequency_deg;
 varying float v_omr_angle_deg;
@@ -124,10 +124,10 @@ varying vec4 v_background_color;
 // constants 
 struct Stim 
 {
-    const int PHOTOTAXIS = 0;
-    const int OMR = 1;
-    const int OKR = 2;
-    const int LOOMING = 3;
+    const float PHOTOTAXIS = 0;
+    const float OMR = 1;
+    const float OKR = 2;
+    const float LOOMING = 3;
 } stim;
 
 const float PI=3.14159;
@@ -177,7 +177,7 @@ void main()
 
     if v_stim_select == stim.LOOMING {
         float rel_time = mod(v_time,v_looming_period_sec); 
-        int looming_on = int(rel_time<=v_looming_expansion_time_sec);
+        float looming_on = float(rel_time<=v_looming_expansion_time_sec);
         if (rel_time <= v_looming_period_sec/2) { 
             if distance(fish_ego_coords, v_looming_center_mm) <= u_pix_per_mm*v_looming_expansion_speed_mm_per_sec*rel_time*looming_on
             {
