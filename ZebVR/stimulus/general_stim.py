@@ -229,7 +229,30 @@ class GeneralStim(VisualStim):
 
         # write csv headers
         self.fd = open(self.timings_file, 'w')
-        self.fd.write('t_display,image_index,latency,centroid_x,centroid_y,pc2_x,pc2_y,t_local\n')
+        headers = (
+            't_display',
+            't_local',
+            'image_index',
+            'latency',
+            'centroid_x',
+            'centroid_y',
+            'pc1_x',
+            'pc1_y',
+            'pc2_x',
+            'pc2_y',
+            'stim_id',
+            'phototaxis_polarity',
+            'omr_spatial_frequency_deg',
+            'omr_angle_deg',
+            'omr_speed_deg_per_sec',
+            'okr_speed_deg_per_sec',
+            'looming_center_mm_x',
+            'looming_center_mm_y',
+            'looming_period_sec',
+            'looming_expansion_time_sec',
+            'looming_expansion_speed_mm_per_sec'
+        )
+        self.fd.write(','.join(headers) + '\n')
         
         self.program['a_fish_caudorostral_axis'] = [0,0]
         self.program['a_fish_mediolateral_axis'] = [0,0]
@@ -286,7 +309,32 @@ class GeneralStim(VisualStim):
         self.program['u_looming_expansion_speed_mm_per_sec'] = self.looming_expansion_speed_mm_per_sec.value
 
         self.update()
-        self.fd.write(f'{t_display},{self.index.value},{1e-6*(t_display - self.timestamp.value)},{self.fish_centroid_x.value},{self.fish_centroid_y.value},{self.fish_mediolateral_axis_x.value},{self.fish_mediolateral_axis_y.value},{t_local}\n')
+
+        row = (
+            f'{t_display}',
+            f'{t_local}',
+            f'{self.index.value}',
+            f'{1e-6*(t_display - self.timestamp.value)}',
+            f'{self.fish_centroid_x.value}',
+            f'{self.fish_centroid_y.value}',
+            f'{self.fish_caudorostral_axis_x.value}',
+            f'{self.fish_caudorostral_axis_y.value}',
+            f'{self.fish_mediolateral_axis_x.value}',
+            f'{self.fish_mediolateral_axis_y.value}',
+            f'{self.stim_select.value}',
+            f'{self.phototaxis_polarity.value}',
+            f'{self.omr_spatial_frequency_deg.value}',
+            f'{self.omr_angle_deg.value}',
+            f'{self.omr_speed_deg_per_sec.value}',
+            f'{self.okr_spatial_frequency_deg.value}',
+            f'{self.okr_speed_deg_per_sec.value}',
+            f'{self.looming_center_mm_x.value}',
+            f'{self.looming_center_mm_y.value}',
+            f'{self.looming_period_sec.value}',
+            f'{self.looming_expansion_time_sec.value}',
+            f'{self.looming_expansion_speed_mm_per_sec.value}'
+        )
+        self.fd.write(','.join(row) + '\n')
 
     def process_data(self, data) -> None:
         if data is not None:
