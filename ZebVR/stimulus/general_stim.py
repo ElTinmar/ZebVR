@@ -7,7 +7,7 @@ from numpy.typing import NDArray
 import numpy as np 
 import os
 
-from config import (
+from ZebVR.config import (
     PIX_PER_MM,             
     PHOTOTAXIS_POLARITY,
     OMR_SPATIAL_FREQUENCY_DEG,
@@ -98,7 +98,7 @@ FRAG_SHADER = """
 uniform vec2 u_pixel_scaling; 
 
 // calibration
-uniform vec2 u_pix_per_mm; 
+uniform float u_pix_per_mm; 
 
 // tracking
 varying vec2 v_fish_centroid;

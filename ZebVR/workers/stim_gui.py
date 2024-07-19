@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
     QComboBox
 )
 
-from config import (
+from ZebVR.config import (
     PHOTOTAXIS_POLARITY, 
     OMR_SPATIAL_FREQUENCY_DEG, 
     OMR_SPEED_DEG_PER_SEC, 
@@ -170,7 +170,7 @@ class StimGUI(WorkerNode):
             res = {}
             res['visual_stim_control'] = {}
             res['visual_stim_control']['stim_select'] = self.stim_select.currentIndex()
-            res['visual_stim_control']['phototaxis_polarity'] = -1+2*self.polarity.isChecked()
+            res['visual_stim_control']['phototaxis_polarity'] = -1+2*self.phototaxis_polarity.isChecked()
             res['visual_stim_control']['omr_spatial_frequency_deg'] = self.omr_spatial_freq.value() 
             res['visual_stim_control']['omr_angle_deg'] = self.omr_angle.value()
             res['visual_stim_control']['omr_speed_deg_per_sec'] = self.omr_speed.value() 
