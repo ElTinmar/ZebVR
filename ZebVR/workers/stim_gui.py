@@ -10,7 +10,8 @@ from PyQt5.QtWidgets import (
     QStackedWidget, 
     QGroupBox, 
     QVBoxLayout, 
-    QComboBox
+    QComboBox,
+    QLabel
 )
 
 from ZebVR.config import (
@@ -41,6 +42,8 @@ class StimGUI(WorkerNode):
     def declare_components(self):
 
         self.stim_select = QComboBox()
+        self.stim_select.addItem('Dark')
+        self.stim_select.addItem('Bright')
         self.stim_select.addItem('Phototaxis')
         self.stim_select.addItem('OMR')
         self.stim_select.addItem('OKR')
@@ -145,6 +148,8 @@ class StimGUI(WorkerNode):
         self.looming_group.setLayout(looming_layout)
 
         self.stack = QStackedWidget()
+        self.stack.addWidget(QLabel())
+        self.stack.addWidget(QLabel())
         self.stack.addWidget(self.phototaxis_group)
         self.stack.addWidget(self.omr_group)
         self.stack.addWidget(self.okr_group)
@@ -181,7 +186,6 @@ class StimGUI(WorkerNode):
             res['visual_stim_control']['looming_period_sec'] = self.looming_period_sec.value()
             res['visual_stim_control']['looming_expansion_time_sec'] = self.looming_expansion_time_sec.value()
             res['visual_stim_control']['looming_expansion_speed_mm_per_sec'] = self.looming_expansion_speed_mm_per_sec.value()
-
             self.updated = False
             return res       
         else:

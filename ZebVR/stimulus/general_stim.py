@@ -26,7 +26,6 @@ uniform mat3 u_transformation_matrix;
 attribute vec2 a_position;
 
 // tracking
-attribute float a_time;
 attribute vec2 a_fish_caudorostral_axis;
 attribute vec2 a_fish_mediolateral_axis;
 attribute vec2 a_fish_centroid; 
@@ -34,36 +33,6 @@ attribute vec2 a_fish_centroid;
 varying vec2 v_fish_caudorostral_axis;
 varying vec2 v_fish_mediolateral_axis;
 varying vec2 v_fish_centroid;
-varying float v_time;
-
-// stim parameters
-attribute vec4 a_foreground_color;
-attribute vec4 a_background_color;
-attribute float a_stim_select;
-attribute float a_phototaxis_polarity;
-attribute float a_omr_spatial_frequency_deg;
-attribute float a_omr_angle_deg;
-attribute float a_omr_speed_deg_per_sec;
-attribute float a_okr_spatial_frequency_deg;
-attribute float a_okr_speed_deg_per_sec;
-attribute vec2 a_looming_center_mm;
-attribute float a_looming_period_sec;
-attribute float a_looming_expansion_time_sec;
-attribute float a_looming_expansion_speed_mm_per_sec;
-
-varying vec4 v_foreground_color;
-varying vec4 v_background_color;
-varying float v_stim_select;
-varying float v_phototaxis_polarity;
-varying float v_omr_spatial_frequency_deg;
-varying float v_omr_angle_deg;
-varying float v_omr_speed_deg_per_sec;
-varying float v_okr_spatial_frequency_deg;
-varying float v_okr_speed_deg_per_sec;
-varying vec2 v_looming_center_mm;
-varying float v_looming_period_sec;
-varying float v_looming_expansion_time_sec;
-varying float v_looming_expansion_speed_mm_per_sec;
 
 void main()
 {
@@ -75,22 +44,6 @@ void main()
     v_fish_centroid = fish_centroid.xy;
     v_fish_caudorostral_axis = fish_caudorostral_axis.xy - fish_centroid.xy;
     v_fish_mediolateral_axis = fish_mediolateral_axis.xy - fish_centroid.xy;
-    v_time = a_time;
-
-    v_foreground_color = a_foreground_color;
-    v_background_color = a_background_color;
-    v_stim_select = a_stim_select;
-    v_phototaxis_polarity = a_phototaxis_polarity;
-    v_omr_spatial_frequency_deg = a_omr_spatial_frequency_deg;
-    v_omr_speed_deg_per_sec = a_omr_speed_deg_per_sec;
-    v_omr_angle_deg = a_omr_angle_deg;
-    v_okr_spatial_frequency_deg = a_okr_spatial_frequency_deg;
-    v_okr_speed_deg_per_sec = a_okr_speed_deg_per_sec;
-    v_looming_center_mm = a_looming_center_mm;
-    v_looming_period_sec = a_looming_period_sec;
-    v_looming_expansion_time_sec = a_looming_expansion_time_sec;
-    v_looming_expansion_speed_mm_per_sec = a_looming_expansion_speed_mm_per_sec;
-
 } 
 """
 
@@ -105,28 +58,30 @@ uniform float u_pix_per_mm;
 varying vec2 v_fish_centroid;
 varying vec2 v_fish_caudorostral_axis;
 varying vec2 v_fish_mediolateral_axis;
-varying float v_time;
+uniform float u_time;
 
 // stim parameters
-varying vec4 v_foreground_color;
-varying vec4 v_background_color;
-varying float v_stim_select;
-varying float v_phototaxis_polarity;
-varying float v_omr_spatial_frequency_deg;
-varying float v_omr_angle_deg;
-varying float v_omr_speed_deg_per_sec;
-varying float v_okr_spatial_frequency_deg;
-varying float v_okr_speed_deg_per_sec;
-varying vec2 v_looming_center_mm;
-varying float v_looming_period_sec;
-varying float v_looming_expansion_time_sec;
-varying float v_looming_expansion_speed_mm_per_sec;
+uniform vec4 u_foreground_color;
+uniform vec4 u_background_color;
+uniform float u_stim_select;
+uniform float u_phototaxis_polarity;
+uniform float u_omr_spatial_frequency_deg;
+uniform float u_omr_angle_deg;
+uniform float u_omr_speed_deg_per_sec;
+uniform float u_okr_spatial_frequency_deg;
+uniform float u_okr_speed_deg_per_sec;
+uniform vec2 u_looming_center_mm;
+uniform float u_looming_period_sec;
+uniform float u_looming_expansion_time_sec;
+uniform float u_looming_expansion_speed_mm_per_sec;
 
 // constants 
-const int PHOTOTAXIS = 0;
-const int OMR = 1;
-const int OKR = 2;
-const int LOOMING = 3;
+const int DARK = 0;
+const int BRIGHT = 1;
+const int PHOTOTAXIS = 2;
+const int OMR = 3;
+const int OKR = 4;
+const int LOOMING = 5;
 const float PI=3.14159;
 
 // helper functions
@@ -146,39 +101,47 @@ void main()
     mat2 change_of_basis = mat2(v_fish_caudorostral_axis, v_fish_mediolateral_axis);
     vec2 fish_ego_coords = change_of_basis*(pixel_correct_coords - v_fish_centroid);
     
-    gl_FragColor = v_background_color;
+    gl_FragColor = u_background_color;
 
-    if (v_stim_select == 100) {
-        if ( v_phototaxis_polarity * fish_ego_coords.x > 0.0 ) {
-            gl_FragColor = v_foreground_color;
+    if (u_stim_select == DARK) {
+        gl_FragColor = u_background_color;
+    }
+
+    if (u_stim_select == BRIGHT) {
+        gl_FragColor = u_foreground_color;
+    }
+
+    if (u_stim_select == PHOTOTAXIS) {
+        if ( u_phototaxis_polarity * fish_ego_coords.x > 0.0 ) {
+            gl_FragColor = u_foreground_color;
         } 
     }
 
-    if (v_stim_select == OMR) {
-        float phase = deg2rad(v_omr_speed_deg_per_sec)*v_time;
-        vec2 orientation_vector = rotate2d(deg2rad(v_omr_angle_deg)) * vec2(0,1);
-        float angle = deg2rad(v_omr_spatial_frequency_deg)*dot(fish_ego_coords, orientation_vector);
+    if (u_stim_select == OMR) {
+        float phase = deg2rad(u_omr_speed_deg_per_sec)*u_time;
+        vec2 orientation_vector = rotate2d(deg2rad(u_omr_angle_deg)) * vec2(0,1);
+        float angle = deg2rad(u_omr_spatial_frequency_deg)*dot(fish_ego_coords, orientation_vector);
         if ( sin(angle+phase) > 0.0 ) {
-            gl_FragColor = v_foreground_color;
+            gl_FragColor = u_foreground_color;
         } 
     }
 
-    if (v_stim_select == OKR) {
+    if (u_stim_select == OKR) {
         float angle = atan(fish_ego_coords.y, fish_ego_coords.x);
-        float phase = deg2rad(v_okr_speed_deg_per_sec)*v_time;
-        float freq = deg2rad(v_okr_spatial_frequency_deg);
-        if ( mod(angle+phase,freq) > freq/2 ) {
-            gl_FragColor = v_foreground_color;
+        float phase = deg2rad(u_okr_speed_deg_per_sec)*u_time;
+        float freq = deg2rad(u_okr_spatial_frequency_deg);
+        if ( mod(angle+phase, freq) > freq/2 ) {
+            gl_FragColor = u_foreground_color;
         } 
     }
 
-    if (v_stim_select == LOOMING) {
-        float rel_time = mod(v_time,v_looming_period_sec); 
-        float looming_on = float(rel_time<=v_looming_expansion_time_sec);
-        if ( rel_time <= v_looming_period_sec/2 ) { 
-            if ( distance(fish_ego_coords, v_looming_center_mm) <= u_pix_per_mm*v_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
+    if (u_stim_select == LOOMING) {
+        float rel_time = mod(u_time, u_looming_period_sec); 
+        float looming_on = float(rel_time<=u_looming_expansion_time_sec);
+        if ( rel_time <= u_looming_period_sec/2 ) { 
+            if ( distance(fish_ego_coords, u_looming_center_mm) <= u_pix_per_mm*u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
             {
-                gl_FragColor = v_foreground_color;
+                gl_FragColor = u_foreground_color;
             }
         }
     } 
@@ -200,7 +163,7 @@ class GeneralStim(VisualStim):
             refresh_rate: int = 120,
             vsync: bool = True,
             timings_file: str = 'display_timings.csv',
-            stim_select: int = 0,
+            stim_select: float = 0,
             phototaxis_polarity: int = PHOTOTAXIS_POLARITY,
             omr_spatial_frequency_deg: float = OMR_SPATIAL_FREQUENCY_DEG,
             omr_angle_deg: float = OMR_ANGLE_DEG,
@@ -228,28 +191,28 @@ class GeneralStim(VisualStim):
         self.foreground_color = foreground_color
         self.background_color = background_color
 
-        self.fish_mediolateral_axis_x = Value('d',0)
-        self.fish_mediolateral_axis_y = Value('d',0)
-        self.fish_caudorostral_axis_x = Value('d',0)
-        self.fish_caudorostral_axis_y = Value('d',0)
-        self.fish_centroid_x = Value('d',0)
-        self.fish_centroid_y = Value('d',0)
-        self.index = Value('L',0)
-        self.timestamp = Value('f',0)
+        self.index = Value('L', 0)
+        self.timestamp = Value('f', 0)
+        self.fish_mediolateral_axis_x = Value('d', 0)
+        self.fish_mediolateral_axis_y = Value('d', 0)
+        self.fish_caudorostral_axis_x = Value('d', 0)
+        self.fish_caudorostral_axis_y = Value('d', 0)
+        self.fish_centroid_x = Value('d', 0)
+        self.fish_centroid_y = Value('d', 0)
 
         # stim parameters        
-        self.stim_select = Value('d',stim_select) 
-        self.phototaxis_polarity = Value('d',phototaxis_polarity) 
-        self.omr_spatial_frequency_deg = Value('f',omr_spatial_frequency_deg)
-        self.omr_angle_deg = Value('f',omr_angle_deg)
-        self.omr_speed_deg_per_sec = Value('f',omr_speed_deg_per_sec)
-        self.okr_spatial_frequency_deg = Value('f',okr_spatial_frequency_deg)
-        self.okr_speed_deg_per_sec = Value('f',okr_speed_deg_per_sec)
-        self.looming_center_mm_x = Value('f',looming_center_mm[0])
-        self.looming_center_mm_y = Value('f',looming_center_mm[1])
-        self.looming_period_sec = Value('f',looming_period_sec)
-        self.looming_expansion_time_sec = Value('f',looming_expansion_time_sec)
-        self.looming_expansion_speed_mm_per_sec = Value('f',looming_expansion_speed_mm_per_sec)
+        self.stim_select = Value('d', stim_select) 
+        self.phototaxis_polarity = Value('d', phototaxis_polarity) 
+        self.omr_spatial_frequency_deg = Value('d', omr_spatial_frequency_deg)
+        self.omr_angle_deg = Value('d', omr_angle_deg)
+        self.omr_speed_deg_per_sec = Value('d', omr_speed_deg_per_sec)
+        self.okr_spatial_frequency_deg = Value('d', okr_spatial_frequency_deg)
+        self.okr_speed_deg_per_sec = Value('d', okr_speed_deg_per_sec)
+        self.looming_center_mm_x = Value('d', looming_center_mm[0])
+        self.looming_center_mm_y = Value('d', looming_center_mm[1])
+        self.looming_period_sec = Value('d', looming_period_sec)
+        self.looming_expansion_time_sec = Value('d', looming_expansion_time_sec)
+        self.looming_expansion_speed_mm_per_sec = Value('d', looming_expansion_speed_mm_per_sec)
         
         self.refresh_rate = refresh_rate
         self.fd = None
@@ -268,22 +231,22 @@ class GeneralStim(VisualStim):
         self.fd = open(self.timings_file, 'w')
         self.fd.write('t_display,image_index,latency,centroid_x,centroid_y,pc2_x,pc2_y,t_local\n')
         
-        self.program['a_foreground_color'] = self.foreground_color
-        self.program['a_background_color'] = self.background_color
         self.program['a_fish_caudorostral_axis'] = [0,0]
         self.program['a_fish_mediolateral_axis'] = [0,0]
         self.program['a_fish_centroid'] = [0,0]
-        self.program['a_stim_select'] = self.stim_select.value
-        self.program['a_phototaxis_polarity'] = self.phototaxis_polarity.value
-        self.program['a_omr_spatial_frequency_deg'] = self.omr_spatial_frequency_deg.value
-        self.program['a_omr_angle_deg'] = self.omr_angle_deg.value
-        self.program['a_omr_speed_deg_per_sec'] = self.omr_speed_deg_per_sec.value
-        self.program['a_okr_spatial_frequency_deg'] = self.okr_spatial_frequency_deg.value
-        self.program['a_okr_speed_deg_per_sec'] = self.okr_speed_deg_per_sec.value
-        self.program['a_looming_center_mm'] = [self.looming_center_mm_x.value, self.looming_center_mm_y.value]
-        self.program['a_looming_period_sec'] = self.looming_period_sec.value
-        self.program['a_looming_expansion_time_sec'] = self.looming_expansion_time_sec.value
-        self.program['a_looming_expansion_speed_mm_per_sec'] = self.looming_expansion_speed_mm_per_sec.value
+        self.program['u_foreground_color'] = self.foreground_color
+        self.program['u_background_color'] = self.background_color
+        self.program['u_stim_select'] = self.stim_select.value
+        self.program['u_phototaxis_polarity'] = self.phototaxis_polarity.value
+        self.program['u_omr_spatial_frequency_deg'] = self.omr_spatial_frequency_deg.value
+        self.program['u_omr_angle_deg'] = self.omr_angle_deg.value
+        self.program['u_omr_speed_deg_per_sec'] = self.omr_speed_deg_per_sec.value
+        self.program['u_okr_spatial_frequency_deg'] = self.okr_spatial_frequency_deg.value
+        self.program['u_okr_speed_deg_per_sec'] = self.okr_speed_deg_per_sec.value
+        self.program['u_looming_center_mm'] = [self.looming_center_mm_x.value, self.looming_center_mm_y.value]
+        self.program['u_looming_period_sec'] = self.looming_period_sec.value
+        self.program['u_looming_expansion_time_sec'] = self.looming_expansion_time_sec.value
+        self.program['u_looming_expansion_speed_mm_per_sec'] = self.looming_expansion_speed_mm_per_sec.value
 
         self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
         self.timer.start()
@@ -306,21 +269,21 @@ class GeneralStim(VisualStim):
         t_display = time.perf_counter_ns()
         t_local = 1e-9*(t_display - self.tstart)
 
-        self.program['a_time'] = t_local
         self.program['a_fish_caudorostral_axis'] = [self.fish_caudorostral_axis_x.value, self.fish_caudorostral_axis_y.value]
         self.program['a_fish_mediolateral_axis'] = [self.fish_mediolateral_axis_x.value, self.fish_mediolateral_axis_y.value]
         self.program['a_fish_centroid'] = [self.fish_centroid_x.value, self.fish_centroid_y.value]
-        self.program['a_stim_select'] = self.stim_select.value
-        self.program['a_phototaxis_polarity'] = self.phototaxis_polarity.value
-        self.program['a_omr_spatial_frequency_deg'] = self.omr_spatial_frequency_deg.value
-        self.program['a_omr_angle_deg'] = self.omr_angle_deg.value
-        self.program['a_omr_speed_deg_per_sec'] = self.omr_speed_deg_per_sec.value
-        self.program['a_okr_spatial_frequency_deg'] = self.okr_spatial_frequency_deg.value
-        self.program['a_okr_speed_deg_per_sec'] = self.okr_speed_deg_per_sec.value
-        self.program['a_looming_center_mm'] = [self.looming_center_mm_x.value, self.looming_center_mm_y.value]
-        self.program['a_looming_period_sec'] = self.looming_period_sec.value
-        self.program['a_looming_expansion_time_sec'] = self.looming_expansion_time_sec.value
-        self.program['a_looming_expansion_speed_mm_per_sec'] = self.looming_expansion_speed_mm_per_sec.value
+        self.program['u_time'] = t_local
+        self.program['u_stim_select'] = self.stim_select.value
+        self.program['u_phototaxis_polarity'] = self.phototaxis_polarity.value
+        self.program['u_omr_spatial_frequency_deg'] = self.omr_spatial_frequency_deg.value
+        self.program['u_omr_angle_deg'] = self.omr_angle_deg.value
+        self.program['u_omr_speed_deg_per_sec'] = self.omr_speed_deg_per_sec.value
+        self.program['u_okr_spatial_frequency_deg'] = self.okr_spatial_frequency_deg.value
+        self.program['u_okr_speed_deg_per_sec'] = self.okr_speed_deg_per_sec.value
+        self.program['u_looming_center_mm'] = [self.looming_center_mm_x.value, self.looming_center_mm_y.value]
+        self.program['u_looming_period_sec'] = self.looming_period_sec.value
+        self.program['u_looming_expansion_time_sec'] = self.looming_expansion_time_sec.value
+        self.program['u_looming_expansion_speed_mm_per_sec'] = self.looming_expansion_speed_mm_per_sec.value
 
         self.update()
         self.fd.write(f'{t_display},{self.index.value},{1e-6*(t_display - self.timestamp.value)},{self.fish_centroid_x.value},{self.fish_centroid_y.value},{self.fish_mediolateral_axis_x.value},{self.fish_mediolateral_axis_y.value},{t_local}\n')

@@ -47,9 +47,9 @@ class VisualStim(app.Canvas):
         self.program = gloo.Program(self.vertex_shader, self.fragment_shader)
 
         # set attributes, these must be present in the vertex shader
-        self.program['u_transformation_matrix'] = self.transformation_matrix.T
-        self.program['a_time'] = 0
         self.program['a_position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
+        self.program['u_transformation_matrix'] = self.transformation_matrix.T
+        self.program['u_time'] = 0
         self.program['u_pixel_scaling'] = self.pixel_scaling
         self.program['u_pix_per_mm'] = self.pix_per_mm
         
