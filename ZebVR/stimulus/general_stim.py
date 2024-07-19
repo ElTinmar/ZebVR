@@ -118,18 +118,18 @@ void main()
     }
 
     if (u_stim_select == OMR) {
-        float phase = deg2rad(u_omr_speed_deg_per_sec)*u_time;
-        vec2 orientation_vector = rotate2d(deg2rad(u_omr_angle_deg)) * vec2(0,1);
+        vec2 orientation_vector = rotate2d(deg2rad(u_omr_angle_deg))*vec2(0,1);
         float angle = deg2rad(u_omr_spatial_frequency_deg)*dot(fish_ego_coords, orientation_vector);
+        float phase = deg2rad(u_omr_speed_deg_per_sec)*u_time;
         if ( sin(angle+phase) > 0.0 ) {
             gl_FragColor = u_foreground_color;
         } 
     }
 
     if (u_stim_select == OKR) {
+        float freq = deg2rad(u_okr_spatial_frequency_deg);
         float angle = atan(fish_ego_coords.y, fish_ego_coords.x);
         float phase = deg2rad(u_okr_speed_deg_per_sec)*u_time;
-        float freq = deg2rad(u_okr_spatial_frequency_deg);
         if ( mod(angle+phase, freq) > freq/2 ) {
             gl_FragColor = u_foreground_color;
         } 
