@@ -65,7 +65,6 @@ varying float v_looming_period_sec;
 varying float v_looming_expansion_time_sec;
 varying float v_looming_expansion_speed_mm_per_sec;
 
-
 void main()
 {
     vec3 fish_centroid = u_transformation_matrix * vec3(a_fish_centroid, 1.0) ;
@@ -109,6 +108,8 @@ varying vec2 v_fish_mediolateral_axis;
 varying float v_time;
 
 // stim parameters
+varying vec4 v_foreground_color;
+varying vec4 v_background_color;
 varying float v_stim_select;
 varying float v_phototaxis_polarity;
 varying float v_omr_spatial_frequency_deg;
@@ -120,14 +121,12 @@ varying vec2 v_looming_center_mm;
 varying float v_looming_period_sec;
 varying float v_looming_expansion_time_sec;
 varying float v_looming_expansion_speed_mm_per_sec;
-varying vec4 v_foreground_color;
-varying vec4 v_background_color;
 
 // constants 
-const float PHOTOTAXIS = 0;
-const float OMR = 1;
-const float OKR = 2;
-const float LOOMING = 3;
+const int PHOTOTAXIS = 0;
+const int OMR = 1;
+const int OKR = 2;
+const int LOOMING = 3;
 const float PI=3.14159;
 
 // helper functions
@@ -146,10 +145,10 @@ void main()
     vec2 pixel_correct_coords = gl_FragCoord.xy*u_pixel_scaling;
     mat2 change_of_basis = mat2(v_fish_caudorostral_axis, v_fish_mediolateral_axis);
     vec2 fish_ego_coords = change_of_basis*(pixel_correct_coords - v_fish_centroid);
-
+    
     gl_FragColor = v_background_color;
 
-    if (v_stim_select == PHOTOTAXIS) {
+    if (v_stim_select == 100) {
         if ( v_phototaxis_polarity * fish_ego_coords.x > 0.0 ) {
             gl_FragColor = v_foreground_color;
         } 
@@ -335,7 +334,7 @@ class GeneralStim(VisualStim):
                 self.fish_caudorostral_axis_x.value, self.fish_caudorostral_axis_y.value = heading[:,0]
                 self.fish_mediolateral_axis_x.value, self.fish_mediolateral_axis_y.value = heading[:,1]
                 self.fish_centroid_x.value, self.fish_centroid_y.value = centroid
-                
+
             print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
 
     def process_metadata(self, metadata) -> None:
