@@ -122,20 +122,16 @@ varying vec4 v_foreground_color;
 varying vec4 v_background_color;
 
 // constants 
-struct Stim 
-{
-    const float PHOTOTAXIS = 0;
-    const float OMR = 1;
-    const float OKR = 2;
-    const float LOOMING = 3;
-} stim;
-
+const float PHOTOTAXIS = 0;
+const float OMR = 1;
+const float OKR = 2;
+const float LOOMING = 3;
 const float PI=3.14159;
 
 // helper functions
 float deg2rad(float deg) {
     float rad = PI/180 * deg;
-    return rad
+    return rad;
 }
 
 mat2 rotate2d(float angle_rad){
@@ -151,13 +147,13 @@ void main()
 
     gl_FragColor = v_background_color;
 
-    if v_stim_select == stim.PHOTOTAXIS {
+    if v_stim_select == PHOTOTAXIS {
         if ( v_phototaxis_polarity * fish_ego_coords.x ) > 0.0 ) {
             gl_FragColor = v_foreground_color;
         } 
     }
 
-    if v_stim_select == stim.OMR {
+    if v_stim_select == OMR {
         float phase = deg2rad(v_omr_speed_deg_per_sec)*v_time;
         vec2 orientation_vector = rotate2d(deg2rad(v_omr_angle_deg)) * vec2(0,1);
         float angle = deg2rad(v_omr_spatial_frequency_deg)*dot(fish_ego_coords, orientation_vector);
@@ -166,7 +162,7 @@ void main()
         } 
     }
 
-    if v_stim_select == stim.OKR {
+    if v_stim_select == OKR {
         float angle = atan(fish_ego_coords.y, fish_ego_coords.x);
         float phase = deg2rad(v_speed_deg_per_sec)*v_time;
         float freq = deg2rad(v_spatial_frequency_deg);
@@ -175,11 +171,11 @@ void main()
         } 
     }
 
-    if v_stim_select == stim.LOOMING {
+    if v_stim_select == LOOMING {
         float rel_time = mod(v_time,v_looming_period_sec); 
         float looming_on = float(rel_time<=v_looming_expansion_time_sec);
         if (rel_time <= v_looming_period_sec/2) { 
-            if distance(fish_ego_coords, v_looming_center_mm) <= u_pix_per_mm*v_looming_expansion_speed_mm_per_sec*rel_time*looming_on
+            if (distance(fish_ego_coords, v_looming_center_mm) <= u_pix_per_mm*v_looming_expansion_speed_mm_per_sec*rel_time*looming_on)
             {
                 gl_FragColor = v_foreground_color;
             }
