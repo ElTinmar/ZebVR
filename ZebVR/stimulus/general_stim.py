@@ -148,6 +148,7 @@ void main()
 }
 """
 
+#TODO add more tracking data (eyes + tail)
 class GeneralStim(VisualStim):
 
     def __init__(
