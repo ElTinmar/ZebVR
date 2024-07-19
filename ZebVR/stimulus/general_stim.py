@@ -263,8 +263,8 @@ class GeneralStim(VisualStim):
     def initialize(self):
         super().initialize()
 
-        self.fd = open(self.timings_file, 'w')
         # write csv headers
+        self.fd = open(self.timings_file, 'w')
         self.fd.write('t_display,image_index,latency,centroid_x,centroid_y,pc2_x,pc2_y,t_local\n')
         
         self.program['a_foreground_color'] = self.foreground_color
