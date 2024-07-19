@@ -8,8 +8,9 @@ try:
 except:
     print('Ximea camera not imported')
 
+
 # general settings
-LCr = True
+LCr = False #True
 N_BACKGROUND_WORKERS = 1
 N_TRACKER_WORKERS = 1
 BACKGROUND_GPU = True
@@ -35,9 +36,9 @@ BACKGROUND_COLOR = (0.0, 0.0, 0.0, 1.0)
 movie_file = os.path.abspath(os.path.join(os.getcwd(), "../toy_data/single_freelyswimming_504x500px.avi"))
 mov = partial(MovieFileCam, filename=movie_file)
 
-CAMERA_CONSTRUCTOR = XimeaCamera
-CAM_HEIGHT = 2048
-CAM_WIDTH = 2048
+CAMERA_CONSTRUCTOR = mov #XimeaCamera
+CAM_HEIGHT = 500
+CAM_WIDTH = 504
 CAM_OFFSETX = 0
 CAM_OFFSETY = 0
 CAM_EXPOSURE_MS = 3000
