@@ -218,10 +218,12 @@ class GeneralStim(VisualStim):
         self.fd = None
         self.tstart = 0
         
-        if os.path.exists(timings_file):
-            prefix, ext = os.path.splitext(timings_file)
+        prefix, ext = os.path.splitext(timings_file)
+        timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
+        while os.path.exists(timings_file):
+            time.sleep(1)
             timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
-
+            
         self.timings_file = timings_file
 
     def initialize(self):
