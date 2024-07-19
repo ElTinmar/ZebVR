@@ -18,13 +18,10 @@ class VisualStim(app.Canvas):
             window_decoration: bool = False,
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
-            vsync: bool = True,
-            foreground_color: Tuple[float, float, float, float] = (1.0,0,0,1.0),
-            background_color: Tuple[float, float, float, float] = (0,0,0,1.0),
+            vsync: bool = True
         ) -> None:
             
-            self.foreground_color = foreground_color
-            self.background_color = background_color
+
             self.vertex_shader = vertex_shader
             self.fragment_shader = fragment_shader
             self.window_size = window_size
@@ -50,8 +47,6 @@ class VisualStim(app.Canvas):
         self.program = gloo.Program(self.vertex_shader, self.fragment_shader)
 
         # set attributes, these must be present in the vertex shader
-        self.program['a_foreground_color'] = self.foreground_color
-        self.program['a_background_color'] = self.background_color
         self.program['u_transformation_matrix'] = self.transformation_matrix.T
         self.program['a_time'] = 0
         self.program['a_position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]

@@ -195,10 +195,10 @@ class GeneralStim(VisualStim):
             window_decoration: bool = True,
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
+            pix_per_mm: float = PIX_PER_MM,
             refresh_rate: int = 120,
             vsync: bool = True,
             timings_file: str = 'display_timings.csv',
-            pix_per_mm: float = PIX_PER_MM,
             stim_select: int = 0,
             phototaxis_polarity: int = PHOTOTAXIS_POLARITY,
             omr_spatial_frequency_deg: float = OMR_SPATIAL_FREQUENCY_DEG,
@@ -221,10 +221,11 @@ class GeneralStim(VisualStim):
             window_decoration=window_decoration, 
             transformation_matrix=transformation_matrix, 
             pixel_scaling=pixel_scaling, 
-            vsync=vsync, 
-            foreground_color=foreground_color, 
-            background_color=background_color
+            vsync=vsync
         )
+
+        self.foreground_color = foreground_color
+        self.background_color = background_color
 
         self.fish_mediolateral_axis_x = Value('d',0)
         self.fish_mediolateral_axis_y = Value('d',0)
@@ -265,7 +266,9 @@ class GeneralStim(VisualStim):
         self.fd = open(self.timings_file, 'w')
         # write csv headers
         self.fd.write('t_display,image_index,latency,centroid_x,centroid_y,pc2_x,pc2_y,t_local\n')
-               
+        
+        self.program['a_foreground_color'] = self.foreground_color
+        self.program['a_background_color'] = self.background_color
         self.program['a_fish_caudorostral_axis'] = [0,0]
         self.program['a_fish_mediolateral_axis'] = [0,0]
         self.program['a_fish_centroid'] = [0,0]
