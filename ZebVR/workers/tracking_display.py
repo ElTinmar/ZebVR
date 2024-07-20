@@ -31,6 +31,9 @@ class DisplayType(Enum):
     OVERLAY: int = 1
     MASK: int = 2
 
+# TODO: add a widget to select fish num
+# TODO: maybe add image histogram? Not sure about that though
+
 class TrackingDisplay(WorkerNode):
 
     def __init__(
