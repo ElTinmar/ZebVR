@@ -19,9 +19,9 @@ class StimGUI(WorkerNode):
     def __init__(
             self, 
             phototaxis_polarity: int = 1,
-            omr_spatial_frequency_deg: float = 20,
+            omr_spatial_period_mm: float = 20,
             omr_angle_deg: float = 0,
-            omr_speed_deg_per_sec: float = 360,
+            omr_speed_mm_per_sec: float = 360,
             okr_spatial_frequency_deg: float = 45,
             okr_speed_deg_per_sec: float = 60,
             looming_center_mm: Tuple = (1,1),
@@ -35,9 +35,9 @@ class StimGUI(WorkerNode):
         super().__init__(*args, **kwargs)
 
         self.phototaxis_polarity = phototaxis_polarity
-        self.omr_spatial_frequency_deg = omr_spatial_frequency_deg
+        self.omr_spatial_period_mm = omr_spatial_period_mm
         self.omr_angle_deg = omr_angle_deg
-        self.omr_speed_deg_per_sec = omr_speed_deg_per_sec
+        self.omr_speed_mm_per_sec = omr_speed_mm_per_sec
         self.okr_spatial_frequency_deg = okr_spatial_frequency_deg
         self.okr_speed_deg_per_sec = okr_speed_deg_per_sec
         self.looming_center_mm = looming_center_mm
@@ -73,9 +73,9 @@ class StimGUI(WorkerNode):
 
         # OMR
         self.sb_omr_spatial_freq = LabeledDoubleSpinBox()
-        self.sb_omr_spatial_freq.setText('Spatial frequency (deg)')
+        self.sb_omr_spatial_freq.setText('Spatial period (mm)')
         self.sb_omr_spatial_freq.setRange(0,10_000)
-        self.sb_omr_spatial_freq.setValue(self.omr_spatial_frequency_deg)
+        self.sb_omr_spatial_freq.setValue(self.omr_spatial_period_mm)
         self.sb_omr_spatial_freq.valueChanged.connect(self.on_change)
 
         self.sb_omr_angle = LabeledDoubleSpinBox()
@@ -85,9 +85,9 @@ class StimGUI(WorkerNode):
         self.sb_omr_angle.valueChanged.connect(self.on_change)
 
         self.sb_omr_speed = LabeledDoubleSpinBox()
-        self.sb_omr_speed.setText('Grating speed (deg/s)')
+        self.sb_omr_speed.setText('Grating speed (mm/s)')
         self.sb_omr_speed.setRange(-10_000,10_000)
-        self.sb_omr_speed.setValue(self.omr_speed_deg_per_sec)
+        self.sb_omr_speed.setValue(self.omr_speed_mm_per_sec)
         self.sb_omr_speed.valueChanged.connect(self.on_change)
 
         # OKR
@@ -192,9 +192,9 @@ class StimGUI(WorkerNode):
             res['visual_stim_control'] = {}
             res['visual_stim_control']['stim_select'] = self.cmb_stim_select.currentIndex()
             res['visual_stim_control']['phototaxis_polarity'] = -1+2*self.chb_phototaxis_polarity.isChecked()
-            res['visual_stim_control']['omr_spatial_frequency_deg'] = self.sb_omr_spatial_freq.value() 
+            res['visual_stim_control']['omr_spatial_period_mm'] = self.sb_omr_spatial_freq.value() 
             res['visual_stim_control']['omr_angle_deg'] = self.sb_omr_angle.value()
-            res['visual_stim_control']['omr_speed_deg_per_sec'] = self.sb_omr_speed.value() 
+            res['visual_stim_control']['omr_speed_mm_per_sec'] = self.sb_omr_speed.value() 
             res['visual_stim_control']['okr_spatial_frequency_deg'] = self.sb_okr_spatial_freq.value()
             res['visual_stim_control']['okr_speed_deg_per_sec'] = self.sb_okr_speed.value()
             res['visual_stim_control']['looming_center_mm_x'] = self.sb_looming_center_mm_x.value()

@@ -51,9 +51,9 @@ uniform vec4 u_foreground_color;
 uniform vec4 u_background_color;
 uniform float u_stim_select;
 uniform float u_phototaxis_polarity;
-uniform float u_omr_spatial_frequency_deg;
+uniform float u_omr_spatial_period_mm;
 uniform float u_omr_angle_deg;
-uniform float u_omr_speed_deg_per_sec;
+uniform float u_omr_speed_mm_per_sec;
 uniform float u_okr_spatial_frequency_deg;
 uniform float u_okr_speed_deg_per_sec;
 uniform vec2 u_looming_center_mm;
@@ -104,9 +104,9 @@ void main()
     }
 
     if (u_stim_select == OMR) {
-        vec2 orientation_vector = rotate2d(deg2rad(u_omr_angle_deg))*vec2(0,1);
-        float angle = deg2rad(u_omr_spatial_frequency_deg)*dot(fish_ego_coords, orientation_vector);
-        float phase = deg2rad(u_omr_speed_deg_per_sec)*u_time;
+        vec2 orientation_vector = rotate2d(deg2rad(u_omr_angle_deg)) * vec2(0,1);
+        float angle = 1/u_pix_per_mm * 2*PI/u_omr_spatial_period_mm * dot(fish_ego_coords, orientation_vector);
+        float phase = 1/u_pix_per_mm * 2*PI/u_omr_speed_mm_per_sec * u_time;
         if ( sin(angle+phase) > 0.0 ) {
             gl_FragColor = u_foreground_color;
         } 
@@ -152,9 +152,9 @@ class GeneralStim(VisualStim):
             timings_file: str = 'display_timings.csv',
             stim_select: float = 0,
             phototaxis_polarity: int = 1,
-            omr_spatial_frequency_deg: float = 20,
+            omr_spatial_period_mm: float = 20,
             omr_angle_deg: float = 0,
-            omr_speed_deg_per_sec: float = 360,
+            omr_speed_mm_per_sec: float = 360,
             okr_spatial_frequency_deg: float = 45,
             okr_speed_deg_per_sec: float = 60,
             looming_center_mm: Tuple = (1,1),
@@ -190,9 +190,9 @@ class GeneralStim(VisualStim):
         # stim parameters        
         self.stim_select = Value('d', stim_select) 
         self.phototaxis_polarity = Value('d', phototaxis_polarity) 
-        self.omr_spatial_frequency_deg = Value('d', omr_spatial_frequency_deg)
+        self.omr_spatial_period_mm = Value('d', omr_spatial_period_mm)
         self.omr_angle_deg = Value('d', omr_angle_deg)
-        self.omr_speed_deg_per_sec = Value('d', omr_speed_deg_per_sec)
+        self.omr_speed_mm_per_sec = Value('d', omr_speed_mm_per_sec)
         self.okr_spatial_frequency_deg = Value('d', okr_spatial_frequency_deg)
         self.okr_speed_deg_per_sec = Value('d', okr_speed_deg_per_sec)
         self.looming_center_mm_x = Value('d', looming_center_mm[0])
@@ -231,9 +231,9 @@ class GeneralStim(VisualStim):
             'pc2_y',
             'stim_id',
             'phototaxis_polarity',
-            'omr_spatial_frequency_deg',
+            'omr_spatial_period_mm',
             'omr_angle_deg',
-            'omr_speed_deg_per_sec',
+            'omr_speed_mm_per_sec',
             'okr_speed_deg_per_sec',
             'looming_center_mm_x',
             'looming_center_mm_y',
@@ -250,9 +250,9 @@ class GeneralStim(VisualStim):
         self.program['u_background_color'] = self.background_color
         self.program['u_stim_select'] = self.stim_select.value
         self.program['u_phototaxis_polarity'] = self.phototaxis_polarity.value
-        self.program['u_omr_spatial_frequency_deg'] = self.omr_spatial_frequency_deg.value
+        self.program['u_omr_spatial_period_mm'] = self.omr_spatial_period_mm.value
         self.program['u_omr_angle_deg'] = self.omr_angle_deg.value
-        self.program['u_omr_speed_deg_per_sec'] = self.omr_speed_deg_per_sec.value
+        self.program['u_omr_speed_mm_per_sec'] = self.omr_speed_mm_per_sec.value
         self.program['u_okr_spatial_frequency_deg'] = self.okr_spatial_frequency_deg.value
         self.program['u_okr_speed_deg_per_sec'] = self.okr_speed_deg_per_sec.value
         self.program['u_looming_center_mm'] = [self.looming_center_mm_x.value, self.looming_center_mm_y.value]
@@ -287,9 +287,9 @@ class GeneralStim(VisualStim):
         self.program['u_time'] = t_local
         self.program['u_stim_select'] = self.stim_select.value
         self.program['u_phototaxis_polarity'] = self.phototaxis_polarity.value
-        self.program['u_omr_spatial_frequency_deg'] = self.omr_spatial_frequency_deg.value
+        self.program['u_omr_spatial_period_mm'] = self.omr_spatial_period_mm.value
         self.program['u_omr_angle_deg'] = self.omr_angle_deg.value
-        self.program['u_omr_speed_deg_per_sec'] = self.omr_speed_deg_per_sec.value
+        self.program['u_omr_speed_mm_per_sec'] = self.omr_speed_mm_per_sec.value
         self.program['u_okr_spatial_frequency_deg'] = self.okr_spatial_frequency_deg.value
         self.program['u_okr_speed_deg_per_sec'] = self.okr_speed_deg_per_sec.value
         self.program['u_looming_center_mm'] = [self.looming_center_mm_x.value, self.looming_center_mm_y.value]
@@ -312,9 +312,9 @@ class GeneralStim(VisualStim):
             f'{self.fish_mediolateral_axis_y.value}',
             f'{self.stim_select.value}',
             f'{self.phototaxis_polarity.value}',
-            f'{self.omr_spatial_frequency_deg.value}',
+            f'{self.omr_spatial_period_mm.value}',
             f'{self.omr_angle_deg.value}',
-            f'{self.omr_speed_deg_per_sec.value}',
+            f'{self.omr_speed_mm_per_sec.value}',
             f'{self.okr_spatial_frequency_deg.value}',
             f'{self.okr_speed_deg_per_sec.value}',
             f'{self.looming_center_mm_x.value}',
@@ -342,9 +342,9 @@ class GeneralStim(VisualStim):
         if control is not None:
             self.stim_select.value = control['stim_select']
             self.phototaxis_polarity.value = control['phototaxis_polarity']
-            self.omr_spatial_frequency_deg.value = control['omr_spatial_frequency_deg']
+            self.omr_spatial_period_mm.value = control['omr_spatial_period_mm']
             self.omr_angle_deg.value = control['omr_angle_deg']
-            self.omr_speed_deg_per_sec.value = control['omr_speed_deg_per_sec']
+            self.omr_speed_mm_per_sec.value = control['omr_speed_mm_per_sec']
             self.okr_spatial_frequency_deg.value = control['okr_spatial_frequency_deg']
             self.okr_speed_deg_per_sec.value = control['okr_speed_deg_per_sec']
             self.looming_center_mm_x.value = control['looming_center_mm_x']
