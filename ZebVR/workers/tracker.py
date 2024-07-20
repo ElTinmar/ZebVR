@@ -51,7 +51,7 @@ class TrackerWorker(WorkerNode):
             res['stimulus'] = (index, timestamp, tracking.animals.centroids[k,:], tracking.body[k].heading)
             res['overlay'] = (index, timestamp, tracking)
             return res
-        except:
+        except KeyError:
             return None  
         
     def process_metadata(self, metadata) -> Any:
