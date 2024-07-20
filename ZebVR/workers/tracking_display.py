@@ -3,6 +3,7 @@ from numpy.typing import NDArray
 from typing import Dict, Optional
 import time
 from enum import Enum
+import cv2
 #import pyqtgraph as pg
 
 from PyQt5.QtWidgets import (
@@ -223,7 +224,10 @@ class TrackingDisplay(WorkerNode):
                
                 # update labels
                 if image_to_display is not None:
-                    pixmap = NDarray_to_QPixmap(image_to_display)
+                    height = 512
+                    width = int(image_to_display.shape[1] * height/image_to_display.shape[0])
+                    image_final = cv2.resize(image_to_display, (width,height), interpolation=cv2.INTER_NEAREST)
+                    pixmap = NDarray_to_QPixmap(image_final)
                     self.lbl_image.setPixmap(pixmap)
                     self.lbl_index.setText(f'{index}')
                     self.lbl_timestamp.setText(f'{timestamp}')
