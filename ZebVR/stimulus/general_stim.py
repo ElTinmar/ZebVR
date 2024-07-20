@@ -219,9 +219,9 @@ class GeneralStim(VisualStim):
         # write csv headers
         self.fd = open(self.timings_file, 'w')
         headers = (
+            'image_index',
             't_display',
             't_local',
-            'image_index',
             'latency',
             'centroid_x',
             'centroid_y',
@@ -300,9 +300,9 @@ class GeneralStim(VisualStim):
         self.update()
 
         row = (
+            f'{self.index.value}',
             f'{t_display}',
             f'{t_local}',
-            f'{self.index.value}',
             f'{1e-6*(t_display - self.timestamp.value)}',
             f'{self.fish_centroid_x.value}',
             f'{self.fish_centroid_y.value}',
