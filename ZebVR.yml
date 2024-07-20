@@ -10,6 +10,7 @@ dependencies:
 - vispy
 - pip
 - snakeviz
+- conda-build
 - pip:
   - git+https://github.com/ElTinmar/tracker.git@main
   - git+https://github.com/ElTinmar/Lightcrafter.git@main  

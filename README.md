@@ -4,6 +4,8 @@ Virtual reality for zebrafish
 Install environment 
 ```
 conda env create -f ZebVR.yml
+conda activate ZebVR
+conda develop . 
 ```
 
 Install ximea package into environment
