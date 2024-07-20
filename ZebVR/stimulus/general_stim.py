@@ -106,7 +106,7 @@ void main()
     if (u_stim_select == OMR) {
         vec2 orientation_vector = rotate2d(deg2rad(u_omr_angle_deg)) * vec2(0,1);
         float angle = 1/u_pix_per_mm * 2*PI/u_omr_spatial_period_mm * dot(fish_ego_coords, orientation_vector);
-        float phase = 1/u_pix_per_mm * 2*PI/u_omr_speed_mm_per_sec * u_time;
+        float phase = 2*PI/u_omr_spatial_period_mm * u_omr_speed_mm_per_sec * u_time;
         if ( sin(angle+phase) > 0.0 ) {
             gl_FragColor = u_foreground_color;
         } 
