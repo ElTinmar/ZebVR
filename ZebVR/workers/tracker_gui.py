@@ -234,7 +234,7 @@ class TrackerGui(WorkerNode):
 
         self.eyes_thresh_resolution = LabeledDoubleSpinBox()
         self.eyes_thresh_resolution.setText('thresh steps')
-        self.eyes_thresh_resolution.setRange(0,1)
+        self.eyes_thresh_resolution.setRange(0,100)
         self.eyes_thresh_resolution.setValue(self.eyes_tracking_param['eye_dyntresh_res'])
         self.eyes_thresh_resolution.valueChanged.connect(self.on_change)
 
