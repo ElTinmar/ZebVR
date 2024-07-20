@@ -14,7 +14,7 @@ DEBUG = False
 # general settings
 LCr = False #True
 N_BACKGROUND_WORKERS = 1
-N_TRACKER_WORKERS = 2
+N_TRACKER_WORKERS = 1
 BACKGROUND_GPU = True
 T_REFRESH = 1e-4
 RECORD_VIDEO = False
@@ -46,7 +46,7 @@ CAM_OFFSETX = 0
 CAM_OFFSETY = 0
 CAM_EXPOSURE_MS = 3000
 CAM_GAIN = 0
-CAM_FPS = 120
+CAM_FPS = 60
 
 # files
 LOGFILE_WORKERS = 'workers.log'
@@ -97,6 +97,7 @@ ANIMAL_TRACKING_PARAM = {
     'median_filter_sz_mm': 0
 }
 
+BODY_TRACKING = True
 BODY_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 10,
@@ -114,6 +115,7 @@ BODY_TRACKING_PARAM = {
     'median_filter_sz_mm': 0
 }
 
+EYES_TRACKING = False
 EYES_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 40,
@@ -131,6 +133,7 @@ EYES_TRACKING_PARAM = {
     'median_filter_sz_mm': 0
 }
 
+TAIL_TRACKING = False
 TAIL_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 20,

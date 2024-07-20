@@ -67,8 +67,11 @@ from config import (
     BACKGROUND_FILE, 
     IMAGE_FOLDER,
     ANIMAL_TRACKING_PARAM,
+    BODY_TRACKING,
     BODY_TRACKING_PARAM, 
+    EYES_TRACKING,
     EYES_TRACKING_PARAM,
+    TAIL_TRACKING,
     TAIL_TRACKING_PARAM,
     CAMERA_CONSTRUCTOR,
     LOGFILE_WORKERS, 
@@ -150,11 +153,32 @@ if __name__ == "__main__":
 
     ## Declare workers -----------------------------------------------------------------------------
 
+    if BODY_TRACKING:
+        body_tracker=BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**BODY_TRACKING_PARAM))
+        body_overlay=BodyOverlay_opencv(BodyTrackerParamOverlay())
+    else:
+        body_tracker=None
+        body_overlay=None
+
+    if EYES_TRACKING:
+        eyes_tracker=EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**EYES_TRACKING_PARAM))
+        eyes_overlay=EyesOverlay_opencv(EyesTrackerParamOverlay())
+    else:
+        eyes_tracker=None
+        eyes_overlay=None
+
+    if TAIL_TRACKING:
+        tail_tracker=TailTracker_CPU(tracking_param=TailTrackerParamTracking(**TAIL_TRACKING_PARAM))
+        tail_overlay=TailOverlay_opencv(TailTrackerParamOverlay())
+    else:
+        tail_tracker=None
+        tail_overlay=None
+
     o = MultiFishOverlay_opencv(
         AnimalOverlay_opencv(AnimalTrackerParamOverlay()),
-        BodyOverlay_opencv(BodyTrackerParamOverlay()),
-        EyesOverlay_opencv(EyesTrackerParamOverlay()),
-        TailOverlay_opencv(TailTrackerParamOverlay()),
+        body_overlay,
+        eyes_overlay,
+        tail_overlay,
     )
     
     t = MultiFishTracker_CPU(
@@ -166,9 +190,9 @@ if __name__ == "__main__":
             assignment=GridAssignment(LUT=np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.int_)), 
             tracking_param=AnimalTrackerParamTracking(**ANIMAL_TRACKING_PARAM)
         ),
-        body=BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**BODY_TRACKING_PARAM)),
-        eyes=EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**EYES_TRACKING_PARAM)),
-        tail=TailTracker_CPU(tracking_param=TailTrackerParamTracking(**TAIL_TRACKING_PARAM))
+        body=body_tracker,
+        eyes=eyes_tracker,
+        tail=tail_tracker
     )
 
     b = BackroundImage(
@@ -241,6 +265,9 @@ if __name__ == "__main__":
         body_tracking_param=BODY_TRACKING_PARAM,
         eyes_tracking_param=EYES_TRACKING_PARAM,
         tail_tracking_param=TAIL_TRACKING_PARAM,
+        body_tracking=BODY_TRACKING,
+        eyes_tracking=EYES_TRACKING,
+        tail_tracking=TAIL_TRACKING,
         n_tracker_workers=N_TRACKER_WORKERS,
         name='tracker_gui',  
         logger=worker_logger, 

@@ -43,6 +43,10 @@ class TrackerWorker(WorkerNode):
         # self.tracker.tail.track(np.zeros((100,100),dtype=np.float32), centroid=np.array([0,0]))
 
     def process_data(self, data: NDArray) -> Dict:
+
+        if data is None:
+            return 
+
         index, timestamp, image = data
         tracking = self.tracker.track(image)
         res = {}    
@@ -55,7 +59,7 @@ class TrackerWorker(WorkerNode):
             return None  
         
     def process_metadata(self, metadata) -> Any:
-        
+
         for i in range(self.n_tracker_workers):
             
             try:
@@ -63,23 +67,37 @@ class TrackerWorker(WorkerNode):
             except KeyError:
                 control = None
 
-            if control is not None: 
-                animal_tracking = control['animal_tracking']
-                body_tracking = control['body_tracking']
-                eyes_tracking = control['eyes_tracking']
-                tail_tracking = control['tail_tracking']
-                
-                self.tracker = MultiFishTracker_CPU(
-                    max_num_animals=1,
-                    accumulator=None, 
-                    export_fullres_image=True,
-                    downsample_fullres_export=self.downsample_tracker_export,
-                    animal=AnimalTracker_CPU(
-                        assignment=GridAssignment(LUT=np.zeros((self.cam_height, self.cam_width), dtype=np.int_)), 
-                        tracking_param=AnimalTrackerParamTracking(**animal_tracking)
-                    ),
-                    body=BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**body_tracking)),
-                    eyes=EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**eyes_tracking)),
-                    tail=TailTracker_CPU(tracking_param=TailTrackerParamTracking(**tail_tracking))
-                )
+            if control is None:
+                return 
+
+            animal = AnimalTracker_CPU(
+                assignment=GridAssignment(LUT=np.zeros((self.cam_height, self.cam_width), dtype=np.int_)), 
+                tracking_param=AnimalTrackerParamTracking(**control['animal_tracking'])
+            )
+            
+            if control['body']:
+                body = BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**control['body_tracking']))
+            else:
+                body = None
+
+            if control['eyes']:
+                eyes = EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**control['eyes_tracking']))
+            else:
+                eyes = None
+
+            if control['tail']:
+                tail = TailTracker_CPU(tracking_param=TailTrackerParamTracking(**control['tail_tracking']))
+            else:
+                tail = None  
+            
+            self.tracker = MultiFishTracker_CPU(
+                max_num_animals=1,
+                accumulator=None, 
+                export_fullres_image=True,
+                downsample_fullres_export=self.downsample_tracker_export,
+                animal=animal,
+                body=body,
+                eyes=eyes,
+                tail=tail
+            )
 

@@ -1,7 +1,7 @@
 from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
 
 class TrackerGui(WorkerNode):
@@ -12,6 +12,9 @@ class TrackerGui(WorkerNode):
             body_tracking_param: Dict,
             eyes_tracking_param: Dict,
             tail_tracking_param: Dict,
+            body_tracking: bool,
+            eyes_tracking: bool,
+            tail_tracking: bool,
             n_tracker_workers: int,
             *args,
             **kwargs
@@ -23,6 +26,9 @@ class TrackerGui(WorkerNode):
         self.eyes_tracking_param = eyes_tracking_param 
         self.tail_tracking_param = tail_tracking_param 
         self.n_tracker_workers = n_tracker_workers 
+        self.body_tracking = body_tracking
+        self.eyes_tracking = eyes_tracking
+        self.tail_tracking = tail_tracking
 
     def initialize(self) -> None:
         super().initialize()
@@ -122,6 +128,10 @@ class TrackerGui(WorkerNode):
         self.animal_median_filter_sz_mm.setValue(self.animal_tracking_param['median_filter_sz_mm'])
         self.animal_median_filter_sz_mm.valueChanged.connect(self.on_change)
 
+        self.chb_body = QCheckBox('body')
+        self.chb_body.setChecked(self.body_tracking)
+        self.chb_body.stateChanged.connect(self.on_change)
+
         self.body_pix_per_mm = LabeledDoubleSpinBox()
         self.body_pix_per_mm.setText('pix/mm')
         self.body_pix_per_mm.setRange(0,200)
@@ -207,6 +217,10 @@ class TrackerGui(WorkerNode):
         self.body_median_filter_sz_mm.setSingleStep(1/self.body_tracking_param['target_pix_per_mm'])
         self.body_median_filter_sz_mm.setValue(self.body_tracking_param['median_filter_sz_mm'])
         self.body_median_filter_sz_mm.valueChanged.connect(self.on_change)
+
+        self.chb_eyes = QCheckBox('eyes')
+        self.chb_eyes.setChecked(self.eyes_tracking)
+        self.chb_eyes.stateChanged.connect(self.on_change)
 
         self.eyes_pix_per_mm = LabeledDoubleSpinBox()
         self.eyes_pix_per_mm.setText('pix/mm')
@@ -299,6 +313,10 @@ class TrackerGui(WorkerNode):
         self.eyes_median_filter_sz_mm.setSingleStep(1/self.eyes_tracking_param['target_pix_per_mm'])
         self.eyes_median_filter_sz_mm.setValue(self.eyes_tracking_param['median_filter_sz_mm'])
         self.eyes_median_filter_sz_mm.valueChanged.connect(self.on_change)
+
+        self.chb_tail = QCheckBox('tail')
+        self.chb_tail.setChecked(self.tail_tracking)
+        self.chb_tail.stateChanged.connect(self.on_change)
 
         self.tail_pix_per_mm = LabeledDoubleSpinBox()
         self.tail_pix_per_mm.setText('pix/mm')
@@ -424,7 +442,7 @@ class TrackerGui(WorkerNode):
         animal.addStretch()
 
         body = QVBoxLayout()
-        body.addWidget(QLabel('body'))
+        body.addWidget(self.chb_body)
         body.addWidget(self.body_pix_per_mm)
         body.addWidget(self.body_target_pix_per_mm)
         body.addWidget(self.body_intensity)
@@ -442,7 +460,7 @@ class TrackerGui(WorkerNode):
         body.addStretch()
 
         eyes = QVBoxLayout()
-        eyes.addWidget(QLabel('eyes'))
+        eyes.addWidget(self.chb_eyes)
         eyes.addWidget(self.eyes_pix_per_mm)
         eyes.addWidget(self.eyes_target_pix_per_mm)
         eyes.addWidget(self.eyes_intensity_lo)
@@ -461,7 +479,7 @@ class TrackerGui(WorkerNode):
         eyes.addStretch()
 
         tail = QVBoxLayout()
-        tail.addWidget(QLabel('tail'))
+        tail.addWidget(self.chb_tail)
         tail.addWidget(self.tail_pix_per_mm)
         tail.addWidget(self.tail_target_pix_per_mm)
         tail.addWidget(self.tail_brightness)
@@ -500,11 +518,12 @@ class TrackerGui(WorkerNode):
             res = {}
             for i in range(self.n_tracker_workers):
                 res[f'tracker_control_{i}'] = {}
-                res[f'tracker_control_{i}']['animal_tracking'] = {}
-                res[f'tracker_control_{i}']['body_tracking'] = {}
-                res[f'tracker_control_{i}']['eyes_tracking'] = {}
-                res[f'tracker_control_{i}']['tail_tracking'] = {}
 
+                res[f'tracker_control_{i}']['body'] = self.chb_body.isChecked()
+                res[f'tracker_control_{i}']['eyes'] = self.chb_eyes.isChecked()
+                res[f'tracker_control_{i}']['tail'] = self.chb_tail.isChecked() 
+                
+                res[f'tracker_control_{i}']['animal_tracking'] = {}
                 res[f'tracker_control_{i}']['animal_tracking']['pix_per_mm']=self.animal_pix_per_mm.value()
                 res[f'tracker_control_{i}']['animal_tracking']['target_pix_per_mm']=self.animal_target_pix_per_mm.value()
                 res[f'tracker_control_{i}']['animal_tracking']['animal_intensity']=self.animal_intensity.value()
@@ -519,7 +538,8 @@ class TrackerGui(WorkerNode):
                 res[f'tracker_control_{i}']['animal_tracking']['max_animal_width_mm']=self.animal_max_width_mm.value()
                 res[f'tracker_control_{i}']['animal_tracking']['blur_sz_mm']=self.animal_blur_sz_mm.value()
                 res[f'tracker_control_{i}']['animal_tracking']['median_filter_sz_mm']=self.animal_median_filter_sz_mm.value()
-
+                
+                res[f'tracker_control_{i}']['body_tracking'] = {}
                 res[f'tracker_control_{i}']['body_tracking']['pix_per_mm']=self.body_pix_per_mm.value()
                 res[f'tracker_control_{i}']['body_tracking']['target_pix_per_mm']=self.body_target_pix_per_mm.value()
                 res[f'tracker_control_{i}']['body_tracking']['body_intensity']=self.body_intensity.value()
@@ -535,6 +555,7 @@ class TrackerGui(WorkerNode):
                 res[f'tracker_control_{i}']['body_tracking']['blur_sz_mm']=self.body_blur_sz_mm.value()
                 res[f'tracker_control_{i}']['body_tracking']['median_filter_sz_mm']=self.body_median_filter_sz_mm.value()
 
+                res[f'tracker_control_{i}']['eyes_tracking'] = {}
                 res[f'tracker_control_{i}']['eyes_tracking']['pix_per_mm']=self.eyes_pix_per_mm.value()
                 res[f'tracker_control_{i}']['eyes_tracking']['target_pix_per_mm']=self.eyes_target_pix_per_mm.value()
                 res[f'tracker_control_{i}']['eyes_tracking']['eye_thresh_lo']=self.eyes_intensity_lo.value()
@@ -550,6 +571,7 @@ class TrackerGui(WorkerNode):
                 res[f'tracker_control_{i}']['eyes_tracking']['blur_sz_mm']=self.eyes_blur_sz_mm.value()
                 res[f'tracker_control_{i}']['eyes_tracking']['median_filter_sz_mm']=self.eyes_median_filter_sz_mm.value()
 
+                res[f'tracker_control_{i}']['tail_tracking'] = {}
                 res[f'tracker_control_{i}']['tail_tracking']['pix_per_mm']=self.tail_pix_per_mm.value()
                 res[f'tracker_control_{i}']['tail_tracking']['target_pix_per_mm']=self.tail_target_pix_per_mm.value()
                 res[f'tracker_control_{i}']['tail_tracking']['tail_brightness']=self.tail_brightness.value()
