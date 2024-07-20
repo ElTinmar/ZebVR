@@ -7,20 +7,6 @@ from numpy.typing import NDArray
 import numpy as np 
 import os
 
-from ZebVR.config import (
-    PIX_PER_MM,             
-    PHOTOTAXIS_POLARITY,
-    OMR_SPATIAL_FREQUENCY_DEG,
-    OMR_ANGLE_DEG,
-    OMR_SPEED_DEG_PER_SEC,
-    OKR_SPATIAL_FREQUENCY_DEG,
-    OKR_SPEED_DEG_PER_SEC,
-    LOOMING_CENTER_MM,
-    LOOMING_PERIOD_SEC,
-    LOOMING_EXPANSION_TIME_SEC,
-    LOOMING_EXPANSION_SPEED_MM_PER_SEC
-)
-
 VERT_SHADER = """
 uniform mat3 u_transformation_matrix;
 attribute vec2 a_position;
@@ -160,21 +146,21 @@ class GeneralStim(VisualStim):
             window_decoration: bool = True,
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
-            pix_per_mm: float = PIX_PER_MM,
+            pix_per_mm: float = 30,
             refresh_rate: int = 120,
             vsync: bool = True,
             timings_file: str = 'display_timings.csv',
             stim_select: float = 0,
-            phototaxis_polarity: int = PHOTOTAXIS_POLARITY,
-            omr_spatial_frequency_deg: float = OMR_SPATIAL_FREQUENCY_DEG,
-            omr_angle_deg: float = OMR_ANGLE_DEG,
-            omr_speed_deg_per_sec: float = OMR_SPEED_DEG_PER_SEC,
-            okr_spatial_frequency_deg: float = OKR_SPATIAL_FREQUENCY_DEG,
-            okr_speed_deg_per_sec: float = OKR_SPEED_DEG_PER_SEC,
-            looming_center_mm: Tuple = LOOMING_CENTER_MM,
-            looming_period_sec: float = LOOMING_PERIOD_SEC,
-            looming_expansion_time_sec: float = LOOMING_EXPANSION_TIME_SEC,
-            looming_expansion_speed_mm_per_sec: float = LOOMING_EXPANSION_SPEED_MM_PER_SEC
+            phototaxis_polarity: int = 1,
+            omr_spatial_frequency_deg: float = 20,
+            omr_angle_deg: float = 0,
+            omr_speed_deg_per_sec: float = 360,
+            okr_spatial_frequency_deg: float = 45,
+            okr_speed_deg_per_sec: float = 60,
+            looming_center_mm: Tuple = (1,1),
+            looming_period_sec: float = 30,
+            looming_expansion_time_sec: float = 3,
+            looming_expansion_speed_mm_per_sec: float = 10
         ) -> None:
 
         super().__init__(
