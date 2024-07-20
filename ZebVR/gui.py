@@ -15,6 +15,7 @@ from config import (
 
 # NOTE this is tightly coupled with main.py through the keys present in the Dicts.
 # Potential fix: explicitly expand dicts into keyword arguments
+# Potential fix #2: pass the DAG as argument (do I still need to rebuild the dag everytime ?)
 
 class MainGui(QWidget):
     
