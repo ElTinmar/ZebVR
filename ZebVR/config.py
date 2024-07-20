@@ -2,12 +2,14 @@ import os
 from video_tools import Polarity
 import numpy as np
 from functools import partial
-from lightcrafter import set_lcr_video_mode
+#from lightcrafter import set_lcr_video_mode
 from camera_tools import OpenCV_Webcam, MovieFileCam
 try:
     from camera_tools import XimeaCamera 
 except:
     print('Ximea camera not imported')
+
+DEBUG = True
 
 # general settings
 LCr = False #True
@@ -133,3 +135,10 @@ LOOMING_CENTER_MM = (1,1)
 LOOMING_PERIOD_SEC = 30
 LOOMING_EXPANSION_TIME_SEC = 3
 LOOMING_EXPANSION_SPEED_MM_PER_SEC = 10
+
+
+if DEBUG:
+    CAMERA_CONSTRUCTOR = OpenCV_Webcam
+    CAM_HEIGHT = 480
+    CAM_WIDTH = 640
+    CAM_FPS = 30
