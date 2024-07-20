@@ -34,9 +34,7 @@ from tracker import (
 from workers import (
     BackgroundSubWorker, 
     CameraWorker, 
-    DisplayWorker, 
     TrackerWorker, 
-    OverlayWorker, 
     ImageSaverWorker, 
     CameraGui, 
     TrackerGui, 
@@ -65,6 +63,8 @@ from config import (
     CAMERA_CONSTRUCTOR,
     LOGFILE_WORKERS, 
     LOGFILE_QUEUES,
+    DISPLAY_FPS,
+    DOWNSAMPLE_TRACKING_EXPORT,
     BACKGROUND_POLARITY,
     N_BACKGROUND_WORKERS, 
     N_TRACKER_WORKERS,
@@ -151,7 +151,7 @@ if __name__ == "__main__":
         max_num_animals=1,
         accumulator=None, 
         export_fullres_image=True,
-        downsample_fullres_export=0.25,
+        downsample_fullres_export=DOWNSAMPLE_TRACKING_EXPORT,
         animal=AnimalTracker_CPU(
             assignment=GridAssignment(LUT=np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.int_)), 
             tracking_param=AnimalTrackerParamTracking(**ANIMAL_TRACKING_PARAM)
@@ -291,7 +291,7 @@ if __name__ == "__main__":
 
     trck_disp = TrackingDisplay(
         overlay=o, 
-        fps=30, 
+        fps=DISPLAY_FPS, 
         name="tracking_display", 
         logger=worker_logger, 
         logger_queues=queue_logger, 

@@ -112,6 +112,10 @@ BODY_TRACKING_PARAM = {
     'median_filter_sz_mm': 0
 }
 
+# Display
+DISPLAY_FPS = 30
+DOWNSAMPLE_TRACKING_EXPORT = 0.5
+
 # Phototaxis
 PHOTOTAXIS_POLARITY = 1
 
