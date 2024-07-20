@@ -3,7 +3,7 @@
 Virtual reality for zebrafish.
 
 ```
-python ZebVR/main_gui.py
+python ZebVR/main.py
 ```
 
 ## Installation
