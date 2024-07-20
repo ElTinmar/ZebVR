@@ -55,10 +55,8 @@ class TrackerWorker(WorkerNode):
             return None  
         
     def process_metadata(self, metadata) -> Any:
-        # reveive tracker settings and update tracker
         for i in range(self.n_tracker_workers):
             control = metadata[f'tracker_control_{i}']
-
             if control is not None: 
                 animal_tracking = control['animal_tracking']
                 body_tracking = control['body_tracking']

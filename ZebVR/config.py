@@ -14,7 +14,7 @@ DEBUG = False
 # general settings
 LCr = False #True
 N_BACKGROUND_WORKERS = 1
-N_TRACKER_WORKERS = 1
+N_TRACKER_WORKERS = 2
 BACKGROUND_GPU = True
 T_REFRESH = 1e-4
 RECORD_VIDEO = False
@@ -30,7 +30,7 @@ else:
     PROJ_WIDTH = 1280
     PIXEL_SCALING = (1.0, 1.0)
 
-PROJ_POS = (2560,0)
+PROJ_POS = (2560, 0)
 PROJ_FPS = 60
 FOREGROUND_COLOR = (1.0, 0.0, 0.0, 1.0)
 BACKGROUND_COLOR = (0.0, 0.0, 0.0, 1.0)
@@ -70,7 +70,7 @@ CAM_REGISTRATION_FPS = 10
 CALIBRATION_SQUARE_SIZE_MM = 3
 CALIBRATION_CAM_EXPOSURE_MS = 15_000
 CALIBRATION_CAM_FPS = 10
-CALIBRATION_CHECKER_SIZE = (9,6)
+CALIBRATION_CHECKER_SIZE = (9, 6)
 CALIBRATION_CHECK_DIAMETER_MM = [15, 30, 45, 60]
 PIX_PER_MM = 36.01
 
@@ -126,9 +126,9 @@ EYES_TRACKING_PARAM = {
     'eye_size_lo_mm': 0.8,
     'eye_size_hi_mm': 10.0,
     'crop_offset_mm': -0.75,
-    'crop_dimension_mm': (1.0,1.5),
+    'crop_dimension_mm': (1.0, 1.5),
     'blur_sz_mm': 0.06,
-    'median_filter_sz_mm': 0,
+    'median_filter_sz_mm': 0
 }
 
 TAIL_TRACKING_PARAM = {
@@ -144,10 +144,10 @@ TAIL_TRACKING_PARAM = {
     'n_pts_interp': 40,
     'tail_length_mm': 2.2,
     'dist_swim_bladder_mm': 0.0,
-    'crop_dimension_mm': (3.5,3.5),
+    'crop_dimension_mm': (3.5, 3.5),
     'crop_offset_tail_mm': 1.75,
     'blur_sz_mm': 0.06,
-    'median_filter_sz_mm': 0,
+    'median_filter_sz_mm': 0
 }
 
 # Display
@@ -167,7 +167,7 @@ OKR_SPATIAL_FREQUENCY_DEG = 45
 OKR_SPEED_DEG_PER_SEC = 60
 
 # Loomings
-LOOMING_CENTER_MM = (1,1)
+LOOMING_CENTER_MM = (1, 1)
 LOOMING_PERIOD_SEC = 30
 LOOMING_EXPANSION_TIME_SEC = 3
 LOOMING_EXPANSION_SPEED_MM_PER_SEC = 10
