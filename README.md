@@ -1,14 +1,24 @@
 # ZebVR
-Virtual reality for zebrafish
 
-Install environment 
+Virtual reality for zebrafish.
+
 ```
+python ZebVR/main_gui.py
+```
+
+## Installation
+
+### Get code from github and create conda environment 
+
+```
+git clone https://github.com/ElTinmar/ZebVR.git
+cd ZebVR
 conda env create -f ZebVR.yml
 conda activate ZebVR
 conda develop . 
 ```
 
-Install ximea package into environment
+### Install ximea package into environment
 ```
 conda activate ZebVR
 wget https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
@@ -21,13 +31,14 @@ rm -f XIMEA_Linux_SP.tgz
 rm -rf package
 ```
 
-# Install CUDA
+### Install CUDA
 
 
 
-# Troubleshooting
+## Troubleshooting
 
-if error 57 device already open
+if error 57 device already open, or if program is slower than usual
+
 ```
 sudo killall python
 ```
