@@ -241,19 +241,19 @@ class TrackerGui(WorkerNode):
         self.eyes_brightness = LabeledDoubleSpinBox()
         self.eyes_brightness.setText('brightness')
         self.eyes_brightness.setRange(-1,1)
-        self.eyes_brightness.setValue(self.eyes_tracking_param['eyes_brightness'])
+        self.eyes_brightness.setValue(self.eyes_tracking_param['eye_brightness'])
         self.eyes_brightness.valueChanged.connect(self.on_change)
 
         self.eyes_gamma = LabeledDoubleSpinBox()
         self.eyes_gamma.setText('gamma')
         self.eyes_gamma.setRange(-10,10)
-        self.eyes_gamma.setValue(self.eyes_tracking_param['eyes_gamma'])
+        self.eyes_gamma.setValue(self.eyes_tracking_param['eye_gamma'])
         self.eyes_gamma.valueChanged.connect(self.on_change)
 
         self.eyes_contrast = LabeledDoubleSpinBox()
         self.eyes_contrast.setText('contrast')
         self.eyes_contrast.setRange(-10,10)
-        self.eyes_contrast.setValue(self.eyes_tracking_param['eyes_contrast'])
+        self.eyes_contrast.setValue(self.eyes_tracking_param['eye_contrast'])
         self.eyes_contrast.valueChanged.connect(self.on_change)
 
         self.eyes_min_size_mm = LabeledDoubleSpinBox()
@@ -311,12 +311,6 @@ class TrackerGui(WorkerNode):
         self.tail_target_pix_per_mm.setRange(0,200)
         self.tail_target_pix_per_mm.setValue(self.tail_tracking_param['target_pix_per_mm'])
         self.tail_target_pix_per_mm.valueChanged.connect(self.on_change)
-        
-        self.tail_intensity = LabeledDoubleSpinBox()
-        self.tail_intensity.setText('intensity')
-        self.tail_intensity.setRange(0,1)
-        self.tail_intensity.setValue(self.tail_tracking_param['tail_intensity'])
-        self.tail_intensity.valueChanged.connect(self.on_change)
 
         self.tail_brightness = LabeledDoubleSpinBox()
         self.tail_brightness.setText('brightness')
@@ -474,7 +468,6 @@ class TrackerGui(WorkerNode):
         tail.addWidget(QLabel('tail'))
         tail.addWidget(self.tail_pix_per_mm)
         tail.addWidget(self.tail_target_pix_per_mm)
-        tail.addWidget(self.tail_intensity)
         tail.addWidget(self.tail_brightness)
         tail.addWidget(self.tail_gamma)
         tail.addWidget(self.tail_contrast)
