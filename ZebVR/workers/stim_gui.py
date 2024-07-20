@@ -1,6 +1,6 @@
 from dagline import WorkerNode
 from numpy.typing import NDArray
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 from qt_widgets import LabeledDoubleSpinBox
 
 from PyQt5.QtWidgets import (
@@ -14,20 +14,36 @@ from PyQt5.QtWidgets import (
     QLabel
 )
 
-from ZebVR.config import (
-    PHOTOTAXIS_POLARITY, 
-    OMR_SPATIAL_FREQUENCY_DEG, 
-    OMR_SPEED_DEG_PER_SEC, 
-    OMR_ANGLE_DEG,
-    OKR_SPATIAL_FREQUENCY_DEG, 
-    OKR_SPEED_DEG_PER_SEC,
-    LOOMING_CENTER_MM,
-    LOOMING_EXPANSION_SPEED_MM_PER_SEC,
-    LOOMING_EXPANSION_TIME_SEC,
-    LOOMING_PERIOD_SEC
-)
-
 class StimGUI(WorkerNode):
+
+    def __init__(
+            self, 
+            phototaxis_polarity: int = 1,
+            omr_spatial_frequency_deg: float = 20,
+            omr_angle_deg: float = 0,
+            omr_speed_deg_per_sec: float = 360,
+            okr_spatial_frequency_deg: float = 45,
+            okr_speed_deg_per_sec: float = 60,
+            looming_center_mm: Tuple = (1,1),
+            looming_period_sec: float = 30,
+            looming_expansion_time_sec: float = 3,
+            looming_expansion_speed_mm_per_sec: float = 10,
+            *args, 
+            **kwargs
+        ):
+
+        super().__init__(*args, **kwargs)
+
+        self.phototaxis_polarity = phototaxis_polarity
+        self.omr_spatial_frequency_deg = omr_spatial_frequency_deg
+        self.omr_angle_deg = omr_angle_deg
+        self.omr_speed_deg_per_sec = omr_speed_deg_per_sec
+        self.okr_spatial_frequency_deg = okr_spatial_frequency_deg
+        self.okr_speed_deg_per_sec = okr_speed_deg_per_sec
+        self.looming_center_mm = looming_center_mm
+        self.looming_period_sec = looming_period_sec
+        self.looming_expansion_time_sec = looming_expansion_time_sec
+        self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
 
     def initialize(self) -> None:
         super().initialize()
@@ -53,69 +69,69 @@ class StimGUI(WorkerNode):
         # Phototaxis
         self.phototaxis_polarity = QCheckBox('invert polarity', self.window)
         self.phototaxis_polarity.stateChanged.connect(self.on_change)
-        self.phototaxis_polarity.setChecked(PHOTOTAXIS_POLARITY)
+        self.phototaxis_polarity.setChecked(self.phototaxis_polarity==1)
 
         # OMR
         self.omr_spatial_freq = LabeledDoubleSpinBox()
         self.omr_spatial_freq.setText('Spatial frequency (deg)')
         self.omr_spatial_freq.setRange(0,10_000)
-        self.omr_spatial_freq.setValue(OMR_SPATIAL_FREQUENCY_DEG)
+        self.omr_spatial_freq.setValue(self.omr_spatial_frequency_deg)
         self.omr_spatial_freq.valueChanged.connect(self.on_change)
 
         self.omr_angle = LabeledDoubleSpinBox()
         self.omr_angle.setText('Grating angle (deg)')
         self.omr_angle.setRange(0,360)
-        self.omr_angle.setValue(OMR_ANGLE_DEG)
+        self.omr_angle.setValue(self.omr_angle_deg)
         self.omr_angle.valueChanged.connect(self.on_change)
 
         self.omr_speed = LabeledDoubleSpinBox()
         self.omr_speed.setText('Grating speed (deg/s)')
         self.omr_speed.setRange(-10_000,10_000)
-        self.omr_speed.setValue(OMR_SPEED_DEG_PER_SEC)
+        self.omr_speed.setValue(self.omr_speed_deg_per_sec)
         self.omr_speed.valueChanged.connect(self.on_change)
 
         # OKR
         self.okr_spatial_freq = LabeledDoubleSpinBox()
         self.okr_spatial_freq.setText('Spatial frequence (deg)')
         self.okr_spatial_freq.setRange(0,10_000)
-        self.okr_spatial_freq.setValue(OKR_SPATIAL_FREQUENCY_DEG)
+        self.okr_spatial_freq.setValue(self.okr_spatial_frequency_deg)
         self.okr_spatial_freq.valueChanged.connect(self.on_change)
 
         self.okr_speed = LabeledDoubleSpinBox()
         self.okr_speed.setText('speed (deg/s)')
         self.okr_speed.setRange(-10_000,10_000)
-        self.okr_speed.setValue(OKR_SPEED_DEG_PER_SEC)
+        self.okr_speed.setValue(self.okr_speed_deg_per_sec)
         self.okr_speed.valueChanged.connect(self.on_change)
 
         # Looming
         self.looming_center_mm_x = LabeledDoubleSpinBox()
         self.looming_center_mm_x.setText('X (mm)')
         self.looming_center_mm_x.setRange(-10_000,10_000)
-        self.looming_center_mm_x.setValue(LOOMING_CENTER_MM[0])
+        self.looming_center_mm_x.setValue(self.looming_center_mm[0])
         self.looming_center_mm_x.valueChanged.connect(self.on_change)
 
         self.looming_center_mm_y = LabeledDoubleSpinBox()
         self.looming_center_mm_y.setText('Y (mm)')
         self.looming_center_mm_y.setRange(-10_000,10_000)
-        self.looming_center_mm_y.setValue(LOOMING_CENTER_MM[1])
+        self.looming_center_mm_y.setValue(self.looming_center_mm[1])
         self.looming_center_mm_y.valueChanged.connect(self.on_change)
 
         self.looming_period_sec = LabeledDoubleSpinBox()
         self.looming_period_sec.setText('period (s)')
         self.looming_period_sec.setRange(0,100_000)
-        self.looming_period_sec.setValue(LOOMING_PERIOD_SEC)
+        self.looming_period_sec.setValue(self.looming_period_sec)
         self.looming_period_sec.valueChanged.connect(self.on_change)
 
         self.looming_expansion_time_sec = LabeledDoubleSpinBox()
         self.looming_expansion_time_sec.setText('expansion time (s)')
         self.looming_expansion_time_sec.setRange(0,100_000)
-        self.looming_expansion_time_sec.setValue(LOOMING_EXPANSION_TIME_SEC)
+        self.looming_expansion_time_sec.setValue(self.looming_expansion_time_sec)
         self.looming_expansion_time_sec.valueChanged.connect(self.on_change)
 
         self.looming_expansion_speed_mm_per_sec = LabeledDoubleSpinBox()
         self.looming_expansion_speed_mm_per_sec.setText('expansion speed (mm/s)')
         self.looming_expansion_speed_mm_per_sec.setRange(0,100_000)
-        self.looming_expansion_speed_mm_per_sec.setValue(LOOMING_EXPANSION_SPEED_MM_PER_SEC)
+        self.looming_expansion_speed_mm_per_sec.setValue(self.looming_expansion_speed_mm_per_sec)
         self.looming_expansion_speed_mm_per_sec.valueChanged.connect(self.on_change)
 
     def layout_components(self):

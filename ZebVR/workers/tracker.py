@@ -7,14 +7,25 @@ from dagline import WorkerNode
 import numpy as np
 from numpy.typing import NDArray
 from typing import Any, Dict
-from ZebVR.config import CAM_WIDTH, CAM_HEIGHT, N_TRACKER_WORKERS
 
 class TrackerWorker(WorkerNode):
     
-    def __init__(self, tracker: MultiFishTracker, *args, **kwargs):
+    def __init__(
+            self, 
+            tracker: MultiFishTracker, 
+            cam_width: int,
+            cam_height: int,
+            n_tracker_workers: int,
+            *args, 
+            **kwargs
+        ):
+
         super().__init__(*args, **kwargs)
         self.tracker = tracker
-
+        self.cam_width = cam_width 
+        self.cam_height = cam_height
+        self.n_tracker_workers = n_tracker_workers
+        
     def initialize(self) -> None:
         super().initialize()
 
@@ -35,7 +46,7 @@ class TrackerWorker(WorkerNode):
         
     def process_metadata(self, metadata) -> Any:
         # reveive tracker settings and update tracker
-        for i in range(N_TRACKER_WORKERS):
+        for i in range(self.n_tracker_workers):
             control = metadata[f'tracker_control_{i}']
             if control is not None: 
                 self.tracker = MultiFishTracker_CPU(
@@ -44,7 +55,7 @@ class TrackerWorker(WorkerNode):
                     export_fullres_image=True,
                     downsample_fullres_export=0.25,
                     animal=AnimalTracker_CPU(
-                        assignment=GridAssignment(LUT=np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.int_)), 
+                        assignment=GridAssignment(LUT=np.zeros((self.cam_height, self.cam_width), dtype=np.int_)), 
                         tracking_param=AnimalTrackerParamTracking(**control['animal_tracking'])
                     ),
                     body=BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**control['body_tracking'])),

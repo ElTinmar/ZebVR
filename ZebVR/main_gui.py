@@ -433,6 +433,16 @@ if __name__ == "__main__":
     )
 
     stim_control = StimGUI(
+        phototaxis_polarity = PHOTOTAXIS_POLARITY,
+        omr_spatial_frequency_deg = OMR_SPATIAL_FREQUENCY_DEG,
+        omr_angle_deg = OMR_ANGLE_DEG,
+        omr_speed_deg_per_sec = OMR_SPEED_DEG_PER_SEC,
+        okr_spatial_frequency_deg = OKR_SPATIAL_FREQUENCY_DEG,
+        okr_speed_deg_per_sec = OKR_SPEED_DEG_PER_SEC,
+        looming_center_mm = LOOMING_CENTER_MM,
+        looming_period_sec = LOOMING_PERIOD_SEC,
+        looming_expansion_time_sec = LOOMING_EXPANSION_TIME_SEC,
+        looming_expansion_speed_mm_per_sec = LOOMING_EXPANSION_SPEED_MM_PER_SEC,
         name='stim_gui', 
         logger=worker_logger, 
         logger_queues=queue_logger, 
@@ -496,6 +506,9 @@ if __name__ == "__main__":
         trck.append(
             TrackerWorker(
                 t, 
+                cam_width=CAM_WIDTH,
+                cam_height=CAM_HEIGHT,
+                n_tracker_workers=N_TRACKER_WORKERS,
                 name=f'tracker{i}', 
                 logger=worker_logger, 
                 logger_queues=queue_logger, 
