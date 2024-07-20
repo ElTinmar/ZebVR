@@ -72,55 +72,63 @@ class StimGUI(WorkerNode):
         self.cmb_stim_select.currentIndexChanged.connect(self.stim_changed)
 
         # Colors
-        self.lbl_foreground_color = QLabel('Foreground color')
+        self.lbl_foreground_color = QLabel('Foreground color:')
 
         self.sb_foreground_color_R = LabeledDoubleSpinBox()
         self.sb_foreground_color_R.setText('R')
         self.sb_foreground_color_R.setRange(0,1)
+        self.sb_foreground_color_R.setSingleStep(0.05)
         self.sb_foreground_color_R.setValue(self.foreground_color[0])
         self.sb_foreground_color_R.valueChanged.connect(self.on_change)
 
         self.sb_foreground_color_G = LabeledDoubleSpinBox()
         self.sb_foreground_color_G.setText('G')
         self.sb_foreground_color_G.setRange(0,1)
+        self.sb_foreground_color_G.setSingleStep(0.05)
         self.sb_foreground_color_G.setValue(self.foreground_color[1])
         self.sb_foreground_color_G.valueChanged.connect(self.on_change)
 
         self.sb_foreground_color_B = LabeledDoubleSpinBox()
         self.sb_foreground_color_B.setText('B')
         self.sb_foreground_color_B.setRange(0,1)
+        self.sb_foreground_color_B.setSingleStep(0.05)
         self.sb_foreground_color_B.setValue(self.foreground_color[2])
         self.sb_foreground_color_B.valueChanged.connect(self.on_change)
 
         self.sb_foreground_color_A = LabeledDoubleSpinBox()
         self.sb_foreground_color_A.setText('A')
         self.sb_foreground_color_A.setRange(0,1)
+        self.sb_foreground_color_A.setSingleStep(0.05)
         self.sb_foreground_color_A.setValue(self.foreground_color[3])
         self.sb_foreground_color_A.valueChanged.connect(self.on_change)
 
-        self.lbl_background_color = QLabel('Background color')
+        self.lbl_background_color = QLabel('Background color:')
 
         self.sb_background_color_R = LabeledDoubleSpinBox()
         self.sb_background_color_R.setText('R')
         self.sb_background_color_R.setRange(0,1)
+        self.sb_background_color_R.setSingleStep(0.05)
         self.sb_background_color_R.setValue(self.background_color[0])
         self.sb_background_color_R.valueChanged.connect(self.on_change)
 
         self.sb_background_color_G = LabeledDoubleSpinBox()
         self.sb_background_color_G.setText('G')
         self.sb_background_color_G.setRange(0,1)
+        self.sb_background_color_G.setSingleStep(0.05)
         self.sb_background_color_G.setValue(self.background_color[1])
         self.sb_background_color_G.valueChanged.connect(self.on_change)
 
         self.sb_background_color_B = LabeledDoubleSpinBox()
         self.sb_background_color_B.setText('B')
         self.sb_background_color_B.setRange(0,1)
+        self.sb_background_color_B.setSingleStep(0.05)
         self.sb_background_color_B.setValue(self.background_color[2])
         self.sb_background_color_B.valueChanged.connect(self.on_change)
 
         self.sb_background_color_A = LabeledDoubleSpinBox()
         self.sb_background_color_A.setText('A')
         self.sb_background_color_A.setRange(0,1)
+        self.sb_background_color_A.setSingleStep(0.05)
         self.sb_background_color_A.setValue(self.background_color[3])
         self.sb_background_color_A.valueChanged.connect(self.on_change)
 
