@@ -22,7 +22,7 @@ if LCr:
     PROJ_HEIGHT = 1140
     PROJ_WIDTH = 912
     PIXEL_SCALING = (1.0, 0.5)
-    set_lcr_video_mode()
+    #set_lcr_video_mode()
 else:
     PROJ_HEIGHT = 800
     PROJ_WIDTH = 1280
