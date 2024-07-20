@@ -1,7 +1,15 @@
 from tracker import (
-    GridAssignment, MultiFishTracker, MultiFishTracker_CPU,
-    AnimalTracker_CPU,  AnimalTrackerParamTracking,
-    BodyTracker_CPU, BodyTrackerParamTracking
+    GridAssignment, 
+    MultiFishTracker, 
+    MultiFishTracker_CPU,
+    AnimalTracker_CPU,  
+    AnimalTrackerParamTracking,
+    BodyTracker_CPU, 
+    BodyTrackerParamTracking,
+    EyesTracker_CPU,
+    EyesTrackerParamTracking, 
+    TailTracker_CPU,
+    TailTrackerParamTracking
 )
 from dagline import WorkerNode
 import numpy as np
@@ -50,7 +58,13 @@ class TrackerWorker(WorkerNode):
         # reveive tracker settings and update tracker
         for i in range(self.n_tracker_workers):
             control = metadata[f'tracker_control_{i}']
+
             if control is not None: 
+                animal_tracking = control['animal_tracking']
+                body_tracking = control['body_tracking']
+                eyes_tracking = control['eyes_tracking']
+                tail_tracking = control['tail_tracking']
+                
                 self.tracker = MultiFishTracker_CPU(
                     max_num_animals=1,
                     accumulator=None, 
@@ -58,9 +72,9 @@ class TrackerWorker(WorkerNode):
                     downsample_fullres_export=self.downsample_tracker_export,
                     animal=AnimalTracker_CPU(
                         assignment=GridAssignment(LUT=np.zeros((self.cam_height, self.cam_width), dtype=np.int_)), 
-                        tracking_param=AnimalTrackerParamTracking(**control['animal_tracking'])
+                        tracking_param=AnimalTrackerParamTracking(**animal_tracking)
                     ),
-                    body=BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**control['body_tracking'])),
-                    eyes=None,
-                    tail=None
+                    body=BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**body_tracking)),
+                    eyes=EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**eyes_tracking)),
+                    tail=TailTracker_CPU(tracking_param=TailTrackerParamTracking(**tail_tracking))
                 )

@@ -30,6 +30,14 @@ from tracker import (
     BodyOverlay_opencv, 
     BodyTrackerParamTracking, 
     BodyTrackerParamOverlay,  
+    EyesTracker_CPU,
+    EyesOverlay_opencv,
+    EyesTrackerParamTracking, 
+    EyesTrackerParamOverlay,
+    TailTracker_CPU,
+    TailOverlay_opencv,
+    TailTrackerParamTracking, 
+    TailTrackerParamOverlay
 )
 from workers import (
     BackgroundSubWorker, 
@@ -60,6 +68,8 @@ from config import (
     IMAGE_FOLDER,
     ANIMAL_TRACKING_PARAM,
     BODY_TRACKING_PARAM, 
+    EYES_TRACKING_PARAM,
+    TAIL_TRACKING_PARAM,
     CAMERA_CONSTRUCTOR,
     LOGFILE_WORKERS, 
     LOGFILE_QUEUES,
@@ -143,8 +153,8 @@ if __name__ == "__main__":
     o = MultiFishOverlay_opencv(
         AnimalOverlay_opencv(AnimalTrackerParamOverlay()),
         BodyOverlay_opencv(BodyTrackerParamOverlay()),
-        None,
-        None,
+        EyesOverlay_opencv(EyesTrackerParamOverlay()),
+        TailOverlay_opencv(TailTrackerParamOverlay()),
     )
     
     t = MultiFishTracker_CPU(
@@ -157,8 +167,8 @@ if __name__ == "__main__":
             tracking_param=AnimalTrackerParamTracking(**ANIMAL_TRACKING_PARAM)
         ),
         body=BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**BODY_TRACKING_PARAM)),
-        eyes=None,
-        tail=None
+        eyes=EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**EYES_TRACKING_PARAM)),
+        tail=TailTracker_CPU(tracking_param=TailTrackerParamTracking(**TAIL_TRACKING_PARAM))
     )
 
     b = BackroundImage(
@@ -229,6 +239,8 @@ if __name__ == "__main__":
     tracker_control = TrackerGui(
         animal_tracking_param=ANIMAL_TRACKING_PARAM,
         body_tracking_param=BODY_TRACKING_PARAM,
+        eyes_tracking_param=EYES_TRACKING_PARAM,
+        tail_tracking_param=TAIL_TRACKING_PARAM,
         n_tracker_workers=N_TRACKER_WORKERS,
         name='tracker_gui',  
         logger=worker_logger, 

@@ -9,7 +9,7 @@ try:
 except:
     print('Ximea camera not imported')
 
-DEBUG = True
+DEBUG = False
 
 # general settings
 LCr = False #True
@@ -46,7 +46,7 @@ CAM_OFFSETX = 0
 CAM_OFFSETY = 0
 CAM_EXPOSURE_MS = 3000
 CAM_GAIN = 0
-CAM_FPS = 100
+CAM_FPS = 120
 
 # files
 LOGFILE_WORKERS = 'workers.log'
@@ -112,6 +112,42 @@ BODY_TRACKING_PARAM = {
     'max_body_width_mm': 0,
     'blur_sz_mm': 1/7.5,
     'median_filter_sz_mm': 0
+}
+
+EYES_TRACKING_PARAM = {
+    'pix_per_mm': PIX_PER_MM,
+    'target_pix_per_mm': 40,
+    'eye_thresh_lo': 0.3,
+    'eye_thresh_hi': 0.7,
+    'eye_dyntresh_res': 5,
+    'eye_brightness': 0.0,
+    'eye_gamma': 3.0,
+    'eye_contrast': 5.0,
+    'eye_size_lo_mm': 0.8,
+    'eye_size_hi_mm': 10.0,
+    'crop_offset_mm': -0.75,
+    'crop_dimension_mm': (1.0,1.5),
+    'blur_sz_mm': 0.06,
+    'median_filter_sz_mm': 0,
+}
+
+TAIL_TRACKING_PARAM = {
+    'pix_per_mm': PIX_PER_MM,
+    'target_pix_per_mm': 20,
+    'tail_brightness': 0.0,
+    'tail_gamma': 0.75,
+    'tail_contrast': 3.0,
+    'ball_radius_mm': 0.05,
+    'arc_angle_deg': 90,
+    'n_pts_arc': 20,
+    'n_tail_points': 6,
+    'n_pts_interp': 40,
+    'tail_length_mm': 2.2,
+    'dist_swim_bladder_mm': 0.0,
+    'crop_dimension_mm': (3.5,3.5),
+    'crop_offset_tail_mm': 1.75,
+    'blur_sz_mm': 0.06,
+    'median_filter_sz_mm': 0,
 }
 
 # Display
