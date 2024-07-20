@@ -13,7 +13,9 @@ from config import (
     RECORD_VIDEO,
 )
 
-#NOTE this is tightly coupled with main.py through the keys present in the Dicts
+# NOTE this is tightly coupled with main.py through the keys present in the Dicts.
+# Potential fix: explicitly expand dicts into keyword arguments
+
 class MainGui(QWidget):
     
     def __init__(self, workers: Dict, queues: Dict, worker_logger: Logger, queue_logger: Logger, *args, **kwargs):
