@@ -457,6 +457,9 @@ if __name__ == "__main__":
     )
 
     tracker_control = TrackerGui(
+        animal_tracking_param=ANIMAL_TRACKING_PARAM,
+        body_tracking_param=BODY_TRACKING_PARAM,
+        n_tracker_workers=N_TRACKER_WORKERS,
         name='tracker_gui',  
         logger=worker_logger, 
         logger_queues=queue_logger,
