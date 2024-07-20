@@ -280,6 +280,7 @@ if __name__ == "__main__":
                 cam_width=CAM_WIDTH,
                 cam_height=CAM_HEIGHT,
                 n_tracker_workers=N_TRACKER_WORKERS,
+                downsample_tracker_export=DOWNSAMPLE_TRACKING_EXPORT,
                 name=f'tracker{i}', 
                 logger=worker_logger, 
                 logger_queues=queue_logger, 

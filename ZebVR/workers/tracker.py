@@ -16,6 +16,7 @@ class TrackerWorker(WorkerNode):
             cam_width: int,
             cam_height: int,
             n_tracker_workers: int,
+            downsample_tracker_export: int,
             *args, 
             **kwargs
         ):
@@ -25,6 +26,7 @@ class TrackerWorker(WorkerNode):
         self.cam_width = cam_width 
         self.cam_height = cam_height
         self.n_tracker_workers = n_tracker_workers
+        self.downsample_tracker_export = downsample_tracker_export
         
     def initialize(self) -> None:
         super().initialize()
@@ -53,7 +55,7 @@ class TrackerWorker(WorkerNode):
                     max_num_animals=1,
                     accumulator=None, 
                     export_fullres_image=True,
-                    downsample_fullres_export=0.25,
+                    downsample_fullres_export=self.downsample_tracker_export,
                     animal=AnimalTracker_CPU(
                         assignment=GridAssignment(LUT=np.zeros((self.cam_height, self.cam_width), dtype=np.int_)), 
                         tracking_param=AnimalTrackerParamTracking(**control['animal_tracking'])
