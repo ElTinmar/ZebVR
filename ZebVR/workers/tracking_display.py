@@ -123,6 +123,7 @@ class TrackingDisplay(WorkerNode):
         layout_status = QHBoxLayout()
         layout_status.addWidget(QLabel('index:'))
         layout_status.addWidget(self.lbl_index)
+        layout_status.addStretch()
         layout_status.addWidget(QLabel('timestamp:'))
         layout_status.addWidget(self.lbl_timestamp)
 
