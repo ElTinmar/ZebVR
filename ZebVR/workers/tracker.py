@@ -64,8 +64,6 @@ class TrackerWorker(WorkerNode):
                 body_tracking = control['body_tracking']
                 eyes_tracking = control['eyes_tracking']
                 tail_tracking = control['tail_tracking']
-
-                print(eyes_tracking)
                 
                 self.tracker = MultiFishTracker_CPU(
                     max_num_animals=1,

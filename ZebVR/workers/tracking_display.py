@@ -131,10 +131,15 @@ class TrackingDisplay(WorkerNode):
         layout_status.addWidget(QLabel('timestamp:'))
         layout_status.addWidget(self.lbl_timestamp)
 
+        layout_image = QHBoxLayout()
+        layout_image.addStretch()
+        layout_image.addWidget(self.lbl_image)
+        layout_image.addStretch() 
+
         layout = QVBoxLayout(self.window)
         layout.addLayout(layout_tracker_btn)
         layout.addLayout(layout_display_btn)
-        layout.addWidget(self.lbl_image)
+        layout.addLayout(layout_image)
         layout.addLayout(layout_status)
 
     def process_data(self, data) -> NDArray:
