@@ -55,8 +55,14 @@ class TrackerWorker(WorkerNode):
             return None  
         
     def process_metadata(self, metadata) -> Any:
+        
         for i in range(self.n_tracker_workers):
-            control = metadata[f'tracker_control_{i}']
+            
+            try:
+                control = metadata[f'tracker_control_{i}']
+            except KeyError:
+                control = None
+
             if control is not None: 
                 animal_tracking = control['animal_tracking']
                 body_tracking = control['body_tracking']
