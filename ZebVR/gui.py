@@ -72,18 +72,12 @@ class MainGui(QWidget):
                     name='background_subtracted'
                 )
 
-        self.dag.connect_data(
-            sender=self.workers['overlay'], 
-            receiver=self.workers['display'], 
-            queue=self.queues['overlay_to_display'], 
-            name='disp'
-        )
 
         for i in range(N_TRACKER_WORKERS):
             self.dag.connect_data(
                 sender=self.workers[f'tracker_{i}'], 
-                receiver=self.workers['overlay'], 
-                queue=self.queues['tracker_to_overlay'], 
+                receiver=self.workers['tracking_display'], 
+                queue=self.queues['tracker_to_tracking_display'], 
                 name='overlay'
             )
 
@@ -246,8 +240,7 @@ class MainGui(QWidget):
                 print('cam to image saver', self.queues['camera_to_video_recorder'].get_average_freq(), self.queues['camera_to_video_recorder'].queue.num_lost_item.value)
             print('background to trackers', self.queues['background_to_tracker'].get_average_freq(), self.queues['background_to_tracker'].queue.num_lost_item.value)
             print('trackers to visual stim', self.queues['tracker_to_stim'].get_average_freq(), self.queues['tracker_to_stim'].queue.num_lost_item.value)
-            print('trackers to overlay', self.queues['tracker_to_overlay'].get_average_freq(), self.queues['tracker_to_overlay'].queue.num_lost_item.value)
-            print('overlay to display', self.queues['overlay_to_display'].get_average_freq(), self.queues['overlay_to_display'].queue.num_lost_item.value)
+            print('trackers to display', self.queues['tracker_to_tracking_display'].get_average_freq(), self.queues['tracker_to_tracking_display'].queue.num_lost_item.value)
             self.worker_logger.stop()
             self.queue_logger.stop()
             self.p_worker_logger.join()

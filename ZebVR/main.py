@@ -40,7 +40,8 @@ from workers import (
     ImageSaverWorker, 
     CameraGui, 
     TrackerGui, 
-    StimGUI
+    StimGUI,
+    TrackingDisplay
 )
 from config import (
     REGISTRATION_FILE, 
@@ -288,18 +289,10 @@ if __name__ == "__main__":
             )
         )
 
-    dis = DisplayWorker(
-        fps=30, 
-        name='display', 
-        logger=worker_logger, 
-        logger_queues=queue_logger, 
-        receive_data_timeout=1.0
-    )
-
-    oly = OverlayWorker(
+    trck_disp = TrackingDisplay(
         overlay=o, 
         fps=30, 
-        name="overlay", 
+        name="tracking_display", 
         logger=worker_logger, 
         logger_queues=queue_logger, 
         receive_data_timeout=1.0
@@ -354,19 +347,6 @@ if __name__ == "__main__":
             t_refresh=T_REFRESH
         )
     )
-
-    q_display = MonitoredQueue(
-        ObjectRingBuffer2(
-            num_items = 100,
-            data_type = dt_downsampled_uint8_RGB,
-            serialize = serialize_image,
-            deserialize = deserialize_image,
-            logger = queue_logger,
-            name = 'overlay_to_display',
-            t_refresh=T_REFRESH
-        )
-    )
-
 
     # ring buffer background ------------------------------------------------------------------
     # IMPORTANT: need to copy the data out of the 
@@ -435,8 +415,7 @@ if __name__ == "__main__":
         'camera': cam,
         'video_recorder': image_saver,
         'visual_stim': stim_worker,
-        'overlay': oly,
-        'display': dis,
+        'tracking_display': trck_disp,
         'camera_gui': cam_control,
         'visual_stim_control': stim_control,
         'tracker_gui': tracker_control
@@ -451,8 +430,7 @@ if __name__ == "__main__":
         'camera_to_video_recorder': q_save_image,
         'background_to_tracker': q_back,
         'tracker_to_stim': q_tracking,
-        'tracker_to_overlay': q_overlay,
-        'overlay_to_display': q_display,
+        'tracker_to_tracking_display': q_overlay,
         'camera_control_to_camera': QueueMP(),
         'camera_to_camera_control': QueueMP(),
         'visual_stim_control': QueueMP()
