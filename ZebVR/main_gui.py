@@ -14,7 +14,7 @@ from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ObjectRingBuffer2, QueueMP
 from video_tools import BackroundImage
 from dagline import receive_strategy, send_strategy, ProcessingDAG
-from ZebVR.stimulus import VisualStimWorker, GeneralStim
+from stimulus import VisualStimWorker, GeneralStim
 
 import subprocess
 import numpy as np
@@ -31,7 +31,7 @@ from workers import (
     CameraGui, TrackerGui, StimGUI
 )
 
-from ZebVR.config import (
+from config import (
     REGISTRATION_FILE, 
     CAM_WIDTH, 
     CAM_HEIGHT,
