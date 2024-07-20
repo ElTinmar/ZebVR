@@ -1,28 +1,28 @@
-# -*- coding: utf-8 -*-
-
 import lightcrafter as lcr
 
-# Generate lightcrafter object and try to connect to it
-dev = lcr.Lightcrafter(_isCheckOnly=False, _logLevel=3)
-res = dev.connect()
-if res[0] is not lcr.ERROR.OK:
-  # No connection
-  exit()
+def set_lcr_video_mode():
 
-# Print report and video signal status
-dev.getFirmwareVersion()
-dev.getHardwareStatus()
-dev.getMainStatus()
-dev.getSystemStatus()
-dev.getVideoSignalDetectStatus()
+  # Generate lightcrafter object and try to connect to it
+  dev = lcr.Lightcrafter(_isCheckOnly=False, _logLevel=3)
+  res = dev.connect()
+  if res[0] is not lcr.ERROR.OK:
+    # No connection
+    exit()
 
-dev.stopPatternSequence()
+  # Print report and video signal status
+  dev.getFirmwareVersion()
+  dev.getHardwareStatus()
+  dev.getMainStatus()
+  dev.getSystemStatus()
+  dev.getVideoSignalDetectStatus()
 
-# Go back to normal video mode
-dev.setInputSource(lcr.SourceSel.HDMI, lcr.SourcePar.Bit24)
-dev.setDisplayMode(lcr.DispMode.Video)
+  dev.stopPatternSequence()
 
-dev.getMainStatus()
-dev.getSystemStatus()
+  # Go back to normal video mode
+  dev.setInputSource(lcr.SourceSel.HDMI, lcr.SourcePar.Bit24)
+  dev.setDisplayMode(lcr.DispMode.Video)
 
-dev.disconnect()
+  dev.getMainStatus()
+  dev.getSystemStatus()
+
+  dev.disconnect()

@@ -2,6 +2,7 @@ import os
 from video_tools import Polarity
 import numpy as np
 from functools import partial
+from lightcrafter import set_lcr_video_mode
 from camera_tools import OpenCV_Webcam, MovieFileCam
 try:
     from camera_tools import XimeaCamera 
@@ -21,6 +22,7 @@ if LCr:
     PROJ_HEIGHT = 1140
     PROJ_WIDTH = 912
     PIXEL_SCALING = (1.0, 0.5)
+    set_lcr_video_mode()
 else:
     PROJ_HEIGHT = 800
     PROJ_WIDTH = 1280
