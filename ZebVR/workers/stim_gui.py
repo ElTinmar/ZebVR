@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QCheckBox, 
     QStackedWidget, 
     QGroupBox, 
+    QHBoxLayout,
     QVBoxLayout, 
     QComboBox,
     QLabel
@@ -28,6 +29,8 @@ class StimGUI(WorkerNode):
             looming_period_sec: float = 30,
             looming_expansion_time_sec: float = 3,
             looming_expansion_speed_mm_per_sec: float = 10,
+            foreground_color: Tuple = (1.0, 1.0, 1.0, 1.0),
+            background_color: Tuple = (0.0, 0.0, 0.0, 1.0),
             *args, 
             **kwargs
         ):
@@ -44,6 +47,8 @@ class StimGUI(WorkerNode):
         self.looming_period_sec = looming_period_sec
         self.looming_expansion_time_sec = looming_expansion_time_sec
         self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
+        self.foreground_color = foreground_color
+        self.background_color = background_color
 
     def initialize(self) -> None:
         super().initialize()
@@ -65,6 +70,59 @@ class StimGUI(WorkerNode):
         self.cmb_stim_select.addItem('OKR')
         self.cmb_stim_select.addItem('Looming')
         self.cmb_stim_select.currentIndexChanged.connect(self.stim_changed)
+
+        # Colors
+        self.lbl_foreground_color = QLabel('Foreground color')
+
+        self.sb_foreground_color_R = LabeledDoubleSpinBox()
+        self.sb_foreground_color_R.setText('R')
+        self.sb_foreground_color_R.setRange(0,1)
+        self.sb_foreground_color_R.setValue(self.foreground_color[0])
+        self.sb_foreground_color_R.valueChanged.connect(self.on_change)
+
+        self.sb_foreground_color_G = LabeledDoubleSpinBox()
+        self.sb_foreground_color_G.setText('G')
+        self.sb_foreground_color_G.setRange(0,1)
+        self.sb_foreground_color_G.setValue(self.foreground_color[1])
+        self.sb_foreground_color_G.valueChanged.connect(self.on_change)
+
+        self.sb_foreground_color_B = LabeledDoubleSpinBox()
+        self.sb_foreground_color_B.setText('B')
+        self.sb_foreground_color_B.setRange(0,1)
+        self.sb_foreground_color_B.setValue(self.foreground_color[2])
+        self.sb_foreground_color_B.valueChanged.connect(self.on_change)
+
+        self.sb_foreground_color_A = LabeledDoubleSpinBox()
+        self.sb_foreground_color_A.setText('A')
+        self.sb_foreground_color_A.setRange(0,1)
+        self.sb_foreground_color_A.setValue(self.foreground_color[3])
+        self.sb_foreground_color_A.valueChanged.connect(self.on_change)
+
+        self.lbl_background_color = QLabel('Background color')
+
+        self.sb_background_color_R = LabeledDoubleSpinBox()
+        self.sb_background_color_R.setText('R')
+        self.sb_background_color_R.setRange(0,1)
+        self.sb_background_color_R.setValue(self.background_color[0])
+        self.sb_background_color_R.valueChanged.connect(self.on_change)
+
+        self.sb_background_color_G = LabeledDoubleSpinBox()
+        self.sb_background_color_G.setText('G')
+        self.sb_background_color_G.setRange(0,1)
+        self.sb_background_color_G.setValue(self.background_color[1])
+        self.sb_background_color_G.valueChanged.connect(self.on_change)
+
+        self.sb_background_color_B = LabeledDoubleSpinBox()
+        self.sb_background_color_B.setText('B')
+        self.sb_background_color_B.setRange(0,1)
+        self.sb_background_color_B.setValue(self.background_color[2])
+        self.sb_background_color_B.valueChanged.connect(self.on_change)
+
+        self.sb_background_color_A = LabeledDoubleSpinBox()
+        self.sb_background_color_A.setText('A')
+        self.sb_background_color_A.setRange(0,1)
+        self.sb_background_color_A.setValue(self.background_color[3])
+        self.sb_background_color_A.valueChanged.connect(self.on_change)
 
         # Phototaxis
         self.chb_phototaxis_polarity = QCheckBox('invert polarity', self.window)
@@ -136,6 +194,20 @@ class StimGUI(WorkerNode):
 
     def layout_components(self):
 
+        foreground_color_layout = QHBoxLayout()
+        foreground_color_layout.addWidget(self.lbl_foreground_color)
+        foreground_color_layout.addWidget(self.sb_foreground_color_R)
+        foreground_color_layout.addWidget(self.sb_foreground_color_G)
+        foreground_color_layout.addWidget(self.sb_foreground_color_B)
+        foreground_color_layout.addWidget(self.sb_foreground_color_A)
+
+        background_color_layout = QHBoxLayout()
+        background_color_layout.addWidget(self.lbl_background_color)
+        background_color_layout.addWidget(self.sb_background_color_R)
+        background_color_layout.addWidget(self.sb_background_color_G)
+        background_color_layout.addWidget(self.sb_background_color_B)
+        background_color_layout.addWidget(self.sb_background_color_A)
+
         phototaxis_layout = QVBoxLayout()
         phototaxis_layout.addWidget(self.chb_phototaxis_polarity)
         self.phototaxis_group = QGroupBox('Phototaxis parameters')
@@ -173,6 +245,8 @@ class StimGUI(WorkerNode):
     
         layout = QVBoxLayout(self.window)
         layout.addWidget(self.cmb_stim_select)
+        layout.addLayout(foreground_color_layout)
+        layout.addLayout(background_color_layout)
         layout.addWidget(self.stack)
 
     def stim_changed(self):
@@ -202,6 +276,14 @@ class StimGUI(WorkerNode):
             res['visual_stim_control']['looming_period_sec'] = self.sb_looming_period_sec.value()
             res['visual_stim_control']['looming_expansion_time_sec'] = self.sb_looming_expansion_time_sec.value()
             res['visual_stim_control']['looming_expansion_speed_mm_per_sec'] = self.sb_looming_expansion_speed_mm_per_sec.value()
+            res['visual_stim_control']['foreground_color_R'] = self.sb_foreground_color_R.value()
+            res['visual_stim_control']['foreground_color_G'] = self.sb_foreground_color_G.value()
+            res['visual_stim_control']['foreground_color_B'] = self.sb_foreground_color_B.value()
+            res['visual_stim_control']['foreground_color_A'] = self.sb_foreground_color_A.value()
+            res['visual_stim_control']['background_color_R'] = self.sb_background_color_R.value()
+            res['visual_stim_control']['background_color_G'] = self.sb_background_color_G.value()
+            res['visual_stim_control']['background_color_B'] = self.sb_background_color_B.value()
+            res['visual_stim_control']['background_color_A'] = self.sb_background_color_A.value()
             self.updated = False
             return res       
         else:

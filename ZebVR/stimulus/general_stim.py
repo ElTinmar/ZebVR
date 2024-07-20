@@ -175,9 +175,6 @@ class GeneralStim(VisualStim):
             vsync=vsync
         )
 
-        self.foreground_color = foreground_color
-        self.background_color = background_color
-
         self.index = Value('L', 0)
         self.timestamp = Value('f', 0)
         self.fish_mediolateral_axis_x = Value('d', 0)
@@ -187,7 +184,15 @@ class GeneralStim(VisualStim):
         self.fish_centroid_x = Value('d', 0)
         self.fish_centroid_y = Value('d', 0)
 
-        # stim parameters        
+        # stim parameters      
+        self.foreground_color_R = Value('d', foreground_color[0]) 
+        self.foreground_color_G = Value('d', foreground_color[1]) 
+        self.foreground_color_B = Value('d', foreground_color[2]) 
+        self.foreground_color_A = Value('d', foreground_color[3]) 
+        self.background_color_R = Value('d', background_color[0]) 
+        self.background_color_G = Value('d', background_color[1]) 
+        self.background_color_B = Value('d', background_color[2]) 
+        self.background_color_A = Value('d', background_color[3]) 
         self.stim_select = Value('d', stim_select) 
         self.phototaxis_polarity = Value('d', phototaxis_polarity) 
         self.omr_spatial_period_mm = Value('d', omr_spatial_period_mm)
@@ -246,8 +251,18 @@ class GeneralStim(VisualStim):
         self.program['a_fish_caudorostral_axis'] = [0,0]
         self.program['a_fish_mediolateral_axis'] = [0,0]
         self.program['a_fish_centroid'] = [0,0]
-        self.program['u_foreground_color'] = self.foreground_color
-        self.program['u_background_color'] = self.background_color
+        self.program['u_foreground_color'] = [
+            self.foreground_color_R.value,
+            self.foreground_color_G.value,
+            self.foreground_color_B.value,
+            self.foreground_color_A.value,
+        ]
+        self.program['u_background_color'] = [
+            self.background_color_R.value,
+            self.background_color_G.value,
+            self.background_color_B.value,
+            self.background_color_A.value,
+        ]
         self.program['u_stim_select'] = self.stim_select.value
         self.program['u_phototaxis_polarity'] = self.phototaxis_polarity.value
         self.program['u_omr_spatial_period_mm'] = self.omr_spatial_period_mm.value
@@ -284,6 +299,18 @@ class GeneralStim(VisualStim):
         self.program['a_fish_caudorostral_axis'] = [self.fish_caudorostral_axis_x.value, self.fish_caudorostral_axis_y.value]
         self.program['a_fish_mediolateral_axis'] = [self.fish_mediolateral_axis_x.value, self.fish_mediolateral_axis_y.value]
         self.program['a_fish_centroid'] = [self.fish_centroid_x.value, self.fish_centroid_y.value]
+        self.program['u_foreground_color'] = [
+            self.foreground_color_R.value,
+            self.foreground_color_G.value,
+            self.foreground_color_B.value,
+            self.foreground_color_A.value,
+        ]
+        self.program['u_background_color'] = [
+            self.background_color_R.value,
+            self.background_color_G.value,
+            self.background_color_B.value,
+            self.background_color_A.value,
+        ]
         self.program['u_time'] = t_local
         self.program['u_stim_select'] = self.stim_select.value
         self.program['u_phototaxis_polarity'] = self.phototaxis_polarity.value
@@ -352,3 +379,11 @@ class GeneralStim(VisualStim):
             self.looming_period_sec.value = control['looming_period_sec']
             self.looming_expansion_time_sec.value = control['looming_expansion_time_sec']
             self.looming_expansion_speed_mm_per_sec.value = control['looming_expansion_speed_mm_per_sec']
+            self.foreground_color_R.value = control['foreground_color_R']
+            self.foreground_color_G.value = control['foreground_color_G']
+            self.foreground_color_B.value = control['foreground_color_B']
+            self.foreground_color_A.value = control['foreground_color_A']
+            self.background_color_R.value = control['background_color_R']
+            self.background_color_G.value = control['background_color_G']
+            self.background_color_B.value = control['background_color_B']
+            self.background_color_A.value = control['background_color_A']

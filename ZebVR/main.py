@@ -211,6 +211,8 @@ if __name__ == "__main__":
         looming_period_sec = LOOMING_PERIOD_SEC,
         looming_expansion_time_sec = LOOMING_EXPANSION_TIME_SEC,
         looming_expansion_speed_mm_per_sec = LOOMING_EXPANSION_SPEED_MM_PER_SEC,
+        foreground_color=FOREGROUND_COLOR,
+        background_color=BACKGROUND_COLOR,
         name='stim_gui', 
         logger=worker_logger, 
         logger_queues=queue_logger, 
