@@ -60,6 +60,7 @@ class TrackerWorker(WorkerNode):
             control = metadata[f'tracker_control_{i}']
 
             if control is not None: 
+                print(control)
                 animal_tracking = control['animal_tracking']
                 body_tracking = control['body_tracking']
                 eyes_tracking = control['eyes_tracking']

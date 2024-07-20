@@ -406,7 +406,6 @@ class TrackerGui(WorkerNode):
 
     def layout_components(self):
         animal = QVBoxLayout()
-        animal.addStretch()
         animal.addWidget(QLabel('animal'))
         animal.addWidget(self.animal_pix_per_mm)
         animal.addWidget(self.animal_target_pix_per_mm)
@@ -425,7 +424,6 @@ class TrackerGui(WorkerNode):
         animal.addStretch()
 
         body = QVBoxLayout()
-        body.addStretch()
         body.addWidget(QLabel('body'))
         body.addWidget(self.body_pix_per_mm)
         body.addWidget(self.body_target_pix_per_mm)
@@ -444,7 +442,6 @@ class TrackerGui(WorkerNode):
         body.addStretch()
 
         eyes = QVBoxLayout()
-        eyes.addStretch()
         eyes.addWidget(QLabel('eyes'))
         eyes.addWidget(self.eyes_pix_per_mm)
         eyes.addWidget(self.eyes_target_pix_per_mm)
@@ -464,7 +461,6 @@ class TrackerGui(WorkerNode):
         eyes.addStretch()
 
         tail = QVBoxLayout()
-        tail.addStretch()
         tail.addWidget(QLabel('tail'))
         tail.addWidget(self.tail_pix_per_mm)
         tail.addWidget(self.tail_target_pix_per_mm)
@@ -556,7 +552,6 @@ class TrackerGui(WorkerNode):
 
                 res[f'tracker_control_{i}']['tail_tracking']['pix_per_mm']=self.tail_pix_per_mm.value()
                 res[f'tracker_control_{i}']['tail_tracking']['target_pix_per_mm']=self.tail_target_pix_per_mm.value()
-                res[f'tracker_control_{i}']['tail_tracking']['tail_intensity']=self.tail_intensity.value()
                 res[f'tracker_control_{i}']['tail_tracking']['tail_brightness']=self.tail_brightness.value()
                 res[f'tracker_control_{i}']['tail_tracking']['tail_gamma']=self.tail_gamma.value()
                 res[f'tracker_control_{i}']['tail_tracking']['tail_contrast']=self.tail_contrast.value()
@@ -567,7 +562,7 @@ class TrackerGui(WorkerNode):
                 res[f'tracker_control_{i}']['tail_tracking']['n_pts_interp']=self.n_tail_points_interp.value()
                 res[f'tracker_control_{i}']['tail_tracking']['tail_length_mm']=self.tail_length_mm.value()
                 res[f'tracker_control_{i}']['tail_tracking']['dist_swim_bladder_mm']=self.swim_bladder_mm.value()
-                res[f'tracker_control_{i}']['tail_tracking']['crop_dimension_mm']=(self.eyes_crop_width_mm.value(),self.eyes_crop_height_mm.value())
+                res[f'tracker_control_{i}']['tail_tracking']['crop_dimension_mm']=(self.tail_crop_width_mm.value(),self.tail_crop_height_mm.value())
                 res[f'tracker_control_{i}']['tail_tracking']['crop_offset_tail_mm']=self.tail_offset_mm.value()
                 res[f'tracker_control_{i}']['tail_tracking']['blur_sz_mm']=self.tail_blur_sz_mm.value()
                 res[f'tracker_control_{i}']['tail_tracking']['median_filter_sz_mm']=self.tail_median_filter_sz_mm.value()
