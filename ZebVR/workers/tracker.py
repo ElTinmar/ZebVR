@@ -43,10 +43,10 @@ class TrackerWorker(WorkerNode):
         # self.tracker.tail.track(np.zeros((100,100),dtype=np.float32), centroid=np.array([0,0]))
 
     def process_data(self, data: NDArray) -> Dict:
+        index, timestamp, image = data
+        tracking = self.tracker.track(image)
+        res = {}    
         try:
-            index, timestamp, image = data
-            tracking = self.tracker.track(image)
-            res = {}
             k = tracking.animals.identities[0]
             res['stimulus'] = (index, timestamp, tracking.animals.centroids[k,:], tracking.body[k].heading)
             res['overlay'] = (index, timestamp, tracking)
@@ -78,3 +78,4 @@ class TrackerWorker(WorkerNode):
                     eyes=EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**eyes_tracking)),
                     tail=TailTracker_CPU(tracking_param=TailTrackerParamTracking(**tail_tracking))
                 )
+

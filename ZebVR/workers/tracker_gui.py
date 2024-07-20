@@ -2,7 +2,7 @@ from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel
-from qt_widgets import LabeledDoubleSpinBox
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
 
 class TrackerGui(WorkerNode):
 
@@ -232,7 +232,7 @@ class TrackerGui(WorkerNode):
         self.eyes_intensity_hi.setValue(self.eyes_tracking_param['eye_thresh_hi'])
         self.eyes_intensity_hi.valueChanged.connect(self.on_change)
 
-        self.eyes_thresh_resolution = LabeledDoubleSpinBox()
+        self.eyes_thresh_resolution = LabeledSpinBox()
         self.eyes_thresh_resolution.setText('thresh steps')
         self.eyes_thresh_resolution.setRange(0,100)
         self.eyes_thresh_resolution.setValue(self.eyes_tracking_param['eye_dyntresh_res'])
@@ -342,19 +342,19 @@ class TrackerGui(WorkerNode):
         self.tail_arc_angle_deg.setValue(self.tail_tracking_param['arc_angle_deg'])
         self.tail_arc_angle_deg.valueChanged.connect(self.on_change)
         
-        self.tail_n_points_arc = LabeledDoubleSpinBox()
+        self.tail_n_points_arc = LabeledSpinBox()
         self.tail_n_points_arc.setText('arc resolution')
         self.tail_n_points_arc.setRange(0,100)
         self.tail_n_points_arc.setValue(self.tail_tracking_param['n_pts_arc'])
         self.tail_n_points_arc.valueChanged.connect(self.on_change)
 
-        self.n_tail_points = LabeledDoubleSpinBox()
+        self.n_tail_points = LabeledSpinBox()
         self.n_tail_points.setText('#tail points')
         self.n_tail_points.setRange(0,100)
         self.n_tail_points.setValue(self.tail_tracking_param['n_tail_points'])
         self.n_tail_points.valueChanged.connect(self.on_change)
 
-        self.n_tail_points_interp = LabeledDoubleSpinBox()
+        self.n_tail_points_interp = LabeledSpinBox()
         self.n_tail_points_interp.setText('#tail points interp')
         self.n_tail_points_interp.setRange(0,100_000)
         self.n_tail_points_interp.setValue(self.tail_tracking_param['n_pts_interp'])
@@ -566,4 +566,5 @@ class TrackerGui(WorkerNode):
                 res[f'tracker_control_{i}']['tail_tracking']['crop_offset_tail_mm']=self.tail_offset_mm.value()
                 res[f'tracker_control_{i}']['tail_tracking']['blur_sz_mm']=self.tail_blur_sz_mm.value()
                 res[f'tracker_control_{i}']['tail_tracking']['median_filter_sz_mm']=self.tail_median_filter_sz_mm.value()
+
             return res
