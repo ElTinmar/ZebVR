@@ -9,6 +9,7 @@ import os
 
 VERT_SHADER = """
 uniform mat3 u_transformation_matrix;
+uniform float u_pix_per_mm; 
 attribute vec2 a_position;
 
 // tracking
@@ -19,26 +20,29 @@ attribute vec2 a_fish_centroid;
 varying vec2 v_fish_caudorostral_axis;
 varying vec2 v_fish_mediolateral_axis;
 varying vec2 v_fish_centroid;
+varying vec2 v_pix_per_mm_proj;
 
 void main()
 {
-    vec3 fish_centroid = u_transformation_matrix * vec3(a_fish_centroid, 1.0) ;
-    vec3 fish_caudorostral_axis = u_transformation_matrix * vec3(a_fish_centroid+a_fish_caudorostral_axis, 1.0);
-    vec3 fish_mediolateral_axis = u_transformation_matrix * vec3(a_fish_centroid+a_fish_mediolateral_axis, 1.0);
-
     gl_Position = vec4(a_position, 0.0, 1.0);
+
+    //NOTE setting last component to 0 for scaling without translation
+    vec3 fish_centroid = u_transformation_matrix * vec3(a_fish_centroid, 1.0);
+    vec3 fish_caudorostral_axis = u_transformation_matrix * vec3(a_fish_caudorostral_axis, 0);
+    vec3 fish_mediolateral_axis = u_transformation_matrix * vec3(a_fish_mediolateral_axis, 0);
+    vec3 proj_scale = u_transformation_matrix * vec3(u_pix_per_mm, u_pix_per_mm, 0);
+
     v_fish_centroid = fish_centroid.xy;
-    v_fish_caudorostral_axis = fish_caudorostral_axis.xy - fish_centroid.xy;
-    v_fish_mediolateral_axis = fish_mediolateral_axis.xy - fish_centroid.xy;
+    v_fish_caudorostral_axis = fish_caudorostral_axis.xy;
+    v_fish_mediolateral_axis = fish_mediolateral_axis.xy;
+    v_pix_per_mm_proj = abs(proj_scale.xy);
 } 
 """
 
 FRAG_SHADER = """
 // Some DMD projectors with diamond pixel layouts (e.g. Lightcrafters) do not have uniform pixel spacing.
 uniform vec2 u_pixel_scaling; 
-
-// calibration
-uniform float u_pix_per_mm; 
+varying vec2 v_pix_per_mm_proj;
 
 // tracking
 varying vec2 v_fish_centroid;
@@ -83,10 +87,11 @@ mat2 rotate2d(float angle_rad){
 
 void main()
 {
-    vec2 pixel_correct_coords = gl_FragCoord.xy*u_pixel_scaling;
+    vec2 coordinates_px = gl_FragCoord.xy * u_pixel_scaling - v_fish_centroid;
+    vec2 coordinates_mm = 1/v_pix_per_mm_proj * coordinates_px;
     // X: mediolateral_axis, Y: caudorostral_axis
     mat2 change_of_basis = mat2(v_fish_mediolateral_axis, v_fish_caudorostral_axis);
-    vec2 fish_ego_coords = transpose(change_of_basis)*(pixel_correct_coords - v_fish_centroid);
+    vec2 fish_ego_coords_mm = transpose(change_of_basis)*coordinates_mm;
     
     gl_FragColor = u_background_color;
 
@@ -99,14 +104,14 @@ void main()
     }
 
     if (u_stim_select == PHOTOTAXIS) {
-        if ( u_phototaxis_polarity * fish_ego_coords.x > 0.0 ) {
+        if ( u_phototaxis_polarity * fish_ego_coords_mm.x > 0.0 ) {
             gl_FragColor = u_foreground_color;
         } 
     }
 
     if (u_stim_select == OMR) {
         vec2 orientation_vector = rotate2d(deg2rad(u_omr_angle_deg)) * vec2(0,1);
-        float angle = 1/u_pix_per_mm * 2*PI/u_omr_spatial_period_mm * dot(fish_ego_coords, orientation_vector);
+        float angle = 2*PI/u_omr_spatial_period_mm * dot(fish_ego_coords_mm, orientation_vector);
         float phase = 2*PI/u_omr_spatial_period_mm * u_omr_speed_mm_per_sec * u_time;
         if ( sin(angle+phase) > 0.0 ) {
             gl_FragColor = u_foreground_color;
@@ -115,7 +120,7 @@ void main()
 
     if (u_stim_select == OKR) {
         float freq = deg2rad(u_okr_spatial_frequency_deg);
-        float angle = atan(fish_ego_coords.y, fish_ego_coords.x);
+        float angle = atan(fish_ego_coords_mm.y, fish_ego_coords_mm.x);
         float phase = deg2rad(u_okr_speed_deg_per_sec)*u_time;
         if ( mod(angle+phase, freq) > freq/2 ) {
             gl_FragColor = u_foreground_color;
@@ -126,7 +131,7 @@ void main()
         float rel_time = mod(u_time, u_looming_period_sec); 
         float looming_on = float(rel_time<=u_looming_expansion_time_sec);
         if ( rel_time <= u_looming_period_sec/2 ) { 
-            if ( distance(fish_ego_coords, u_looming_center_mm) <= u_pix_per_mm*u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
+            if ( distance(fish_ego_coords_mm, u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
             {
                 gl_FragColor = u_foreground_color;
             }
