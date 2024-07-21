@@ -146,7 +146,7 @@ class StimGUI(WorkerNode):
 
         self.sb_omr_angle = LabeledDoubleSpinBox()
         self.sb_omr_angle.setText('Grating angle (deg)')
-        self.sb_omr_angle.setRange(0,360)
+        self.sb_omr_angle.setRange(-180,180)
         self.sb_omr_angle.setValue(self.omr_angle_deg)
         self.sb_omr_angle.valueChanged.connect(self.on_change)
 
