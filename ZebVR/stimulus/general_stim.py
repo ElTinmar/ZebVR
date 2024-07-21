@@ -84,7 +84,8 @@ mat2 rotate2d(float angle_rad){
 void main()
 {
     vec2 pixel_correct_coords = gl_FragCoord.xy*u_pixel_scaling;
-    mat2 change_of_basis = mat2(v_fish_caudorostral_axis, v_fish_mediolateral_axis);
+    // X: mediolateral_axis, Y: caudorostral_axis
+    mat2 change_of_basis = mat2(v_fish_mediolateral_axis, v_fish_caudorostral_axis);
     vec2 fish_ego_coords = change_of_basis*(pixel_correct_coords - v_fish_centroid);
     
     gl_FragColor = u_background_color;
