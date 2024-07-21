@@ -90,7 +90,10 @@ void main()
     vec2 coordinates_px = gl_FragCoord.xy * u_pixel_scaling - v_fish_centroid;
     vec2 coordinates_mm = 1/v_pix_per_mm_proj * coordinates_px;
     // X: mediolateral_axis, Y: caudorostral_axis
-    mat2 change_of_basis = mat2(v_fish_mediolateral_axis, v_fish_caudorostral_axis);
+    mat2 change_of_basis = mat2(
+        v_fish_mediolateral_axis/length(v_fish_mediolateral_axis), 
+        v_fish_caudorostral_axis/length(v_fish_caudorostral_axis)
+    );
     vec2 fish_ego_coords_mm = transpose(change_of_basis)*coordinates_mm;
     
     gl_FragColor = u_background_color;
