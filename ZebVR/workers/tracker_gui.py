@@ -6,8 +6,6 @@ from PyQt5.QtWidgets import (
     QWidget, 
     QVBoxLayout, 
     QHBoxLayout, 
-    QLabel, 
-    QCheckBox,
     QGroupBox
 )
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
