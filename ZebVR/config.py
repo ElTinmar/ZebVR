@@ -12,7 +12,7 @@ except:
 DEBUG = False
 
 # general settings
-LCr = False #True
+LCr = True
 N_BACKGROUND_WORKERS = 1
 N_TRACKER_WORKERS = 1
 BACKGROUND_GPU = True
@@ -36,12 +36,9 @@ FOREGROUND_COLOR = (1.0, 0.0, 0.0, 1.0)
 BACKGROUND_COLOR = (0.0, 0.0, 0.0, 1.0)
 
 # camera
-movie_file = os.path.abspath(os.path.join(os.getcwd(), "../toy_data/single_freelyswimming_504x500px.avi"))
-mov = partial(MovieFileCam, filename=movie_file)
-
-CAMERA_CONSTRUCTOR = mov #XimeaCamera
-CAM_HEIGHT = 500
-CAM_WIDTH = 504
+CAMERA_CONSTRUCTOR = XimeaCamera
+CAM_HEIGHT = 2048
+CAM_WIDTH = 2048
 CAM_OFFSETX = 0
 CAM_OFFSETY = 0
 CAM_EXPOSURE_MS = 3000
@@ -177,7 +174,11 @@ LOOMING_EXPANSION_SPEED_MM_PER_SEC = 10
 
 
 if DEBUG:
-    CAMERA_CONSTRUCTOR = OpenCV_Webcam
+    movie_file = os.path.abspath(os.path.join(os.getcwd(), "../toy_data/single_freelyswimming_504x500px.avi"))
+    mov = partial(MovieFileCam, filename=movie_file)
+
+    CAMERA_CONSTRUCTOR = mov #XimeaCamera
+    #CAMERA_CONSTRUCTOR = OpenCV_Webcam
     CAM_HEIGHT = 480
     CAM_WIDTH = 640
     CAM_FPS = 30

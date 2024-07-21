@@ -49,14 +49,20 @@ class TrackerWorker(WorkerNode):
 
         index, timestamp, image = data
         tracking = self.tracker.track(image)
+        
         res = {}    
+
         try:
             k = tracking.animals.identities[0]
             res['stimulus'] = (index, timestamp, tracking.animals.centroids[k,:], tracking.body[k].heading)
             res['overlay'] = (index, timestamp, tracking)
             return res
+        
         except KeyError:
-            return None  
+            return None 
+        
+        except TypeError:
+            return None
         
     def process_metadata(self, metadata) -> Any:
 
