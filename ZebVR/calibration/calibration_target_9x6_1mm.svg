@@ -19,13 +19,13 @@
      bordercolor="#666666"
      borderopacity="1.0"
      inkscape:pageshadow="2"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="0"
      inkscape:pagecheckerboard="0"
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1.3273709"
-     inkscape:cx="-91.534323"
-     inkscape:cy="774.83993"
+     inkscape:cx="927.02047"
+     inkscape:cy="421.50992"
      inkscape:window-width="3370"
      inkscape:window-height="1376"
      inkscape:window-x="1510"
@@ -39,718 +39,28 @@
      inkscape:groupmode="layer"
      id="layer1">
     <circle
-       style="fill:none;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
+       style="fill:#808080;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
        id="path1120"
        cx="150.90634"
        cy="58.054482"
        r="45" />
-    <g
-       id="g1351"
-       transform="matrix(0.5,0,0,0.5,42.271177,-22.284203)"
-       style="stroke-width:2">
-      <rect
-         style="fill:#000000;stroke-width:0.02"
-         id="rect1279"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="150.67737"
-         inkscape:tile-cx="30.076511"
-         inkscape:tile-cy="151.67736"
-         inkscape:tile-w="2"
-         inkscape:tile-h="2"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1281"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1283"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1285"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1287"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1289"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1291"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="152.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1293"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="156.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1295"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="160.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1297"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="164.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1299"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="168.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1301"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1303"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1305"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1307"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1309"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1311"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="152.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1313"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="156.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1315"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="160.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1317"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="164.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1319"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="168.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1321"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1323"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1325"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1327"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1329"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1331"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="152.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1333"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="156.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1335"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="160.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1337"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="164.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1339"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="168.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1341"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1343"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1345"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1347"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="use1349"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-    </g>
     <circle
-       style="fill:none;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
+       style="fill:#808080;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
        id="circle1353"
-       cx="60.309433"
+       cx="60.8386"
        cy="58.054482"
-       r="45" />
-    <circle
-       style="fill:none;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
-       id="circle1431"
-       cx="150.90634"
-       cy="148.01282"
-       r="45" />
-    <circle
-       style="fill:none;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
-       id="circle1509"
-       cx="60.309433"
-       cy="148.01282"
-       r="45" />
-    <circle
-       style="fill:none;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
-       id="circle1587"
-       cx="150.90634"
-       cy="237.97119"
-       r="45" />
-    <circle
-       style="fill:none;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
-       id="circle1665"
-       cx="60.309433"
-       cy="237.97119"
        r="45" />
     <text
        xml:space="preserve"
        style="font-weight:bold;font-size:3.52777px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';word-spacing:0px;stroke-width:0.264583"
-       x="55.771393"
+       x="56.30056"
        y="95.73233"
        id="text8273"><tspan
          sodipodi:role="line"
          id="tspan8271"
          style="font-weight:normal;stroke-width:0.264583"
-         x="55.771393"
+         x="56.30056"
          y="95.73233">1mm</tspan></text>
-    <g
-       id="g3456"
-       transform="matrix(0.5,0,0,0.5,132.22953,-22.284203)"
-       style="stroke-width:2">
-      <rect
-         style="fill:#000000;stroke-width:0.02"
-         id="rect3384"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="150.67737"
-         inkscape:tile-cx="30.076511"
-         inkscape:tile-cy="151.67736"
-         inkscape:tile-w="2"
-         inkscape:tile-h="2"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3386"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3388"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3390"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3392"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3394"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3396"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="152.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3398"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="156.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3400"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="160.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3402"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="164.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3404"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="168.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3406"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3408"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3410"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3412"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3414"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3416"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="152.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3418"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="156.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3420"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="160.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3422"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="164.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3424"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="168.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3426"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3428"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3430"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3432"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3434"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3436"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="152.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3438"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="156.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3440"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="160.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3442"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="164.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3444"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="168.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3446"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3448"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3450"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3452"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3454"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-    </g>
     <text
        xml:space="preserve"
        style="font-weight:bold;font-size:3.52777px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';word-spacing:0px;stroke-width:0.264583"
@@ -763,16 +73,15 @@
          x="145.72972"
          y="95.73233">1mm</tspan></text>
     <g
-       id="g3534"
-       transform="matrix(0.5,0,0,0.5,42.271177,67.674134)"
-       style="stroke-width:2">
+       id="g1568"
+       transform="translate(0.52916667)">
       <rect
-         style="fill:#000000;stroke-width:0.02"
-         id="rect3462"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="150.67737"
+         style="fill:#000000;stroke-width:0.01"
+         id="rect1279"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="53.054482"
          inkscape:tile-cx="30.076511"
          inkscape:tile-cy="151.67736"
          inkscape:tile-w="2"
@@ -780,687 +89,1363 @@
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3464"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="150.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1281"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="53.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3466"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="154.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1283"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="55.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3468"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="158.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1285"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="57.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3470"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="162.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1287"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="59.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3472"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="166.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1289"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="61.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3474"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="152.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1291"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="54.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3476"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="156.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1293"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="56.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3478"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="160.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1295"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="58.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3480"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="164.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1297"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="60.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3482"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="168.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1299"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="62.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3484"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="150.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1301"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="53.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3486"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="154.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1303"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="55.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3488"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="158.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1305"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="57.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3490"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="162.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1307"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="59.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3492"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="166.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1309"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="61.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3494"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="152.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1311"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="54.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3496"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="156.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1313"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="56.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3498"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="160.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1315"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="58.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3500"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="164.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1317"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="60.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3502"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="168.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1319"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="62.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3504"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="150.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1321"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="53.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3506"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="154.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1323"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="55.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3508"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="158.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1325"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="57.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3510"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="162.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1327"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="59.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3512"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="166.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1329"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="61.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3514"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="152.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1331"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="54.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3516"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="156.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1333"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="56.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3518"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="160.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1335"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="58.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3520"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="164.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1337"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="60.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3522"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="168.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1339"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="62.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3524"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="150.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1341"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="53.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3526"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="154.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1343"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="55.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3528"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="158.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1345"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="57.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3530"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="162.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1347"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="59.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3532"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="166.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="use1349"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="61.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
+      <g
+         id="g1205"
+         transform="matrix(1,0,0,-1,-15.875,116.10896)"
+         style="fill:#ffffff">
+        <rect
+           style="fill:#ffffff;stroke-width:0.01"
+           id="rect1097"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="53.054482"
+           inkscape:tile-cx="30.076511"
+           inkscape:tile-cy="151.67736"
+           inkscape:tile-w="2"
+           inkscape:tile-h="2"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1099"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1101"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1103"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1105"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1107"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1109"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1111"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1113"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1115"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1117"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1119"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1121"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1123"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1125"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1127"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1129"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1131"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1133"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1135"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1137"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1139"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1141"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1143"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1145"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1147"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1149"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1151"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1153"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1155"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1157"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1159"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1161"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1163"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1165"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1167"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+      </g>
     </g>
+    <g
+       id="g1716"
+       transform="translate(90.022926)">
+      <rect
+         style="fill:#000000;stroke-width:0.01"
+         id="rect1570"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="53.054482"
+         inkscape:tile-cx="30.076511"
+         inkscape:tile-cy="151.67736"
+         inkscape:tile-w="2"
+         inkscape:tile-h="2"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1572"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1574"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1576"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1578"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1580"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1582"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="54.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1584"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="56.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1586"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="58.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1588"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="60.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1590"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="62.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1592"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1594"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1596"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1598"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1600"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1602"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="54.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1604"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="56.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1606"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="58.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1608"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="60.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1610"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="62.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1612"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1614"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1616"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1618"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1620"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1622"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="54.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1624"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="56.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1626"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="58.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1628"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="60.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1630"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="62.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1632"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1634"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1636"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1638"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1640"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <g
+         id="g1714"
+         transform="matrix(1,0,0,-1,-15.875,116.10896)"
+         style="fill:#ffffff">
+        <rect
+           style="fill:#ffffff;stroke-width:0.01"
+           id="rect1642"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="53.054482"
+           inkscape:tile-cx="30.076511"
+           inkscape:tile-cy="151.67736"
+           inkscape:tile-w="2"
+           inkscape:tile-h="2"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1644"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1646"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1648"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1650"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1652"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1654"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1656"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1658"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1660"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1662"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1664"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1666"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1668"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1670"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1672"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1674"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1676"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1678"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1680"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1682"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1684"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1686"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1688"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1690"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1692"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1694"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1696"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1698"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1700"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1702"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1704"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1706"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1708"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1710"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1712"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+      </g>
+    </g>
+    <circle
+       style="fill:#808080;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
+       id="circle1718"
+       cx="150.90634"
+       cy="148.0128"
+       r="45" />
+    <circle
+       style="fill:#808080;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
+       id="circle1720"
+       cx="60.8386"
+       cy="148.0128"
+       r="45" />
     <text
        xml:space="preserve"
        style="font-weight:bold;font-size:3.52777px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';word-spacing:0px;stroke-width:0.264583"
-       x="55.771393"
+       x="56.30056"
        y="185.6907"
-       id="text3538"><tspan
+       id="text1724"><tspan
          sodipodi:role="line"
-         id="tspan3536"
+         id="tspan1722"
          style="font-weight:normal;stroke-width:0.264583"
-         x="55.771393"
+         x="56.30056"
          y="185.6907">1mm</tspan></text>
-    <g
-       id="g3612"
-       transform="matrix(0.5,0,0,0.5,132.22953,67.674134)"
-       style="stroke-width:2">
-      <rect
-         style="fill:#000000;stroke-width:0.02"
-         id="rect3540"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="150.67737"
-         inkscape:tile-cx="30.076511"
-         inkscape:tile-cy="151.67736"
-         inkscape:tile-w="2"
-         inkscape:tile-h="2"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3542"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3544"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3546"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3548"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3550"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3552"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="152.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3554"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="156.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3556"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="160.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3558"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="164.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3560"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="168.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3562"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3564"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3566"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3568"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3570"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3572"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="152.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3574"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="156.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3576"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="160.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3578"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="164.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3580"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="168.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3582"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3584"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3586"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3588"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3590"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3592"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="152.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3594"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="156.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3596"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="160.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3598"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="164.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3600"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="168.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3602"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3604"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3606"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3608"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3610"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-    </g>
     <text
        xml:space="preserve"
        style="font-weight:bold;font-size:3.52777px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';word-spacing:0px;stroke-width:0.264583"
        x="145.72972"
        y="185.6907"
-       id="text3616"><tspan
+       id="text1728"><tspan
          sodipodi:role="line"
-         id="tspan3614"
+         id="tspan1726"
          style="font-weight:normal;stroke-width:0.264583"
          x="145.72972"
          y="185.6907">1mm</tspan></text>
     <g
-       id="g3690"
-       transform="matrix(0.5,0,0,0.5,42.271177,157.6325)"
-       style="stroke-width:2">
+       id="g1876"
+       transform="translate(0.52916667,89.958338)">
       <rect
-         style="fill:#000000;stroke-width:0.02"
-         id="rect3618"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="150.67737"
+         style="fill:#000000;stroke-width:0.01"
+         id="rect1730"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="53.054482"
          inkscape:tile-cx="30.076511"
          inkscape:tile-cy="151.67736"
          inkscape:tile-w="2"
@@ -1468,675 +1453,2682 @@
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3620"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="150.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1732"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="53.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3622"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="154.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1734"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="55.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3624"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="158.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1736"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="57.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3626"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="162.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1738"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="59.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3628"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="166.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1740"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="61.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3630"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="152.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1742"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="54.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3632"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="156.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1744"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="56.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3634"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="160.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1746"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="58.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3636"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="164.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1748"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="60.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3638"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="168.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1750"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="62.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3640"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="150.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1752"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="53.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3642"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="154.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1754"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="55.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3644"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="158.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1756"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="57.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3646"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="162.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1758"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="59.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3648"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="166.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1760"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="61.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3650"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="152.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1762"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="54.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3652"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="156.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1764"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="56.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3654"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="160.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1766"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="58.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3656"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="164.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1768"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="60.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3658"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="168.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1770"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="62.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3660"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="150.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1772"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="53.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3662"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="154.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1774"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="55.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3664"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="158.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1776"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="57.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3666"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="162.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1778"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="59.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3668"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="166.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1780"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="61.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3670"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="152.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1782"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="54.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3672"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="156.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1784"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="56.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3674"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="160.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1786"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="58.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3676"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="164.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1788"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="60.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3678"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="168.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1790"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="62.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3680"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="150.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1792"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="53.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3682"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="154.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1794"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="55.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3684"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="158.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1796"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="57.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3686"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="162.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1798"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="59.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
       <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3688"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="166.67737"
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1800"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="61.054482"
          inkscape:tile-x0="29.076511"
          inkscape:tile-y0="150.67736" />
+      <g
+         id="g1874"
+         transform="matrix(1,0,0,-1,-15.875,116.10896)"
+         style="fill:#ffffff">
+        <rect
+           style="fill:#ffffff;stroke-width:0.01"
+           id="rect1802"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="53.054482"
+           inkscape:tile-cx="30.076511"
+           inkscape:tile-cy="151.67736"
+           inkscape:tile-w="2"
+           inkscape:tile-h="2"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1804"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1806"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1808"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1810"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1812"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1814"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1816"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1818"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1820"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1822"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1824"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1826"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1828"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1830"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1832"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1834"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1836"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1838"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1840"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1842"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1844"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1846"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1848"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1850"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1852"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1854"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1856"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1858"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1860"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1862"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1864"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1866"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1868"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1870"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1872"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+      </g>
     </g>
+    <g
+       id="g2024"
+       transform="translate(90.022926,89.958338)">
+      <rect
+         style="fill:#000000;stroke-width:0.01"
+         id="rect1878"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="53.054482"
+         inkscape:tile-cx="30.076511"
+         inkscape:tile-cy="151.67736"
+         inkscape:tile-w="2"
+         inkscape:tile-h="2"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1880"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1882"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1884"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1886"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1888"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1890"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="54.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1892"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="56.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1894"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="58.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1896"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="60.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1898"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="62.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1900"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1902"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1904"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1906"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1908"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1910"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="54.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1912"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="56.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1914"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="58.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1916"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="60.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1918"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="62.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1920"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1922"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1924"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1926"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1928"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1930"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="54.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1932"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="56.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1934"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="58.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1936"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="60.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1938"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="62.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1940"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1942"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1944"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1946"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect1948"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <g
+         id="g2022"
+         transform="matrix(1,0,0,-1,-15.875,116.10896)"
+         style="fill:#ffffff">
+        <rect
+           style="fill:#ffffff;stroke-width:0.01"
+           id="rect1950"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="53.054482"
+           inkscape:tile-cx="30.076511"
+           inkscape:tile-cy="151.67736"
+           inkscape:tile-w="2"
+           inkscape:tile-h="2"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1952"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1954"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1956"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1958"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1960"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1962"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1964"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1966"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1968"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1970"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1972"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1974"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1976"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1978"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1980"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1982"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1984"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1986"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1988"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1990"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1992"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1994"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1996"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect1998"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2000"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2002"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2004"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2006"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2008"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2010"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2012"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2014"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2016"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2018"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2020"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+      </g>
+    </g>
+    <circle
+       style="fill:#808080;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
+       id="circle2026"
+       cx="150.90634"
+       cy="237.97122"
+       r="45" />
+    <circle
+       style="fill:#808080;stroke:#000000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
+       id="circle2028"
+       cx="60.8386"
+       cy="237.97122"
+       r="45" />
     <text
        xml:space="preserve"
        style="font-weight:bold;font-size:3.52777px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';word-spacing:0px;stroke-width:0.264583"
-       x="55.771393"
+       x="56.30056"
        y="275.64908"
-       id="text3694"><tspan
+       id="text2032"><tspan
          sodipodi:role="line"
-         id="tspan3692"
+         id="tspan2030"
          style="font-weight:normal;stroke-width:0.264583"
-         x="55.771393"
+         x="56.30056"
          y="275.64908">1mm</tspan></text>
-    <g
-       id="g3768"
-       transform="matrix(0.5,0,0,0.5,132.22953,157.6325)"
-       style="stroke-width:2">
-      <rect
-         style="fill:#000000;stroke-width:0.02"
-         id="rect3696"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="150.67737"
-         inkscape:tile-cx="30.076511"
-         inkscape:tile-cy="151.67736"
-         inkscape:tile-w="2"
-         inkscape:tile-h="2"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3698"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3700"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3702"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3704"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3706"
-         width="2"
-         height="2"
-         x="29.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3708"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="152.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3710"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="156.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3712"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="160.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3714"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="164.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3716"
-         width="2"
-         height="2"
-         x="31.076511"
-         y="168.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3718"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3720"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3722"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3724"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3726"
-         width="2"
-         height="2"
-         x="33.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3728"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="152.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3730"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="156.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3732"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="160.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3734"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="164.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3736"
-         width="2"
-         height="2"
-         x="35.076511"
-         y="168.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3738"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3740"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3742"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3744"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3746"
-         width="2"
-         height="2"
-         x="37.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3748"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="152.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3750"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="156.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3752"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="160.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3754"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="164.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3756"
-         width="2"
-         height="2"
-         x="39.076511"
-         y="168.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3758"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="150.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3760"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="154.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3762"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="158.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3764"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="162.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-      <rect
-         style="fill:#000000;stroke-width:0.01"
-         id="rect3766"
-         width="2"
-         height="2"
-         x="41.076511"
-         y="166.67737"
-         inkscape:tile-x0="29.076511"
-         inkscape:tile-y0="150.67736" />
-    </g>
     <text
        xml:space="preserve"
        style="font-weight:bold;font-size:3.52777px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';word-spacing:0px;stroke-width:0.264583"
        x="145.72972"
        y="275.64908"
-       id="text3772"><tspan
+       id="text2036"><tspan
          sodipodi:role="line"
-         id="tspan3770"
+         id="tspan2034"
          style="font-weight:normal;stroke-width:0.264583"
          x="145.72972"
          y="275.64908">1mm</tspan></text>
+    <g
+       id="g2184"
+       transform="translate(0.52916667,179.91672)">
+      <rect
+         style="fill:#000000;stroke-width:0.01"
+         id="rect2038"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="53.054482"
+         inkscape:tile-cx="30.076511"
+         inkscape:tile-cy="151.67736"
+         inkscape:tile-w="2"
+         inkscape:tile-h="2"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2040"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2042"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2044"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2046"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2048"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2050"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="54.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2052"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="56.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2054"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="58.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2056"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="60.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2058"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="62.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2060"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2062"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2064"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2066"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2068"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2070"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="54.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2072"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="56.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2074"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="58.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2076"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="60.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2078"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="62.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2080"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2082"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2084"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2086"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2088"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2090"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="54.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2092"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="56.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2094"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="58.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2096"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="60.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2098"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="62.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2100"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2102"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2104"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2106"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2108"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <g
+         id="g2182"
+         transform="matrix(1,0,0,-1,-15.875,116.10896)"
+         style="fill:#ffffff">
+        <rect
+           style="fill:#ffffff;stroke-width:0.01"
+           id="rect2110"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="53.054482"
+           inkscape:tile-cx="30.076511"
+           inkscape:tile-cy="151.67736"
+           inkscape:tile-w="2"
+           inkscape:tile-h="2"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2112"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2114"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2116"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2118"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2120"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2122"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2124"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2126"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2128"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2130"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2132"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2134"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2136"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2138"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2140"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2142"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2144"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2146"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2148"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2150"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2152"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2154"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2156"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2158"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2160"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2162"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2164"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2166"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2168"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2170"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2172"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2174"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2176"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2178"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2180"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+      </g>
+    </g>
+    <g
+       id="g2332"
+       transform="translate(90.022926,179.91672)">
+      <rect
+         style="fill:#000000;stroke-width:0.01"
+         id="rect2186"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="53.054482"
+         inkscape:tile-cx="30.076511"
+         inkscape:tile-cy="151.67736"
+         inkscape:tile-w="2"
+         inkscape:tile-h="2"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2188"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2190"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2192"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2194"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2196"
+         width="1"
+         height="1"
+         x="56.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2198"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="54.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2200"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="56.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2202"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="58.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2204"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="60.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2206"
+         width="1"
+         height="1"
+         x="57.809433"
+         y="62.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2208"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2210"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2212"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2214"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2216"
+         width="1"
+         height="1"
+         x="58.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2218"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="54.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2220"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="56.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2222"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="58.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2224"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="60.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2226"
+         width="1"
+         height="1"
+         x="59.809433"
+         y="62.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2228"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2230"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2232"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2234"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2236"
+         width="1"
+         height="1"
+         x="60.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2238"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="54.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2240"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="56.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2242"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="58.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2244"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="60.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2246"
+         width="1"
+         height="1"
+         x="61.809433"
+         y="62.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2248"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="53.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2250"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="55.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2252"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="57.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2254"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="59.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <rect
+         style="fill:#000000;stroke-width:0.005"
+         id="rect2256"
+         width="1"
+         height="1"
+         x="62.809433"
+         y="61.054482"
+         inkscape:tile-x0="29.076511"
+         inkscape:tile-y0="150.67736" />
+      <g
+         id="g2330"
+         transform="matrix(1,0,0,-1,-15.875,116.10896)"
+         style="fill:#ffffff">
+        <rect
+           style="fill:#ffffff;stroke-width:0.01"
+           id="rect2258"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="53.054482"
+           inkscape:tile-cx="30.076511"
+           inkscape:tile-cy="151.67736"
+           inkscape:tile-w="2"
+           inkscape:tile-h="2"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2260"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2262"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2264"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2266"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2268"
+           width="1"
+           height="1"
+           x="72.684433"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2270"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2272"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2274"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2276"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2278"
+           width="1"
+           height="1"
+           x="73.684433"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2280"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2282"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2284"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2286"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2288"
+           width="1"
+           height="1"
+           x="74.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2290"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2292"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2294"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2296"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2298"
+           width="1"
+           height="1"
+           x="75.684425"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2300"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2302"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2304"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2306"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2308"
+           width="1"
+           height="1"
+           x="76.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2310"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="54.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2312"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="56.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2314"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="58.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2316"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="60.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2318"
+           width="1"
+           height="1"
+           x="77.684425"
+           y="62.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2320"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="53.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2322"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="55.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2324"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="57.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2326"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="59.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+        <rect
+           style="fill:#ffffff;stroke-width:0.005"
+           id="rect2328"
+           width="1"
+           height="1"
+           x="78.684425"
+           y="61.054482"
+           inkscape:tile-x0="29.076511"
+           inkscape:tile-y0="150.67736" />
+      </g>
+    </g>
   </g>
 </svg>
