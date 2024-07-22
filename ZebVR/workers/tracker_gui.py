@@ -418,7 +418,7 @@ class TrackerGui(WorkerNode):
 
     def layout_components(self):
 
-        group_animal = QGroupBox('animal')
+        self.group_animal = QGroupBox('animal')
         animal = QVBoxLayout()
         animal.addWidget(self.animal_pix_per_mm)
         animal.addWidget(self.animal_target_pix_per_mm)
@@ -435,12 +435,12 @@ class TrackerGui(WorkerNode):
         animal.addWidget(self.animal_blur_sz_mm)
         animal.addWidget(self.animal_median_filter_sz_mm)
         animal.addStretch()
-        group_animal.setLayout(animal)
+        self.group_animal.setLayout(animal)
 
-        group_body = QGroupBox('body')
-        group_body.setCheckable(True)
-        group_body.setChecked(self.body_tracking)
-        group_body.toggled.connect(self.on_change)
+        self.group_body = QGroupBox('body')
+        self.group_body.setCheckable(True)
+        self.group_body.setChecked(self.body_tracking)
+        self.group_body.toggled.connect(self.on_change)
 
         body = QVBoxLayout()
         body.addWidget(self.body_pix_per_mm)
@@ -458,12 +458,12 @@ class TrackerGui(WorkerNode):
         body.addWidget(self.body_blur_sz_mm)
         body.addWidget(self.body_median_filter_sz_mm)
         body.addStretch()
-        group_body.setLayout(body)
+        self.group_body.setLayout(body)
 
-        group_eyes = QGroupBox('eyes')
-        group_eyes.setCheckable(True)
-        group_eyes.setChecked(self.eyes_tracking)
-        group_eyes.toggled.connect(self.on_change)
+        self.group_eyes = QGroupBox('eyes')
+        self.group_eyes.setCheckable(True)
+        self.group_eyes.setChecked(self.eyes_tracking)
+        self.group_eyes.toggled.connect(self.on_change)
 
         eyes = QVBoxLayout()
         eyes.addWidget(self.eyes_pix_per_mm)
@@ -482,12 +482,12 @@ class TrackerGui(WorkerNode):
         eyes.addWidget(self.eyes_blur_sz_mm)
         eyes.addWidget(self.eyes_median_filter_sz_mm)
         eyes.addStretch()
-        group_eyes.setLayout(eyes)
+        self.group_eyes.setLayout(eyes)
 
-        group_tail = QGroupBox('tail')
-        group_tail.setCheckable(True)
-        group_tail.setChecked(self.tail_tracking)
-        group_tail.toggled.connect(self.on_change)
+        self.group_tail = QGroupBox('tail')
+        self.group_tail.setCheckable(True)
+        self.group_tail.setChecked(self.tail_tracking)
+        self.group_tail.toggled.connect(self.on_change)
 
         tail = QVBoxLayout()
         tail.addWidget(self.tail_pix_per_mm)
@@ -508,13 +508,13 @@ class TrackerGui(WorkerNode):
         tail.addWidget(self.tail_blur_sz_mm)
         tail.addWidget(self.tail_median_filter_sz_mm)
         tail.addStretch()
-        group_tail.setLayout(tail)
+        self.group_tail.setLayout(tail)
 
         final = QHBoxLayout(self.window)
-        final.addWidget(group_animal)
-        final.addWidget(group_body)
-        final.addWidget(group_eyes)
-        final.addWidget(group_tail)
+        final.addWidget(self.group_animal)
+        final.addWidget(self.group_body)
+        final.addWidget(self.group_eyes)
+        final.addWidget(self.group_tail)
 
     def on_change(self):
         self.updated = True
