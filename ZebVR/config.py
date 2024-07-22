@@ -9,7 +9,7 @@ try:
 except:
     print('Ximea camera not imported')
 
-DEBUG = False
+DEBUG = True
 
 # general settings
 LCr = True
@@ -36,7 +36,8 @@ FOREGROUND_COLOR = (1.0, 0.0, 0.0, 1.0)
 BACKGROUND_COLOR = (0.0, 0.0, 0.0, 1.0)
 
 # camera
-CAMERA_CONSTRUCTOR = XimeaCamera
+if not DEBUG:
+    CAMERA_CONSTRUCTOR = XimeaCamera
 CAM_HEIGHT = 2048
 CAM_WIDTH = 2048
 CAM_OFFSETX = 0
@@ -112,7 +113,7 @@ BODY_TRACKING_PARAM = {
     'median_filter_sz_mm': 0
 }
 
-EYES_TRACKING = False
+EYES_TRACKING = True
 EYES_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 40,
@@ -130,7 +131,7 @@ EYES_TRACKING_PARAM = {
     'median_filter_sz_mm': 0
 }
 
-TAIL_TRACKING = False
+TAIL_TRACKING = True
 TAIL_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 20,
@@ -177,8 +178,7 @@ if DEBUG:
     movie_file = os.path.abspath(os.path.join(os.getcwd(), "../toy_data/single_freelyswimming_504x500px.avi"))
     mov = partial(MovieFileCam, filename=movie_file)
 
-    CAMERA_CONSTRUCTOR = mov #XimeaCamera
-    #CAMERA_CONSTRUCTOR = OpenCV_Webcam
-    CAM_HEIGHT = 480
-    CAM_WIDTH = 640
-    CAM_FPS = 30
+    CAMERA_CONSTRUCTOR = mov 
+    CAM_HEIGHT = 500
+    CAM_WIDTH = 504
+    CAM_FPS = 60

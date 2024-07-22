@@ -19,6 +19,8 @@ from PyQt5.QtWidgets import (
 from tracker import MultiFishOverlay
 from qt_widgets import NDarray_to_QPixmap, LabeledSpinBox
 from image_tools import im2uint8
+from geometry import Affine2DTransform
+
 
 class TrackerType(Enum):
     MULTI: int = 0
@@ -190,17 +192,23 @@ class TrackingDisplay(WorkerNode):
                     if self.bg_tracker_type.checkedId() == TrackerType.BODY.value:
                         if self.overlay.body is None:
                             return 
-                        image_to_display = self.overlay.body.overlay(tracking.body[0].image, tracking.body[0])
+                        tx, ty = -tracking.body[0].origin
+                        T = Affine2DTransform.translation(tx, ty)
+                        image_to_display = self.overlay.body.overlay(tracking.body[0].image_fullres, tracking.body[0],T)
 
                     if self.bg_tracker_type.checkedId() == TrackerType.EYES.value:
                         if self.overlay.eyes is None:
                             return
-                        image_to_display = self.overlay.eyes.overlay(tracking.eyes[0].image, tracking.eyes[0])
+                        tx, ty = -tracking.eyes[0].origin
+                        T = Affine2DTransform.translation(tx, ty)
+                        image_to_display = self.overlay.eyes.overlay(tracking.eyes[0].image_fullres, tracking.eyes[0],T)
 
                     if self.bg_tracker_type.checkedId() == TrackerType.TAIL.value:
                         if self.overlay.tail is None:
                             return
-                        image_to_display = self.overlay.tail.overlay(tracking.tail[0].image, tracking.tail[0])
+                        tx, ty = -tracking.tail[0].origin
+                        T = Affine2DTransform.translation(tx, ty)
+                        image_to_display = self.overlay.tail.overlay(tracking.tail[0].image_fullres, tracking.tail[0],T)
 
                 if self.bg_display_type.checkedId() == DisplayType.MASK.value:
 
