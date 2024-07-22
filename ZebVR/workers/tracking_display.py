@@ -182,12 +182,12 @@ class TrackingDisplay(WorkerNode):
                             image_to_display = self.overlay.overlay(tracking.image, tracking)
 
                         if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL.value:
-                            image_to_display = self.overlay.animal.overlay(tracking.animals.image, tracking.animals)
+                            s = tracking.downsample_fullres_export
+                            S = Affine2DTransform.scaling(s,s)
+                            image_to_display = self.overlay.animal.overlay(tracking.image, tracking.animals, S)
 
                         if self.bg_tracker_type.checkedId() == TrackerType.BODY.value:
-                            tx, ty = -tracking.body[0].origin
-                            T = Affine2DTransform.translation(tx, ty)
-                            image_to_display = self.overlay.body.overlay(tracking.body[0].image_fullres, tracking.body[0],T)
+                            image_to_display = self.overlay.body.overlay(tracking.body[0].image_fullres, tracking.body[0])
 
                         if self.bg_tracker_type.checkedId() == TrackerType.EYES.value:
                             tx, ty = -tracking.eyes[0].origin
