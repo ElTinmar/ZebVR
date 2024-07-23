@@ -248,6 +248,7 @@ class GeneralStim(VisualStim):
             'omr_spatial_period_mm',
             'omr_angle_deg',
             'omr_speed_mm_per_sec',
+            'okr_spatial_frequency_deg',
             'okr_speed_deg_per_sec',
             'looming_center_mm_x',
             'looming_center_mm_y',
