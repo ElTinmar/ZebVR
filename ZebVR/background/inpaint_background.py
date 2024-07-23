@@ -1,6 +1,7 @@
-from image_tools import polymask
+from image_tools import DrawPolyMask, im2uint8
 import numpy as np
 import cv2
+from PyQt5.QtWidgets import QApplication
 from ZebVR.config import (
     CAM_WIDTH, CAM_HEIGHT,
     CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
@@ -29,8 +30,13 @@ if __name__ == '__main__':
     camera.stop_acquisition()
     image = frame.image
 
-    mask = polymask(image)
-    background = cv2.inpaint(image, mask, RADIUS, ALGO)
+    app = QApplication([])
+    window = DrawPolyMask(image)
+    window.show()
+    app.exec()
+
+    _,mask = window.get_masks()[1]
+    background = cv2.inpaint(image, im2uint8(mask), RADIUS, ALGO)
 
     print('Background done, press key to save...')
     background_resized = cv2.resize(background,(512,512))
