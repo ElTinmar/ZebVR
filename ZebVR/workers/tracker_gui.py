@@ -81,7 +81,7 @@ class TrackerGui(WorkerNode):
 
         self.animal_gamma = LabeledDoubleSpinBox()
         self.animal_gamma.setText('gamma')
-        self.animal_gamma.setRange(-10,10)
+        self.animal_gamma.setRange(0.05,10)
         self.animal_gamma.setSingleStep(0.05)
         self.animal_gamma.setValue(self.animal_tracking_param['animal_gamma'])
         self.animal_gamma.valueChanged.connect(self.on_change)
@@ -181,7 +181,7 @@ class TrackerGui(WorkerNode):
 
         self.body_gamma = LabeledDoubleSpinBox()
         self.body_gamma.setText('gamma')
-        self.body_gamma.setRange(-10,10)
+        self.body_gamma.setRange(0.05,10)
         self.body_gamma.setSingleStep(0.05)
         self.body_gamma.setValue(self.body_tracking_param['body_gamma'])
         self.body_gamma.valueChanged.connect(self.on_change)
@@ -295,7 +295,7 @@ class TrackerGui(WorkerNode):
 
         self.eyes_gamma = LabeledDoubleSpinBox()
         self.eyes_gamma.setText('gamma')
-        self.eyes_gamma.setRange(-10,10)
+        self.eyes_gamma.setRange(0.05,10)
         self.eyes_gamma.setSingleStep(0.05)
         self.eyes_gamma.setValue(self.eyes_tracking_param['eye_gamma'])
         self.eyes_gamma.valueChanged.connect(self.on_change)
@@ -383,7 +383,7 @@ class TrackerGui(WorkerNode):
 
         self.tail_gamma = LabeledDoubleSpinBox()
         self.tail_gamma.setText('gamma')
-        self.tail_gamma.setRange(-10,10)
+        self.tail_gamma.setRange(0.05,10)
         self.tail_gamma.setSingleStep(0.05)
         self.tail_gamma.setValue(self.tail_tracking_param['tail_gamma'])
         self.tail_gamma.valueChanged.connect(self.on_change)
