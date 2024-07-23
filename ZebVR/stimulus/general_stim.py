@@ -218,20 +218,19 @@ class GeneralStim(VisualStim):
         self.refresh_rate = refresh_rate
         self.fd = None
         self.tstart = 0
-        
-        prefix, ext = os.path.splitext(timings_file)
-        timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
-        while os.path.exists(timings_file):
-            time.sleep(1)
-            timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
-            
         self.timings_file = timings_file
 
     def initialize(self):
         super().initialize()
 
+        prefix, ext = os.path.splitext(self.timings_file)
+        timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
+        while os.path.exists(timings_file):
+            time.sleep(1)
+            timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
+
         # write csv headers
-        self.fd = open(self.timings_file, 'w')
+        self.fd = open(timings_file, 'w')
         headers = (
             'image_index',
             't_display',
