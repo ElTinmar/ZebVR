@@ -113,7 +113,7 @@ BODY_TRACKING_PARAM = {
     'median_filter_sz_mm': 0
 }
 
-EYES_TRACKING = True
+EYES_TRACKING = False
 EYES_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 40,
@@ -131,7 +131,7 @@ EYES_TRACKING_PARAM = {
     'median_filter_sz_mm': 0
 }
 
-TAIL_TRACKING = True
+TAIL_TRACKING = False
 TAIL_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 20,
