@@ -1,4 +1,5 @@
 from dagline import WorkerNode
+import time
 from numpy.typing import NDArray
 from typing import Dict, Optional
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout
@@ -61,6 +62,8 @@ class CameraGui(WorkerNode):
 
     def process_data(self, data: None) -> NDArray:
         self.app.processEvents()
+        self.app.sendPostedEvents()
+        time.sleep(0.01)
 
     def block_signals(self, block):
         for widget in self.window.findChildren(QWidget):

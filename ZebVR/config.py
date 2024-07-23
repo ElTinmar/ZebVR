@@ -9,7 +9,7 @@ try:
 except:
     print('Ximea camera not imported')
 
-DEBUG = False
+DEBUG = True
 
 # general settings
 LCr = True
@@ -70,7 +70,7 @@ CALIBRATION_CAM_EXPOSURE_MS = 15_000
 CALIBRATION_CAM_FPS = 10
 CALIBRATION_CHECKER_SIZE = (9, 6)
 CALIBRATION_CHECK_DIAMETER_MM = [15, 30, 45, 60]
-PIX_PER_MM = 118
+PIX_PER_MM = 30
 
 # static background
 NUM_IMAGES = 40
@@ -185,3 +185,6 @@ if DEBUG:
     PROJ_WIDTH = 1280
     CAM_FPS = 60
     PIXEL_SCALING = (1.0, 1.0)
+    EYES_TRACKING = True
+    TAIL_TRACKING = True
+

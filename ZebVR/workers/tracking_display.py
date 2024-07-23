@@ -146,6 +146,7 @@ class TrackingDisplay(WorkerNode):
 
     def process_data(self, data) -> NDArray:
         self.app.processEvents()
+        self.app.sendPostedEvents()
         
         if data is not None:
             index, timestamp, tracking = data

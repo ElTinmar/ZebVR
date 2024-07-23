@@ -2,6 +2,7 @@ from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional, Tuple
 from qt_widgets import LabeledDoubleSpinBox
+import time
 
 from PyQt5.QtWidgets import (
     QApplication, 
@@ -266,6 +267,8 @@ class StimGUI(WorkerNode):
 
     def process_data(self, data: None) -> NDArray:
         self.app.processEvents()
+        self.app.sendPostedEvents()
+        time.sleep(0.01)
 
     def process_metadata(self, metadata: Dict) -> Optional[Dict]:
         # send only one message when things are changed

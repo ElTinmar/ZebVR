@@ -1,3 +1,4 @@
+import time
 from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional
@@ -588,6 +589,8 @@ class TrackerGui(WorkerNode):
 
     def process_data(self, data: None) -> NDArray:
         self.app.processEvents()
+        self.app.sendPostedEvents()
+        time.sleep(0.01)
 
     def process_metadata(self, metadata: Dict) -> Optional[Dict]:
         # send tracking controls
