@@ -31,8 +31,7 @@ if __name__ == '__main__':
         checkerboard_size=CALIBRATION_CHECKER_SIZE, 
         checkerboard_corners_world_coordinates_mm=objp,  
         camera_matrix=None,
-        distortion_coef=None,
-        rescale=0.5
+        distortion_coef=None    
     )
 
     print(px_per_mm)
