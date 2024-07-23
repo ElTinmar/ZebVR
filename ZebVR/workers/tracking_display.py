@@ -157,83 +157,68 @@ class TrackingDisplay(WorkerNode):
                     return
             
                 image_to_display = None
-
-                if self.bg_display_type.checkedId() == DisplayType.RAW.value:
-
-                    if self.bg_tracker_type.checkedId() == TrackerType.MULTI.value:
-                        image_to_display = im2uint8(tracking.image)
-
-                    if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL.value:
-                        image_to_display = im2uint8(tracking.animals.image)
-
-                    if self.bg_tracker_type.checkedId() == TrackerType.BODY.value:
-                        if tracking.body is None:
-                            return
-                        image_to_display = im2uint8(tracking.body[0].image)
-
-                    if self.bg_tracker_type.checkedId() == TrackerType.EYES.value:
-                        if tracking.eyes is None:
-                            return
-                        image_to_display = im2uint8(tracking.eyes[0].image)
-
-                    if self.bg_tracker_type.checkedId() == TrackerType.TAIL.value:
-                        if tracking.tail is None:
-                            return
-                        image_to_display = im2uint8(tracking.tail[0].image)
                 
-                if self.bg_display_type.checkedId() == DisplayType.OVERLAY.value:
+                try:
+                    if self.bg_display_type.checkedId() == DisplayType.RAW.value:
 
-                    if self.bg_tracker_type.checkedId() == TrackerType.MULTI.value:
-                        image_to_display = self.overlay.overlay(tracking.image, tracking)
+                        if self.bg_tracker_type.checkedId() == TrackerType.MULTI.value:
+                            image_to_display = im2uint8(tracking.image)
 
-                    if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL.value:
-                        image_to_display = self.overlay.animal.overlay(tracking.animals.image, tracking.animals)
+                        if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL.value:
+                            image_to_display = im2uint8(tracking.animals.image)
 
-                    if self.bg_tracker_type.checkedId() == TrackerType.BODY.value:
-                        if self.overlay.body is None:
-                            return 
-                        tx, ty = -tracking.body[0].origin
-                        T = Affine2DTransform.translation(tx, ty)
-                        image_to_display = self.overlay.body.overlay(tracking.body[0].image_fullres, tracking.body[0],T)
+                        if self.bg_tracker_type.checkedId() == TrackerType.BODY.value:
+                            image_to_display = im2uint8(tracking.body[0].image)
 
-                    if self.bg_tracker_type.checkedId() == TrackerType.EYES.value:
-                        if self.overlay.eyes is None:
-                            return
-                        tx, ty = -tracking.eyes[0].origin
-                        T = Affine2DTransform.translation(tx, ty)
-                        image_to_display = self.overlay.eyes.overlay(tracking.eyes[0].image_fullres, tracking.eyes[0],T)
+                        if self.bg_tracker_type.checkedId() == TrackerType.EYES.value:
+                            image_to_display = im2uint8(tracking.eyes[0].image)
 
-                    if self.bg_tracker_type.checkedId() == TrackerType.TAIL.value:
-                        if self.overlay.tail is None:
-                            return
-                        tx, ty = -tracking.tail[0].origin
-                        T = Affine2DTransform.translation(tx, ty)
-                        image_to_display = self.overlay.tail.overlay(tracking.tail[0].image_fullres, tracking.tail[0],T)
+                        if self.bg_tracker_type.checkedId() == TrackerType.TAIL.value:
+                            image_to_display = im2uint8(tracking.tail[0].image)
+                    
+                    if self.bg_display_type.checkedId() == DisplayType.OVERLAY.value:
 
-                if self.bg_display_type.checkedId() == DisplayType.MASK.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.MULTI.value:
+                            image_to_display = self.overlay.overlay(tracking.image, tracking)
 
-                    if self.bg_tracker_type.checkedId() == TrackerType.MULTI.value:
-                        # there is no mask for multi, show image instead
-                        image_to_display = im2uint8(tracking.image)
+                        if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL.value:
+                            s = tracking.downsample_fullres_export
+                            S = Affine2DTransform.scaling(s,s)
+                            image_to_display = self.overlay.animal.overlay(tracking.image, tracking.animals, S)
 
-                    if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL.value:
-                        image_to_display = im2uint8(tracking.animals.mask)
+                        if self.bg_tracker_type.checkedId() == TrackerType.BODY.value:
+                            image_to_display = self.overlay.body.overlay(tracking.body[0].image_fullres, tracking.body[0])
 
-                    if self.bg_tracker_type.checkedId() == TrackerType.BODY.value:
-                        if tracking.body is None:
-                            return
-                        image_to_display = im2uint8(tracking.body[0].mask)
+                        if self.bg_tracker_type.checkedId() == TrackerType.EYES.value:
+                            tx, ty = -tracking.eyes[0].origin
+                            T = Affine2DTransform.translation(tx, ty)
+                            image_to_display = self.overlay.eyes.overlay(tracking.eyes[0].image_fullres, tracking.eyes[0],T)
 
-                    if self.bg_tracker_type.checkedId() == TrackerType.EYES.value:
-                        if tracking.eyes is None:
-                            return
-                        image_to_display = im2uint8(tracking.eyes[0].mask)
+                        if self.bg_tracker_type.checkedId() == TrackerType.TAIL.value:
+                            tx, ty = -tracking.tail[0].origin
+                            T = Affine2DTransform.translation(tx, ty)
+                            image_to_display = self.overlay.tail.overlay(tracking.tail[0].image_fullres, tracking.tail[0],T)
 
-                    if self.bg_tracker_type.checkedId() == TrackerType.TAIL.value:
-                        # there is no mask for the tail, show image instead
-                        if tracking.tail is None:
-                            return
-                        image_to_display = im2uint8(tracking.tail[0].image)
+                    if self.bg_display_type.checkedId() == DisplayType.MASK.value:
+
+                        if self.bg_tracker_type.checkedId() == TrackerType.MULTI.value:
+                            # there is no mask for multi, show image instead
+                            image_to_display = im2uint8(tracking.image)
+
+                        if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL.value:
+                            image_to_display = im2uint8(tracking.animals.mask)
+
+                        if self.bg_tracker_type.checkedId() == TrackerType.BODY.value:
+                            image_to_display = im2uint8(tracking.body[0].mask)
+
+                        if self.bg_tracker_type.checkedId() == TrackerType.EYES.value:
+                            image_to_display = im2uint8(tracking.eyes[0].mask)
+
+                        if self.bg_tracker_type.checkedId() == TrackerType.TAIL.value:
+                            # there is no mask for the tail, show image instead
+                            image_to_display = im2uint8(tracking.tail[0].image)
+                except:
+                    pass
                
                 # update labels
                 if image_to_display is not None:
