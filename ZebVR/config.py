@@ -9,7 +9,7 @@ try:
 except:
     print('Ximea camera not imported')
 
-DEBUG = True
+DEBUG = False
 
 # general settings
 LCr = True
@@ -70,7 +70,7 @@ CALIBRATION_CAM_EXPOSURE_MS = 15_000
 CALIBRATION_CAM_FPS = 10
 CALIBRATION_CHECKER_SIZE = (9, 6)
 CALIBRATION_CHECK_DIAMETER_MM = [15, 30, 45, 60]
-PIX_PER_MM = 30
+PIX_PER_MM = 118
 
 # static background
 NUM_IMAGES = 40
