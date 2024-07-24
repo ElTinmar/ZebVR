@@ -53,7 +53,6 @@ class TrackerWidget(QWidget):
         self.animal_target_pix_per_mm.valueChanged.connect(self.on_change)
         self.animal_target_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
-
         self.animal_intensity = LabeledDoubleSpinBox()
         self.animal_intensity.setText('intensity')
         self.animal_intensity.setRange(0,1)
