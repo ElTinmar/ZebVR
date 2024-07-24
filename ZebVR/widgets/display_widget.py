@@ -32,14 +32,15 @@ class DisplayType(IntEnum):
 class DisplayWidget(QWidget):
 
     def __init__(
-            self, 
+            self,
+            display_height: int = 512,
             *args, 
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
 
-        self.updated = False
+        self.display_height = display_height 
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Tracking display')
@@ -133,9 +134,8 @@ class DisplayWidget(QWidget):
     def set_state(self, index, timestamp, image) -> None:
 
         # TODO make that an argument or controlled by a widget?    
-        height = 512
-        width = int(image.shape[1] * height/image.shape[0])
-        image_resized = cv2.resize(image, (width,height), interpolation=cv2.INTER_NEAREST)
+        width = int(image.shape[1] * self.display_height/image.shape[0])
+        image_resized = cv2.resize(image, (width, self.display_height), interpolation=cv2.INTER_NEAREST)
 
         pixmap = NDarray_to_QPixmap(image_resized)
         self.lbl_image.setPixmap(pixmap)
