@@ -5,6 +5,7 @@ from dagline import WorkerNode
 from multiprocessing import Process
 from numpy.typing import NDArray
 import numpy as np 
+from multiprocessing import Event
 
 class VisualStim(app.Canvas):
 
@@ -31,6 +32,7 @@ class VisualStim(app.Canvas):
             self.pixel_scaling = pixel_scaling
             self.vsync = vsync
             self.pix_per_mm = pix_per_mm
+            self.initialized = Event()
 
     def initialize(self):
         # this needs to happen in the process where the window is displayed
@@ -55,9 +57,10 @@ class VisualStim(app.Canvas):
         
         self.t_start = None
         self.first_frame = True 
+        self.initialized.set()
 
     def cleanup(self):
-        pass
+        self.initialized.clear()
             
     def on_draw(self, event):
         if self.first_frame:
@@ -83,6 +86,7 @@ class VisualStimWorker(WorkerNode):
 
     def run(self) -> None:
         self.stim.initialize()
+        # TODO set flag here
         while not self.stop_event.is_set():
             app.process_events()
         self.stim.cleanup()
@@ -93,6 +97,7 @@ class VisualStimWorker(WorkerNode):
         # launch main window loop in a separate process 
         self.display_process = Process(target=self.run)
         self.display_process.start()
+        self.stim.initialized.wait()
 
     def cleanup(self) -> None:
         super().cleanup()
