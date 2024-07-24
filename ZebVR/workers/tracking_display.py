@@ -2,7 +2,7 @@ from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional
 import time
-from enum import Enum
+from enum import IntEnum
 import cv2
 #import pyqtgraph as pg
 
@@ -22,17 +22,17 @@ from image_tools import im2uint8
 from geometry import Affine2DTransform
 
 
-class TrackerType(Enum):
-    MULTI: int = 0
-    ANIMAL: int = 1
-    BODY: int = 2
-    EYES: int = 3
-    TAIL: int = 4
+class TrackerType(IntEnum):
+    MULTI = 0
+    ANIMAL = 1
+    BODY = 2
+    EYES = 3
+    TAIL = 4
 
-class DisplayType(Enum):
-    RAW: int = 0
-    OVERLAY: int = 1
-    MASK: int = 2
+class DisplayType(IntEnum):
+    RAW = 0
+    OVERLAY = 1
+    MASK = 2
 
 # TODO: add a widget to select fish num
 # TODO: maybe add image histogram? Not sure about that though
@@ -90,11 +90,11 @@ class TrackingDisplay(WorkerNode):
         self.btn_tail.setCheckable(True)
 
         self.bg_tracker_type = QButtonGroup()
-        self.bg_tracker_type.addButton(self.btn_multi, id=TrackerType.MULTI.value)
-        self.bg_tracker_type.addButton(self.btn_animal, id=TrackerType.ANIMAL.value)
-        self.bg_tracker_type.addButton(self.btn_body, id=TrackerType.BODY.value)
-        self.bg_tracker_type.addButton(self.btn_eyes, id=TrackerType.EYES.value)
-        self.bg_tracker_type.addButton(self.btn_tail, id=TrackerType.TAIL.value)
+        self.bg_tracker_type.addButton(self.btn_multi, id=TrackerType.MULTI)
+        self.bg_tracker_type.addButton(self.btn_animal, id=TrackerType.ANIMAL)
+        self.bg_tracker_type.addButton(self.btn_body, id=TrackerType.BODY)
+        self.bg_tracker_type.addButton(self.btn_eyes, id=TrackerType.EYES)
+        self.bg_tracker_type.addButton(self.btn_tail, id=TrackerType.TAIL)
         self.btn_multi.setChecked(True)
 
         self.btn_raw = QPushButton('raw')
@@ -107,9 +107,9 @@ class TrackingDisplay(WorkerNode):
         self.btn_mask.setCheckable(True)
 
         self.bg_display_type = QButtonGroup()
-        self.bg_display_type.addButton(self.btn_raw, id=DisplayType.RAW.value)
-        self.bg_display_type.addButton(self.btn_overlay, id=DisplayType.OVERLAY.value)
-        self.bg_display_type.addButton(self.btn_mask, id=DisplayType.MASK.value)
+        self.bg_display_type.addButton(self.btn_raw, id=DisplayType.RAW)
+        self.bg_display_type.addButton(self.btn_overlay, id=DisplayType.OVERLAY)
+        self.bg_display_type.addButton(self.btn_mask, id=DisplayType.MASK)
         self.btn_raw.setChecked(True)
 
     def layout_components(self):
@@ -160,62 +160,62 @@ class TrackingDisplay(WorkerNode):
                 image_to_display = None
                 
                 try:
-                    if self.bg_display_type.checkedId() == DisplayType.RAW.value:
+                    if self.bg_display_type.checkedId() == DisplayType.RAW:
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.MULTI.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.MULTI:
                             image_to_display = im2uint8(tracking.image)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL:
                             image_to_display = im2uint8(tracking.animals.image)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.BODY.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.BODY:
                             image_to_display = im2uint8(tracking.body[0].image)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.EYES.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.EYES:
                             image_to_display = im2uint8(tracking.eyes[0].image)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.TAIL.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.TAIL:
                             image_to_display = im2uint8(tracking.tail[0].image)
                     
-                    if self.bg_display_type.checkedId() == DisplayType.OVERLAY.value:
+                    if self.bg_display_type.checkedId() == DisplayType.OVERLAY:
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.MULTI.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.MULTI:
                             image_to_display = self.overlay.overlay(tracking.image, tracking)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL:
                             s = tracking.downsample_fullres_export
                             S = Affine2DTransform.scaling(s,s)
                             image_to_display = self.overlay.animal.overlay(tracking.image, tracking.animals, S)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.BODY.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.BODY:
                             image_to_display = self.overlay.body.overlay(tracking.body[0].image_fullres, tracking.body[0])
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.EYES.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.EYES:
                             tx, ty = -tracking.eyes[0].origin
                             T = Affine2DTransform.translation(tx, ty)
                             image_to_display = self.overlay.eyes.overlay(tracking.eyes[0].image_fullres, tracking.eyes[0],T)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.TAIL.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.TAIL:
                             tx, ty = -tracking.tail[0].origin
                             T = Affine2DTransform.translation(tx, ty)
                             image_to_display = self.overlay.tail.overlay(tracking.tail[0].image_fullres, tracking.tail[0],T)
 
-                    if self.bg_display_type.checkedId() == DisplayType.MASK.value:
+                    if self.bg_display_type.checkedId() == DisplayType.MASK:
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.MULTI.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.MULTI:
                             # there is no mask for multi, show image instead
                             image_to_display = im2uint8(tracking.image)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL:
                             image_to_display = im2uint8(tracking.animals.mask)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.BODY.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.BODY:
                             image_to_display = im2uint8(tracking.body[0].mask)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.EYES.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.EYES:
                             image_to_display = im2uint8(tracking.eyes[0].mask)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.TAIL.value:
+                        if self.bg_tracker_type.checkedId() == TrackerType.TAIL:
                             # there is no mask for the tail, show image instead
                             image_to_display = im2uint8(tracking.tail[0].image)
                 except:
