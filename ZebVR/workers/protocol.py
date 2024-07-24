@@ -27,6 +27,14 @@ class ProtocolItem(ABC):
     def run(self) -> Optional[DefaultDict]:
         pass
 
+    def initialize(self):
+        '''Run init steps in target worker process'''
+        pass
+
+    def cleanup(self):
+        '''Run cleanup steps in target worker process'''
+        pass
+
 class ProtocolItemPause(ProtocolItem):
 
     def __init__(self, pause_sec: float) -> None:
@@ -37,6 +45,24 @@ class ProtocolItemPause(ProtocolItem):
         time.sleep(self.pause_sec)
         return None
 
+# TODO: implement trigger. Ideally, I would
+
+#class ProtocolItemTrigger(ProtocolItem):
+#
+#    def __init__(self, port: int) -> None:
+#        super().__init__()
+#        self.port = port
+#
+#    def initialize(self):
+#        return super().initialize()
+#    
+#    def cleanup(self):
+#        return super().cleanup()
+#    
+#    def run(self) -> None:
+#        time.sleep(self.pause_sec)
+#        return None
+    
 class ProtocolItemPhototaxis(ProtocolItem):
 
     STIM_SELECT = Stim.PHOTOTAXIS
@@ -197,9 +223,13 @@ class Protocol(WorkerNode):
 
     def initialize(self) -> None:
         super().initialize()
+        for protocol_item in self.protocol:
+            protocol_item.initialize()
 
     def cleanup(self) -> None:
         super().cleanup()
+        for protocol_item in self.protocol:
+            protocol_item.cleanup()
 
     def process_data(self, data: Any) -> NDArray:
         pass
