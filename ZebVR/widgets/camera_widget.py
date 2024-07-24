@@ -2,6 +2,7 @@ from typing import Dict
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from qt_widgets import LabeledDoubleSpinBox, LabeledSliderDoubleSpinBox
 
+# TODO populate with sane values on startup
 class CameraWidget(QWidget):
 
     def __init__(self,*args,**kwargs):
