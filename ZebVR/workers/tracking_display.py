@@ -2,40 +2,12 @@ from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional
 import time
-from enum import IntEnum
-import cv2
 #import pyqtgraph as pg
-
-from PyQt5.QtWidgets import (
-    QApplication, 
-    QWidget, 
-    QPushButton,
-    QButtonGroup,
-    QHBoxLayout,
-    QVBoxLayout,
-    QLabel
-)
-
+from PyQt5.QtWidgets import QApplication
 from tracker import MultiFishOverlay
-from qt_widgets import NDarray_to_QPixmap, LabeledSpinBox
 from image_tools import im2uint8
 from geometry import Affine2DTransform
-
-
-class TrackerType(IntEnum):
-    MULTI = 0
-    ANIMAL = 1
-    BODY = 2
-    EYES = 3
-    TAIL = 4
-
-class DisplayType(IntEnum):
-    RAW = 0
-    OVERLAY = 1
-    MASK = 2
-
-# TODO: add a widget to select fish num
-# TODO: maybe add image histogram? Not sure about that though
+from ZebVR.widgets import DisplayWidget, TrackerType, DisplayType
 
 class TrackingDisplay(WorkerNode):
 
@@ -56,93 +28,9 @@ class TrackingDisplay(WorkerNode):
 
         super().initialize()
         
-        self.updated = False
         self.app = QApplication([])
-        self.window = QWidget()
-        self.declare_components()
-        self.layout_components()
-        self.window.setWindowTitle('Tracking display')
+        self.window = DisplayWidget()
         self.window.show()
-
-    def declare_components(self):
-        
-        self.lbl_image = QLabel()
-
-        self.lbl_index = QLabel()
-        self.lbl_timestamp = QLabel()
-
-        # TODO add widget to select which fish to show
-        # and / or mouse click event
-
-        self.btn_multi = QPushButton('multi')
-        self.btn_multi.setCheckable(True)
-        
-        self.btn_animal = QPushButton('animals')
-        self.btn_animal.setCheckable(True)
-
-        self.btn_body = QPushButton('body')
-        self.btn_body.setCheckable(True)
-
-        self.btn_eyes = QPushButton('eyes')
-        self.btn_eyes.setCheckable(True)
-
-        self.btn_tail = QPushButton('tail')
-        self.btn_tail.setCheckable(True)
-
-        self.bg_tracker_type = QButtonGroup()
-        self.bg_tracker_type.addButton(self.btn_multi, id=TrackerType.MULTI)
-        self.bg_tracker_type.addButton(self.btn_animal, id=TrackerType.ANIMAL)
-        self.bg_tracker_type.addButton(self.btn_body, id=TrackerType.BODY)
-        self.bg_tracker_type.addButton(self.btn_eyes, id=TrackerType.EYES)
-        self.bg_tracker_type.addButton(self.btn_tail, id=TrackerType.TAIL)
-        self.btn_multi.setChecked(True)
-
-        self.btn_raw = QPushButton('raw')
-        self.btn_raw.setCheckable(True)
-
-        self.btn_overlay = QPushButton('overlay')
-        self.btn_overlay.setCheckable(True)
-
-        self.btn_mask = QPushButton('mask')
-        self.btn_mask.setCheckable(True)
-
-        self.bg_display_type = QButtonGroup()
-        self.bg_display_type.addButton(self.btn_raw, id=DisplayType.RAW)
-        self.bg_display_type.addButton(self.btn_overlay, id=DisplayType.OVERLAY)
-        self.bg_display_type.addButton(self.btn_mask, id=DisplayType.MASK)
-        self.btn_raw.setChecked(True)
-
-    def layout_components(self):
-
-        layout_tracker_btn = QHBoxLayout()
-        layout_tracker_btn.addWidget(self.btn_multi)
-        layout_tracker_btn.addWidget(self.btn_animal)
-        layout_tracker_btn.addWidget(self.btn_body)
-        layout_tracker_btn.addWidget(self.btn_eyes)
-        layout_tracker_btn.addWidget(self.btn_tail)
-
-        layout_display_btn = QHBoxLayout()
-        layout_display_btn.addWidget(self.btn_raw)
-        layout_display_btn.addWidget(self.btn_overlay)
-        layout_display_btn.addWidget(self.btn_mask)
-
-        layout_status = QHBoxLayout()
-        layout_status.addWidget(QLabel('index:'))
-        layout_status.addWidget(self.lbl_index)
-        layout_status.addStretch()
-        layout_status.addWidget(QLabel('timestamp:'))
-        layout_status.addWidget(self.lbl_timestamp)
-
-        layout_image = QHBoxLayout()
-        layout_image.addStretch()
-        layout_image.addWidget(self.lbl_image)
-        layout_image.addStretch() 
-
-        layout = QVBoxLayout(self.window)
-        layout.addLayout(layout_tracker_btn)
-        layout.addLayout(layout_display_btn)
-        layout.addLayout(layout_image)
-        layout.addLayout(layout_status)
 
     def process_data(self, data) -> NDArray:
         self.app.processEvents()
@@ -157,82 +45,78 @@ class TrackingDisplay(WorkerNode):
                 if tracking.animals.identities is None:
                     return
             
+                button_pressed = self.window.get_state()
                 image_to_display = None
                 
                 try:
-                    if self.bg_display_type.checkedId() == DisplayType.RAW:
+                    if button_pressed['display_type'] == DisplayType.RAW:
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.MULTI:
+                        if button_pressed['tracker_type'] == TrackerType.MULTI:
                             image_to_display = im2uint8(tracking.image)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL:
+                        if button_pressed['tracker_type'] == TrackerType.ANIMAL:
                             image_to_display = im2uint8(tracking.animals.image)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.BODY:
+                        if button_pressed['tracker_type'] == TrackerType.BODY:
                             image_to_display = im2uint8(tracking.body[0].image)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.EYES:
+                        if button_pressed['tracker_type'] == TrackerType.EYES:
                             image_to_display = im2uint8(tracking.eyes[0].image)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.TAIL:
+                        if button_pressed['tracker_type'] == TrackerType.TAIL:
                             image_to_display = im2uint8(tracking.tail[0].image)
                     
-                    if self.bg_display_type.checkedId() == DisplayType.OVERLAY:
+                    if button_pressed['display_type'] == DisplayType.OVERLAY:
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.MULTI:
+                        if button_pressed['tracker_type'] == TrackerType.MULTI:
                             image_to_display = self.overlay.overlay(tracking.image, tracking)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL:
+                        if button_pressed['tracker_type'] == TrackerType.ANIMAL:
                             s = tracking.downsample_fullres_export
                             S = Affine2DTransform.scaling(s,s)
                             image_to_display = self.overlay.animal.overlay(tracking.image, tracking.animals, S)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.BODY:
+                        if button_pressed['tracker_type'] == TrackerType.BODY:
                             image_to_display = self.overlay.body.overlay(tracking.body[0].image_fullres, tracking.body[0])
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.EYES:
+                        if button_pressed['tracker_type'] == TrackerType.EYES:
                             tx, ty = -tracking.eyes[0].origin
                             T = Affine2DTransform.translation(tx, ty)
                             image_to_display = self.overlay.eyes.overlay(tracking.eyes[0].image_fullres, tracking.eyes[0],T)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.TAIL:
+                        if button_pressed['tracker_type'] == TrackerType.TAIL:
                             tx, ty = -tracking.tail[0].origin
                             T = Affine2DTransform.translation(tx, ty)
                             image_to_display = self.overlay.tail.overlay(tracking.tail[0].image_fullres, tracking.tail[0],T)
 
-                    if self.bg_display_type.checkedId() == DisplayType.MASK:
+                    if button_pressed['display_type'] == DisplayType.MASK:
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.MULTI:
+                        if button_pressed['tracker_type'] == TrackerType.MULTI:
                             # there is no mask for multi, show image instead
                             image_to_display = im2uint8(tracking.image)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.ANIMAL:
+                        if button_pressed['tracker_type'] == TrackerType.ANIMAL:
                             image_to_display = im2uint8(tracking.animals.mask)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.BODY:
+                        if button_pressed['tracker_type'] == TrackerType.BODY:
                             image_to_display = im2uint8(tracking.body[0].mask)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.EYES:
+                        if button_pressed['tracker_type'] == TrackerType.EYES:
                             image_to_display = im2uint8(tracking.eyes[0].mask)
 
-                        if self.bg_tracker_type.checkedId() == TrackerType.TAIL:
+                        if button_pressed['tracker_type'] == TrackerType.TAIL:
                             # there is no mask for the tail, show image instead
                             image_to_display = im2uint8(tracking.tail[0].image)
                 except:
                     pass
                
-                # update labels
+                # update widget
                 if image_to_display is not None:
-                    # TODO make that an argument or controlled by a widget?    
-                    height = 512
-                    width = int(image_to_display.shape[1] * height/image_to_display.shape[0])
-                    image_final = cv2.resize(image_to_display, (width,height), interpolation=cv2.INTER_NEAREST)
-                    
-                    pixmap = NDarray_to_QPixmap(image_final)
-                    self.lbl_image.setPixmap(pixmap)
-                    self.lbl_index.setText(f'{index}')
-                    self.lbl_timestamp.setText(f'{timestamp}')
-                    self.window.update() # is this necessary?
+                    self.window.set_state(
+                        index=index,
+                        timestamp=timestamp,
+                        image=image_to_display
+                    )
 
                 self.prev_time = time.monotonic()
 
