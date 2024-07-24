@@ -9,13 +9,13 @@ try:
 except:
     print('Ximea camera not imported')
 
-DEBUG = False
+DEBUG = True
 
 # general settings
-LCr = True
+LCr = False
 N_BACKGROUND_WORKERS = 1
 N_TRACKER_WORKERS = 1
-BACKGROUND_GPU = True
+BACKGROUND_GPU = False
 T_REFRESH = 1e-4
 RECORD_VIDEO = False
 
@@ -70,7 +70,7 @@ CALIBRATION_CAM_EXPOSURE_MS = 15_000
 CALIBRATION_CAM_FPS = 10
 CALIBRATION_CHECKER_SIZE = (9, 6)
 CALIBRATION_CHECK_DIAMETER_MM = [15, 30, 45, 60]
-PIX_PER_MM = 118
+PIX_PER_MM = 36
 
 # static background
 NUM_IMAGES = 40
@@ -181,9 +181,9 @@ if DEBUG:
     CAMERA_CONSTRUCTOR = mov 
     CAM_HEIGHT = 500
     CAM_WIDTH = 504
-    PROJ_HEIGHT = 800
-    PROJ_WIDTH = 1280
-    CAM_FPS = 60
+    PROJ_HEIGHT = 500
+    PROJ_WIDTH = 504
+    CAM_FPS = 100
     PIXEL_SCALING = (1.0, 1.0)
     EYES_TRACKING = True
     TAIL_TRACKING = True
