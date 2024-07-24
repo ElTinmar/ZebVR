@@ -16,7 +16,7 @@ from PyQt5.QtWidgets import (
     QLabel
 )
 
-class StimGUI(WorkerNode):
+class StimWidget(QWidget):
 
     def __init__(
             self, 
@@ -50,16 +50,11 @@ class StimGUI(WorkerNode):
         self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
         self.foreground_color = foreground_color
         self.background_color = background_color
-
-    def initialize(self) -> None:
-        super().initialize()
+        
         self.updated = False
-        self.app = QApplication([])
-        self.window = QWidget()
         self.declare_components()
         self.layout_components()
-        self.window.setWindowTitle('Visual stim controls')
-        self.window.show()
+        self.setWindowTitle('Visual stim controls')
 
     def declare_components(self):
 
@@ -134,7 +129,7 @@ class StimGUI(WorkerNode):
         self.sb_background_color_A.valueChanged.connect(self.on_change)
 
         # Phototaxis
-        self.chb_phototaxis_polarity = QCheckBox('invert polarity', self.window)
+        self.chb_phototaxis_polarity = QCheckBox('invert polarity')
         self.chb_phototaxis_polarity.stateChanged.connect(self.on_change)
         self.chb_phototaxis_polarity.setChecked(self.phototaxis_polarity==1)
 
@@ -252,7 +247,7 @@ class StimGUI(WorkerNode):
         self.stack.addWidget(self.okr_group)
         self.stack.addWidget(self.looming_group)
     
-        layout = QVBoxLayout(self.window)
+        layout = QVBoxLayout(self)
         layout.addWidget(self.cmb_stim_select)
         layout.addLayout(foreground_color_layout)
         layout.addLayout(background_color_layout)
@@ -265,37 +260,94 @@ class StimGUI(WorkerNode):
     def on_change(self):
         self.updated = True
 
+class StimGUI(WorkerNode):
+
+    def __init__(
+            self, 
+            phototaxis_polarity: int = 1,
+            omr_spatial_period_mm: float = 20,
+            omr_angle_deg: float = 0,
+            omr_speed_mm_per_sec: float = 360,
+            okr_spatial_frequency_deg: float = 45,
+            okr_speed_deg_per_sec: float = 60,
+            looming_center_mm: Tuple = (1,1),
+            looming_period_sec: float = 30,
+            looming_expansion_time_sec: float = 3,
+            looming_expansion_speed_mm_per_sec: float = 10,
+            foreground_color: Tuple = (1.0, 1.0, 1.0, 1.0),
+            background_color: Tuple = (0.0, 0.0, 0.0, 1.0),
+            *args, 
+            **kwargs
+        ):
+
+        super().__init__(*args, **kwargs)
+
+        self.phototaxis_polarity = phototaxis_polarity
+        self.omr_spatial_period_mm = omr_spatial_period_mm
+        self.omr_angle_deg = omr_angle_deg
+        self.omr_speed_mm_per_sec = omr_speed_mm_per_sec
+        self.okr_spatial_frequency_deg = okr_spatial_frequency_deg
+        self.okr_speed_deg_per_sec = okr_speed_deg_per_sec
+        self.looming_center_mm = looming_center_mm
+        self.looming_period_sec = looming_period_sec
+        self.looming_expansion_time_sec = looming_expansion_time_sec
+        self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
+        self.foreground_color = foreground_color
+        self.background_color = background_color
+
+    def initialize(self) -> None:
+        super().initialize()
+        self.app = QApplication([])
+        self.window = StimWidget(
+            phototaxis_polarity=self.phototaxis_polarity,
+            omr_spatial_period_mm=self.omr_spatial_period_mm,
+            omr_angle_deg=self.omr_angle_deg,
+            omr_speed_mm_per_sec=self.omr_speed_mm_per_sec,
+            okr_spatial_frequency_deg=self.okr_spatial_frequency_deg,
+            okr_speed_deg_per_sec=self.okr_speed_deg_per_sec,
+            looming_center_mm=self.looming_center_mm,
+            looming_period_sec=self.looming_period_sec,
+            looming_expansion_time_sec=self.looming_expansion_time_sec,
+            looming_expansion_speed_mm_per_sec=self.looming_expansion_speed_mm_per_sec,
+            foreground_color=self.foreground_color,
+            background_color=self.background_color
+        )
+        self.window.show()
+    
     def process_data(self, data: None) -> NDArray:
         self.app.processEvents()
         self.app.sendPostedEvents()
         time.sleep(0.01)
 
     def process_metadata(self, metadata: Dict) -> Optional[Dict]:
+
+        #TODO don't break encapsulation 
+
         # send only one message when things are changed
-        if self.updated:
+        if self.window.updated:
             res = {}
             res['visual_stim_control'] = {}
-            res['visual_stim_control']['stim_select'] = self.cmb_stim_select.currentIndex()
-            res['visual_stim_control']['phototaxis_polarity'] = -1+2*self.chb_phototaxis_polarity.isChecked()
-            res['visual_stim_control']['omr_spatial_period_mm'] = self.sb_omr_spatial_freq.value() 
-            res['visual_stim_control']['omr_angle_deg'] = self.sb_omr_angle.value()
-            res['visual_stim_control']['omr_speed_mm_per_sec'] = self.sb_omr_speed.value() 
-            res['visual_stim_control']['okr_spatial_frequency_deg'] = self.sb_okr_spatial_freq.value()
-            res['visual_stim_control']['okr_speed_deg_per_sec'] = self.sb_okr_speed.value()
-            res['visual_stim_control']['looming_center_mm_x'] = self.sb_looming_center_mm_x.value()
-            res['visual_stim_control']['looming_center_mm_y'] = self.sb_looming_center_mm_y.value()
-            res['visual_stim_control']['looming_period_sec'] = self.sb_looming_period_sec.value()
-            res['visual_stim_control']['looming_expansion_time_sec'] = self.sb_looming_expansion_time_sec.value()
-            res['visual_stim_control']['looming_expansion_speed_mm_per_sec'] = self.sb_looming_expansion_speed_mm_per_sec.value()
-            res['visual_stim_control']['foreground_color_R'] = self.sb_foreground_color_R.value()
-            res['visual_stim_control']['foreground_color_G'] = self.sb_foreground_color_G.value()
-            res['visual_stim_control']['foreground_color_B'] = self.sb_foreground_color_B.value()
-            res['visual_stim_control']['foreground_color_A'] = self.sb_foreground_color_A.value()
-            res['visual_stim_control']['background_color_R'] = self.sb_background_color_R.value()
-            res['visual_stim_control']['background_color_G'] = self.sb_background_color_G.value()
-            res['visual_stim_control']['background_color_B'] = self.sb_background_color_B.value()
-            res['visual_stim_control']['background_color_A'] = self.sb_background_color_A.value()
-            self.updated = False
+            res['visual_stim_control']['stim_select'] = self.window.cmb_stim_select.currentIndex()
+            res['visual_stim_control']['phototaxis_polarity'] = -1+2*self.window.chb_phototaxis_polarity.isChecked()
+            res['visual_stim_control']['omr_spatial_period_mm'] = self.window.sb_omr_spatial_freq.value() 
+            res['visual_stim_control']['omr_angle_deg'] = self.window.sb_omr_angle.value()
+            res['visual_stim_control']['omr_speed_mm_per_sec'] = self.window.sb_omr_speed.value() 
+            res['visual_stim_control']['okr_spatial_frequency_deg'] = self.window.sb_okr_spatial_freq.value()
+            res['visual_stim_control']['okr_speed_deg_per_sec'] = self.window.sb_okr_speed.value()
+            res['visual_stim_control']['looming_center_mm_x'] = self.window.sb_looming_center_mm_x.value()
+            res['visual_stim_control']['looming_center_mm_y'] = self.window.sb_looming_center_mm_y.value()
+            res['visual_stim_control']['looming_period_sec'] = self.window.sb_looming_period_sec.value()
+            res['visual_stim_control']['looming_expansion_time_sec'] = self.window.sb_looming_expansion_time_sec.value()
+            res['visual_stim_control']['looming_expansion_speed_mm_per_sec'] = self.window.sb_looming_expansion_speed_mm_per_sec.value()
+            res['visual_stim_control']['foreground_color_R'] = self.window.sb_foreground_color_R.value()
+            res['visual_stim_control']['foreground_color_G'] = self.window.sb_foreground_color_G.value()
+            res['visual_stim_control']['foreground_color_B'] = self.window.sb_foreground_color_B.value()
+            res['visual_stim_control']['foreground_color_A'] = self.window.sb_foreground_color_A.value()
+            res['visual_stim_control']['background_color_R'] = self.window.sb_background_color_R.value()
+            res['visual_stim_control']['background_color_G'] = self.window.sb_background_color_G.value()
+            res['visual_stim_control']['background_color_B'] = self.window.sb_background_color_B.value()
+            res['visual_stim_control']['background_color_A'] = self.window.sb_background_color_A.value()
+            self.window.updated = False
             return res       
         else:
             return None
