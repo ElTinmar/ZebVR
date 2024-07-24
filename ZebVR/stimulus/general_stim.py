@@ -220,6 +220,9 @@ class GeneralStim(VisualStim):
         self.tstart = 0
         self.timings_file = timings_file
 
+    def set_filename(self, filename:str):
+        self.timings_file = filename
+
     def initialize(self):
         super().initialize()
 
