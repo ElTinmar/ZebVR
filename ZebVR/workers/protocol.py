@@ -45,24 +45,30 @@ class ProtocolItemPause(ProtocolItem):
         time.sleep(self.pause_sec)
         return None
 
-# TODO: implement trigger. Ideally, I would
+# TODO: implement trigger
+"""
+class ProtocolItemTrigger(ProtocolItem):
 
-#class ProtocolItemTrigger(ProtocolItem):
-#
-#    def __init__(self, port: int) -> None:
-#        super().__init__()
-#        self.port = port
-#
-#    def initialize(self):
-#        return super().initialize()
-#    
-#    def cleanup(self):
-#        return super().cleanup()
-#    
-#    def run(self) -> None:
-#        time.sleep(self.pause_sec)
-#        return None
-    
+   def __init__(self, port: int) -> None:
+       '''give info necessary to create DAQ object'''
+       super().__init__()
+       self.port = port
+
+   def initialize(self):
+        '''create DAQ object'''
+        super().initialize()
+        self.daq.open(port=self.port)
+   
+   def cleanup(self):
+        '''create DAQ object'''
+        super().cleanup()
+        self.daq.close()
+   
+   def run(self) -> None:
+       self.daq.wait_trigger()
+       return None
+"""
+
 class ProtocolItemPhototaxis(ProtocolItem):
 
     STIM_SELECT = Stim.PHOTOTAXIS
