@@ -260,6 +260,36 @@ class StimWidget(QWidget):
     def on_change(self):
         self.updated = True
 
+    def is_updated(self) -> bool:
+        return self.updated
+    
+    def set_updated(self, updated:bool) -> None:
+        self.updated = updated
+
+    def get_state(self) -> Dict:
+        state = {}
+        state['stim_select'] = self.cmb_stim_select.currentIndex()
+        state['phototaxis_polarity'] = -1+2*self.chb_phototaxis_polarity.isChecked()
+        state['omr_spatial_period_mm'] = self.sb_omr_spatial_freq.value()
+        state['omr_angle_deg'] = self.sb_omr_angle.value()
+        state['omr_speed_mm_per_sec'] = self.sb_omr_speed.value() 
+        state['okr_spatial_frequency_deg'] = self.sb_okr_spatial_freq.value()
+        state['okr_speed_deg_per_sec'] = self.sb_okr_speed.value()
+        state['looming_center_mm_x'] = self.sb_looming_center_mm_x.value()
+        state['looming_center_mm_y'] = self.sb_looming_center_mm_y.value()
+        state['looming_period_sec'] = self.sb_looming_period_sec.value()
+        state['looming_expansion_time_sec'] = self.sb_looming_expansion_time_sec.value()
+        state['looming_expansion_speed_mm_per_sec'] = self.sb_looming_expansion_speed_mm_per_sec.value()
+        state['foreground_color_R'] = self.sb_foreground_color_R.value()
+        state['foreground_color_G'] = self.sb_foreground_color_G.value()
+        state['foreground_color_B'] = self.sb_foreground_color_B.value()
+        state['foreground_color_A'] = self.sb_foreground_color_A.value()
+        state['background_color_R'] = self.sb_background_color_R.value()
+        state['background_color_G'] = self.sb_background_color_G.value()
+        state['background_color_B'] = self.sb_background_color_B.value()
+        state['background_color_A'] = self.sb_background_color_A.value()
+        return state
+
 class StimGUI(WorkerNode):
 
     def __init__(
@@ -320,34 +350,11 @@ class StimGUI(WorkerNode):
         time.sleep(0.01)
 
     def process_metadata(self, metadata: Dict) -> Optional[Dict]:
-
-        #TODO don't break encapsulation 
-
         # send only one message when things are changed
-        if self.window.updated:
+        if self.window.is_updated():
             res = {}
-            res['visual_stim_control'] = {}
-            res['visual_stim_control']['stim_select'] = self.window.cmb_stim_select.currentIndex()
-            res['visual_stim_control']['phototaxis_polarity'] = -1+2*self.window.chb_phototaxis_polarity.isChecked()
-            res['visual_stim_control']['omr_spatial_period_mm'] = self.window.sb_omr_spatial_freq.value() 
-            res['visual_stim_control']['omr_angle_deg'] = self.window.sb_omr_angle.value()
-            res['visual_stim_control']['omr_speed_mm_per_sec'] = self.window.sb_omr_speed.value() 
-            res['visual_stim_control']['okr_spatial_frequency_deg'] = self.window.sb_okr_spatial_freq.value()
-            res['visual_stim_control']['okr_speed_deg_per_sec'] = self.window.sb_okr_speed.value()
-            res['visual_stim_control']['looming_center_mm_x'] = self.window.sb_looming_center_mm_x.value()
-            res['visual_stim_control']['looming_center_mm_y'] = self.window.sb_looming_center_mm_y.value()
-            res['visual_stim_control']['looming_period_sec'] = self.window.sb_looming_period_sec.value()
-            res['visual_stim_control']['looming_expansion_time_sec'] = self.window.sb_looming_expansion_time_sec.value()
-            res['visual_stim_control']['looming_expansion_speed_mm_per_sec'] = self.window.sb_looming_expansion_speed_mm_per_sec.value()
-            res['visual_stim_control']['foreground_color_R'] = self.window.sb_foreground_color_R.value()
-            res['visual_stim_control']['foreground_color_G'] = self.window.sb_foreground_color_G.value()
-            res['visual_stim_control']['foreground_color_B'] = self.window.sb_foreground_color_B.value()
-            res['visual_stim_control']['foreground_color_A'] = self.window.sb_foreground_color_A.value()
-            res['visual_stim_control']['background_color_R'] = self.window.sb_background_color_R.value()
-            res['visual_stim_control']['background_color_G'] = self.window.sb_background_color_G.value()
-            res['visual_stim_control']['background_color_B'] = self.window.sb_background_color_B.value()
-            res['visual_stim_control']['background_color_A'] = self.window.sb_background_color_A.value()
-            self.window.updated = False
+            res['visual_stim_control'] = self.window.get_state()
+            self.window.set_updated(False)
             return res       
         else:
             return None
