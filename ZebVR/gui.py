@@ -31,6 +31,7 @@ class MainGui(QWidget):
         self.setWindowTitle('Main controls')
         self.create_components()
         self.layout_components()
+        self.record_flag = False
 
     def create_dag(self):
 
@@ -104,13 +105,21 @@ class MainGui(QWidget):
             name='camera_info'
         )
 
-        self.dag.connect_metadata(
-            sender=self.workers['visual_stim_control'], 
-            receiver=self.workers['visual_stim'], 
-            queue=self.queues['visual_stim_control'], 
-            name='visual_stim_control'
-        )
-        
+        if self.record_flag:
+            self.dag.connect_metadata(
+                sender=self.workers['protocol'], 
+                receiver=self.workers['visual_stim'], 
+                queue=self.queues['visual_stim_control'], 
+                name='visual_stim_control'
+            )
+        else:
+            self.dag.connect_metadata(
+                sender=self.workers['visual_stim_control'], 
+                receiver=self.workers['visual_stim'], 
+                queue=self.queues['visual_stim_control'], 
+                name='visual_stim_control'
+            )
+            
         for i in range(N_TRACKER_WORKERS):
             self.dag.connect_metadata(
                 sender=self.workers['tracker_gui'], 
@@ -169,7 +178,7 @@ class MainGui(QWidget):
         
         self.start_button = QPushButton()
         self.start_button.setText('start')
-        self.start_button.clicked.connect(self.start)
+        self.start_button.clicked.connect(self.preview)
 
         self.stop_button = QPushButton()
         self.stop_button.setText('stop')
@@ -247,7 +256,12 @@ class MainGui(QWidget):
             self.p_queue_logger.join()
             print('DAG stopped')
 
+    def preview(self):
+        self.record_flag = False
+        self.start()
+        
     def record(self):
+        self.record_flag = True
         self.start()
         time.sleep(self.duration.value())
         self.stop()

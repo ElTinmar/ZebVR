@@ -5,6 +5,7 @@ from multiprocessing import set_start_method
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
+from collections import deque
 import numpy as np
 from numpy.typing import NDArray
 from typing import Tuple
@@ -47,7 +48,14 @@ from workers import (
     CameraGui, 
     TrackerGui, 
     StimGUI,
-    TrackingDisplay
+    TrackingDisplay,
+    Protocol,
+    ProtocolItemDark,
+    ProtocolItemBright,
+    ProtocolItemOKR,
+    ProtocolItemOMR,
+    ProtocolItemPhototaxis,
+    ProtocolItemPause
 )
 from config import (
     REGISTRATION_FILE, 
@@ -340,6 +348,28 @@ if __name__ == "__main__":
         receive_data_timeout=1.0
     )
 
+    protocol = Protocol(
+        deque([
+            ProtocolItemDark(background_color=BACKGROUND_COLOR),
+            ProtocolItemPause(pause_sec=5),
+            ProtocolItemBright(foreground_color=FOREGROUND_COLOR),
+            ProtocolItemPause(pause_sec=5),
+            ProtocolItemOMR(
+                background_color=BACKGROUND_COLOR,
+                foreground_color=FOREGROUND_COLOR,
+                omr_spatial_period_mm=OMR_SPATIAL_PERIOD_MM,
+                omr_angle_deg=OMR_ANGLE_DEG,
+                omr_speed_mm_per_sec=OMR_SPEED_MM_PER_SEC
+            ),
+            ProtocolItemPause(pause_sec=10),
+            ProtocolItemDark(background_color=BACKGROUND_COLOR),
+        ]),
+        name="protocol", 
+        logger=worker_logger, 
+        logger_queues=queue_logger, 
+        receive_data_timeout=1.0
+    )
+
     ## Declare queues -----------------------------------------------------------------------------
 
     dt_uint8_RGB = np.dtype([
@@ -460,6 +490,7 @@ if __name__ == "__main__":
         'tracking_display': trck_disp,
         'camera_gui': cam_control,
         'visual_stim_control': stim_control,
+        'protocol': protocol,
         'tracker_gui': tracker_control
     }
     for i in range(N_TRACKER_WORKERS):
