@@ -35,6 +35,15 @@ class ProtocolItem(ABC):
         '''Run cleanup steps in target worker process'''
         pass
 
+# TODO implement this. maybe use keyboard module
+'''
+class ProtocolItemWaitKeyPress(ProtocolItem):
+
+    def run(self) -> None:
+        input('press Enter:') # input does not work in child process
+        return None
+'''
+
 class ProtocolItemPause(ProtocolItem):
 
     def __init__(self, pause_sec: float) -> None:

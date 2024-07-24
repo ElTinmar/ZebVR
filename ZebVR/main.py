@@ -55,7 +55,7 @@ from workers import (
     ProtocolItemOKR,
     ProtocolItemOMR,
     ProtocolItemPhototaxis,
-    ProtocolItemPause
+    ProtocolItemPause,
 )
 from config import (
     REGISTRATION_FILE, 
@@ -363,6 +363,19 @@ if __name__ == "__main__":
             ),
             ProtocolItemPause(pause_sec=10),
             ProtocolItemDark(background_color=BACKGROUND_COLOR),
+            ProtocolItemPause(pause_sec=2),
+            ProtocolItemPhototaxis(
+                background_color=BACKGROUND_COLOR,
+                foreground_color=FOREGROUND_COLOR,
+                phototaxis_polarity=PHOTOTAXIS_POLARITY
+            ),
+            ProtocolItemPause(pause_sec=10),
+            ProtocolItemOKR(
+                background_color=BACKGROUND_COLOR,
+                foreground_color=FOREGROUND_COLOR,
+                okr_spatial_frequency_deg=OKR_SPATIAL_FREQUENCY_DEG,
+                okr_speed_deg_per_sec=OKR_SPEED_DEG_PER_SEC
+            ),
         ]),
         name="protocol", 
         logger=worker_logger, 
