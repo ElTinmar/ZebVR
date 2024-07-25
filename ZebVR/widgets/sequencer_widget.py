@@ -3,12 +3,17 @@ from qt_widgets import LabeledDoubleSpinBox
 from collections import deque
 
 from PyQt5.QtWidgets import (
+    QApplication,
     QWidget, 
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
     QCheckBox, 
     QStackedWidget, 
     QGroupBox, 
     QHBoxLayout,
     QVBoxLayout, 
+    QLayout,
     QComboBox,
     QLabel
 )
@@ -23,58 +28,104 @@ from ZebVR.workers import (
     ProtocolItemPause
 )
 
-from .stimulus_widget import StimWidget
+from ZebVR.widgets import StimWidget
+
+class PauseWidget(QWidget):
+
+    def __init__(self,*args,**kwargs):
+        
+        super().__init__(*args,**kwargs)
+
+        self.pause_sec = LabeledDoubleSpinBox(self)
+        self.pause_sec.setText('pause (sec):')
+        self.pause_sec.setRange(0,100_000)
+        self.pause_sec.setSingleStep(0.5)
+        self.pause_sec.setValue(0)
+
+class TriggerWidget(QWidget):
+    pass
 
 class SequencerWidget(QWidget):
 
     def __init__(
             self,
-            phototaxis_polarity: int = 1,
-            omr_spatial_period_mm: float = 20,
-            omr_angle_deg: float = 0,
-            omr_speed_mm_per_sec: float = 360,
-            okr_spatial_frequency_deg: float = 45,
-            okr_speed_deg_per_sec: float = 60,
-            looming_center_mm: Tuple = (1,1),
-            looming_period_sec: float = 30,
-            looming_expansion_time_sec: float = 3,
-            looming_expansion_speed_mm_per_sec: float = 10,
-            foreground_color: Tuple = (1.0, 1.0, 1.0, 1.0),
-            background_color: Tuple = (0.0, 0.0, 0.0, 1.0),
             *args,
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
-        self.stim_widget = StimWidget(
-            phototaxis_polarity,
-            omr_spatial_period_mm,
-            omr_angle_deg,
-            omr_speed_mm_per_sec,
-            okr_spatial_frequency_deg,
-            okr_speed_deg_per_sec,
-            looming_center_mm,
-            looming_period_sec,
-            looming_expansion_time_sec,
-            looming_expansion_speed_mm_per_sec,
-            foreground_color,
-            background_color
-        )
-
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Sequencer')
 
     def declare_components(self) -> None:
-        # pause item
-        # stim items
-        # scrollable list 
-        # add and remove buttons
-        pass
+
+        # QListWidget
+        self.list = QListWidget()
+
+        # add stim button
+        self.btn_add_stim = QPushButton('stim')
+        self.btn_add_stim.clicked.connect(self.stim_pressed)
+
+        # add pause button
+        self.btn_add_pause = QPushButton('pause')
+        self.btn_add_pause.clicked.connect(self.pause_pressed)
+        
+        # add trigger button 
+        self.btn_add_trigger = QPushButton('trigger')
+        self.btn_add_trigger.clicked.connect(self.trigger_pressed)
+        self.btn_add_trigger.setEnabled(False)
+
+        # remove button
+        self.btn_remove = QPushButton('remove')
+        self.btn_remove.clicked.connect(self.remove_pressed)
 
     def layout_components(self) -> None:
-        pass
+        
+        btn_layout = QHBoxLayout()
+        btn_layout.addWidget(self.btn_add_stim)
+        btn_layout.addWidget(self.btn_add_pause)
+        btn_layout.addWidget(self.btn_add_trigger)
+
+        main_layout = QVBoxLayout(self)
+        main_layout.addLayout(btn_layout)
+        main_layout.addWidget(self.list)
+        main_layout.addWidget(self.btn_remove)
+
+    def stim_pressed(self):
+        stim = StimWidget()
+        item = QListWidgetItem()
+        item.setSizeHint(stim.sizeHint())
+        self.list.addItem(item)
+        self.list.setItemWidget(item, stim)
+
+    def pause_pressed(self):
+        pause = PauseWidget()
+        item = QListWidgetItem()
+        item.setSizeHint(pause.sizeHint())
+        self.list.addItem(item)
+        self.list.setItemWidget(item, pause)
+
+    def trigger_pressed(self):
+        trigger = TriggerWidget()
+        item = QListWidgetItem()
+        item.setSizeHint(trigger.sizeHint())
+        self.list.addItem(item)
+        self.list.setItemWidget(item, trigger)
+
+    def remove_pressed(self):
+        selected_items = self.list.selectedItems()
+        for item in selected_items:
+            row = self.list.row(item)
+            self.list.takeItem(row)
 
     def get_state(self):
         # return ProtocolItem deque to use with Protocol Worker  
         pass
+
+if __name__ == '__main__':
+
+    app = QApplication([])
+    window = SequencerWidget()
+    window.show()
+    app.exec()
