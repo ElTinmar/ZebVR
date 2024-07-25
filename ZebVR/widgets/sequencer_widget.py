@@ -160,7 +160,7 @@ class StimSequencerItem(SequencerItem, StimWidget):
         
         return protocol
 
-class TriggerWidget(QWidget):
+class TriggerSequencerItem(SequencerItem):
     pass
 
 class SequencerWidget(QWidget):
@@ -212,21 +212,21 @@ class SequencerWidget(QWidget):
         main_layout.addWidget(self.btn_remove)
 
     def stim_pressed(self):
-        stim = StimWidget()
+        stim = StimSequencerItem()
         item = QListWidgetItem()
         item.setSizeHint(stim.sizeHint())
         self.list.addItem(item)
         self.list.setItemWidget(item, stim)
 
     def pause_pressed(self):
-        pause = PauseWidget()
+        pause = PauseSequencerItem()
         item = QListWidgetItem()
         item.setSizeHint(pause.sizeHint())
         self.list.addItem(item)
         self.list.setItemWidget(item, pause)
 
     def trigger_pressed(self):
-        trigger = TriggerWidget()
+        trigger = TriggerSequencerItem()
         item = QListWidgetItem()
         item.setSizeHint(trigger.sizeHint())
         self.list.addItem(item)
