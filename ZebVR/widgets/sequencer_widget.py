@@ -239,12 +239,12 @@ class SequencerWidget(QWidget):
             self.list.takeItem(row)
 
     def get_state(self) -> List:
-        state = []
+        state = deque()
         num_items = self.list.count()
         for row in range(num_items):
             item = self.list.item(row)
             widget = self.list.itemWidget(item)
-            state.append(widget.get_state())
+            state.append(widget.get_protocol_item())
         return state
 
 if __name__ == '__main__':
