@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QPushButton,
+    QFrame,
     QCheckBox, 
     QStackedWidget, 
     QGroupBox, 
@@ -36,11 +37,14 @@ class PauseWidget(QWidget):
         
         super().__init__(*args,**kwargs)
 
-        self.pause_sec = LabeledDoubleSpinBox(self)
+        self.pause_sec = LabeledDoubleSpinBox()
         self.pause_sec.setText('pause (sec):')
         self.pause_sec.setRange(0,100_000)
         self.pause_sec.setSingleStep(0.5)
         self.pause_sec.setValue(0)
+
+        layout = QHBoxLayout(self)
+        layout.addWidget(self.pause_sec)
 
 class TriggerWidget(QWidget):
     pass
@@ -62,6 +66,7 @@ class SequencerWidget(QWidget):
 
         # QListWidget
         self.list = QListWidget()
+        #self.list.setSpacing(5)
 
         # add stim button
         self.btn_add_stim = QPushButton('stim')
