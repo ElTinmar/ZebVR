@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 from qt_widgets import LabeledDoubleSpinBox
 from collections import deque
 
@@ -21,17 +21,24 @@ from PyQt5.QtWidgets import (
 
 # TODO should that really be in workers?
 from ZebVR.workers import (
+    ProtocolItem,
     ProtocolItemDark,
     ProtocolItemBright,
     ProtocolItemOKR,
     ProtocolItemOMR,
     ProtocolItemPhototaxis,
+    ProtocolItemLooming,
     ProtocolItemPause
 )
 
 from ZebVR.widgets import StimWidget
 
-class PauseWidget(QWidget):
+class SequencerItem(QWidget):
+
+    def get_protocol_item(self) -> ProtocolItem:
+        pass
+
+class PauseSequencerItem(SequencerItem):
 
     def __init__(self,*args,**kwargs):
         
@@ -45,6 +52,113 @@ class PauseWidget(QWidget):
 
         layout = QHBoxLayout(self)
         layout.addWidget(self.pause_sec)
+    
+    def get_protocol_item(self) -> ProtocolItem:
+        protocol = ProtocolItemPause(
+            pause_sec=self.pause_sec.value()
+        ) 
+        return protocol
+    
+class StimSequencerItem(SequencerItem, StimWidget):
+
+    def get_protocol_item(self) -> ProtocolItem:
+
+        if self.cmb_stim_select.currentText() == 'Dark':
+            protocol = ProtocolItemDark(
+                background_color = (
+                    self.sb_background_color_R.value(), 
+                    self.sb_background_color_G.value(),
+                    self.sb_background_color_B.value(),
+                    self.sb_background_color_A.value()
+                )
+            )
+
+        if self.cmb_stim_select.currentText() == 'Bright':
+            protocol = ProtocolItemBright(
+                foreground_color = (
+                    self.sb_foreground_color_R.value(), 
+                    self.sb_foreground_color_G.value(),
+                    self.sb_foreground_color_B.value(),
+                    self.sb_foreground_color_A.value()
+                )
+            )
+
+        if self.cmb_stim_select.currentText() == 'Phototaxis':
+            protocol = ProtocolItemPhototaxis(
+                foreground_color = (
+                    self.sb_foreground_color_R.value(), 
+                    self.sb_foreground_color_G.value(),
+                    self.sb_foreground_color_B.value(),
+                    self.sb_foreground_color_A.value()
+                ),
+                background_color = (
+                    self.sb_background_color_R.value(), 
+                    self.sb_background_color_G.value(),
+                    self.sb_background_color_B.value(),
+                    self.sb_background_color_A.value()
+                ),
+                phototaxis_polarity=-1+2*self.chb_phototaxis_polarity.isChecked()
+            )
+
+        if self.cmb_stim_select.currentText() == 'OMR':
+            protocol = ProtocolItemOMR(
+                foreground_color = (
+                    self.sb_foreground_color_R.value(), 
+                    self.sb_foreground_color_G.value(),
+                    self.sb_foreground_color_B.value(),
+                    self.sb_foreground_color_A.value()
+                ),
+                background_color = (
+                    self.sb_background_color_R.value(), 
+                    self.sb_background_color_G.value(),
+                    self.sb_background_color_B.value(),
+                    self.sb_background_color_A.value()
+                ),
+                omr_spatial_period_mm = self.sb_omr_spatial_freq.value(),
+                omr_angle_deg =self.sb_omr_angle.value(),
+                omr_speed_mm_per_sec = self.sb_omr_speed.value() 
+            )
+
+        if self.cmb_stim_select.currentText() == 'OKR':
+            protocol = ProtocolItemOKR(
+                foreground_color = (
+                    self.sb_foreground_color_R.value(), 
+                    self.sb_foreground_color_G.value(),
+                    self.sb_foreground_color_B.value(),
+                    self.sb_foreground_color_A.value()
+                ),
+                background_color = (
+                    self.sb_background_color_R.value(), 
+                    self.sb_background_color_G.value(),
+                    self.sb_background_color_B.value(),
+                    self.sb_background_color_A.value()
+                ),
+                okr_spatial_frequency_deg = self.sb_okr_spatial_freq.value(),
+                okr_speed_deg_per_sec = self.sb_okr_speed.value()
+            )
+
+        if self.cmb_stim_select.currentText() == 'Looming':
+            protocol = ProtocolItemLooming(
+                foreground_color = (
+                    self.sb_foreground_color_R.value(), 
+                    self.sb_foreground_color_G.value(),
+                    self.sb_foreground_color_B.value(),
+                    self.sb_foreground_color_A.value()
+                ),
+                background_color = (
+                    self.sb_background_color_R.value(), 
+                    self.sb_background_color_G.value(),
+                    self.sb_background_color_B.value(),
+                    self.sb_background_color_A.value()
+                ),
+                looming_center_mm_x = self.sb_looming_center_mm_x.value(),
+                looming_center_mm_y = self.sb_looming_center_mm_y.value(),
+                looming_period_sec = self.sb_looming_period_sec.value(),
+                looming_expansion_time_sec = self.sb_looming_expansion_time_sec.value(),
+                looming_expansion_speed_mm_per_sec = self.sb_looming_expansion_speed_mm_per_sec.value()
+            )
+        
+        return protocol
 
 class TriggerWidget(QWidget):
     pass
@@ -124,9 +238,14 @@ class SequencerWidget(QWidget):
             row = self.list.row(item)
             self.list.takeItem(row)
 
-    def get_state(self):
-        # return ProtocolItem deque to use with Protocol Worker  
-        pass
+    def get_state(self) -> List:
+        state = []
+        num_items = self.list.count()
+        for row in range(num_items):
+            item = self.list.item(row)
+            widget = self.list.itemWidget(item)
+            state.append(widget.get_state())
+        return state
 
 if __name__ == '__main__':
 
@@ -134,3 +253,5 @@ if __name__ == '__main__':
     window = SequencerWidget()
     window.show()
     app.exec()
+
+    print(window.get_state())

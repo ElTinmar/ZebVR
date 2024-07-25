@@ -223,7 +223,50 @@ class ProtocolItemBright(ProtocolItem):
             'foreground_color_A': self.foreground_color[3]
         })
         return command 
-    
+
+class ProtocolItemLooming(ProtocolItem):
+
+    STIM_SELECT = Stim.LOOMING
+
+    def __init__(
+            self, 
+            foreground_color: Tuple[float, float, float, float],
+            background_color: Tuple[float, float, float, float],
+            looming_center_mm_x: float,
+            looming_center_mm_y: float,
+            looming_period_sec: float,
+            looming_expansion_time_sec: float,
+            looming_expansion_speed_mm_per_sec: float   
+        ) -> None:
+
+        super().__init__()
+        self.foreground_color = foreground_color 
+        self.background_color = background_color
+        self.looming_center_mm_x = looming_center_mm_x
+        self.looming_center_mm_y = looming_center_mm_y
+        self.looming_period_sec = looming_period_sec 
+        self.looming_expansion_time_sec = looming_expansion_time_sec
+        self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
+
+    def run(self) -> DefaultDict:
+        command = defaultdict(float, {
+            'stim_select': self.STIM_SELECT,
+            'looming_center_mm_x': self.looming_center_mm_x,
+            'looming_center_mm_y': self.looming_center_mm_y,
+            'looming_period_sec': self.looming_period_sec,
+            'looming_expansion_time_sec': self.looming_expansion_time_sec,
+            'looming_expansion_speed_mm_per_sec': self.looming_expansion_speed_mm_per_sec,
+            'foreground_color_R': self.foreground_color[0],
+            'foreground_color_G': self.foreground_color[1],
+            'foreground_color_B': self.foreground_color[2],
+            'foreground_color_A': self.foreground_color[3],
+            'background_color_R': self.background_color[0],
+            'background_color_G': self.background_color[1],
+            'background_color_B': self.background_color[2],
+            'background_color_A': self.background_color[3]
+        })
+        return command 
+        
 class Protocol(WorkerNode):
 
     def __init__(
