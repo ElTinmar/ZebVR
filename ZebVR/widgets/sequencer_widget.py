@@ -2,6 +2,7 @@ from typing import Dict, Tuple, List
 from qt_widgets import LabeledDoubleSpinBox
 from collections import deque
 
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import (
     QApplication,
     QWidget, 
@@ -180,6 +181,10 @@ class SequencerWidget(QWidget):
 
         # QListWidget
         self.list = QListWidget()
+        self.list.setFixedWidth(460)
+        self.list.setFixedHeight(720)
+        self.list.setAlternatingRowColors(True)
+
         #self.list.setSpacing(5)
 
         # add stim button
