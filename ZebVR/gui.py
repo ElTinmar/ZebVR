@@ -6,6 +6,7 @@ import time
 from typing import Dict
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLabel, QPushButton
 from qt_widgets import LabeledEditLine, LabeledSpinBox
+from ZebVR.widgets import SequencerWidget
 
 from config import (
     N_BACKGROUND_WORKERS, 
@@ -106,6 +107,8 @@ class MainGui(QWidget):
         )
 
         if self.record_flag:
+            protocol = self.sequencer_widget.get_protocol()
+            self.workers['protocol'].set_protocol(protocol)
             self.dag.connect_metadata(
                 sender=self.workers['protocol'], 
                 receiver=self.workers['visual_stim'], 
@@ -129,6 +132,9 @@ class MainGui(QWidget):
             )
 
     def create_components(self):
+
+        self.sequencer_widget = SequencerWidget()
+        self.sequencer_widget.show()
         
         # calibration
         self.registration_button = QPushButton()

@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Deque
 from qt_widgets import LabeledDoubleSpinBox
 from collections import deque
 
@@ -243,7 +243,7 @@ class SequencerWidget(QWidget):
             row = self.list.row(item)
             self.list.takeItem(row)
 
-    def get_state(self) -> List:
+    def get_protocol(self) -> Deque[ProtocolItem]:
         state = deque()
         num_items = self.list.count()
         for row in range(num_items):
@@ -259,4 +259,4 @@ if __name__ == '__main__':
     window.show()
     app.exec()
 
-    print(window.get_state())
+    print(window.get_protocol())

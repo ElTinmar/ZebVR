@@ -271,12 +271,15 @@ class Protocol(WorkerNode):
 
     def __init__(
             self, 
-            protocol: Deque[ProtocolItem],
+            protocol: Optional[Deque[ProtocolItem]] = None,
             *args, 
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
+        self.protocol = protocol
+
+    def set_protocol(self, protocol: Deque[ProtocolItem]) -> None:
         self.protocol = protocol
 
     def initialize(self) -> None:
