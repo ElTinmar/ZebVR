@@ -349,34 +349,6 @@ if __name__ == "__main__":
     )
 
     protocol = Protocol(
-        deque([
-            ProtocolItemDark(background_color=BACKGROUND_COLOR),
-            ProtocolItemPause(pause_sec=5),
-            ProtocolItemBright(foreground_color=FOREGROUND_COLOR),
-            ProtocolItemPause(pause_sec=5),
-            ProtocolItemOMR(
-                background_color=BACKGROUND_COLOR,
-                foreground_color=FOREGROUND_COLOR,
-                omr_spatial_period_mm=OMR_SPATIAL_PERIOD_MM,
-                omr_angle_deg=OMR_ANGLE_DEG,
-                omr_speed_mm_per_sec=OMR_SPEED_MM_PER_SEC
-            ),
-            ProtocolItemPause(pause_sec=10),
-            ProtocolItemDark(background_color=BACKGROUND_COLOR),
-            ProtocolItemPause(pause_sec=2),
-            ProtocolItemPhototaxis(
-                background_color=BACKGROUND_COLOR,
-                foreground_color=FOREGROUND_COLOR,
-                phototaxis_polarity=PHOTOTAXIS_POLARITY
-            ),
-            ProtocolItemPause(pause_sec=10),
-            ProtocolItemOKR(
-                background_color=BACKGROUND_COLOR,
-                foreground_color=FOREGROUND_COLOR,
-                okr_spatial_frequency_deg=OKR_SPATIAL_FREQUENCY_DEG,
-                okr_speed_deg_per_sec=OKR_SPEED_DEG_PER_SEC
-            ),
-        ]),
         name="protocol", 
         logger=worker_logger, 
         logger_queues=queue_logger, 
