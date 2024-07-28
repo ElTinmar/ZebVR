@@ -32,7 +32,9 @@ class MainGui(QWidget):
         self.setWindowTitle('Main controls')
         self.create_components()
         self.layout_components()
+        self.experiment_data()
         self.record_flag = False
+        self.filename = 'display_timing.csv'
 
     def create_dag(self):
 
@@ -82,6 +84,9 @@ class MainGui(QWidget):
                 queue=self.queues['tracker_to_tracking_display'], 
                 name='overlay'
             )
+
+        if self.filename is not None:
+            self.workers['visual_stim'].set_filename(self.edt_filename.text())
 
         for i in range(N_TRACKER_WORKERS):
             self.dag.connect_data(
@@ -179,9 +184,9 @@ class MainGui(QWidget):
         self.duration.setValue(60)
         self.duration.valueChanged.connect(self.experiment_data)
 
-        self.filename = LabeledEditLine()
-        self.filename.setLabel('result file:')
-        
+        self.edt_filename = LabeledEditLine()
+        self.edt_filename.setLabel('result file:')
+
         self.start_button = QPushButton()
         self.start_button.setText('start')
         self.start_button.clicked.connect(self.preview)
@@ -213,12 +218,13 @@ class MainGui(QWidget):
         layout.addWidget(self.fish_id)
         layout.addWidget(self.dpf)
         layout.addWidget(self.duration)
-        layout.addWidget(self.filename)
+        layout.addWidget(self.edt_filename)
         layout.addLayout(controls)
         layout.addStretch()
 
     def experiment_data(self):
-        pass
+        self.filename = f'{self.fish_id.value():02}_{self.dpf.value():02}dpf'
+        self.edt_filename.setEditField(self.filename)
 
     def registration(self):
         subprocess.Popen(['python', 'ZebVR/calibration/registration.py'])

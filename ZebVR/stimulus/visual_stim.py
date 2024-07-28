@@ -92,6 +92,9 @@ class VisualStimWorker(WorkerNode):
         self.stim.cleanup()
         app.quit()
 
+    def set_filename(self, filename:str):
+        self.stim.set_filename(filename)
+
     def initialize(self) -> None:
         super().initialize()
         # launch main window loop in a separate process 
