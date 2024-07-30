@@ -1,14 +1,11 @@
 from typing import Dict, Tuple
 from qt_widgets import LabeledDoubleSpinBox
 
-from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import (
     QWidget, 
     QCheckBox, 
     QStackedWidget, 
     QGroupBox, 
-    QLayout,
-    QSizePolicy,
     QHBoxLayout,
     QVBoxLayout, 
     QComboBox,
