@@ -8,11 +8,13 @@ from PyQt5.QtWidgets import (
     QStackedWidget, 
     QGroupBox, 
     QLayout,
+    QSizePolicy,
     QHBoxLayout,
     QVBoxLayout, 
     QComboBox,
     QLabel
 )
+
 
 class StimWidget(QWidget):
 
@@ -213,7 +215,6 @@ class StimWidget(QWidget):
         phototaxis_layout = QVBoxLayout()
         phototaxis_layout.addWidget(self.chb_phototaxis_polarity)
         phototaxis_layout.addStretch()
-        phototaxis_layout.setSizeConstraint(QLayout.SetFixedSize)
         self.phototaxis_group = QGroupBox('Phototaxis parameters')
         self.phototaxis_group.setLayout(phototaxis_layout)
 
@@ -222,7 +223,6 @@ class StimWidget(QWidget):
         omr_layout.addWidget(self.sb_omr_angle)
         omr_layout.addWidget(self.sb_omr_speed)
         omr_layout.addStretch()
-        omr_layout.setSizeConstraint(QLayout.SetFixedSize)
         self.omr_group = QGroupBox('OMR parameters')
         self.omr_group.setLayout(omr_layout)
 
@@ -230,7 +230,6 @@ class StimWidget(QWidget):
         okr_layout.addWidget(self.sb_okr_spatial_freq)
         okr_layout.addWidget(self.sb_okr_speed)
         okr_layout.addStretch()
-        okr_layout.setSizeConstraint(QLayout.SetFixedSize)
         self.okr_group = QGroupBox('OKR parameters')
         self.okr_group.setLayout(okr_layout)
 
@@ -241,7 +240,6 @@ class StimWidget(QWidget):
         looming_layout.addWidget(self.sb_looming_expansion_time_sec)
         looming_layout.addWidget(self.sb_looming_expansion_speed_mm_per_sec)
         looming_layout.addStretch()
-        looming_layout.setSizeConstraint(QLayout.SetFixedSize)
         self.looming_group = QGroupBox('Looming parameters')
         self.looming_group.setLayout(looming_layout)
 
@@ -252,8 +250,7 @@ class StimWidget(QWidget):
         self.stack.addWidget(self.omr_group)
         self.stack.addWidget(self.okr_group)
         self.stack.addWidget(self.looming_group)
-        #self.stack.setStyleSheet('color: darkgray; background-color: darkgray;')
-    
+
         layout = QVBoxLayout(self)
         layout.addWidget(self.cmb_stim_select)
         layout.addLayout(foreground_color_layout)
