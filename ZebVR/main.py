@@ -5,7 +5,6 @@ from multiprocessing import set_start_method
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
-from collections import deque
 import numpy as np
 from numpy.typing import NDArray
 from typing import Tuple
