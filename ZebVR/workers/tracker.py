@@ -45,24 +45,18 @@ class TrackerWorker(WorkerNode):
     def process_data(self, data: NDArray) -> Dict:
 
         if data is None:
-            return 
+            return None
 
         index, timestamp, image = data
         tracking = self.tracker.track(image)
         
-        res = {}    
-
-        try:
-            k = tracking.animals.identities[0]
-            res['stimulus'] = (index, timestamp, tracking.animals.centroids[k,:], tracking.body[k].heading)
-            res['overlay'] = (index, timestamp, tracking)
-            return res
-        
-        except KeyError:
-            return None 
-        
-        except TypeError:
+        if tracking is None:
             return None
+        
+        res = {}    
+        res['stimulus'] = (index, timestamp, tracking)
+        res['overlay'] = (index, timestamp, tracking)
+        return res
         
     def process_metadata(self, metadata) -> Any:
 

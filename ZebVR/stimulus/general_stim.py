@@ -407,15 +407,27 @@ class GeneralStim(VisualStim):
 
     def process_data(self, data) -> None:
         if data is not None:
-            index, timestamp, centroid, heading = data
-            if centroid is not None:
+            
+            index, timestamp, tracking = data
+
+            try:
+                k = tracking.animals.identities[0]
+                centroid = tracking.animals.centroids[k,:]
+                heading = tracking.body[k].heading
+
                 self.index.value = index
                 self.timestamp.value = timestamp
                 self.fish_caudorostral_axis_x.value, self.fish_caudorostral_axis_y.value = heading[:,0]
                 self.fish_mediolateral_axis_x.value, self.fish_mediolateral_axis_y.value = heading[:,1]
                 self.fish_centroid_x.value, self.fish_centroid_y.value = centroid
 
-            print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
+                print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
+
+            except KeyError:
+                return None 
+            
+            except TypeError:
+                return None
 
     def process_metadata(self, metadata) -> None:
         control = metadata['visual_stim_control']

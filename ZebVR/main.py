@@ -122,20 +122,6 @@ def deserialize_tracking_multifish(arr: NDArray) -> Tuple[int, float, MultiFishT
     tracking = MultiFishTracking.from_numpy(arr[0]['tracking'][0])
     return (index, timestamp, tracking)
 
-def serialize_tracking_body(buffer: NDArray, obj: Tuple[int, float, NDArray, NDArray]) -> NDArray:
-    index, timestamp, centroid, heading = obj
-    buffer['index'] = index
-    buffer['timestamp'] = timestamp
-    buffer['centroid'] = centroid
-    buffer['heading'] = heading
-
-def deserialize_tracking_body(arr: NDArray) -> Tuple[int, float, NDArray, NDArray]:
-    index = arr['index'].item()
-    timestamp = arr['timestamp'].item()
-    centroid = arr[0]['centroid']
-    heading = arr[0]['heading']
-    return (index, timestamp, centroid, heading)
-
 if __name__ == "__main__":
 
     set_start_method('spawn')
@@ -430,21 +416,14 @@ if __name__ == "__main__":
     ])
 
     # ---
-    dt_tracking_body = np.dtype([
-        ('index', int, (1,)),
-        ('timestamp', float, (1,)), 
-        ('centroid', np.float32, (2,)),
-        ('heading', np.float32, (2,2))
-    ])
-
     q_tracking = MonitoredQueue(
         ObjectRingBuffer2(
             num_items = 100,
-            data_type = dt_tracking_body,
-            serialize = serialize_tracking_body,
-            deserialize = deserialize_tracking_body,
+            data_type = dt_tracking_multifish,
+            serialize = serialize_tracking_multifish,
+            deserialize = deserialize_tracking_multifish,
             logger = queue_logger,
-            name = 'tracker_to_phototaxis',
+            name = 'tracker_to_stim',
             t_refresh=T_REFRESH
         )
     )
