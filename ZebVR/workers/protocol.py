@@ -300,6 +300,10 @@ class Protocol(WorkerNode):
         try:
             item = self.protocol.popleft()
         except IndexError:
+            # sleep a bit to let enough time for the message 
+            # to be delivered before closing the queue
+            time.sleep(1)
+
             print('Protocol finished, stopping sequencer')
             self.stop_event.set()
             return None
