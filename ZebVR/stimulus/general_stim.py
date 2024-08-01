@@ -184,6 +184,41 @@ class GeneralStim(VisualStim):
             vsync=vsync
         )
 
+        self.default_stim_select = stim_select
+        self.default_background_color = background_color
+        self.default_foreground_color = foreground_color
+        self.default_phototaxis_polarity = phototaxis_polarity
+        self.default_omr_spatial_period_mm = omr_spatial_period_mm
+        self.default_omr_angle_deg = omr_angle_deg
+        self.default_omr_speed_mm_per_sec = omr_speed_mm_per_sec
+        self.default_okr_spatial_frequency_deg = okr_spatial_frequency_deg
+        self.default_okr_speed_deg_per_sec = okr_speed_deg_per_sec 
+        self.default_looming_center_mm = looming_center_mm
+        self.default_looming_period_sec = looming_period_sec
+        self.default_looming_expansion_time_sec = looming_expansion_time_sec
+        self.default_looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
+
+        self.foreground_color_R = Value('d', self.default_foreground_color[0]) 
+        self.foreground_color_G = Value('d', self.default_foreground_color[1]) 
+        self.foreground_color_B = Value('d', self.default_foreground_color[2]) 
+        self.foreground_color_A = Value('d', self.default_foreground_color[3]) 
+        self.background_color_R = Value('d', self.default_background_color[0]) 
+        self.background_color_G = Value('d', self.default_background_color[1]) 
+        self.background_color_B = Value('d', self.default_background_color[2]) 
+        self.background_color_A = Value('d', self.default_background_color[3]) 
+        self.stim_select = Value('d', self.default_stim_select) 
+        self.phototaxis_polarity = Value('d', self.default_phototaxis_polarity) 
+        self.omr_spatial_period_mm = Value('d', self.default_omr_spatial_period_mm)
+        self.omr_angle_deg = Value('d', self.default_omr_angle_deg)
+        self.omr_speed_mm_per_sec = Value('d', self.default_omr_speed_mm_per_sec)
+        self.okr_spatial_frequency_deg = Value('d', self.default_okr_spatial_frequency_deg)
+        self.okr_speed_deg_per_sec = Value('d', self.default_okr_speed_deg_per_sec)
+        self.looming_center_mm_x = Value('d', self.default_looming_center_mm[0])
+        self.looming_center_mm_y = Value('d', self.default_looming_center_mm[1])
+        self.looming_period_sec = Value('d', self.default_looming_period_sec)
+        self.looming_expansion_time_sec = Value('d', self.default_looming_expansion_time_sec)
+        self.looming_expansion_speed_mm_per_sec = Value('d', self.default_looming_expansion_speed_mm_per_sec)
+
         self.index = Value('L', 0)
         self.timestamp = Value('f', 0)
         self.fish_mediolateral_axis_x = Value('d', 0)
@@ -192,28 +227,6 @@ class GeneralStim(VisualStim):
         self.fish_caudorostral_axis_y = Value('d', 0)
         self.fish_centroid_x = Value('d', 0)
         self.fish_centroid_y = Value('d', 0)
-
-        # stim parameters      
-        self.foreground_color_R = Value('d', foreground_color[0]) 
-        self.foreground_color_G = Value('d', foreground_color[1]) 
-        self.foreground_color_B = Value('d', foreground_color[2]) 
-        self.foreground_color_A = Value('d', foreground_color[3]) 
-        self.background_color_R = Value('d', background_color[0]) 
-        self.background_color_G = Value('d', background_color[1]) 
-        self.background_color_B = Value('d', background_color[2]) 
-        self.background_color_A = Value('d', background_color[3]) 
-        self.stim_select = Value('d', stim_select) 
-        self.phototaxis_polarity = Value('d', phototaxis_polarity) 
-        self.omr_spatial_period_mm = Value('d', omr_spatial_period_mm)
-        self.omr_angle_deg = Value('d', omr_angle_deg)
-        self.omr_speed_mm_per_sec = Value('d', omr_speed_mm_per_sec)
-        self.okr_spatial_frequency_deg = Value('d', okr_spatial_frequency_deg)
-        self.okr_speed_deg_per_sec = Value('d', okr_speed_deg_per_sec)
-        self.looming_center_mm_x = Value('d', looming_center_mm[0])
-        self.looming_center_mm_y = Value('d', looming_center_mm[1])
-        self.looming_period_sec = Value('d', looming_period_sec)
-        self.looming_expansion_time_sec = Value('d', looming_expansion_time_sec)
-        self.looming_expansion_speed_mm_per_sec = Value('d', looming_expansion_speed_mm_per_sec)
         
         self.refresh_rate = refresh_rate
         self.fd = None
@@ -223,9 +236,36 @@ class GeneralStim(VisualStim):
     def set_filename(self, filename:str):
         self.timings_file = filename
 
+    def reinit_stim_params(self):
+
+        self.foreground_color_R.value = self.default_foreground_color[0]
+        self.foreground_color_G.value = self.default_foreground_color[1]
+        self.foreground_color_B.value = self.default_foreground_color[2] 
+        self.foreground_color_A.value = self.default_foreground_color[3] 
+        self.background_color_R.value = self.default_background_color[0] 
+        self.background_color_G.value = self.default_background_color[1] 
+        self.background_color_B.value = self.default_background_color[2] 
+        self.background_color_A.value = self.default_background_color[3] 
+        self.stim_select.value = self.default_stim_select
+        self.phototaxis_polarity.value = self.default_phototaxis_polarity 
+        self.omr_spatial_period_mm.value = self.default_omr_spatial_period_mm
+        self.omr_angle_deg.value = self.default_omr_angle_deg
+        self.omr_speed_mm_per_sec.value = self.default_omr_speed_mm_per_sec
+        self.okr_spatial_frequency_deg.value = self.default_okr_spatial_frequency_deg
+        self.okr_speed_deg_per_sec.value = self.default_okr_speed_deg_per_sec
+        self.looming_center_mm_x.value = self.default_looming_center_mm[0]
+        self.looming_center_mm_y.value = self.default_looming_center_mm[1]
+        self.looming_period_sec.value = self.default_looming_period_sec
+        self.looming_expansion_time_sec.value = self.default_looming_expansion_time_sec
+        self.looming_expansion_speed_mm_per_sec.value = self.default_looming_expansion_speed_mm_per_sec
+
     def initialize(self):
         super().initialize()
 
+        # reinitialize stim parameters
+        self.reinit_stim_params()
+        
+        # init file name
         prefix, ext = os.path.splitext(self.timings_file)
         timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
         while os.path.exists(timings_file):
@@ -260,6 +300,7 @@ class GeneralStim(VisualStim):
         )
         self.fd.write(','.join(headers) + '\n')
         
+        # init shader
         self.program['a_fish_caudorostral_axis'] = [0,0]
         self.program['a_fish_mediolateral_axis'] = [0,0]
         self.program['a_fish_centroid'] = [0,0]
