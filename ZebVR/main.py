@@ -153,8 +153,10 @@ if __name__ == "__main__":
     except FileNotFoundError:
         print('Registration file not found, please run calibration first')
         calibration = {}
-        calibration['cam_to_proj'] = [[1,0,0],[0,1,0],[0,0,1]]
-        calibration['proj_to_cam'] = [[1,0,0],[0,1,0],[0,0,1]]
+        #calibration['cam_to_proj'] = [[1,0,0],[0,1,0],[0,0,1]]
+        #calibration['proj_to_cam'] = [[1,0,0],[0,1,0],[0,0,1]]
+        calibration['cam_to_proj'] = [[1,0,0],[0,-1,504],[0,0,1]]
+        calibration['proj_to_cam'] = [[1,0,0],[0,-1,-504],[0,0,1]]
 
     worker_logger = Logger(LOGFILE_WORKERS, Logger.INFO)
     queue_logger = Logger(LOGFILE_QUEUES, Logger.INFO)
