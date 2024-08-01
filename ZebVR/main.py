@@ -49,13 +49,7 @@ from workers import (
     TrackerGui, 
     StimGUI,
     TrackingDisplay,
-    Protocol,
-    ProtocolItemDark,
-    ProtocolItemBright,
-    ProtocolItemOKR,
-    ProtocolItemOMR,
-    ProtocolItemPhototaxis,
-    ProtocolItemPause,
+    Protocol
 )
 from config import (
     REGISTRATION_FILE, 
