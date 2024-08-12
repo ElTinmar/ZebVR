@@ -379,7 +379,12 @@ class GeneralStim(VisualStim):
 
             try:
                 k = tracking.animals.identities[0]
-                centroid = tracking.animals.centroids[k,:]
+
+                # animal
+                # centroid = tracking.animals.centroids[k,:]
+                
+                # body
+                centroid = tracking.body[k].centroid + tracking.animals.centroids[k,:] + tracking.body[k].origin 
                 heading = tracking.body[k].heading
 
                 # TODO eyes
