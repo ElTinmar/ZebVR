@@ -417,7 +417,7 @@ class GeneralStim(VisualStim):
                 k = tracking.animals.identities[0]
 
                 if tracking.body[k] is not None:
-                    self.fish_centroid[:] = tracking.body[k].centroid + tracking.animals.centroids[k,:] + tracking.body[k].origin 
+                    self.fish_centroid[:] = tracking.body[k].centroid_original_space
                     heading = tracking.body[k].heading
                     self.fish_caudorostral_axis[:] = heading[:,0]
                     self.fish_mediolateral_axis[:] = heading[:,1]
