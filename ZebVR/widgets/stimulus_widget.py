@@ -276,17 +276,23 @@ class StimWidget(QWidget):
         state['omr_speed_mm_per_sec'] = self.sb_omr_speed.value() 
         state['okr_spatial_frequency_deg'] = self.sb_okr_spatial_freq.value()
         state['okr_speed_deg_per_sec'] = self.sb_okr_speed.value()
-        state['looming_center_mm_x'] = self.sb_looming_center_mm_x.value()
-        state['looming_center_mm_y'] = self.sb_looming_center_mm_y.value()
+        state['looming_center_mm'] = (
+            self.sb_looming_center_mm_x.value(),
+            self.sb_looming_center_mm_y.value()
+        )
         state['looming_period_sec'] = self.sb_looming_period_sec.value()
         state['looming_expansion_time_sec'] = self.sb_looming_expansion_time_sec.value()
         state['looming_expansion_speed_mm_per_sec'] = self.sb_looming_expansion_speed_mm_per_sec.value()
-        state['foreground_color_R'] = self.sb_foreground_color_R.value()
-        state['foreground_color_G'] = self.sb_foreground_color_G.value()
-        state['foreground_color_B'] = self.sb_foreground_color_B.value()
-        state['foreground_color_A'] = self.sb_foreground_color_A.value()
-        state['background_color_R'] = self.sb_background_color_R.value()
-        state['background_color_G'] = self.sb_background_color_G.value()
-        state['background_color_B'] = self.sb_background_color_B.value()
-        state['background_color_A'] = self.sb_background_color_A.value()
+        state['foreground_color'] = (
+            self.sb_foreground_color_R.value(),
+            self.sb_foreground_color_G.value(),
+            self.sb_foreground_color_B.value(),
+            self.sb_foreground_color_A.value()
+        )
+        state['background_color'] = (
+            self.sb_background_color_R.value(),
+            self.sb_background_color_G.value(),
+            self.sb_background_color_B.value(),
+            self.sb_background_color_A.value()
+        )
         return state

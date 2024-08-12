@@ -1,23 +1,15 @@
-from typing import Dict, Tuple, List, Deque
+from typing import Deque
 from qt_widgets import LabeledDoubleSpinBox
 from collections import deque
 
-from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import (
     QApplication,
     QWidget, 
     QListWidget,
     QListWidgetItem,
     QPushButton,
-    QFrame,
-    QCheckBox, 
-    QStackedWidget, 
-    QGroupBox, 
     QHBoxLayout,
     QVBoxLayout, 
-    QLayout,
-    QComboBox,
-    QLabel
 )
 
 # TODO should that really be in workers?
@@ -66,6 +58,12 @@ class StimSequencerItem(SequencerItem, StimWidget):
 
         if self.cmb_stim_select.currentText() == 'Dark':
             protocol = ProtocolItemDark(
+                foreground_color = (
+                    self.sb_foreground_color_R.value(), 
+                    self.sb_foreground_color_G.value(),
+                    self.sb_foreground_color_B.value(),
+                    self.sb_foreground_color_A.value()
+                ),
                 background_color = (
                     self.sb_background_color_R.value(), 
                     self.sb_background_color_G.value(),
@@ -81,6 +79,12 @@ class StimSequencerItem(SequencerItem, StimWidget):
                     self.sb_foreground_color_G.value(),
                     self.sb_foreground_color_B.value(),
                     self.sb_foreground_color_A.value()
+                ),
+                background_color = (
+                    self.sb_background_color_R.value(), 
+                    self.sb_background_color_G.value(),
+                    self.sb_background_color_B.value(),
+                    self.sb_background_color_A.value()
                 )
             )
 
@@ -152,8 +156,10 @@ class StimSequencerItem(SequencerItem, StimWidget):
                     self.sb_background_color_B.value(),
                     self.sb_background_color_A.value()
                 ),
-                looming_center_mm_x = self.sb_looming_center_mm_x.value(),
-                looming_center_mm_y = self.sb_looming_center_mm_y.value(),
+                looming_center_mm = (
+                    self.sb_looming_center_mm_x.value(),
+                    self.sb_looming_center_mm_y.value()
+                ),
                 looming_period_sec = self.sb_looming_period_sec.value(),
                 looming_expansion_time_sec = self.sb_looming_expansion_time_sec.value(),
                 looming_expansion_speed_mm_per_sec = self.sb_looming_expansion_speed_mm_per_sec.value()

@@ -98,14 +98,9 @@ class ProtocolItemPhototaxis(ProtocolItem):
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
             'phototaxis_polarity': self.phototaxis_polarity,
-            'foreground_color_R': self.foreground_color[0], 
-            'foreground_color_G': self.foreground_color[1],
-            'foreground_color_B': self.foreground_color[2],
-            'foreground_color_A': self.foreground_color[3],
-            'background_color_R': self.background_color[0],
-            'background_color_G': self.background_color[1],
-            'background_color_B': self.background_color[2],
-            'background_color_A': self.background_color[3]
+            'foreground_color': self.foreground_color,
+            'background_color': self.background_color,
+            'looming_center_mm': (0, 0)
         })
         return command 
     
@@ -132,14 +127,9 @@ class ProtocolItemOKR(ProtocolItem):
             'stim_select': self.STIM_SELECT,
             'okr_spatial_frequency_deg': self.okr_spatial_frequency_deg,
             'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec,
-            'foreground_color_R': self.foreground_color[0], 
-            'foreground_color_G': self.foreground_color[1],
-            'foreground_color_B': self.foreground_color[2],
-            'foreground_color_A': self.foreground_color[3],
-            'background_color_R': self.background_color[0],
-            'background_color_G': self.background_color[1],
-            'background_color_B': self.background_color[2],
-            'background_color_A': self.background_color[3]
+            'foreground_color': self.foreground_color,
+            'background_color': self.background_color,
+            'looming_center_mm': (0, 0)
         })
         return command 
 
@@ -169,14 +159,9 @@ class ProtocolItemOMR(ProtocolItem):
             'omr_spatial_period_mm': self.omr_spatial_period_mm,
             'omr_angle_deg': self.omr_angle_deg,
             'omr_speed_mm_per_sec': self.omr_speed_mm_per_sec,
-            'foreground_color_R': self.foreground_color[0], 
-            'foreground_color_G': self.foreground_color[1],
-            'foreground_color_B': self.foreground_color[2],
-            'foreground_color_A': self.foreground_color[3],
-            'background_color_R': self.background_color[0],
-            'background_color_G': self.background_color[1],
-            'background_color_B': self.background_color[2],
-            'background_color_A': self.background_color[3]
+            'foreground_color': self.foreground_color,
+            'background_color': self.background_color,
+            'looming_center_mm': (0, 0)
         })
         return command 
 
@@ -185,20 +170,21 @@ class ProtocolItemDark(ProtocolItem):
     STIM_SELECT = Stim.DARK
 
     def __init__(
-            self, 
+            self,
+            foreground_color: Tuple[float, float, float, float],
             background_color: Tuple[float, float, float, float]
         ) -> None:
 
         super().__init__()
+        self.foreground_color = foreground_color
         self.background_color = background_color 
 
     def run(self) -> DefaultDict:
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
-            'background_color_R': self.background_color[0],
-            'background_color_G': self.background_color[1],
-            'background_color_B': self.background_color[2],
-            'background_color_A': self.background_color[3]
+            'foreground_color': self.foreground_color,
+            'background_color': self.background_color,
+            'looming_center_mm': (0, 0)
         })
         return command 
 
@@ -208,19 +194,20 @@ class ProtocolItemBright(ProtocolItem):
 
     def __init__(
             self, 
-            foreground_color: Tuple[float, float, float, float]
+            foreground_color: Tuple[float, float, float, float],
+            background_color: Tuple[float, float, float, float]
         ) -> None:
 
         super().__init__()
         self.foreground_color = foreground_color 
+        self.background_color = background_color 
 
     def run(self) -> DefaultDict:
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
-            'foreground_color_R': self.foreground_color[0],
-            'foreground_color_G': self.foreground_color[1],
-            'foreground_color_B': self.foreground_color[2],
-            'foreground_color_A': self.foreground_color[3]
+            'foreground_color': self.foreground_color,
+            'background_color': self.background_color,
+            'looming_center_mm': (0, 0)
         })
         return command 
 
@@ -232,8 +219,7 @@ class ProtocolItemLooming(ProtocolItem):
             self, 
             foreground_color: Tuple[float, float, float, float],
             background_color: Tuple[float, float, float, float],
-            looming_center_mm_x: float,
-            looming_center_mm_y: float,
+            looming_center_mm: Tuple[float, float],
             looming_period_sec: float,
             looming_expansion_time_sec: float,
             looming_expansion_speed_mm_per_sec: float   
@@ -242,8 +228,7 @@ class ProtocolItemLooming(ProtocolItem):
         super().__init__()
         self.foreground_color = foreground_color 
         self.background_color = background_color
-        self.looming_center_mm_x = looming_center_mm_x
-        self.looming_center_mm_y = looming_center_mm_y
+        self.looming_center_mm = looming_center_mm
         self.looming_period_sec = looming_period_sec 
         self.looming_expansion_time_sec = looming_expansion_time_sec
         self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
@@ -251,19 +236,12 @@ class ProtocolItemLooming(ProtocolItem):
     def run(self) -> DefaultDict:
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
-            'looming_center_mm_x': self.looming_center_mm_x,
-            'looming_center_mm_y': self.looming_center_mm_y,
+            'looming_center_mm': self.looming_center_mm,
             'looming_period_sec': self.looming_period_sec,
             'looming_expansion_time_sec': self.looming_expansion_time_sec,
             'looming_expansion_speed_mm_per_sec': self.looming_expansion_speed_mm_per_sec,
-            'foreground_color_R': self.foreground_color[0],
-            'foreground_color_G': self.foreground_color[1],
-            'foreground_color_B': self.foreground_color[2],
-            'foreground_color_A': self.foreground_color[3],
-            'background_color_R': self.background_color[0],
-            'background_color_G': self.background_color[1],
-            'background_color_B': self.background_color[2],
-            'background_color_A': self.background_color[3]
+            'foreground_color': self.foreground_color,
+            'background_color': self.background_color,
         })
         return command 
         
