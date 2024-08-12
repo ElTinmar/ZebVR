@@ -416,7 +416,7 @@ class GeneralStim(VisualStim):
                 if tracking.eyes[k] is not None:
 
                     if tracking.eyes[k].left_eye is not None:
-                        self.left_eye_centroid[:] = tracking.eyes[k].left_eye.centroid #TODO maybe transform coordinates
+                        self.left_eye_centroid[:] = tracking.eyes[k].left_eye.centroid #TODO transform coordinates
                         self.left_eye_angle.value = tracking.eyes[k].left_eye.angle
 
                     if tracking.eyes[k].right_eye is not None:
