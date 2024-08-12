@@ -16,10 +16,18 @@ attribute vec2 a_position;
 attribute vec2 a_fish_caudorostral_axis;
 attribute vec2 a_fish_mediolateral_axis;
 attribute vec2 a_fish_centroid; 
+attribute vec2 a_left_eye_centroid; 
+attribute float a_left_eye_angle;
+attribute vec2 a_right_eye_centroid;
+attribute float a_right_eye_angle;
 
 varying vec2 v_fish_caudorostral_axis;
 varying vec2 v_fish_mediolateral_axis;
 varying vec2 v_fish_centroid;
+varying vec2 v_left_eye_centroid; 
+varying float v_left_eye_angle;
+varying vec2 v_right_eye_centroid;
+varying float v_right_eye_angle;
 varying vec2 v_pix_per_mm_proj;
 
 void main()
@@ -28,13 +36,19 @@ void main()
 
     //NOTE setting last component to 0 for scaling without translation
     vec3 fish_centroid = u_transformation_matrix * vec3(a_fish_centroid, 1.0);
+    vec3 left_eye_centroid = u_transformation_matrix * vec3(a_left_eye_centroid, 1.0);
+    vec3 right_eye_centroid = u_transformation_matrix * vec3(a_right_eye_centroid, 1.0);
     vec3 fish_caudorostral_axis = u_transformation_matrix * vec3(a_fish_caudorostral_axis, 0);
     vec3 fish_mediolateral_axis = u_transformation_matrix * vec3(a_fish_mediolateral_axis, 0);
     vec3 proj_scale = u_transformation_matrix * vec3(u_pix_per_mm, u_pix_per_mm, 0);
 
     v_fish_centroid = fish_centroid.xy;
+    v_left_eye_centroid = left_eye_centroid.xy;
+    v_right_eye_centroid = right_eye_centroid.xy;
     v_fish_caudorostral_axis = fish_caudorostral_axis.xy;
     v_fish_mediolateral_axis = fish_mediolateral_axis.xy;
+    v_left_eye_angle = a_left_eye_angle;
+    v_right_eye_angle = a_right_eye_angle;
     v_pix_per_mm_proj = abs(proj_scale.xy);
 } 
 """
@@ -48,6 +62,10 @@ varying vec2 v_pix_per_mm_proj;
 varying vec2 v_fish_centroid;
 varying vec2 v_fish_caudorostral_axis;
 varying vec2 v_fish_mediolateral_axis;
+varying vec2 v_left_eye_centroid; 
+varying float v_left_eye_angle;
+varying vec2 v_right_eye_centroid;
+varying float v_right_eye_angle;
 uniform float u_time;
 
 // stim parameters
@@ -216,6 +234,11 @@ class GeneralStim(VisualStim):
         self.fish_mediolateral_axis = Array('d', [0, 0])
         self.fish_caudorostral_axis = Array('d', [0, 0])
         self.fish_centroid = Array('d', [0, 0])
+        self.left_eye_centroid = Array('d', [0, 0])
+        self.left_eye_angle = Value('d', 0)
+        self.right_eye_centroid = Array('d', [0, 0])
+        self.right_eye_angle = Value('d', 0)
+        #self.tail_skeleton_interp = Array('d', )
 
         self.refresh_rate = refresh_rate
         self.fd = None
@@ -246,6 +269,34 @@ class GeneralStim(VisualStim):
         self.fish_mediolateral_axis[:] = [0, 0]
         self.fish_caudorostral_axis[:] = [0, 0]
         self.fish_centroid[:] = [0, 0]
+        self.left_eye_centroid[:] = [0, 0]
+        self.left_eye_angle.value = 0
+        self.right_eye_centroid[:] = [0, 0]
+        self.right_eye_angle.value = 0
+
+    def update_shader_variables(self, time: float):
+
+        self.program['u_time'] = time
+        self.program['a_fish_caudorostral_axis'] = self.fish_caudorostral_axis[:]
+        self.program['a_fish_mediolateral_axis'] = self.fish_mediolateral_axis[:]
+        self.program['a_left_eye_centroid'] = self.left_eye_centroid[:]
+        self.program['a_left_eye_angle'] = self.left_eye_angle.value
+        self.program['a_right_eye_centroid'] = self.right_eye_centroid[:]
+        self.program['a_right_eye_angle'] = self.right_eye_angle.value
+        self.program['a_fish_centroid'] = self.fish_centroid[:]
+        self.program['u_foreground_color'] = self.foreground_color[:]
+        self.program['u_background_color'] = self.background_color[:]
+        self.program['u_stim_select'] = self.stim_select.value
+        self.program['u_phototaxis_polarity'] = self.phototaxis_polarity.value
+        self.program['u_omr_spatial_period_mm'] = self.omr_spatial_period_mm.value
+        self.program['u_omr_angle_deg'] = self.omr_angle_deg.value
+        self.program['u_omr_speed_mm_per_sec'] = self.omr_speed_mm_per_sec.value
+        self.program['u_okr_spatial_frequency_deg'] = self.okr_spatial_frequency_deg.value
+        self.program['u_okr_speed_deg_per_sec'] = self.okr_speed_deg_per_sec.value
+        self.program['u_looming_center_mm'] = self.looming_center_mm[:]
+        self.program['u_looming_period_sec'] = self.looming_period_sec.value
+        self.program['u_looming_expansion_time_sec'] = self.looming_expansion_time_sec.value
+        self.program['u_looming_expansion_speed_mm_per_sec'] = self.looming_expansion_speed_mm_per_sec.value
 
     def initialize(self):
         super().initialize()
@@ -288,22 +339,7 @@ class GeneralStim(VisualStim):
         self.fd.write(','.join(headers) + '\n')
         
         # init shader
-        self.program['a_fish_caudorostral_axis'] = self.fish_caudorostral_axis[:]
-        self.program['a_fish_mediolateral_axis'] = self.fish_mediolateral_axis[:]
-        self.program['a_fish_centroid'] = self.fish_centroid[:]
-        self.program['u_foreground_color'] = self.foreground_color[:]
-        self.program['u_background_color'] = self.background_color[:]
-        self.program['u_stim_select'] = self.stim_select.value
-        self.program['u_phototaxis_polarity'] = self.phototaxis_polarity.value
-        self.program['u_omr_spatial_period_mm'] = self.omr_spatial_period_mm.value
-        self.program['u_omr_angle_deg'] = self.omr_angle_deg.value
-        self.program['u_omr_speed_mm_per_sec'] = self.omr_speed_mm_per_sec.value
-        self.program['u_okr_spatial_frequency_deg'] = self.okr_spatial_frequency_deg.value
-        self.program['u_okr_speed_deg_per_sec'] = self.okr_speed_deg_per_sec.value
-        self.program['u_looming_center_mm'] = self.looming_center_mm[:]
-        self.program['u_looming_period_sec'] = self.looming_period_sec.value
-        self.program['u_looming_expansion_time_sec'] = self.looming_expansion_time_sec.value
-        self.program['u_looming_expansion_speed_mm_per_sec'] = self.looming_expansion_speed_mm_per_sec.value
+        self.update_shader_variables(0)
 
         self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
         self.timer.start()
@@ -326,23 +362,7 @@ class GeneralStim(VisualStim):
         t_display = time.perf_counter_ns()
         t_local = 1e-9*(t_display - self.tstart)
 
-        self.program['a_fish_caudorostral_axis'] = self.fish_caudorostral_axis[:]
-        self.program['a_fish_mediolateral_axis'] = self.fish_mediolateral_axis[:]
-        self.program['a_fish_centroid'] = self.fish_centroid[:]
-        self.program['u_foreground_color'] = self.foreground_color[:]
-        self.program['u_background_color'] = self.background_color[:]
-        self.program['u_time'] = t_local
-        self.program['u_stim_select'] = self.stim_select.value
-        self.program['u_phototaxis_polarity'] = self.phototaxis_polarity.value
-        self.program['u_omr_spatial_period_mm'] = self.omr_spatial_period_mm.value
-        self.program['u_omr_angle_deg'] = self.omr_angle_deg.value
-        self.program['u_omr_speed_mm_per_sec'] = self.omr_speed_mm_per_sec.value
-        self.program['u_okr_spatial_frequency_deg'] = self.okr_spatial_frequency_deg.value
-        self.program['u_okr_speed_deg_per_sec'] = self.okr_speed_deg_per_sec.value
-        self.program['u_looming_center_mm'] = self.looming_center_mm[:]
-        self.program['u_looming_period_sec'] = self.looming_period_sec.value
-        self.program['u_looming_expansion_time_sec'] = self.looming_expansion_time_sec.value
-        self.program['u_looming_expansion_speed_mm_per_sec'] = self.looming_expansion_speed_mm_per_sec.value
+        self.update_shader_variables(t_local)
 
         self.update()
 
@@ -378,23 +398,34 @@ class GeneralStim(VisualStim):
             index, timestamp, tracking = data
 
             try:
-                k = tracking.animals.identities[0]
-
-                # animal
-                # centroid = tracking.animals.centroids[k,:]
-                
-                # body
-                centroid = tracking.body[k].centroid + tracking.animals.centroids[k,:] + tracking.body[k].origin 
-                heading = tracking.body[k].heading
-
-                # TODO eyes
-                # TODO tail
-
                 self.index.value = index
                 self.timestamp.value = timestamp
-                self.fish_caudorostral_axis[:] = heading[:,0]
-                self.fish_mediolateral_axis[:] = heading[:,1]
-                self.fish_centroid[:] = centroid
+
+                # TODO choose animal
+                k = tracking.animals.identities[0]
+
+                if tracking.body[k] is not None:
+                    self.fish_centroid[:] = tracking.body[k].centroid + tracking.animals.centroids[k,:] + tracking.body[k].origin 
+                    heading = tracking.body[k].heading
+                    self.fish_caudorostral_axis[:] = heading[:,0]
+                    self.fish_mediolateral_axis[:] = heading[:,1]
+                else:
+                    self.fish_centroid[:] = tracking.animals.centroids[k,:]
+
+                # eyes
+                if tracking.eyes[k] is not None:
+
+                    if tracking.eyes[k].left_eye is not None:
+                        self.left_eye_centroid[:] = tracking.eyes[k].left_eye.centroid #TODO maybe transform coordinates
+                        self.left_eye_angle.value = tracking.eyes[k].left_eye.angle
+
+                    if tracking.eyes[k].right_eye is not None:
+                        self.right_eye_centroid[:] = tracking.eyes[k].right_eye.centroid
+                        self.right_eye_angle.value = tracking.eyes[k].right_eye.angle
+
+                # TODO tail
+                if tracking.tail[k] is not None:
+                    skeleton_interp = tracking.tail[k].skeleton_interp
 
                 print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
 
