@@ -24,8 +24,8 @@ class CameraGui(WorkerNode):
         info = metadata['camera_info']
         if info is not None: 
             self.window.block_signals(True)
-            for c in self.controls:
-                spinbox = getattr(self, c + '_spinbox')
+            for c in self.window.controls:
+                spinbox = getattr(self.window, c + '_spinbox')
                 spinbox.setValue(info[c]['value'])
                 spinbox.setRange(info[c]['min'], info[c]['max'])
                 spinbox.setSingleStep(info[c]['increment'])
