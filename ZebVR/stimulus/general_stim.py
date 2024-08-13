@@ -413,6 +413,8 @@ class GeneralStim(VisualStim):
                 self.index.value = index
                 self.timestamp.value = timestamp
 
+                print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
+
                 # TODO choose animal
                 k = tracking.animals.identities[0]
 
@@ -437,9 +439,7 @@ class GeneralStim(VisualStim):
 
                 # TODO tail
                 if tracking.tail[k] is not None:
-                    skeleton_interp = tracking.tail[k].skeleton_interp
-
-                print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
+                    skeleton_interp = tracking.tail[k].skeleton_interp  
 
             except KeyError:
                 return None 
