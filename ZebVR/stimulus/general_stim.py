@@ -446,6 +446,9 @@ class GeneralStim(VisualStim):
             
             except TypeError:
                 return None
+            
+            except ValueError:
+                return None
 
     def process_metadata(self, metadata) -> None:
         control = metadata['visual_stim_control']

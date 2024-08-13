@@ -23,13 +23,13 @@ class CameraGui(WorkerNode):
         # receive cam inof
         info = metadata['camera_info']
         if info is not None: 
-            self.block_signals(True)
+            self.window.block_signals(True)
             for c in self.controls:
                 spinbox = getattr(self, c + '_spinbox')
                 spinbox.setValue(info[c]['value'])
                 spinbox.setRange(info[c]['min'], info[c]['max'])
                 spinbox.setSingleStep(info[c]['increment'])
-            self.block_signals(False)
+            self.window.block_signals(False)
 
         # send only one message when things are changed
         if self.window.is_updated():
