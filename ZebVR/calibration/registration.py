@@ -5,7 +5,7 @@ from multiprocessing import Process, Value
 import time
 import numpy as np
 import json
-from image_tools import im2single, enhance, im2rgb, im2uint8, im2gray
+from image_tools import im2single, enhance, im2rgb, im2uint8, im2gray, bwareafilter_centroids
 import cv2
 from geometry import to_homogeneous
 from tqdm import tqdm
@@ -173,18 +173,29 @@ if __name__ == '__main__':
             blur_size_px=BLUR_SIZE_PX,
             medfilt_size_px=None
         )
+        
+        mask = (image >= DETECTION_THRESHOLD)
 
-        # check that dot is detected
-        max_intensity = np.max(image)
-        if max_intensity >= DETECTION_THRESHOLD:
-            # get dot position on image
-            pos = np.unravel_index(np.argmax(image), image.shape) # you get row, col
-            pts_cam[idx,:] = pos[::-1] # transform to x, y
+        centroid = bwareafilter_centroids(
+            mask, 
+            min_size = 1_000,
+            max_size = 50_000, 
+            min_length = 0,
+            max_length = 0,
+            min_width = 0,
+            max_width = 0
+        )
 
-            image = im2rgb(im2uint8(image))
-            image = cv2.circle(image, pos[::-1], 4, (0,0,255),-1)
-        else:
-            image = im2rgb(im2uint8(image))
+        mask = cv2.resize(np.uint8(255*mask),(512,512))
+        cv2.imshow('mask', mask)
+        cv2.waitKey(1)
+        print(np.max(image),np.sum(mask),centroid)
+
+        image = im2rgb(im2uint8(image))
+
+        if centroid.size > 0:
+            pts_cam[idx,:] = centroid[0,:]
+            image = cv2.circle(image, np.int32(centroid[0,:]), 10, (0,0,255), -1)
 
         disp = cv2.resize(image,(512,512))
         cv2.imshow('calibration', disp)

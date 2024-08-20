@@ -15,8 +15,7 @@ from ZebVR.config import (
     CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
     CAM_OFFSETX, CAM_OFFSETY, 
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
-    BRIGHTNESS,  CONTRAST, GAMMA,
-    PIXEL_SCALING, CAMERA_CONSTRUCTOR
+    PATTERN_INTENSITY, PIXEL_SCALING, CAMERA_CONSTRUCTOR
 )
 
 VERT_SHADER_CALIBRATION = """
@@ -124,7 +123,7 @@ def create_calibration_pattern(div: int, height: int, width: int) -> NDArray:
             else:
                 poly = star(pos,n,theta,s//2,s)
 
-            calibration_pattern = cv2.fillPoly(calibration_pattern, pts=[poly], color=(255, 255, 255))
+            calibration_pattern = cv2.fillPoly(calibration_pattern, pts=[poly], color=(PATTERN_INTENSITY, PATTERN_INTENSITY, PATTERN_INTENSITY))
     
     return calibration_pattern
 
@@ -165,16 +164,7 @@ if __name__ == '__main__':
     camera.stop_acquisition()
         
     # smooth frame
-    image = enhance(
-        im2single(im2gray(frame.image)),
-        contrast=CONTRAST,
-        gamma=GAMMA,
-        brightness=BRIGHTNESS,
-        blur_size_px=None,
-        medfilt_size_px=None
-    )
-
-    image = im2rgb(im2uint8(image))
+    image = im2rgb(frame.image)
     image[:,:,0] = im2uint8(mask_cam)
 
     disp = cv2.resize(image,(512,512))
