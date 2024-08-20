@@ -154,6 +154,11 @@ if __name__ == '__main__':
     # make sure that everything is initialized
     time.sleep(1)
 
+    # TODO
+    # 1. scan a bar in X, then compute for each frame np.sum(image) 
+    # 2. scan a bar in Y, then compute for each frame np.sum(image)
+    # 3. this gives you a bounding box to project dots 
+
     for idx, pt in tqdm(enumerate(pts_proj)):
         
         # project point
