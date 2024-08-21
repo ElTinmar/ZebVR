@@ -12,13 +12,20 @@ from tqdm import tqdm
 import os
 from ZebVR.config import (
     REGISTRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
-    CAM_GAIN, CAM_REGISTRATION_EXPOSURE_MS, CAM_REGISTRATION_FPS,
-    CAM_OFFSETX, CAM_OFFSETY, 
+    CAM_GAIN, CAM_REGISTRATION_EXPOSURE_MS, CAM_REGISTRATION_DOTS_FPS,
+    CAM_REGISTRATION_BARS_FPS, CAM_OFFSETX, CAM_OFFSETY, 
     PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
     BRIGHTNESS, BLUR_SIZE_PX, CONTRAST, GAMMA,
-    STEP_SIZE, DOT_RADIUS, DETECTION_THRESHOLD,
-    PIXEL_SCALING, CAMERA_CONSTRUCTOR
+    DOT_STEPS, DOT_RADIUS, DETECTION_THRESHOLD,
+    PIXEL_SCALING, CAMERA_CONSTRUCTOR, BAR_STEPS
 )
+from enum import IntEnum
+
+class Pattern(IntEnum):
+    DOTS = 0
+    HBAR = 1
+    VBAR = 2
+
 
 VERT_SHADER_CALIBRATION = """
 attribute float a_radius;
@@ -40,11 +47,33 @@ FRAG_SHADER_CALIBRATION = """
 varying vec2 v_point;
 varying float v_radius;
 uniform vec2 u_pixel_scaling;
+uniform int u_pattern;
+
+const int DOTS = 0;
+const int HBAR = 1;
+const int VBAR = 2;
 
 void main()
 {
-    if (distance(u_pixel_scaling * gl_FragCoord.xy,v_point) <= v_radius) {
-        gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+    gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+    vec2 pix_coords = u_pixel_scaling * gl_FragCoord.xy;
+
+    if (u_pattern == DOTS) {
+        if (distance(pix_coords, v_point) <= v_radius) {
+            gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+        }
+    }
+
+    if (u_pattern == HBAR) {
+        if ( abs(pix_coords.y - v_point.y) <= v_radius ) {
+            gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+        }
+    }
+    
+    if (u_pattern == VBAR) {
+        if ( abs(pix_coords.x - v_point.x) <= v_radius ) {
+            gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+        }
     }
 }
 """
@@ -71,6 +100,7 @@ class Projector(app.Canvas, Process):
             self.radius = radius
             self.x = Value('f', 0)
             self.y = Value('f', 0)
+            self.pattern = Value('i', 0)
 
     def initialize(self):
         # this needs to happen in the process where the window is displayed
@@ -91,6 +121,7 @@ class Projector(app.Canvas, Process):
         self.program['a_position'] = [(-1, -1), (-1, +1),
                                     (+1, -1), (+1, +1)]
         self.program['u_pixel_scaling'] = self.pixel_scaling
+        self.program['u_pattern'] = -1
         
         self.timer = app.Timer('auto', self.on_timer)
         self.timer.start()
@@ -98,6 +129,7 @@ class Projector(app.Canvas, Process):
 
     def on_timer(self, event):
         self.program['a_point'] = [self.x.value, self.y.value]
+        self.program['u_pattern'] = self.pattern.value
         self.update()
 
     def on_draw(self, event):
@@ -107,6 +139,15 @@ class Projector(app.Canvas, Process):
     def draw_point(self, x: int, y: int):
         self.x.value = x
         self.y.value = y
+        self.pattern.value = Pattern.DOTS
+
+    def draw_vertical_bar(self, x: int):
+        self.x.value = x
+        self.pattern.value = Pattern.VBAR
+
+    def draw_horizontal_bar(self, y: int):
+        self.y.value = y
+        self.pattern.value = Pattern.HBAR
 
     def run(self):
         self.initialize()
@@ -115,40 +156,18 @@ class Projector(app.Canvas, Process):
 
 if __name__ == '__main__':
 
-    # if a calibration already exists, use it to refine the position of dots for calibration
-    if os.path.exists(REGISTRATION_FILE):
-        print(f'Loading pre-existing calibration: {REGISTRATION_FILE}')
-        CAM_EXPOSURE_MS = 10_000
-        CONTRAST = 5
-        GAMMA = 1
-        DOT_RADIUS = 0.3
-        STEP_SIZE = 200
-        with open(REGISTRATION_FILE, 'r') as f:
-            prev_cal = json.load(f)
-            cam_to_proj = np.array(prev_cal['cam_to_proj'])
-            X,Y = np.mgrid[100:CAM_WIDTH:STEP_SIZE, 100:CAM_HEIGHT:STEP_SIZE]
-            pts = np.vstack([X.ravel(), Y.ravel(), np.ones(X.size)])
-            pts_proj = cam_to_proj @ pts
-            pts_proj = pts_proj[:2,:].T
-    else:
-        print('No pre-existing calibration found')
-        X,Y = np.mgrid[100:PROJ_WIDTH:STEP_SIZE, 100:PROJ_HEIGHT:STEP_SIZE]
-        pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
-
-
     proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, radius=DOT_RADIUS, pixel_scaling=PIXEL_SCALING)
     proj.start()
 
     camera = CAMERA_CONSTRUCTOR()
     camera.set_exposure(CAM_REGISTRATION_EXPOSURE_MS)
     camera.set_gain(CAM_GAIN)
-    camera.set_framerate(CAM_REGISTRATION_FPS)
+    camera.set_framerate(CAM_REGISTRATION_BARS_FPS)
     camera.set_height(CAM_HEIGHT)
     camera.set_width(CAM_WIDTH)
     camera.set_offsetX(CAM_OFFSETX)
     camera.set_offsetY(CAM_OFFSETY)
 
-    pts_cam = np.nan * np.ones_like(pts_proj)
     cv2.namedWindow('calibration')
 
     # make sure that everything is initialized
@@ -159,17 +178,80 @@ if __name__ == '__main__':
     # 2. scan a bar in Y, then compute for each frame np.sum(image)
     # 3. this gives you a bounding box to project dots 
 
-    for idx, pt in tqdm(enumerate(pts_proj)):
-        
+    x_range = np.linspace(0,PROJ_WIDTH,BAR_STEPS)
+    x_intensity = np.zeros((BAR_STEPS,))
+    y_range = np.linspace(0,PROJ_HEIGHT,BAR_STEPS)
+    y_intensity = np.zeros((BAR_STEPS,))
+
+    camera.start_acquisition() 
+    for i, x in enumerate(x_range):
+        proj.draw_vertical_bar(x)
+        frame = camera.get_frame()
+
+        image = enhance(
+            im2single(im2gray(frame.image)),
+            contrast=CONTRAST,
+            gamma=GAMMA,
+            brightness=BRIGHTNESS,
+            blur_size_px=BLUR_SIZE_PX,
+            medfilt_size_px=None
+        )
+
+        x_intensity[i] = np.sum(image)
+
+        disp = cv2.resize(image,(512,512))
+        cv2.imshow('calibration', disp)
+        cv2.waitKey(1)
+    camera.stop_acquisition()
+
+    camera.start_acquisition() 
+    for i, y in enumerate(y_range):
+        proj.draw_horizontal_bar(y)
+        frame = camera.get_frame()
+
+        image = enhance(
+            im2single(im2gray(frame.image)),
+            contrast=CONTRAST,
+            gamma=GAMMA,
+            brightness=BRIGHTNESS,
+            blur_size_px=BLUR_SIZE_PX,
+            medfilt_size_px=None
+        )
+
+        y_intensity[i] = np.sum(image)
+
+        disp = cv2.resize(image,(512,512))
+        cv2.imshow('calibration', disp)
+        cv2.waitKey(1)
+    camera.stop_acquisition()
+
+    vbar = np.argwhere(x_intensity >= np.max(x_intensity)/2)
+    x_start, x_stop = x_range[vbar[0]], x_range[vbar[-1]]
+    hbar = np.argwhere(y_intensity >= np.max(y_intensity)/2)
+    y_start, y_stop = y_range[hbar[0]], y_range[hbar[-1]]
+
+    print(f'Bounding box (topleft, bottomright): {(x_start, y_start),(x_stop, y_stop)}')
+
+    X,Y = np.meshgrid(
+        np.linspace(x_start, x_stop, DOT_STEPS), 
+        np.linspace(y_start, y_stop, DOT_STEPS)
+    )
+    pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
+    pts_cam = np.nan * np.ones_like(pts_proj)
+
+    # processing takes longer because of bwareafilter_centroids
+    # need a lower frame rate
+    camera.set_framerate(CAM_REGISTRATION_DOTS_FPS)
+    camera.start_acquisition() 
+    for idx, pt in enumerate(pts_proj):
+                
         # project point
         proj.draw_point(*pt)
 
         # get camera frame 
-        camera.start_acquisition() # looks like I need to restart to get the last frame with OpenCV...
         frame = camera.get_frame()
-        camera.stop_acquisition()
-        
-        # smooth frame
+
+        # process
         image = enhance(
             im2single(im2gray(frame.image)),
             contrast=CONTRAST,
@@ -180,34 +262,28 @@ if __name__ == '__main__':
         )
         
         mask = (image >= DETECTION_THRESHOLD)
-
         centroid = bwareafilter_centroids(
             mask, 
-            min_size = 1_000,
-            max_size = 50_000, 
+            min_size = 0,
+            max_size = 20_000, 
             min_length = 0,
             max_length = 0,
             min_width = 0,
             max_width = 0
         )
 
-        mask = cv2.resize(np.uint8(255*mask),(512,512))
-        cv2.imshow('mask', mask)
-        cv2.waitKey(1)
-        print(np.max(image),np.sum(mask),centroid)
-
         image = im2rgb(im2uint8(image))
-
         if centroid.size > 0:
             pts_cam[idx,:] = centroid[0,:]
-            image = cv2.circle(image, np.int32(centroid[0,:]), 10, (0,0,255), -1)
+            image = cv2.circle(image, np.int32(centroid[0,:]), 4, (0,0,255), -1)
 
         disp = cv2.resize(image,(512,512))
         cv2.imshow('calibration', disp)
         cv2.waitKey(1)
-        
-    proj.terminate()
+
     camera.stop_acquisition()
+
+    proj.terminate()
     cv2.destroyAllWindows()
 
     # remove NaNs
