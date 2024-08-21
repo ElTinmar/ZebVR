@@ -173,10 +173,10 @@ if __name__ == '__main__':
     # make sure that everything is initialized
     time.sleep(1)
 
-    # TODO
-    # 1. scan a bar in X, then compute for each frame np.sum(image) 
-    # 2. scan a bar in Y, then compute for each frame np.sum(image)
-    # 3. this gives you a bounding box to project dots 
+    # TODO: finding the bounding box via dichotomic search:
+    # 1: all black compute sum image
+    # 2: all white compute sum image
+    # n: cut in half compute sum image       
 
     x_range = np.linspace(0,PROJ_WIDTH,BAR_STEPS)
     x_intensity = np.zeros((BAR_STEPS,))
