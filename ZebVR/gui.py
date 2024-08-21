@@ -18,6 +18,8 @@ from config import (
 # Potential fix: explicitly expand dicts into keyword arguments
 # Potential fix #2: pass the DAG as argument (do I still need to rebuild the dag everytime ?)
 
+# TODO add widgets to set most of the variables present in config.py 
+
 class MainGui(QWidget):
     
     def __init__(self, workers: Dict, queues: Dict, worker_logger: Logger, queue_logger: Logger, *args, **kwargs):
