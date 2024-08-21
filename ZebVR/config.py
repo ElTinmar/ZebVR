@@ -176,7 +176,6 @@ LOOMING_PERIOD_SEC = 10
 LOOMING_EXPANSION_TIME_SEC = 10
 LOOMING_EXPANSION_SPEED_MM_PER_SEC = 20
 
-
 if DEBUG:
     movie_file = os.path.abspath(os.path.join(os.getcwd(), "../toy_data/single_freelyswimming_504x500px.avi"))
     mov = partial(MovieFileCam, filename=movie_file)
