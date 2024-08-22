@@ -37,12 +37,14 @@ from tracker import (
     TailTracker_CPU,
     TailOverlay_opencv,
     TailTrackerParamTracking, 
-    TailTrackerParamOverlay
+    TailTrackerParamOverlay,
+    BodyTracking
 )
 from workers import (
     BackgroundSubWorker, 
     CameraWorker, 
     TrackerWorker, 
+    DummyTrackerWorker,
     ImageSaverWorker, 
     CameraGui, 
     TrackerGui, 
@@ -96,6 +98,9 @@ from config import (
     LOOMING_EXPANSION_SPEED_MM_PER_SEC,
     FOREGROUND_COLOR, 
     BACKGROUND_COLOR, 
+    OPEN_LOOP,
+    OPEN_LOOP_CENTROID,
+    OPEN_LOOP_DIRECTION
 )
 
 def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
@@ -183,6 +188,17 @@ if __name__ == "__main__":
         eyes=eyes_tracker,
         tail=tail_tracker
     )
+
+    # get dtype and itemsize for tracker results
+    tracking = t.track(np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.float32))
+    arr_multifish = tracking.to_numpy()
+    if OPEN_LOOP:
+        # dirty trick to get the right byte size 
+        tracking_openloop = MultiFishTracking.from_numpy(arr_multifish)
+        tracking_openloop.animals.identities = np.array([-1])
+        tracking_openloop.animals.centroids = OPEN_LOOP_CENTROID
+        tracking_openloop.body[-1].centroid_original_space = OPEN_LOOP_CENTROID[0]
+        tracking_openloop.body[-1].heading = OPEN_LOOP_DIRECTION
 
     b = BackroundImage(
         image_file_name = BACKGROUND_FILE,
@@ -304,21 +320,34 @@ if __name__ == "__main__":
 
     trck = []
     for i in range(N_TRACKER_WORKERS):
-        trck.append(
-            TrackerWorker(
-                t, 
-                cam_width=CAM_WIDTH,
-                cam_height=CAM_HEIGHT,
-                n_tracker_workers=N_TRACKER_WORKERS,
-                downsample_tracker_export=DOWNSAMPLE_TRACKING_EXPORT,
-                name=f'tracker{i}', 
-                logger=worker_logger, 
-                logger_queues=queue_logger, 
-                send_data_strategy=send_strategy.BROADCAST, 
-                receive_data_timeout=1.0, 
-                profile=False
+        if OPEN_LOOP:
+            trck.append(
+                DummyTrackerWorker(
+                    tracking_openloop,
+                    name=f'tracker{i}', 
+                    logger=worker_logger, 
+                    logger_queues=queue_logger, 
+                    send_data_strategy=send_strategy.BROADCAST, 
+                    receive_data_timeout=1.0, 
+                    profile=False
+                )
             )
-        )
+        else:
+            trck.append(
+                TrackerWorker(
+                    t, 
+                    cam_width=CAM_WIDTH,
+                    cam_height=CAM_HEIGHT,
+                    n_tracker_workers=N_TRACKER_WORKERS,
+                    downsample_tracker_export=DOWNSAMPLE_TRACKING_EXPORT,
+                    name=f'tracker{i}', 
+                    logger=worker_logger, 
+                    logger_queues=queue_logger, 
+                    send_data_strategy=send_strategy.BROADCAST, 
+                    receive_data_timeout=1.0, 
+                    profile=False
+                )
+            )
 
     trck_disp = TrackingDisplay(
         overlay=o, 
@@ -405,9 +434,6 @@ if __name__ == "__main__":
     )
 
     # tracking ring buffer -------------------------------------------------------------------
-    # get dtype and itemsize for tracker results
-    tracking = t.track(np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.float32))
-    arr_multifish = tracking.to_numpy()
 
     dt_tracking_multifish = np.dtype([
         ('index', int, (1,)),
@@ -440,7 +466,7 @@ if __name__ == "__main__":
         )
     )
 
-    ## DAG ----------------------------------------------------------------------
+    ## DAG for closed loop ----------------------------------------------------------------------
 
     workers = {
         'camera': cam,

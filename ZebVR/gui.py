@@ -38,7 +38,48 @@ class MainGui(QWidget):
         self.record_flag = False
         self.filename = 'display_timing.csv'
 
-    def create_dag(self):
+    def create_open_loop_dag(self):
+
+        # clear workers and queues
+
+        for key, worker in self.workers.items():
+            worker.reset()
+
+        for key, queue in self.queues.items():
+            queue.clear()
+
+        self.dag = ProcessingDAG()
+
+        if self.filename is not None:
+            self.workers['visual_stim'].set_filename(self.edt_filename.text())
+
+        for i in range(N_TRACKER_WORKERS):
+            self.dag.connect_data(
+                sender=self.workers[f'tracker_{i}'], 
+                receiver=self.workers['visual_stim'], 
+                queue=self.queues['tracker_to_stim'], 
+                name='stimulus'
+            )
+
+        if self.record_flag:
+            protocol = self.sequencer_widget.get_protocol()
+            self.workers['protocol'].set_protocol(protocol)
+            self.dag.connect_metadata(
+                sender=self.workers['protocol'], 
+                receiver=self.workers['visual_stim'], 
+                queue=self.queues['visual_stim_control'], 
+                name='visual_stim_control'
+            )
+        else:
+            self.dag.connect_metadata(
+                sender=self.workers['visual_stim_control'], 
+                receiver=self.workers['visual_stim'], 
+                queue=self.queues['visual_stim_control'], 
+                name='visual_stim_control'
+            )
+            
+
+    def create_closed_loop_dag(self):
 
         # clear workers and queues
 
@@ -247,7 +288,7 @@ class MainGui(QWidget):
         subprocess.Popen(['python', 'ZebVR/calibration/check_pix_per_mm.py'])
     
     def start(self):
-        self.create_dag()
+        self.create_closed_loop_dag()
         self.p_worker_logger = Process(target=self.worker_logger.run)
         self.p_queue_logger = Process(target=self.queue_logger.run)
         self.p_worker_logger.start()

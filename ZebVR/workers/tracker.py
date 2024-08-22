@@ -9,12 +9,45 @@ from tracker import (
     EyesTracker_CPU,
     EyesTrackerParamTracking, 
     TailTracker_CPU,
-    TailTrackerParamTracking
+    TailTrackerParamTracking,
+    MultiFishTracking
 )
 from dagline import WorkerNode
 import numpy as np
 from numpy.typing import NDArray
 from typing import Any, Dict
+
+class DummyTrackerWorker(WorkerNode):
+    '''For open loop tracking, sends the centroid / main direction'''
+    def __init__(
+            self,
+            tracking: MultiFishTracking,
+            *args, 
+            **kwargs
+        ):
+        super().__init__(*args, **kwargs)
+
+        self.tracking = tracking
+        self.stop = False
+
+    def initialize(self) -> None:
+        super().initialize()
+
+    def process_data(self, data: NDArray) -> Dict:
+
+        # run once then stop
+        if self.stop:
+            self.stop_event.set()
+            return None
+        self.stop = True
+        
+        index = -1
+        timestamp = -1
+        res = {}
+        res['stimulus'] = (index, timestamp, self.tracking)
+
+        return res
+        
 
 class TrackerWorker(WorkerNode):
     
