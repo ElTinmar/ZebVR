@@ -209,9 +209,9 @@ class MainGui(QWidget):
         self.label_method = QLabel()
         self.label_method.setText('Background type:')
         self.background_method = QComboBox()
-        self.background_method.addItem('static')
         self.background_method.addItem('inpaint')
-
+        self.background_method.addItem('static')
+        
         self.background_button = QPushButton()
         self.background_button.setText('background')
         self.background_button.clicked.connect(self.background)
