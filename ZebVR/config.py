@@ -9,7 +9,7 @@ try:
 except:
     print('Ximea camera not imported')
 
-DEBUG = True
+DEBUG = False
 
 # general settings
 LCr = False
@@ -18,9 +18,9 @@ N_TRACKER_WORKERS = 1
 BACKGROUND_GPU = True
 T_REFRESH = 1e-4
 RECORD_VIDEO = False
-OPEN_LOOP = False
-OPEN_LOOP_CENTROID = np.array([[0,0]])
-OPEN_LOOP_DIRECTION = np.array([1,0])
+OPEN_LOOP = True
+OPEN_LOOP_CENTROID = np.array([[1024,1024]])
+OPEN_LOOP_DIRECTION = np.array([[1,0],[0,1]])
 
 # stimulus projection
 if LCr:

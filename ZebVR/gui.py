@@ -4,7 +4,7 @@ from dagline import ProcessingDAG
 import subprocess
 import time
 from typing import Dict
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLabel, QPushButton
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLabel, QPushButton, QCheckBox
 from qt_widgets import LabeledEditLine, LabeledSpinBox
 from ZebVR.widgets import SequencerWidget
 
@@ -230,6 +230,9 @@ class MainGui(QWidget):
         self.edt_filename = LabeledEditLine()
         self.edt_filename.setLabel('result file:')
 
+        self.openloop = QCheckBox()
+        self.openloop.setText('open loop')
+        
         self.start_button = QPushButton()
         self.start_button.setText('start')
         self.start_button.clicked.connect(self.preview)
@@ -262,6 +265,7 @@ class MainGui(QWidget):
         layout.addWidget(self.dpf)
         layout.addWidget(self.duration)
         layout.addWidget(self.edt_filename)
+        layout.addWidget(self.openloop)
         layout.addLayout(controls)
         layout.addStretch()
 
@@ -288,7 +292,10 @@ class MainGui(QWidget):
         subprocess.Popen(['python', 'ZebVR/calibration/check_pix_per_mm.py'])
     
     def start(self):
-        self.create_closed_loop_dag()
+        if self.openloop.isChecked():
+            self.create_open_loop_dag()
+        else:
+            self.create_closed_loop_dag()
         self.p_worker_logger = Process(target=self.worker_logger.run)
         self.p_queue_logger = Process(target=self.queue_logger.run)
         self.p_worker_logger.start()

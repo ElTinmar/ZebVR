@@ -16,6 +16,7 @@ from dagline import WorkerNode
 import numpy as np
 from numpy.typing import NDArray
 from typing import Any, Dict
+import time
 
 class DummyTrackerWorker(WorkerNode):
     '''For open loop tracking, sends the centroid / main direction'''
@@ -28,27 +29,24 @@ class DummyTrackerWorker(WorkerNode):
         super().__init__(*args, **kwargs)
 
         self.tracking = tracking
-        self.stop = False
 
     def initialize(self) -> None:
         super().initialize()
 
     def process_data(self, data: NDArray) -> Dict:
 
-        # run once then stop
-        if self.stop:
-            self.stop_event.set()
-            return None
-        self.stop = True
-        
         index = -1
         timestamp = -1
         res = {}
         res['stimulus'] = (index, timestamp, self.tracking)
 
+        time.sleep(0.010)
+
         return res
         
-
+    def process_metadata(self, metadata) -> Any:
+        pass
+    
 class TrackerWorker(WorkerNode):
     
     def __init__(
