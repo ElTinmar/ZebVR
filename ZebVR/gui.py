@@ -12,6 +12,7 @@ from config import (
     N_BACKGROUND_WORKERS, 
     N_TRACKER_WORKERS,
     RECORD_VIDEO,
+    OPEN_LOOP
 )
 
 # NOTE this is tightly coupled with main.py through the keys present in the Dicts.
@@ -201,6 +202,10 @@ class MainGui(QWidget):
         self.check_pixel_size_button.setText('check pix/mm')
         self.check_pixel_size_button.clicked.connect(self.check_pix_per_mm)
 
+        self.open_loop_coords_button = QPushButton()
+        self.open_loop_coords_button.setText('open loop coords')
+        self.open_loop_coords_button.clicked.connect(self.open_loop_coords)
+
         self.label_method = QLabel()
         self.label_method.setText('Background type:')
         self.background_method = QComboBox()
@@ -229,9 +234,6 @@ class MainGui(QWidget):
 
         self.edt_filename = LabeledEditLine()
         self.edt_filename.setLabel('result file:')
-
-        self.openloop = QCheckBox()
-        self.openloop.setText('open loop')
         
         self.start_button = QPushButton()
         self.start_button.setText('start')
@@ -258,6 +260,7 @@ class MainGui(QWidget):
         layout.addWidget(self.check_registration_button)
         layout.addWidget(self.pixel_size_button)
         layout.addWidget(self.check_pixel_size_button)
+        layout.addWidget(self.open_loop_coords_button)
         layout.addWidget(self.label_method)
         layout.addWidget(self.background_method)
         layout.addWidget(self.background_button)
@@ -265,7 +268,6 @@ class MainGui(QWidget):
         layout.addWidget(self.dpf)
         layout.addWidget(self.duration)
         layout.addWidget(self.edt_filename)
-        layout.addWidget(self.openloop)
         layout.addLayout(controls)
         layout.addStretch()
 
@@ -291,8 +293,11 @@ class MainGui(QWidget):
     def check_pix_per_mm(self):
         subprocess.Popen(['python', 'ZebVR/calibration/check_pix_per_mm.py'])
     
+    def open_loop_coords(self):
+        subprocess.Popen(['python', 'ZebVR/calibration/open_loop_coords.py'])
+
     def start(self):
-        if self.openloop.isChecked():
+        if OPEN_LOOP:
             self.create_open_loop_dag()
         else:
             self.create_closed_loop_dag()

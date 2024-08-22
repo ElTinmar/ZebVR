@@ -1,4 +1,4 @@
-from image_tools import DrawPolyMask, im2uint8
+from image_tools import FishInfo, im2uint8
 import cv2
 import json
 from PyQt5.QtWidgets import QApplication
@@ -29,12 +29,12 @@ if __name__ == '__main__':
 
     # get centroid, heading, maybe eye position
     app = QApplication([])
-    window = DrawPolyMask(image)
+    window = FishInfo(image)
     window.show()
     app.exec()
 
-    data_json = window.get_data()
+    data = window.get_data()
 
     with open(OPEN_LOOP_DATAFILE,'w') as f:
-        json.dump(data_json, f)
+        json.dump(data, f)
     

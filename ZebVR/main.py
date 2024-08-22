@@ -99,8 +99,7 @@ from config import (
     FOREGROUND_COLOR, 
     BACKGROUND_COLOR, 
     OPEN_LOOP,
-    OPEN_LOOP_CENTROID,
-    OPEN_LOOP_DIRECTION
+    OPEN_LOOP_DATAFILE
 )
 
 def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
@@ -193,12 +192,15 @@ if __name__ == "__main__":
     tracking = t.track(np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.float32))
     arr_multifish = tracking.to_numpy()
     if OPEN_LOOP:
+        with open(OPEN_LOOP_DATAFILE, 'r') as f:
+                open_loop_coords = json.load(f)
+    
         # dirty trick to get the right byte size 
         tracking_openloop = MultiFishTracking.from_numpy(arr_multifish)
         tracking_openloop.animals.identities = np.array([-1])
-        tracking_openloop.animals.centroids = OPEN_LOOP_CENTROID
-        tracking_openloop.body[-1].centroid_original_space = OPEN_LOOP_CENTROID[0]
-        tracking_openloop.body[-1].heading = OPEN_LOOP_DIRECTION
+        tracking_openloop.animals.centroids = open_loop_coords['centroid']
+        tracking_openloop.body[-1].centroid_original_space = open_loop_coords['centroid']
+        tracking_openloop.body[-1].heading = open_loop_coords['heading']
 
     b = BackroundImage(
         image_file_name = BACKGROUND_FILE,

@@ -18,9 +18,8 @@ N_TRACKER_WORKERS = 1
 BACKGROUND_GPU = True
 T_REFRESH = 1e-4
 RECORD_VIDEO = False
-OPEN_LOOP = True
-OPEN_LOOP_CENTROID = np.array([[1024,1024]])
-OPEN_LOOP_DIRECTION = np.array([[1,0],[0,1]])
+OPEN_LOOP = False
+OPEN_LOOP_DATAFILE = 'open_loop_coords.json'
 
 # stimulus projection
 if LCr:
