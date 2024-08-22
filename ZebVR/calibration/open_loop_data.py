@@ -1,18 +1,15 @@
 from image_tools import DrawPolyMask, im2uint8
-import numpy as np
 import cv2
+import json
 from PyQt5.QtWidgets import QApplication
 from ZebVR.config import (
     CAM_WIDTH, CAM_HEIGHT,
     CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
-    CAM_OFFSETX, CAM_OFFSETY, BACKGROUND_FILE,
+    CAM_OFFSETX, CAM_OFFSETY, OPEN_LOOP_DATAFILE,
     CAMERA_CONSTRUCTOR
 )
 
 if __name__ == '__main__':
-
-    ALGO = cv2.INPAINT_NS
-    RADIUS = 3
 
     camera = CAMERA_CONSTRUCTOR()
     camera.set_exposure(CAM_EXPOSURE_MS)
@@ -23,24 +20,21 @@ if __name__ == '__main__':
     camera.set_offsetX(CAM_OFFSETX)
     camera.set_offsetY(CAM_OFFSETY)
 
+    cv2.namedWindow('calibration')
+
     camera.start_acquisition() 
     frame = camera.get_frame()
     camera.stop_acquisition()
     image = frame.image
 
+    # get centroid, heading, maybe eye position
     app = QApplication([])
     window = DrawPolyMask(image)
     window.show()
     app.exec()
 
-    _,mask = window.get_masks()[1]
-    background = cv2.inpaint(image, im2uint8(mask), RADIUS, ALGO)
+    data_json = window.get_data()
 
-    print('Background done, press key to save...')
-    background_resized = cv2.resize(background,(512,512))
-    cv2.imshow('background', background_resized)
-    cv2.waitKey(0)
-
-    print(f'Saving image to {BACKGROUND_FILE}')
-    with open(BACKGROUND_FILE, 'wb') as f:
-        np.save(f, background)
+    with open(OPEN_LOOP_DATAFILE,'w') as f:
+        json.dump(data_json, f)
+    
