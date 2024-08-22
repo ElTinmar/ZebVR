@@ -192,8 +192,14 @@ if __name__ == "__main__":
     tracking = t.track(np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.float32))
     arr_multifish = tracking.to_numpy()
     if OPEN_LOOP:
-        with open(OPEN_LOOP_DATAFILE, 'r') as f:
+        try:
+            with open(OPEN_LOOP_DATAFILE, 'r') as f:
                 open_loop_coords = json.load(f)
+        except FileNotFoundError:
+            print('Open loop coordinates file not found, please run and restart')
+            open_loop_coords = {}
+            open_loop_coords['centroid'] = [CAM_WIDTH/2, CAM_HEIGHT/2]
+            open_loop_coords['heading'] = [[0,1],[1,0]]
     
         # dirty trick to get the right byte size 
         tracking_openloop = MultiFishTracking.from_numpy(arr_multifish)
