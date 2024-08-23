@@ -1,17 +1,11 @@
 from vispy import gloo, app
-from typing import Tuple
+from typing import Tuple, List
 import sys
 from multiprocessing import Process, RawArray
 import numpy as np
 import json
 import cv2
 from numpy.typing import NDArray
-
-from ZebVR.config import (
-    REGISTRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
-    PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
-    PIXEL_SCALING, PIX_PER_MM, CALIBRATION_CHECK_DIAMETER_MM
-)
 
 VERT_SHADER_CALIBRATION = """
 attribute vec2 a_position;
@@ -100,32 +94,74 @@ class Projector(app.Canvas, Process):
         if sys.flags.interactive != 1:
             app.run()
 
-if __name__ == '__main__':
+def disk(point, center, radius):
+    return (point[0]-center[0])**2 + (point[1]-center[1])**2 <= radius**2
 
-    
-    proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, pixel_scaling=PIXEL_SCALING)
+def check_pix_per_mm(
+    proj_width: int,
+    proj_height: int,
+    proj_pos: Tuple[int, int],
+    cam_height: int,
+    cam_width: int,
+    pix_per_mm: float,
+    size_to_check: List[float],
+    registration_file: str,
+    thickness: float = 20.0,
+    pixel_scaling: Tuple[float, float] = (1.0, 1.0), # only for exotic devices such as Lightcrafters in native mode
+    ):
+     
+    proj = Projector(window_size=(proj_width, proj_height), window_position=proj_pos, pixel_scaling=pixel_scaling)
     proj.start()
 
-    print(f'Loading pre-existing calibration: {REGISTRATION_FILE}')
-    with open(REGISTRATION_FILE, 'r') as f:
+    print(f'Loading pre-existing calibration: {registration_file}')
+    with open(registration_file, 'r') as f:
         calibration = json.load(f)
 
-    cam_to_proj = np.array(calibration['cam_to_proj'])
+    cam_to_proj = np.array(calibration['cam_to_proj'], dtype=np.float32)
 
     # create a circle with given radius. Measure that it's the right size in the real world 
-    mask_cam = np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.float32) 
-    y,x = np.mgrid[0:CAM_HEIGHT,0:CAM_WIDTH]
-    for d in CALIBRATION_CHECK_DIAMETER_MM:
-        radius = d/2 * PIX_PER_MM
-        ind = ((x-CAM_WIDTH//2)**2 + (y-CAM_HEIGHT//2)**2 <= (radius+10)**2) & ((radius-10)**2 <= (x-CAM_WIDTH//2)**2 + (y-CAM_HEIGHT//2)**2)
-        mask_cam[ind] = 1.0
+    mask_cam = np.zeros((cam_height,cam_width), dtype=np.float32) 
+    y,x = np.mgrid[0:cam_height,0:cam_width]
+    for d in size_to_check:
+        # concentric rings of different diameters centered on camera FOV
+        radius = d/2 * pix_per_mm
+        ring_ind = disk([x,y],[cam_width//2,cam_height//2],radius+thickness/2) & \
+                  ~disk([x,y],[cam_width//2,cam_height//2],radius-thickness/2)
+        mask_cam[ring_ind] = 1.0
 
     # transform to proj space and measure if accurate
-    mask_proj = cv2.warpAffine(mask_cam, cam_to_proj[:2,:],(PROJ_WIDTH, PROJ_HEIGHT)) # dsize = (cols,rows)
+    mask_proj = cv2.warpAffine(mask_cam, cam_to_proj[:2,:],(proj_width, proj_height)) # dsize = (cols,rows)
 
     # project point        
     proj.draw_image(mask_proj)
 
     # wait for input to close
-    input("Press Enter to close...")
+    input("Press Enter in the terminal to close...")
     proj.terminate()
+
+if __name__ == '__main__':
+    
+    from ZebVR.config import (
+        REGISTRATION_FILE, 
+        CAM_WIDTH, 
+        CAM_HEIGHT,
+        PROJ_WIDTH, 
+        PROJ_HEIGHT, 
+        PROJ_POS,
+        PIXEL_SCALING, 
+        PIX_PER_MM, 
+        CALIBRATION_CHECK_DIAMETER_MM
+    )
+
+    check_pix_per_mm(
+        proj_width = PROJ_WIDTH,
+        proj_height = PROJ_HEIGHT,
+        proj_pos = PROJ_POS,
+        cam_height = CAM_HEIGHT,
+        cam_width = CAM_WIDTH,
+        pix_per_mm = PIX_PER_MM,
+        size_to_check = CALIBRATION_CHECK_DIAMETER_MM,
+        registration_file = REGISTRATION_FILE,
+        thickness = 20.0,
+        pixel_scaling = PIXEL_SCALING, 
+    )
