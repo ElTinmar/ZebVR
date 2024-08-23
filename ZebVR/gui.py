@@ -224,7 +224,7 @@ class MainGui(QWidget):
         
         self.background_button = QPushButton()
         self.background_button.setText('background')
-        self.background_button.clicked.connect(self.background)
+        self.background_button.clicked.connect(self.background_callback)
 
         # experiment
         self.fish_id = LabeledSpinBox()
@@ -286,125 +286,158 @@ class MainGui(QWidget):
         self.edt_filename.setEditField(self.filename)
 
     def registration_callback(self):
-
-        registration(
-            camera_constructor=CAMERA_CONSTRUCTOR,
-            exposure_microsec=CAM_REGISTRATION_EXPOSURE_MS,
-            cam_height=CAM_HEIGHT,
-            cam_width=CAM_WIDTH,
-            cam_gain=CAM_GAIN,
-            fps_bars=CAM_REGISTRATION_BARS_FPS,
-            fps_dots=CAM_REGISTRATION_DOTS_FPS,
-            cam_offset_x=CAM_OFFSETX,
-            cam_offset_y=CAM_OFFSETY,
-            proj_width=PROJ_WIDTH,
-            proj_height=PROJ_HEIGHT,
-            proj_pos=PROJ_POS,
-            registration_file=REGISTRATION_FILE, 
-            contrast=CONTRAST,
-            brightness=BRIGHTNESS,
-            gamma=GAMMA,
-            blur_size_px=BLUR_SIZE_PX,
-            dot_radius=DOT_RADIUS,
-            bar_num_steps=BAR_STEPS,
-            dots_num_steps=DOT_STEPS,
-            dot_detection_threshold=DETECTION_THRESHOLD,
-            pixel_scaling=PIXEL_SCALING
+        p = Process(
+            target = registration,
+            kwargs = {
+                "camera_constructor": CAMERA_CONSTRUCTOR,
+                "exposure_microsec": CAM_REGISTRATION_EXPOSURE_MS,
+                "cam_height": CAM_HEIGHT,
+                "cam_width": CAM_WIDTH,
+                "cam_gain": CAM_GAIN,
+                "fps_bars": CAM_REGISTRATION_BARS_FPS,
+                "fps_dots": CAM_REGISTRATION_DOTS_FPS,
+                "cam_offset_x": CAM_OFFSETX,
+                "cam_offset_y": CAM_OFFSETY,
+                "proj_width": PROJ_WIDTH,
+                "proj_height": PROJ_HEIGHT,
+                "proj_pos": PROJ_POS,
+                "registration_file": REGISTRATION_FILE, 
+                "contrast": CONTRAST,
+                "brightness": BRIGHTNESS,
+                "gamma": GAMMA,
+                "blur_size_px": BLUR_SIZE_PX,
+                "dot_radius": DOT_RADIUS,
+                "bar_num_steps": BAR_STEPS,
+                "dots_num_steps": DOT_STEPS,
+                "dot_detection_threshold": DETECTION_THRESHOLD,
+                "pixel_scaling": PIXEL_SCALING
+            }
         )
+        p.start()
+        p.join()
         
     def check_registration_callback(self):
-
-        check_registration(
-            camera_constructor=CAMERA_CONSTRUCTOR,
-            cam_exposure_microsec=CAM_EXPOSURE_MS,
-            cam_gain=CAM_GAIN,
-            cam_fps=CAM_FPS,
-            cam_height=CAM_HEIGHT,
-            cam_width=CAM_WIDTH,
-            cam_offset_x=CAM_OFFSETX,
-            cam_offset_y=CAM_OFFSETY,
-            proj_width=PROJ_WIDTH,
-            proj_height=PROJ_HEIGHT,
-            proj_pos=PROJ_POS,
-            registration_file=REGISTRATION_FILE,
-            pattern_grid_size=5,
-            pattern_intensity=PATTERN_INTENSITY,
-            pixel_scaling=PIXEL_SCALING
+        p = Process(
+            target = check_registration,
+            kwargs = {
+                "camera_constructor": CAMERA_CONSTRUCTOR,
+                "cam_exposure_microsec": CAM_EXPOSURE_MS,
+                "cam_gain": CAM_GAIN,
+                "cam_fps": CAM_FPS,
+                "cam_height": CAM_HEIGHT,
+                "cam_width": CAM_WIDTH,
+                "cam_offset_x": CAM_OFFSETX,
+                "cam_offset_y": CAM_OFFSETY,
+                "proj_width": PROJ_WIDTH,
+                "proj_height": PROJ_HEIGHT,
+                "proj_pos": PROJ_POS,
+                "registration_file": REGISTRATION_FILE,
+                "pattern_grid_size": 5,
+                "pattern_intensity": PATTERN_INTENSITY,
+                "pixel_scaling": PIXEL_SCALING
+            }
         )
-
+        p.start()
+        p.join()
+        
     def background_callback(self):
 
         if self.background_method.currentText() == 'inpaint':
-            inpaint_background(
-                camera_constructor=CAMERA_CONSTRUCTOR,
-                exposure_microsec=CAM_EXPOSURE_MS,
-                cam_gain=CAM_GAIN,
-                cam_fps=CAM_FPS,
-                cam_height=CAM_HEIGHT,
-                cam_width=CAM_WIDTH,
-                cam_offset_x=CAM_OFFSETX,
-                cam_offset_y=CAM_OFFSETY,
-                background_file=BACKGROUND_FILE
+            p = Process(
+                target = inpaint_background,
+                kwargs = {
+                    "camera_constructor": CAMERA_CONSTRUCTOR,
+                    "exposure_microsec": CAM_EXPOSURE_MS,
+                    "cam_gain": CAM_GAIN,
+                    "cam_fps": CAM_FPS,
+                    "cam_height": CAM_HEIGHT,
+                    "cam_width": CAM_WIDTH,
+                    "cam_offset_x": CAM_OFFSETX,
+                    "cam_offset_y": CAM_OFFSETY,
+                    "background_file": BACKGROUND_FILE
+                }
             )
+            p.start()
+            p.join()
 
         elif self.background_method.currentText() == 'static':
-            static_background(
-                camera_constructor=CAMERA_CONSTRUCTOR,
-                exposure_microsec=CAM_EXPOSURE_MS,
-                cam_gain=CAM_GAIN,
-                cam_fps=CAM_FPS,
-                cam_height=CAM_HEIGHT,
-                cam_width=CAM_WIDTH,
-                cam_offset_x=CAM_OFFSETX,
-                cam_offset_y=CAM_OFFSETY,
-                background_file=BACKGROUND_FILE,
-                num_images=NUM_IMAGES,
-                time_between_images=TIME_BETWEEN_IMAGES
+            p = Process(
+                traget = static_background,
+                kwargs = {
+                    "camera_constructor": CAMERA_CONSTRUCTOR,
+                    "exposure_microsec": CAM_EXPOSURE_MS,
+                    "cam_gain": CAM_GAIN,
+                    "cam_fps": CAM_FPS,
+                    "cam_height": CAM_HEIGHT,
+                    "cam_width": CAM_WIDTH,
+                    "cam_offset_x": CAM_OFFSETX,
+                    "cam_offset_y": CAM_OFFSETY,
+                    "background_file": BACKGROUND_FILE,
+                    "num_images": NUM_IMAGES,
+                    "time_between_images": TIME_BETWEEN_IMAGES
+                }
             )
+            p.start()
+            p.join()
     
     def get_pix_per_mm_callback(self):
-
-        pix_per_mm(
-            camera_constructor=CAMERA_CONSTRUCTOR,
-            exposure_microsec=CALIBRATION_CAM_EXPOSURE_MS,
-            gain=CAM_GAIN,
-            fps=CALIBRATION_CAM_FPS,
-            height=CAM_HEIGHT,
-            width=CAM_WIDTH,
-            offset_x=CAM_OFFSETX,
-            offset_y=CAM_OFFSETY,
-            checker_grid_size=CALIBRATION_CHECKER_SIZE,
-            checker_square_size_mm=CALIBRATION_SQUARE_SIZE_MM
+        
+        p = Process(
+            target = pix_per_mm,
+            kwargs = {
+                "camera_constructor": CAMERA_CONSTRUCTOR,
+                "exposure_microsec": CALIBRATION_CAM_EXPOSURE_MS,
+                "cam_gain": CAM_GAIN,
+                "cam_fps": CALIBRATION_CAM_FPS,
+                "cam_height": CAM_HEIGHT,
+                "cam_width": CAM_WIDTH,
+                "cam_offset_x": CAM_OFFSETX,
+                "cam_offset_y": CAM_OFFSETY,
+                "checker_grid_size": CALIBRATION_CHECKER_SIZE,
+                "checker_square_size_mm": CALIBRATION_SQUARE_SIZE_MM
+            }
         )
+        p.start()
+        p.join()
 
     def check_pix_per_mm_callback(self):
 
-        check_pix_per_mm(
-            proj_width = PROJ_WIDTH,
-            proj_height = PROJ_HEIGHT,
-            proj_pos = PROJ_POS,
-            cam_height = CAM_HEIGHT,
-            cam_width = CAM_WIDTH,
-            pix_per_mm = PIX_PER_MM,
-            size_to_check = CALIBRATION_CHECK_DIAMETER_MM,
-            registration_file = REGISTRATION_FILE,
-            thickness = 10.0,
-            pixel_scaling = PIXEL_SCALING, 
+        p = Process(
+            target = check_pix_per_mm,
+            kwargs = {
+                "proj_width": PROJ_WIDTH,
+                "proj_height": PROJ_HEIGHT,
+                "proj_pos": PROJ_POS,
+                "cam_height": CAM_HEIGHT,
+                "cam_width": CAM_WIDTH,
+                "pix_per_mm": PIX_PER_MM,
+                "size_to_check": CALIBRATION_CHECK_DIAMETER_MM,
+                "registration_file": REGISTRATION_FILE,
+                "thickness": 10.0,
+                "pixel_scaling": PIXEL_SCALING, 
+            }
         )
+        p.start()
+        p.join()
 
     def open_loop_coords_callback(self):
-        
-        open_loop_coords(
-            camera_constructor=CAMERA_CONSTRUCTOR,
-            exposure_microsec=CAM_EXPOSURE_MS,
-            cam_gain=CAM_GAIN,
-            cam_fps=CAM_FPS,
-            cam_height=CAM_HEIGHT,
-            cam_width=CAM_WIDTH,
-            cam_offset_x=CAM_OFFSETX,
-            cam_offset_y=CAM_OFFSETY,
-            openloop_file=OPEN_LOOP_DATAFILE,
-        )    
+
+        p = Process(
+            target = open_loop_coords,
+            kwargs = {
+                "camera_constructor": CAMERA_CONSTRUCTOR,
+                "exposure_microsec": CAM_EXPOSURE_MS,
+                "cam_gain": CAM_GAIN,
+                "cam_fps": CAM_FPS,
+                "cam_height": CAM_HEIGHT,
+                "cam_width": CAM_WIDTH,
+                "cam_offset_x": CAM_OFFSETX,
+                "cam_offset_y": CAM_OFFSETY,
+                "openloop_file": OPEN_LOOP_DATAFILE
+            }
+        )   
+        p.start()
+        p.join() 
 
     def start(self):
         if OPEN_LOOP:
