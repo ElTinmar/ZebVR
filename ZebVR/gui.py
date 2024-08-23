@@ -1,7 +1,6 @@
 from multiprocessing import Process
 from multiprocessing_logger import Logger
 from dagline import ProcessingDAG
-import subprocess
 import time
 from typing import Dict
 from PyQt5.QtWidgets import (
