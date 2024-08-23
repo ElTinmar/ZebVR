@@ -1,5 +1,5 @@
 from vispy import gloo, app
-from typing import Tuple, List, Callable
+from typing import Tuple, Callable
 import sys
 from multiprocessing import Process, RawArray
 import time
