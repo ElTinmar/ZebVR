@@ -4,9 +4,24 @@ from dagline import ProcessingDAG
 import subprocess
 import time
 from typing import Dict
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QLabel, QPushButton, QCheckBox
+from PyQt5.QtWidgets import (
+    QWidget, 
+    QVBoxLayout, 
+    QHBoxLayout, 
+    QComboBox, 
+    QLabel, 
+    QPushButton
+)
 from qt_widgets import LabeledEditLine, LabeledSpinBox
 from ZebVR.widgets import SequencerWidget
+from ZebVR.calibration import (
+    check_pix_per_mm, 
+    check_registration, 
+    open_loop_coords, 
+    pix_per_mm, 
+    registration
+)
+from ZebVR.background import inpaint_background, static_background
 
 from config import (
     N_BACKGROUND_WORKERS, 
