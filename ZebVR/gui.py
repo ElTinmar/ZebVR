@@ -362,7 +362,7 @@ class MainGui(QWidget):
 
         elif self.background_method.currentText() == 'static':
             p = Process(
-                traget = static_background,
+                target = static_background,
                 kwargs = {
                     "camera_constructor": CAMERA_CONSTRUCTOR,
                     "exposure_microsec": CAM_EXPOSURE_MS,
