@@ -11,6 +11,7 @@ import cv2
 from geometry import to_homogeneous
 from enum import IntEnum
 from functools import partial
+from camera_tools import Camera
 
 RESIZED_HEIGHT = 512 # make sure that display fits on various screens
 
@@ -146,14 +147,20 @@ class Projector(app.Canvas, Process):
         if sys.flags.interactive != 1:
             app.run()
 
-def proj_bar(
-    camera,
+def bar_intensity_profile(
+    camera: Camera,
+    fps_bars: int,
     coord: NDArray,
     bar_fun: Callable,
     enhance_fun:Callable
-):
+) -> NDArray:
+    '''
+    Projects a bar across one dimension of the FOV and computes intensity profile
+    '''
     
     intensity_profile = np.zeros_like(coord) 
+   
+    camera.set_framerate(fps_bars)
     camera.start_acquisition() 
 
     for i, x in enumerate(coord):
@@ -162,14 +169,82 @@ def proj_bar(
         image = enhance_fun(im2single(im2gray(frame.image)))
         intensity_profile[i] = np.sum(image)
 
-        (height, width) = image.shape
+        (height, width) = image.shape[:2]
         resized_width = int(RESIZED_HEIGHT * width/height)
         disp = cv2.resize(image,(resized_width, RESIZED_HEIGHT))
         cv2.imshow('calibration', disp)
         cv2.waitKey(1)
     
     camera.stop_acquisition()
+    cv2.destroyAllWindows()
 
+    vbar = np.argwhere(intensity_profile >= np.max(intensity_profile)/2)
+    x_start, x_stop = coord[vbar[0]], coord[vbar[-1]]
+
+    return (x_start, x_stop)
+
+def dots_position(
+    camera: Camera,
+    fps_dots: int,
+    x_start: int,
+    x_stop: int,
+    y_start: int,
+    y_stop: int,
+    dots_num_steps: int,
+    dot_detection_threshold: float,
+    dot_fun: Callable,
+    enhance_fun:Callable
+) -> NDArray:
+    
+    # create grid of dots 
+    X,Y = np.meshgrid(
+        np.linspace(x_start, x_stop, dots_num_steps), 
+        np.linspace(y_start, y_stop, dots_num_steps)
+    )
+    pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
+    pts_cam = np.nan * np.ones_like(pts_proj)
+    
+    # processing takes longer because of bwareafilter_centroids
+    # need a lower frame rate
+    camera.set_framerate(fps_dots)
+    camera.start_acquisition()
+
+    for idx, pt in enumerate(pts_proj):
+            
+        # project point
+        dot_fun(*pt)
+
+        # get camera frame 
+        frame = camera.get_frame()
+        image = enhance_fun(im2single(im2gray(frame.image)))
+        
+        mask = (image >= dot_detection_threshold)
+        centroid = bwareafilter_centroids(
+            mask, 
+            min_size = 0,
+            max_size = 20_000, 
+            min_length = 0,
+            max_length = 0,
+            min_width = 0,
+            max_width = 0
+        )
+
+        image = im2rgb(im2uint8(image))
+        if centroid.size > 0:
+            pts_cam[idx,:] = centroid[0,:]
+            image = cv2.circle(image, np.int32(centroid[0,:]), 4, (0,0,255), -1)
+
+        (height, width) = image.shape[:2]
+        resized_width = int(RESIZED_HEIGHT * width/height)
+        disp = cv2.resize(image,(resized_width, RESIZED_HEIGHT))
+        cv2.imshow('calibration', disp)
+        cv2.waitKey(1)
+
+    camera.stop_acquisition()
+    cv2.destroyAllWindows()
+
+    return pts_proj, pts_cam
+    
 def registration(
     camera_constructor: Callable,
     exposure_microsec: int,
@@ -206,7 +281,6 @@ def registration(
     camera = camera_constructor()
     camera.set_exposure(exposure_microsec)
     camera.set_gain(cam_gain)
-    camera.set_framerate(fps_bars)
     camera.set_height(cam_height)
     camera.set_width(cam_width)
     camera.set_offsetX(cam_offset_x)
@@ -226,113 +300,40 @@ def registration(
     # make sure that everything is initialized
     time.sleep(1)     
 
-    x_range = np.linspace(0, proj_width, bar_num_steps)
-    x_intensity = np.zeros((bar_num_steps,))
-    y_range = np.linspace(0,proj_height, bar_num_steps)
-    y_intensity = np.zeros((bar_num_steps,))
-
-    camera.start_acquisition() 
-    for i, x in enumerate(x_range):
-        proj.draw_vertical_bar(x)
-        frame = camera.get_frame()
-
-        image = enhance(
-            im2single(im2gray(frame.image)),
-            contrast=contrast,
-            gamma=gamma,
-            brightness=brightness,
-            blur_size_px=blur_size_px,
-            medfilt_size_px=None
-        )
-
-        x_intensity[i] = np.sum(image)
-
-        disp = cv2.resize(image,(512,512))
-        cv2.imshow('calibration', disp)
-        cv2.waitKey(1)
-    camera.stop_acquisition()
-
-    camera.start_acquisition() 
-    for i, y in enumerate(y_range):
-        proj.draw_horizontal_bar(y)
-        frame = camera.get_frame()
-
-        image = enhance(
-            im2single(im2gray(frame.image)),
-            contrast=contrast,
-            gamma=gamma,
-            brightness=brightness,
-            blur_size_px=blur_size_px,
-            medfilt_size_px=None
-        )
-
-        y_intensity[i] = np.sum(image)
-
-        disp = cv2.resize(image,(512,512))
-        cv2.imshow('calibration', disp)
-        cv2.waitKey(1)
-    camera.stop_acquisition()
-
-    vbar = np.argwhere(x_intensity >= np.max(x_intensity)/2)
-    x_start, x_stop = x_range[vbar[0]], x_range[vbar[-1]]
-    hbar = np.argwhere(y_intensity >= np.max(y_intensity)/2)
-    y_start, y_stop = y_range[hbar[0]], y_range[hbar[-1]]
+    x_start, x_stop = bar_intensity_profile(
+        camera=camera,
+        fps_bars=fps_bars,
+        coord=np.linspace(0, proj_width, bar_num_steps),
+        bar_fun=proj.draw_vertical_bar,
+        enhance_fun=enhance_fun
+    )
+    
+    y_start, y_stop = bar_intensity_profile(
+        camera=camera,
+        fps_bars=fps_bars,
+        coord=np.linspace(0,proj_height, bar_num_steps),
+        bar_fun=proj.draw_horizontal_bar,
+        enhance_fun=enhance_fun
+    )
 
     print(f'Bounding box (topleft, bottomright): {(x_start, y_start),(x_stop, y_stop)}')
 
-    X,Y = np.meshgrid(
-        np.linspace(x_start, x_stop, dots_num_steps), 
-        np.linspace(y_start, y_stop, dots_num_steps)
+    pts_proj, pts_cam = dots_position(
+        camera=camera,
+        fps_dots=fps_dots,
+        x_start=x_start,
+        x_stop=x_stop,
+        y_start=y_start,
+        y_stop=y_stop,
+        dots_num_steps=dots_num_steps,
+        dot_detection_threshold=dot_detection_threshold,
+        dot_fun=proj.draw_point,
+        enhance_fun=enhance_fun
     )
-    pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
-    pts_cam = np.nan * np.ones_like(pts_proj)
-
-    # processing takes longer because of bwareafilter_centroids
-    # need a lower frame rate
-    camera.set_framerate(fps_dots)
-    camera.start_acquisition() 
-    for idx, pt in enumerate(pts_proj):
-                
-        # project point
-        proj.draw_point(*pt)
-
-        # get camera frame 
-        frame = camera.get_frame()
-
-        # process
-        image = enhance(
-            im2single(im2gray(frame.image)),
-            contrast=contrast,
-            gamma=gamma,
-            brightness=brightness,
-            blur_size_px=blur_size_px,
-            medfilt_size_px=None
-        )
-        
-        mask = (image >= dot_detection_threshold)
-        centroid = bwareafilter_centroids(
-            mask, 
-            min_size = 0,
-            max_size = 20_000, 
-            min_length = 0,
-            max_length = 0,
-            min_width = 0,
-            max_width = 0
-        )
-
-        image = im2rgb(im2uint8(image))
-        if centroid.size > 0:
-            pts_cam[idx,:] = centroid[0,:]
-            image = cv2.circle(image, np.int32(centroid[0,:]), 4, (0,0,255), -1)
-
-        disp = cv2.resize(image,(512,512))
-        cv2.imshow('calibration', disp)
-        cv2.waitKey(1)
-
-    camera.stop_acquisition()
 
     proj.terminate()
-    cv2.destroyAllWindows()
+
+    ## Compute transformation --------------------
 
     # remove NaNs
     nans = np.isnan(pts_cam).any(axis=1)
@@ -376,7 +377,7 @@ if __name__ == '__main__':
         REGISTRATION_FILE
     )
 
-    def registration(
+    registration(
         camera_constructor=CAMERA_CONSTRUCTOR,
         exposure_microsec=CAM_REGISTRATION_EXPOSURE_MS,
         cam_height=CAM_HEIGHT,
@@ -400,6 +401,3 @@ if __name__ == '__main__':
         dot_detection_threshold=DETECTION_THRESHOLD,
         pixel_scaling=PIXEL_SCALING
     )
-
-
-    
