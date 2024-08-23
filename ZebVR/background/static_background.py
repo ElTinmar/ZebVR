@@ -32,8 +32,7 @@ def static_background(
     camera.set_offsetY(offset_y)
 
     sample_frames = np.empty((height, width, num_images), dtype=np.float32)
-    resized_width = RESIZED_HEIGHT * width/height
-    
+    resized_width = int(RESIZED_HEIGHT * width/height)    
     cv2.namedWindow('acquisition')
 
     print('Acquiring images')

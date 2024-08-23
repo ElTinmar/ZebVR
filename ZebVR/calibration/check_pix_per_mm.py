@@ -110,7 +110,11 @@ def check_pix_per_mm(
     pixel_scaling: Tuple[float, float] = (1.0, 1.0), # only for exotic devices such as Lightcrafters in native mode
     ):
      
-    proj = Projector(window_size=(proj_width, proj_height), window_position=proj_pos, pixel_scaling=pixel_scaling)
+    proj = Projector(
+        window_size=(proj_width, proj_height), 
+        window_position=proj_pos, 
+        pixel_scaling=pixel_scaling
+    )
     proj.start()
 
     print(f'Loading pre-existing calibration: {registration_file}')

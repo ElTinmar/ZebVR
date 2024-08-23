@@ -44,8 +44,7 @@ def inpaint_background(
     background = cv2.inpaint(image, im2uint8(mask), radius, algo)
 
     print('Background done, press key to save...')
-    resized_width = RESIZED_HEIGHT * width/height
-    background_resized = cv2.resize(background,(resized_width,RESIZED_HEIGHT))
+    resized_width = int(RESIZED_HEIGHT * width/height)    background_resized = cv2.resize(background,(resized_width,RESIZED_HEIGHT))
     cv2.imshow('background', background_resized)
     cv2.waitKey(10_000) 
     cv2.destroyAllWindows() 
