@@ -9,12 +9,12 @@ RESIZED_HEIGHT = 512 # make sure that display fits on various screens
 def inpaint_background(
         camera_constructor: Callable,
         exposure_microsec: int,
-        gain: float,
-        fps: int,
-        height: int,
-        width: int,
-        offset_x: int,
-        offset_y: int,
+        cam_gain: float,
+        cam_fps: int,
+        cam_height: int,
+        cam_width: int,
+        cam_offset_x: int,
+        cam_offset_y: int,
         background_file: str,
         radius = 3, 
         algo = cv2.INPAINT_NS
@@ -22,12 +22,12 @@ def inpaint_background(
 
     camera = camera_constructor()
     camera.set_exposure(exposure_microsec)
-    camera.set_gain(gain)
-    camera.set_framerate(fps)
-    camera.set_height(height)
-    camera.set_width(width)
-    camera.set_offsetX(offset_x)
-    camera.set_offsetY(offset_y)
+    camera.set_gain(cam_gain)
+    camera.set_framerate(cam_fps)
+    camera.set_height(cam_height)
+    camera.set_width(cam_width)
+    camera.set_offsetX(cam_offset_x)
+    camera.set_offsetY(cam_offset_y)
 
     camera.start_acquisition() 
     frame = camera.get_frame()
@@ -44,7 +44,8 @@ def inpaint_background(
     background = cv2.inpaint(image, im2uint8(mask), radius, algo)
 
     print('Background done, press key to save...')
-    resized_width = int(RESIZED_HEIGHT * width/height)    background_resized = cv2.resize(background,(resized_width,RESIZED_HEIGHT))
+    resized_width = int(RESIZED_HEIGHT * cam_width/cam_height)    
+    background_resized = cv2.resize(background,(resized_width,RESIZED_HEIGHT))
     cv2.imshow('background', background_resized)
     cv2.waitKey(10_000) 
     cv2.destroyAllWindows() 
@@ -70,12 +71,12 @@ if __name__ == '__main__':
     inpaint_background(
         camera_constructor=CAMERA_CONSTRUCTOR,
         exposure_microsec=CAM_EXPOSURE_MS,
-        gain=CAM_GAIN,
-        fps=CAM_FPS,
-        height=CAM_HEIGHT,
-        width=CAM_WIDTH,
-        offset_x=CAM_OFFSETX,
-        offset_y=CAM_OFFSETY,
+        cam_gain=CAM_GAIN,
+        cam_fps=CAM_FPS,
+        cam_height=CAM_HEIGHT,
+        cam_width=CAM_WIDTH,
+        cam_offset_x=CAM_OFFSETX,
+        cam_offset_y=CAM_OFFSETY,
         background_file=BACKGROUND_FILE,
         radius = 3,
         algo = cv2.INPAINT_NS

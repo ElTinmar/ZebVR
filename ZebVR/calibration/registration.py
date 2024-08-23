@@ -1,31 +1,23 @@
 from vispy import gloo, app
-from typing import Tuple
+from typing import Tuple, Callable
 import sys
 from multiprocessing import Process, Value
 import time
 import numpy as np
+from numpy.typing import NDArray
 import json
 from image_tools import im2single, enhance, im2rgb, im2uint8, im2gray, bwareafilter_centroids
 import cv2
 from geometry import to_homogeneous
-from tqdm import tqdm
-import os
-from ZebVR.config import (
-    REGISTRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
-    CAM_GAIN, CAM_REGISTRATION_EXPOSURE_MS, CAM_REGISTRATION_DOTS_FPS,
-    CAM_REGISTRATION_BARS_FPS, CAM_OFFSETX, CAM_OFFSETY, 
-    PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
-    BRIGHTNESS, BLUR_SIZE_PX, CONTRAST, GAMMA,
-    DOT_STEPS, DOT_RADIUS, DETECTION_THRESHOLD,
-    PIXEL_SCALING, CAMERA_CONSTRUCTOR, BAR_STEPS
-)
 from enum import IntEnum
+from functools import partial
+
+RESIZED_HEIGHT = 512 # make sure that display fits on various screens
 
 class Pattern(IntEnum):
     DOTS = 0
     HBAR = 1
     VBAR = 2
-
 
 VERT_SHADER_CALIBRATION = """
 attribute float a_radius;
@@ -154,34 +146,90 @@ class Projector(app.Canvas, Process):
         if sys.flags.interactive != 1:
             app.run()
 
-if __name__ == '__main__':
+def proj_bar(
+    camera,
+    coord: NDArray,
+    bar_fun: Callable,
+    enhance_fun:Callable
+):
+    
+    intensity_profile = np.zeros_like(coord) 
+    camera.start_acquisition() 
 
-    proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, radius=DOT_RADIUS, pixel_scaling=PIXEL_SCALING)
+    for i, x in enumerate(coord):
+        bar_fun(x)
+        frame = camera.get_frame()
+        image = enhance_fun(im2single(im2gray(frame.image)))
+        intensity_profile[i] = np.sum(image)
+
+        (height, width) = image.shape
+        resized_width = int(RESIZED_HEIGHT * width/height)
+        disp = cv2.resize(image,(resized_width, RESIZED_HEIGHT))
+        cv2.imshow('calibration', disp)
+        cv2.waitKey(1)
+    
+    camera.stop_acquisition()
+
+def registration(
+    camera_constructor: Callable,
+    exposure_microsec: int,
+    cam_height: int,
+    cam_width: int,
+    cam_gain: float,
+    fps_bars: int, # Needs to be slow enough for processing of bars
+    fps_dots: int, # Needs to be slow enough for processing of dots
+    cam_offset_x: int,
+    cam_offset_y: int,
+    proj_width: int,
+    proj_height: int,
+    proj_pos: Tuple[int, int],
+    registration_file: str, 
+    contrast: float,
+    brightness: float,
+    gamma: float,
+    blur_size_px: float,
+    dot_radius: float,
+    bar_num_steps: int,
+    dots_num_steps: int,
+    dot_detection_threshold: float,
+    pixel_scaling: Tuple[float, float] = (1.0, 1.0), # only for exotic devices such as Lightcrafters in native mode
+):
+        
+    proj = Projector(
+        window_size=(proj_width, proj_height), 
+        window_position=proj_pos, 
+        radius=dot_radius,
+        pixel_scaling=pixel_scaling
+    )
     proj.start()
 
-    camera = CAMERA_CONSTRUCTOR()
-    camera.set_exposure(CAM_REGISTRATION_EXPOSURE_MS)
-    camera.set_gain(CAM_GAIN)
-    camera.set_framerate(CAM_REGISTRATION_BARS_FPS)
-    camera.set_height(CAM_HEIGHT)
-    camera.set_width(CAM_WIDTH)
-    camera.set_offsetX(CAM_OFFSETX)
-    camera.set_offsetY(CAM_OFFSETY)
+    camera = camera_constructor()
+    camera.set_exposure(exposure_microsec)
+    camera.set_gain(cam_gain)
+    camera.set_framerate(fps_bars)
+    camera.set_height(cam_height)
+    camera.set_width(cam_width)
+    camera.set_offsetX(cam_offset_x)
+    camera.set_offsetY(cam_offset_y)
+
+    enhance_fun = partial(
+        enhance,             
+        contrast=contrast,
+        gamma=gamma,
+        brightness=brightness,
+        blur_size_px=blur_size_px,
+        medfilt_size_px=None
+    )
 
     cv2.namedWindow('calibration')
 
     # make sure that everything is initialized
-    time.sleep(1)
+    time.sleep(1)     
 
-    # TODO: finding the bounding box via dichotomic search:
-    # 1: all black compute sum image
-    # 2: all white compute sum image
-    # n: cut in half compute sum image       
-
-    x_range = np.linspace(0,PROJ_WIDTH,BAR_STEPS)
-    x_intensity = np.zeros((BAR_STEPS,))
-    y_range = np.linspace(0,PROJ_HEIGHT,BAR_STEPS)
-    y_intensity = np.zeros((BAR_STEPS,))
+    x_range = np.linspace(0, proj_width, bar_num_steps)
+    x_intensity = np.zeros((bar_num_steps,))
+    y_range = np.linspace(0,proj_height, bar_num_steps)
+    y_intensity = np.zeros((bar_num_steps,))
 
     camera.start_acquisition() 
     for i, x in enumerate(x_range):
@@ -190,10 +238,10 @@ if __name__ == '__main__':
 
         image = enhance(
             im2single(im2gray(frame.image)),
-            contrast=CONTRAST,
-            gamma=GAMMA,
-            brightness=BRIGHTNESS,
-            blur_size_px=BLUR_SIZE_PX,
+            contrast=contrast,
+            gamma=gamma,
+            brightness=brightness,
+            blur_size_px=blur_size_px,
             medfilt_size_px=None
         )
 
@@ -211,10 +259,10 @@ if __name__ == '__main__':
 
         image = enhance(
             im2single(im2gray(frame.image)),
-            contrast=CONTRAST,
-            gamma=GAMMA,
-            brightness=BRIGHTNESS,
-            blur_size_px=BLUR_SIZE_PX,
+            contrast=contrast,
+            gamma=gamma,
+            brightness=brightness,
+            blur_size_px=blur_size_px,
             medfilt_size_px=None
         )
 
@@ -233,15 +281,15 @@ if __name__ == '__main__':
     print(f'Bounding box (topleft, bottomright): {(x_start, y_start),(x_stop, y_stop)}')
 
     X,Y = np.meshgrid(
-        np.linspace(x_start, x_stop, DOT_STEPS), 
-        np.linspace(y_start, y_stop, DOT_STEPS)
+        np.linspace(x_start, x_stop, dots_num_steps), 
+        np.linspace(y_start, y_stop, dots_num_steps)
     )
     pts_proj = np.vstack([X.ravel(), Y.ravel()]).T
     pts_cam = np.nan * np.ones_like(pts_proj)
 
     # processing takes longer because of bwareafilter_centroids
     # need a lower frame rate
-    camera.set_framerate(CAM_REGISTRATION_DOTS_FPS)
+    camera.set_framerate(fps_dots)
     camera.start_acquisition() 
     for idx, pt in enumerate(pts_proj):
                 
@@ -254,14 +302,14 @@ if __name__ == '__main__':
         # process
         image = enhance(
             im2single(im2gray(frame.image)),
-            contrast=CONTRAST,
-            gamma=GAMMA,
-            brightness=BRIGHTNESS,
-            blur_size_px=BLUR_SIZE_PX,
+            contrast=contrast,
+            gamma=gamma,
+            brightness=brightness,
+            blur_size_px=blur_size_px,
             medfilt_size_px=None
         )
         
-        mask = (image >= DETECTION_THRESHOLD)
+        mask = (image >= dot_detection_threshold)
         centroid = bwareafilter_centroids(
             mask, 
             min_size = 0,
@@ -298,6 +346,60 @@ if __name__ == '__main__':
     calibration['cam_to_proj'] = transformation.tolist()
     calibration['proj_to_cam'] = np.linalg.inv(transformation).tolist()
     
-    with open(REGISTRATION_FILE,'w') as f:
+    with open(registration_file,'w') as f:
         json.dump(calibration, f)
+
+if __name__ == '__main__':
+
+    from ZebVR.config import (
+        CAMERA_CONSTRUCTOR, 
+        CAM_WIDTH, 
+        CAM_HEIGHT,
+        CAM_GAIN, 
+        CAM_REGISTRATION_EXPOSURE_MS, 
+        CAM_REGISTRATION_DOTS_FPS,
+        CAM_REGISTRATION_BARS_FPS, 
+        CAM_OFFSETX, 
+        CAM_OFFSETY, 
+        PROJ_WIDTH, 
+        PROJ_HEIGHT, 
+        PROJ_POS,
+        BRIGHTNESS, 
+        BLUR_SIZE_PX, 
+        CONTRAST, 
+        GAMMA,
+        DOT_STEPS, 
+        DOT_RADIUS, 
+        BAR_STEPS,
+        DETECTION_THRESHOLD,
+        PIXEL_SCALING, 
+        REGISTRATION_FILE
+    )
+
+    def registration(
+        camera_constructor=CAMERA_CONSTRUCTOR,
+        exposure_microsec=CAM_REGISTRATION_EXPOSURE_MS,
+        cam_height=CAM_HEIGHT,
+        cam_width=CAM_WIDTH,
+        cam_gain=CAM_GAIN,
+        fps_bars=CAM_REGISTRATION_BARS_FPS,
+        fps_dots=CAM_REGISTRATION_DOTS_FPS,
+        cam_offset_x=CAM_OFFSETX,
+        cam_offset_y=CAM_OFFSETY,
+        proj_width=PROJ_WIDTH,
+        proj_height=PROJ_HEIGHT,
+        proj_pos=PROJ_POS,
+        registration_file=REGISTRATION_FILE, 
+        contrast=CONTRAST,
+        brightness=BRIGHTNESS,
+        gamma=GAMMA,
+        blur_size_px=BLUR_SIZE_PX,
+        dot_radius=DOT_RADIUS,
+        bar_num_steps=BAR_STEPS,
+        dots_num_steps=DOT_STEPS,
+        dot_detection_threshold=DETECTION_THRESHOLD,
+        pixel_scaling=PIXEL_SCALING
+    )
+
+
     

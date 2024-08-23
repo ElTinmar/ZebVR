@@ -11,12 +11,12 @@ RESIZED_HEIGHT = 512 # make sure that display fits on various screens
 def static_background(
     camera_constructor: Callable,
     exposure_microsec: int,
-    gain: float,
-    fps: int,
-    height: int,
-    width: int,
-    offset_x: int,
-    offset_y: int,
+    cam_gain: float,
+    cam_fps: int,
+    cam_height: int,
+    cam_width: int,
+    cam_offset_x: int,
+    cam_offset_y: int,
     num_images: int,
     time_between_images: float,
     background_file: str,
@@ -24,15 +24,15 @@ def static_background(
     
     camera = camera_constructor()
     camera.set_exposure(exposure_microsec)
-    camera.set_gain(gain)
-    camera.set_framerate(fps)
-    camera.set_height(height)
-    camera.set_width(width)
-    camera.set_offsetX(offset_x)
-    camera.set_offsetY(offset_y)
+    camera.set_gain(cam_gain)
+    camera.set_framerate(cam_fps)
+    camera.set_height(cam_height)
+    camera.set_width(cam_width)
+    camera.set_offsetX(cam_offset_x)
+    camera.set_offsetY(cam_offset_y)
 
-    sample_frames = np.empty((height, width, num_images), dtype=np.float32)
-    resized_width = int(RESIZED_HEIGHT * width/height)    
+    sample_frames = np.empty((cam_height, cam_width, num_images), dtype=np.float32)
+    resized_width = int(RESIZED_HEIGHT * cam_width/cam_height)    
     cv2.namedWindow('acquisition')
 
     print('Acquiring images')
@@ -85,12 +85,12 @@ if __name__ == '__main__':
     static_background(
         camera_constructor=CAMERA_CONSTRUCTOR,
         exposure_microsec=CAM_EXPOSURE_MS,
-        gain=CAM_GAIN,
-        fps=CAM_FPS,
-        height=CAM_HEIGHT,
-        width=CAM_WIDTH,
-        offset_x=CAM_OFFSETX,
-        offset_y=CAM_OFFSETY,
+        cam_gain=CAM_GAIN,
+        cam_fps=CAM_FPS,
+        cam_height=CAM_HEIGHT,
+        cam_width=CAM_WIDTH,
+        cam_offset_x=CAM_OFFSETX,
+        cam_offset_y=CAM_OFFSETY,
         background_file=BACKGROUND_FILE,
         num_images=NUM_IMAGES,
         time_between_images=TIME_BETWEEN_IMAGES

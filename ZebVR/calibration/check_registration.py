@@ -127,15 +127,13 @@ def create_calibration_pattern(div: int, height: int, width: int, pattern_intens
 
 def check_registration(
     camera_constructor: Callable,
-    exposure_microsec: int,
+    cam_exposure_microsec: int,
     cam_height: int,
     cam_width: int,
-    gain: float,
-    fps: int,
-    height: int,
-    width: int,
-    offset_x: int,
-    offset_y: int,
+    cam_gain: float,
+    cam_fps: int,
+    cam_offset_x: int,
+    cam_offset_y: int,
     proj_width: int,
     proj_height: int,
     proj_pos: Tuple[int, int],
@@ -153,13 +151,13 @@ def check_registration(
     proj.start()
 
     camera = camera_constructor()
-    camera.set_exposure(exposure_microsec)
-    camera.set_gain(gain)
-    camera.set_framerate(fps)
-    camera.set_height(height)
-    camera.set_width(width)
-    camera.set_offsetX(offset_x)
-    camera.set_offsetY(offset_y)
+    camera.set_exposure(cam_exposure_microsec)
+    camera.set_gain(cam_gain)
+    camera.set_framerate(cam_fps)
+    camera.set_height(cam_height)
+    camera.set_width(cam_width)
+    camera.set_offsetX(cam_offset_x)
+    camera.set_offsetY(cam_offset_y)
 
     print(f'Loading pre-existing calibration: {registration_file}')
     with open(registration_file, 'r') as f:
@@ -189,7 +187,7 @@ def check_registration(
     image = im2rgb(frame.image)
     image[:,:,0] = im2uint8(mask_cam)
 
-    resized_width = int(RESIZED_HEIGHT * width/height)
+    resized_width = int(RESIZED_HEIGHT * cam_width/cam_height)
     disp = cv2.resize(image,(resized_width, RESIZED_HEIGHT))
     print('Press key to close...')
     cv2.imshow('calibration test', disp)
@@ -219,18 +217,16 @@ if __name__ == '__main__':
 
     check_registration(
         camera_constructor=CAMERA_CONSTRUCTOR,
-        exposure_microsec=CAM_EXPOSURE_MS,
-        gain=CAM_GAIN,
-        fps=CAM_FPS,
-        height=CAM_HEIGHT,
-        width=CAM_WIDTH,
-        offset_x=CAM_OFFSETX,
-        offset_y=CAM_OFFSETY,
+        cam_exposure_microsec=CAM_EXPOSURE_MS,
+        cam_gain=CAM_GAIN,
+        cam_fps=CAM_FPS,
+        cam_height=CAM_HEIGHT,
+        cam_width=CAM_WIDTH,
+        cam_offset_x=CAM_OFFSETX,
+        cam_offset_y=CAM_OFFSETY,
         proj_width=PROJ_WIDTH,
         proj_height=PROJ_HEIGHT,
         proj_pos=PROJ_POS,
-        cam_height=CAM_HEIGHT,
-        cam_width=CAM_WIDTH,
         registration_file=REGISTRATION_FILE,
         pattern_grid_size=5,
         pattern_intensity=PATTERN_INTENSITY,
