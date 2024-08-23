@@ -4,42 +4,53 @@ import numpy as np
 from tqdm import tqdm
 from image_tools import im2single, im2gray
 import cv2
-from ZebVR.config import (
-    CAM_WIDTH, CAM_HEIGHT,
-    CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
-    CAM_OFFSETX, CAM_OFFSETY, BACKGROUND_FILE,
-    NUM_IMAGES, TIME_BETWEEN_IMAGES, CAMERA_CONSTRUCTOR
-)
+from typing import Callable
 
-if __name__ == '__main__':
+RESIZED_HEIGHT = 512 # make sure that display fits on various screens
 
-    camera = CAMERA_CONSTRUCTOR()
-    camera.set_exposure(CAM_EXPOSURE_MS)
-    camera.set_gain(CAM_GAIN)
-    camera.set_framerate(CAM_FPS)
-    camera.set_height(CAM_HEIGHT)
-    camera.set_width(CAM_WIDTH)
-    camera.set_offsetX(CAM_OFFSETX)
-    camera.set_offsetY(CAM_OFFSETY)
+def static_background(
+    camera_constructor: Callable,
+    exposure_microsec: int,
+    gain: float,
+    fps: int,
+    height: int,
+    width: int,
+    offset_x: int,
+    offset_y: int,
+    num_images: int,
+    time_between_images: float,
+    background_file: str,
+):
+    
+    camera = camera_constructor()
+    camera.set_exposure(exposure_microsec)
+    camera.set_gain(gain)
+    camera.set_framerate(fps)
+    camera.set_height(height)
+    camera.set_width(width)
+    camera.set_offsetX(offset_x)
+    camera.set_offsetY(offset_y)
 
-    sample_frames = np.empty((CAM_HEIGHT, CAM_WIDTH, NUM_IMAGES), dtype=np.float32)
+    sample_frames = np.empty((height, width, num_images), dtype=np.float32)
+    resized_width = RESIZED_HEIGHT * width/height
+    
     cv2.namedWindow('acquisition')
 
     print('Acquiring images')
-    for i in tqdm(range(NUM_IMAGES)):
+    for i in tqdm(range(num_images)):
 
-        camera.start_acquisition() # looks like I need to restart to get the last frame with OpenCV...
+        camera.start_acquisition() # need to restart acquisition to get the last frame 
         frame = camera.get_frame()
         camera.stop_acquisition()
 
         image = im2single(im2gray(frame.image))
         sample_frames[:,:,i] = image
-
-        image_resized = cv2.resize(image,(512,512))
+        
+        image_resized = cv2.resize(image,(resized_width,RESIZED_HEIGHT))
         cv2.imshow('acquisition', image_resized)
         cv2.waitKey(1)
 
-        time.sleep(TIME_BETWEEN_IMAGES)
+        time.sleep(time_between_images)
 
     cv2.destroyWindow('acquisition')
 
@@ -47,10 +58,41 @@ if __name__ == '__main__':
     background = mode(sample_frames)
 
     print('Background done, press key to save...')
-    background_resized = cv2.resize(background,(512,512))
+    background_resized = cv2.resize(background,(resized_width,RESIZED_HEIGHT))
     cv2.imshow('background', background_resized)
-    cv2.waitKey(0)
+    cv2.waitKey(10_000) 
+    cv2.destroyAllWindows() 
 
-    print(f'Saving image to {BACKGROUND_FILE}')
-    with open(BACKGROUND_FILE, 'wb') as f:
+    print(f'Saving image to {background_file}')
+    with open(background_file, 'wb') as f:
         np.save(f, background)
+    
+if __name__ == '__main__':
+
+    from ZebVR.config import (
+        CAM_WIDTH, 
+        CAM_HEIGHT,
+        CAM_EXPOSURE_MS, 
+        CAM_GAIN, 
+        CAM_FPS,
+        CAM_OFFSETX, 
+        CAM_OFFSETY, 
+        BACKGROUND_FILE,
+        NUM_IMAGES, 
+        TIME_BETWEEN_IMAGES, 
+        CAMERA_CONSTRUCTOR
+    )
+
+    static_background(
+        camera_constructor=CAMERA_CONSTRUCTOR,
+        exposure_microsec=CAM_EXPOSURE_MS,
+        gain=CAM_GAIN,
+        fps=CAM_FPS,
+        height=CAM_HEIGHT,
+        width=CAM_WIDTH,
+        offset_x=CAM_OFFSETX,
+        offset_y=CAM_OFFSETY,
+        background_file=BACKGROUND_FILE,
+        num_images=NUM_IMAGES,
+        time_between_images=TIME_BETWEEN_IMAGES
+    )
