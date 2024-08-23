@@ -23,12 +23,7 @@ from ZebVR.calibration import (
 )
 from ZebVR.background import inpaint_background, static_background
 
-from config import (
-    N_BACKGROUND_WORKERS, 
-    N_TRACKER_WORKERS,
-    RECORD_VIDEO,
-    OPEN_LOOP
-)
+from config import *
 
 # NOTE this is tightly coupled with main.py through the keys present in the Dicts.
 # Potential fix: explicitly expand dicts into keyword arguments
@@ -203,23 +198,23 @@ class MainGui(QWidget):
         # calibration
         self.registration_button = QPushButton()
         self.registration_button.setText('registration')
-        self.registration_button.clicked.connect(self.registration)
+        self.registration_button.clicked.connect(self.registration_callback)
 
         self.check_registration_button = QPushButton()
         self.check_registration_button.setText('check registration')
-        self.check_registration_button.clicked.connect(self.check_registration)
+        self.check_registration_button.clicked.connect(self.check_registration_callback)
 
         self.pixel_size_button = QPushButton()
         self.pixel_size_button.setText('get pix/mm')
-        self.pixel_size_button.clicked.connect(self.get_pix_per_mm)
+        self.pixel_size_button.clicked.connect(self.get_pix_per_mm_callback)
 
         self.check_pixel_size_button = QPushButton()
         self.check_pixel_size_button.setText('check pix/mm')
-        self.check_pixel_size_button.clicked.connect(self.check_pix_per_mm)
+        self.check_pixel_size_button.clicked.connect(self.check_pix_per_mm_callback)
 
         self.open_loop_coords_button = QPushButton()
         self.open_loop_coords_button.setText('open loop coords')
-        self.open_loop_coords_button.clicked.connect(self.open_loop_coords)
+        self.open_loop_coords_button.clicked.connect(self.open_loop_coords_callback)
 
         self.label_method = QLabel()
         self.label_method.setText('Background type:')
@@ -290,26 +285,126 @@ class MainGui(QWidget):
         self.filename = f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv'
         self.edt_filename.setEditField(self.filename)
 
-    def registration(self):
-        subprocess.Popen(['python', 'ZebVR/calibration/registration.py'])
+    def registration_callback(self):
 
-    def check_registration(self):
-        subprocess.Popen(['python', 'ZebVR/calibration/check_registration.py'])
+        registration(
+            camera_constructor=CAMERA_CONSTRUCTOR,
+            exposure_microsec=CAM_REGISTRATION_EXPOSURE_MS,
+            cam_height=CAM_HEIGHT,
+            cam_width=CAM_WIDTH,
+            cam_gain=CAM_GAIN,
+            fps_bars=CAM_REGISTRATION_BARS_FPS,
+            fps_dots=CAM_REGISTRATION_DOTS_FPS,
+            cam_offset_x=CAM_OFFSETX,
+            cam_offset_y=CAM_OFFSETY,
+            proj_width=PROJ_WIDTH,
+            proj_height=PROJ_HEIGHT,
+            proj_pos=PROJ_POS,
+            registration_file=REGISTRATION_FILE, 
+            contrast=CONTRAST,
+            brightness=BRIGHTNESS,
+            gamma=GAMMA,
+            blur_size_px=BLUR_SIZE_PX,
+            dot_radius=DOT_RADIUS,
+            bar_num_steps=BAR_STEPS,
+            dots_num_steps=DOT_STEPS,
+            dot_detection_threshold=DETECTION_THRESHOLD,
+            pixel_scaling=PIXEL_SCALING
+        )
+        
+    def check_registration_callback(self):
 
-    def background(self):
+        check_registration(
+            camera_constructor=CAMERA_CONSTRUCTOR,
+            cam_exposure_microsec=CAM_EXPOSURE_MS,
+            cam_gain=CAM_GAIN,
+            cam_fps=CAM_FPS,
+            cam_height=CAM_HEIGHT,
+            cam_width=CAM_WIDTH,
+            cam_offset_x=CAM_OFFSETX,
+            cam_offset_y=CAM_OFFSETY,
+            proj_width=PROJ_WIDTH,
+            proj_height=PROJ_HEIGHT,
+            proj_pos=PROJ_POS,
+            registration_file=REGISTRATION_FILE,
+            pattern_grid_size=5,
+            pattern_intensity=PATTERN_INTENSITY,
+            pixel_scaling=PIXEL_SCALING
+        )
+
+    def background_callback(self):
+
         if self.background_method.currentText() == 'inpaint':
-            subprocess.Popen(['python', 'ZebVR/background/inpaint_background.py'])
+            inpaint_background(
+                camera_constructor=CAMERA_CONSTRUCTOR,
+                exposure_microsec=CAM_EXPOSURE_MS,
+                cam_gain=CAM_GAIN,
+                cam_fps=CAM_FPS,
+                cam_height=CAM_HEIGHT,
+                cam_width=CAM_WIDTH,
+                cam_offset_x=CAM_OFFSETX,
+                cam_offset_y=CAM_OFFSETY,
+                background_file=BACKGROUND_FILE
+            )
+
         elif self.background_method.currentText() == 'static':
-            subprocess.Popen(['python', 'ZebVR/background/static_background.py'])
-
-    def get_pix_per_mm(self):
-        subprocess.Popen(['python', 'ZebVR/calibration/pix_per_mm.py'])
-
-    def check_pix_per_mm(self):
-        subprocess.Popen(['python', 'ZebVR/calibration/check_pix_per_mm.py'])
+            static_background(
+                camera_constructor=CAMERA_CONSTRUCTOR,
+                exposure_microsec=CAM_EXPOSURE_MS,
+                cam_gain=CAM_GAIN,
+                cam_fps=CAM_FPS,
+                cam_height=CAM_HEIGHT,
+                cam_width=CAM_WIDTH,
+                cam_offset_x=CAM_OFFSETX,
+                cam_offset_y=CAM_OFFSETY,
+                background_file=BACKGROUND_FILE,
+                num_images=NUM_IMAGES,
+                time_between_images=TIME_BETWEEN_IMAGES
+            )
     
-    def open_loop_coords(self):
-        subprocess.Popen(['python', 'ZebVR/calibration/open_loop_coords.py'])
+    def get_pix_per_mm_callback(self):
+
+        pix_per_mm(
+            camera_constructor=CAMERA_CONSTRUCTOR,
+            exposure_microsec=CALIBRATION_CAM_EXPOSURE_MS,
+            gain=CAM_GAIN,
+            fps=CALIBRATION_CAM_FPS,
+            height=CAM_HEIGHT,
+            width=CAM_WIDTH,
+            offset_x=CAM_OFFSETX,
+            offset_y=CAM_OFFSETY,
+            checker_grid_size=CALIBRATION_CHECKER_SIZE,
+            checker_square_size_mm=CALIBRATION_SQUARE_SIZE_MM
+        )
+
+    def check_pix_per_mm_callback(self):
+
+        check_pix_per_mm(
+            proj_width = PROJ_WIDTH,
+            proj_height = PROJ_HEIGHT,
+            proj_pos = PROJ_POS,
+            cam_height = CAM_HEIGHT,
+            cam_width = CAM_WIDTH,
+            pix_per_mm = PIX_PER_MM,
+            size_to_check = CALIBRATION_CHECK_DIAMETER_MM,
+            registration_file = REGISTRATION_FILE,
+            thickness = 10.0,
+            pixel_scaling = PIXEL_SCALING, 
+        )
+
+    def open_loop_coords_callback(self):
+        
+        open_loop_coords(
+            camera_constructor=CAMERA_CONSTRUCTOR,
+            exposure_microsec=CAM_EXPOSURE_MS,
+            cam_gain=CAM_GAIN,
+            cam_fps=CAM_FPS,
+            cam_height=CAM_HEIGHT,
+            cam_width=CAM_WIDTH,
+            cam_offset_x=CAM_OFFSETX,
+            cam_offset_y=CAM_OFFSETY,
+            openloop_file=OPEN_LOOP_DATAFILE,
+        )    
 
     def start(self):
         if OPEN_LOOP:
