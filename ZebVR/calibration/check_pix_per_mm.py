@@ -6,6 +6,7 @@ import numpy as np
 import json
 import cv2
 from numpy.typing import NDArray
+import time
 
 VERT_SHADER_CALIBRATION = """
 attribute vec2 a_position;
@@ -138,9 +139,8 @@ def check_pix_per_mm(
 
     # project point        
     proj.draw_image(mask_proj)
-
-    # wait for input to close
-    input("Press Enter in the terminal to close...")
+    
+    time.sleep(10)
     proj.terminate()
 
 if __name__ == '__main__':
