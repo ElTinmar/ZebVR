@@ -7,23 +7,23 @@ from typing import Callable
 def open_loop_coords(
     camera_constructor: Callable,
     exposure_microsec: int,
-    gain: float,
-    fps: int,
-    height: int,
-    width: int,
-    offset_x: int,
-    offset_y: int,
+    cam_gain: float,
+    cam_fps: int,
+    cam_height: int,
+    cam_width: int,
+    cam_offset_x: int,
+    cam_offset_y: int,
     openloop_file: str,
     ):
 
     camera = camera_constructor()
     camera.set_exposure(exposure_microsec)
-    camera.set_gain(gain)
-    camera.set_framerate(fps)
-    camera.set_height(height)
-    camera.set_width(width)
-    camera.set_offsetX(offset_x)
-    camera.set_offsetY(offset_y)
+    camera.set_gain(cam_gain)
+    camera.set_framerate(cam_fps)
+    camera.set_height(cam_height)
+    camera.set_width(cam_width)
+    camera.set_offsetX(cam_offset_x)
+    camera.set_offsetY(cam_offset_y)
 
     camera.start_acquisition() 
     frame = camera.get_frame()
@@ -58,11 +58,11 @@ if __name__ == '__main__':
     open_loop_coords(
         camera_constructor=CAMERA_CONSTRUCTOR,
         exposure_microsec=CAM_EXPOSURE_MS,
-        gain=CAM_GAIN,
-        fps=CAM_FPS,
-        height=CAM_HEIGHT,
-        width=CAM_WIDTH,
-        offset_x=CAM_OFFSETX,
-        offset_y=CAM_OFFSETY,
+        cam_gain=CAM_GAIN,
+        cam_fps=CAM_FPS,
+        cam_height=CAM_HEIGHT,
+        cam_width=CAM_WIDTH,
+        cam_offset_x=CAM_OFFSETX,
+        cam_offset_y=CAM_OFFSETY,
         openloop_file=OPEN_LOOP_DATAFILE,
     )    
