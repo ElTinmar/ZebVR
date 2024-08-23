@@ -5,24 +5,24 @@ from typing import Callable, Tuple
 def pix_per_mm(
     camera_constructor: Callable,
     exposure_microsec: int,
-    gain: float,
-    fps: int,
-    height: int,
-    width: int,
-    offset_x: int,
-    offset_y: int,
+    cam_gain: float,
+    cam_fps: int,
+    cam_height: int,
+    cam_width: int,
+    cam_offset_x: int,
+    cam_offset_y: int,
     checker_grid_size: Tuple[int, int],
     checker_square_size_mm: float
 ):
 
     camera = camera_constructor()
     camera.set_exposure(exposure_microsec)
-    camera.set_gain(gain)
-    camera.set_framerate(fps)
-    camera.set_height(height)
-    camera.set_width(width)
-    camera.set_offsetX(offset_x)
-    camera.set_offsetY(offset_y)
+    camera.set_gain(cam_gain)
+    camera.set_framerate(cam_fps)
+    camera.set_height(cam_height)
+    camera.set_width(cam_width)
+    camera.set_offsetX(cam_offset_x)
+    camera.set_offsetY(cam_offset_y)
 
     objp = np.zeros((np.prod(checker_grid_size),3), np.float32)
     objp[:,:2] = np.mgrid[
@@ -60,12 +60,12 @@ if __name__ == '__main__':
     pix_per_mm(
         camera_constructor=CAMERA_CONSTRUCTOR,
         exposure_microsec=CALIBRATION_CAM_EXPOSURE_MS,
-        gain=CAM_GAIN,
-        fps=CALIBRATION_CAM_FPS,
-        height=CAM_HEIGHT,
-        width=CAM_WIDTH,
-        offset_x=CAM_OFFSETX,
-        offset_y=CAM_OFFSETY,
+        cam_gain=CAM_GAIN,
+        cam_fps=CALIBRATION_CAM_FPS,
+        cam_height=CAM_HEIGHT,
+        cam_width=CAM_WIDTH,
+        cam_offset_x=CAM_OFFSETX,
+        cam_offset_y=CAM_OFFSETY,
         checker_grid_size=CALIBRATION_CHECKER_SIZE,
         checker_square_size_mm=CALIBRATION_SQUARE_SIZE_MM
     )
