@@ -1,22 +1,16 @@
 from vispy import gloo, app
-from typing import Tuple
+from typing import Tuple, List, Callable
 import sys
 from multiprocessing import Process, RawArray
 import time
 import numpy as np
 import json
-from image_tools import im2single, enhance, im2rgb, im2uint8, im2gray
+from image_tools import im2single, im2rgb, im2uint8, im2gray
 import cv2
 from numpy.typing import NDArray
 from image_tools import regular_polygon, star
 
-from ZebVR.config import (
-    REGISTRATION_FILE, CAM_WIDTH, CAM_HEIGHT,
-    CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
-    CAM_OFFSETX, CAM_OFFSETY, 
-    PROJ_WIDTH, PROJ_HEIGHT, PROJ_POS,
-    PATTERN_INTENSITY, PIXEL_SCALING, CAMERA_CONSTRUCTOR
-)
+RESIZED_HEIGHT = 512 # make sure that display fits on various screens
 
 VERT_SHADER_CALIBRATION = """
 attribute vec2 a_position;
@@ -105,7 +99,7 @@ class Projector(app.Canvas, Process):
         if sys.flags.interactive != 1:
             app.run()
 
-def create_calibration_pattern(div: int, height: int, width: int) -> NDArray:
+def create_calibration_pattern(div: int, height: int, width: int, pattern_intensity: int) -> NDArray:
     
     step = min(height,width)//div
     calibration_pattern = np.zeros((height,width,3), np.uint8)
@@ -123,56 +117,123 @@ def create_calibration_pattern(div: int, height: int, width: int) -> NDArray:
             else:
                 poly = star(pos,n,theta,s//2,s)
 
-            calibration_pattern = cv2.fillPoly(calibration_pattern, pts=[poly], color=(PATTERN_INTENSITY, PATTERN_INTENSITY, PATTERN_INTENSITY))
+            calibration_pattern = cv2.fillPoly(
+                calibration_pattern, 
+                pts=[poly], 
+                color=(pattern_intensity, pattern_intensity, pattern_intensity)
+            )
     
     return calibration_pattern
 
-if __name__ == '__main__':
+def check_registration(
+    camera_constructor: Callable,
+    exposure_microsec: int,
+    cam_height: int,
+    cam_width: int,
+    gain: float,
+    fps: int,
+    height: int,
+    width: int,
+    offset_x: int,
+    offset_y: int,
+    proj_width: int,
+    proj_height: int,
+    proj_pos: Tuple[int, int],
+    registration_file: str, 
+    pattern_intensity: int = 128,       
+    pattern_grid_size: int = 5,
+    pixel_scaling: Tuple[float, float] = (1.0, 1.0), # only for exotic devices such as Lightcrafters in native mode
+    ):
 
-    proj = Projector(window_size=(PROJ_WIDTH, PROJ_HEIGHT), window_position=PROJ_POS, pixel_scaling=PIXEL_SCALING)
+    proj = Projector(
+        window_size=(proj_width, proj_height), 
+        window_position=proj_pos, 
+        pixel_scaling=pixel_scaling
+    )
     proj.start()
 
-    camera = CAMERA_CONSTRUCTOR()
-    camera.set_exposure(CAM_EXPOSURE_MS)
-    camera.set_gain(CAM_GAIN)
-    camera.set_framerate(CAM_FPS)
-    camera.set_height(CAM_HEIGHT)
-    camera.set_width(CAM_WIDTH)
-    camera.set_offsetX(CAM_OFFSETX)
-    camera.set_offsetY(CAM_OFFSETY)
+    camera = camera_constructor()
+    camera.set_exposure(exposure_microsec)
+    camera.set_gain(gain)
+    camera.set_framerate(fps)
+    camera.set_height(height)
+    camera.set_width(width)
+    camera.set_offsetX(offset_x)
+    camera.set_offsetY(offset_y)
 
-    print(f'Loading pre-existing calibration: {REGISTRATION_FILE}')
-    with open(REGISTRATION_FILE, 'r') as f:
+    print(f'Loading pre-existing calibration: {registration_file}')
+    with open(registration_file, 'r') as f:
         calibration = json.load(f)
 
     print(json.dumps(calibration, indent=2))
 
-    cam_to_proj = np.array(calibration['cam_to_proj'])
-    proj_to_cam = np.array(calibration['proj_to_cam'])
+    cam_to_proj = np.array(calibration['cam_to_proj'], dtype=np.float32)
 
-    mask_cam = im2single(im2gray(create_calibration_pattern(5, CAM_HEIGHT, CAM_WIDTH)))
-    mask_proj = cv2.warpAffine(mask_cam, cam_to_proj[:2,:],(PROJ_WIDTH, PROJ_HEIGHT)) # dsize = (cols,rows)
+    pattern = create_calibration_pattern(
+        pattern_grid_size, 
+        cam_height, 
+        cam_width, 
+        pattern_intensity
+    )
+    mask_cam = im2single(im2gray(pattern))
+    mask_proj = cv2.warpAffine(mask_cam, cam_to_proj[:2,:],(proj_width, proj_height)) # dsize = (cols,rows)
 
     # project point        
     proj.draw_image(mask_proj)
-
-    time.sleep(2)
+    time.sleep(0.1)
 
     # get camera frame 
-    camera.start_acquisition() # looks like I need to restart to get the last frame with OpenCV...
+    camera.start_acquisition() 
     frame = camera.get_frame()
-    camera.stop_acquisition()
-        
-    # smooth frame
+    camera.stop_acquisition()        
     image = im2rgb(frame.image)
     image[:,:,0] = im2uint8(mask_cam)
 
-    disp = cv2.resize(image,(512,512))
+    resized_width = int(RESIZED_HEIGHT * width/height)
+    disp = cv2.resize(image,(resized_width, RESIZED_HEIGHT))
+    print('Press key to close...')
     cv2.imshow('calibration test', disp)
-    cv2.waitKey(0)
+    cv2.waitKey(10_000) 
+    cv2.destroyAllWindows() 
         
     proj.terminate()
-    camera.stop_acquisition()
-    cv2.destroyAllWindows()
+    
+if __name__ == '__main__':
 
+    from ZebVR.config import ( 
+        CAMERA_CONSTRUCTOR,
+        CAM_WIDTH, 
+        CAM_HEIGHT,
+        CAM_EXPOSURE_MS, 
+        CAM_GAIN, 
+        CAM_FPS,
+        CAM_OFFSETX, 
+        CAM_OFFSETY, 
+        PROJ_WIDTH, 
+        PROJ_HEIGHT, 
+        PROJ_POS,
+        PATTERN_INTENSITY, 
+        PIXEL_SCALING, 
+        REGISTRATION_FILE
+    )
+
+    check_registration(
+        camera_constructor=CAMERA_CONSTRUCTOR,
+        exposure_microsec=CAM_EXPOSURE_MS,
+        gain=CAM_GAIN,
+        fps=CAM_FPS,
+        height=CAM_HEIGHT,
+        width=CAM_WIDTH,
+        offset_x=CAM_OFFSETX,
+        offset_y=CAM_OFFSETY,
+        proj_width=PROJ_WIDTH,
+        proj_height=PROJ_HEIGHT,
+        proj_pos=PROJ_POS,
+        cam_height=CAM_HEIGHT,
+        cam_width=CAM_WIDTH,
+        registration_file=REGISTRATION_FILE,
+        pattern_grid_size=5,
+        pattern_intensity=PATTERN_INTENSITY,
+        pixel_scaling=PIXEL_SCALING
+    )
     
