@@ -1,26 +1,29 @@
-from image_tools import FishInfo, im2uint8
+from image_tools import FishInfo
 import cv2
 import json
 from PyQt5.QtWidgets import QApplication
-from ZebVR.config import (
-    CAM_WIDTH, CAM_HEIGHT,
-    CAM_EXPOSURE_MS, CAM_GAIN, CAM_FPS,
-    CAM_OFFSETX, CAM_OFFSETY, OPEN_LOOP_DATAFILE,
-    CAMERA_CONSTRUCTOR
-)
+from typing import Callable
 
-if __name__ == '__main__':
+def open_loop_coords(
+    camera_constructor: Callable,
+    exposure_microsec: int,
+    gain: float,
+    fps: int,
+    height: int,
+    width: int,
+    offset_x: int,
+    offset_y: int,
+    openloop_file: str,
+    ):
 
-    camera = CAMERA_CONSTRUCTOR()
-    camera.set_exposure(CAM_EXPOSURE_MS)
-    camera.set_gain(CAM_GAIN)
-    camera.set_framerate(CAM_FPS)
-    camera.set_height(CAM_HEIGHT)
-    camera.set_width(CAM_WIDTH)
-    camera.set_offsetX(CAM_OFFSETX)
-    camera.set_offsetY(CAM_OFFSETY)
-
-    cv2.namedWindow('calibration')
+    camera = camera_constructor()
+    camera.set_exposure(exposure_microsec)
+    camera.set_gain(gain)
+    camera.set_framerate(fps)
+    camera.set_height(height)
+    camera.set_width(width)
+    camera.set_offsetX(offset_x)
+    camera.set_offsetY(offset_y)
 
     camera.start_acquisition() 
     frame = camera.get_frame()
@@ -35,6 +38,31 @@ if __name__ == '__main__':
 
     data = window.get_data()
 
-    with open(OPEN_LOOP_DATAFILE,'w') as f:
+    with open(openloop_file,'w') as f:
         json.dump(data, f)
-    
+
+if __name__ == '__main__':
+
+    from ZebVR.config import (
+        CAMERA_CONSTRUCTOR,
+        CAM_WIDTH, 
+        CAM_HEIGHT,
+        CAM_EXPOSURE_MS, 
+        CAM_GAIN, 
+        CAM_FPS,
+        CAM_OFFSETX, 
+        CAM_OFFSETY, 
+        OPEN_LOOP_DATAFILE,
+    )
+
+    open_loop_coords(
+        camera_constructor=CAMERA_CONSTRUCTOR,
+        exposure_microsec=CAM_EXPOSURE_MS,
+        gain=CAM_GAIN,
+        fps=CAM_FPS,
+        height=CAM_HEIGHT,
+        width=CAM_WIDTH,
+        offset_x=CAM_OFFSETX,
+        offset_y=CAM_OFFSETY,
+        openloop_file=OPEN_LOOP_DATAFILE,
+    )    
