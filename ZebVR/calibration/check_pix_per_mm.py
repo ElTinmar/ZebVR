@@ -106,7 +106,7 @@ def check_pix_per_mm(
     pix_per_mm: float,
     size_to_check: List[float],
     registration_file: str,
-    thickness: float = 20.0,
+    thickness: float = 10.0,
     pixel_scaling: Tuple[float, float] = (1.0, 1.0), # only for exotic devices such as Lightcrafters in native mode
     ):
      
@@ -162,6 +162,6 @@ if __name__ == '__main__':
         pix_per_mm = PIX_PER_MM,
         size_to_check = CALIBRATION_CHECK_DIAMETER_MM,
         registration_file = REGISTRATION_FILE,
-        thickness = 20.0,
+        thickness = 10.0,
         pixel_scaling = PIXEL_SCALING, 
     )
