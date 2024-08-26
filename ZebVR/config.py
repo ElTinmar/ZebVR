@@ -9,17 +9,17 @@ try:
 except:
     print('Ximea camera not imported')
 
+# flags
 DEBUG = False
-
-# general settings
 LCr = False
-N_BACKGROUND_WORKERS = 1
-N_TRACKER_WORKERS = 1
-BACKGROUND_GPU = True
-T_REFRESH = 1e-4
 RECORD_VIDEO = False
 OPEN_LOOP = False
-OPEN_LOOP_DATAFILE = 'open_loop_coords.json'
+BACKGROUND_GPU = True
+
+# general settings
+N_BACKGROUND_WORKERS = 1
+N_TRACKER_WORKERS = 1
+T_REFRESH = 1e-4
 
 # stimulus projection
 if LCr:
@@ -51,6 +51,7 @@ CAM_FPS = 60
 # files
 LOGFILE_WORKERS = 'workers.log'
 LOGFILE_QUEUES = 'queues.log'
+OPEN_LOOP_DATAFILE = 'open_loop_coords.json'
 REGISTRATION_FILE = 'registration.json'
 BACKGROUND_FILE = 'background.npy'
 IMAGE_FOLDER = os.path.join(os.getcwd(), 'recording_0')
@@ -86,7 +87,7 @@ BACKGROUND_POLARITY = Polarity.DARK_ON_BRIGHT
 ANIMAL_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 5,
-    'animal_intensity': 0.04,
+    'animal_intensity': 0.10,
     'animal_brightness': 0.0,
     'animal_gamma': 1.0,
     'animal_contrast': 1.0,
@@ -103,11 +104,11 @@ ANIMAL_TRACKING_PARAM = {
 BODY_TRACKING = True
 BODY_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
-    'target_pix_per_mm': 10,
-    'body_intensity': 0.1,
+    'target_pix_per_mm': 7.5,
+    'body_intensity': 0.10,
     'body_brightness': 0.0,
     'body_gamma': 1.0,
-    'body_contrast': 3.0,
+    'body_contrast': 2.0,
     'min_body_size_mm': 5.0,
     'max_body_size_mm': 300.0,
     'min_body_length_mm': 0,
@@ -118,7 +119,7 @@ BODY_TRACKING_PARAM = {
     'median_filter_sz_mm': 0
 }
 
-EYES_TRACKING = False
+EYES_TRACKING = True
 EYES_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 40,
@@ -136,7 +137,7 @@ EYES_TRACKING_PARAM = {
     'median_filter_sz_mm': 0
 }
 
-TAIL_TRACKING = False
+TAIL_TRACKING = True
 TAIL_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 20,
