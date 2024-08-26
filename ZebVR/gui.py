@@ -239,6 +239,7 @@ class MainGui(QWidget):
         self.duration = LabeledSpinBox()
         self.duration.setText('rec. duration (s)')
         self.duration.setValue(60)
+        self.duration.setRange(0,36_000)
         self.duration.valueChanged.connect(self.experiment_data)
 
         self.edt_filename = LabeledEditLine()
