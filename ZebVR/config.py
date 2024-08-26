@@ -12,7 +12,7 @@ except:
 # flags
 DEBUG = False
 LCr = False
-RECORD_VIDEO = True
+RECORD_VIDEO = False
 OPEN_LOOP = False
 BACKGROUND_GPU = True
 
