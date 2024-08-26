@@ -9,7 +9,7 @@ try:
 except:
     print('Ximea camera not imported')
 
-DEBUG = True
+DEBUG = False
 
 # general settings
 LCr = False
