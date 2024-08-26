@@ -69,6 +69,9 @@ from config import (
     PIX_PER_MM,
     BACKGROUND_FILE, 
     IMAGE_FOLDER,
+    VIDEO_RECORDING_FPS,
+    VIDEO_RECORDING_COMPRESSION,
+    VIDEO_RECORDING_RESIZE,
     ANIMAL_TRACKING_PARAM,
     BODY_TRACKING,
     BODY_TRACKING_PARAM, 
@@ -307,6 +310,9 @@ if __name__ == "__main__":
 
     image_saver = ImageSaverWorker(
         folder = IMAGE_FOLDER, 
+        fps = VIDEO_RECORDING_FPS,
+        compress= VIDEO_RECORDING_COMPRESSION,
+        resize=VIDEO_RECORDING_RESIZE,
         name='image_saver',  
         logger=worker_logger, 
         logger_queues=queue_logger, 

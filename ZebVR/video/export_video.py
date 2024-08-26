@@ -1,17 +1,28 @@
 import numpy as np
 from video_tools import OpenCV_VideoWriter
 import glob
+from tqdm import tqdm
 
-writer = OpenCV_VideoWriter(            
-    height=512, 
-    width=512, 
-    fps=60, 
-    filename = 'output.avi'
-)
+if __name__ == '__main__':
 
-files = sorted(glob.glob('recording_0/*.npz'))
-for f in files:
-    data = np.load(f)
-    img = data['image']
-    writer.write_frame(img)
-writer.close()
+    from ZebVR.config import (
+        CAM_HEIGHT,
+        CAM_WIDTH,
+        VIDEO_RECORDING_FPS,
+        VIDEO_RECORDING_RESIZE
+    )
+
+    writer = OpenCV_VideoWriter(            
+        height=int(CAM_HEIGHT*VIDEO_RECORDING_RESIZE), 
+        width=int(CAM_WIDTH*VIDEO_RECORDING_RESIZE), 
+        fps=VIDEO_RECORDING_FPS, 
+        filename = 'output.avi'
+    )
+
+    files = sorted(glob.glob('recording_0/*.npz'))
+    for f in tqdm(files):
+        data = np.load(f)
+        # metadata = data['metadata']
+        img = data['image']
+        writer.write_frame(img)
+    writer.close()

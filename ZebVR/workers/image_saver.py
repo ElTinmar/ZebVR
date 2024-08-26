@@ -4,16 +4,29 @@ from numpy.typing import NDArray
 from typing import Any
 import cv2
 import os
+import time
 
 #TODO: check zarr, maybe try cv2.imwrite
 
 class ImageSaverWorker(WorkerNode):
 
-    def __init__(self, folder: str, zero_padding: int = 8, compress: bool = False, *args, **kwargs):
+    def __init__(
+            self, 
+            folder: str, 
+            fps: int = 10,
+            zero_padding: int = 8, 
+            resize: float = 0.25,
+            compress: bool = False, 
+            *args, 
+            **kwargs
+        ):
         super().__init__(*args, **kwargs)
         self.folder = folder
+        self.fps = fps
+        self.resize = resize
         self.zero_padding = zero_padding
         self.compress = compress
+        self.prev_time = 0
 
     def initialize(self) -> None:
         super().initialize()
@@ -21,18 +34,24 @@ class ImageSaverWorker(WorkerNode):
             os.mkdir(self.folder)
 
     def process_data(self, data: NDArray) -> None:
+
         if data is not None:
-            index, timestamp, image = data
-            image_resized = cv2.resize(image,None,None,0.25,0.25,cv2.INTER_NEAREST)
-            metadata = np.array( 
-                (index, timestamp), 
-                dtype = np.dtype([('index',np.int64), ('timestamp',np.float32)]) 
-            )
-            filename = os.path.join(self.folder, f'{index:0{self.zero_padding}}')
-            if self.compress:
-                np.savez_compressed(filename, image=image_resized, metadata=metadata)
-            else:
-                np.savez(filename, image=image_resized, metadata=metadata)
+
+            if time.monotonic() - self.prev_time > 1/self.fps:
+                
+                index, timestamp, image = data
+                image_resized = cv2.resize(image,None,None,self.resize,self.resize,cv2.INTER_NEAREST)
+                metadata = np.array( 
+                    (index, timestamp), 
+                    dtype = np.dtype([('index',np.int64), ('timestamp',np.float32)]) 
+                )
+                filename = os.path.join(self.folder, f'{index:0{self.zero_padding}}')
+                if self.compress:
+                    np.savez_compressed(filename, image=image_resized, metadata=metadata)
+                else:
+                    np.savez(filename, image=image_resized, metadata=metadata)
+
+                self.prev_time = time.monotonic()
 
     def process_metadata(self, metadata) -> Any:
         pass
