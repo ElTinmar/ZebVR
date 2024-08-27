@@ -379,6 +379,8 @@ class SequencerWidget(QWidget):
                 protocol_item = ProtocolItemDark.from_dict(element)
             elif element['type'] == 'bright':
                 protocol_item = ProtocolItemBright.from_dict(element)
+            elif element['type'] == 'phototaxis':
+                protocol_item = ProtocolItemPhototaxis.from_dict(element)
             elif element['type'] == 'OMR':
                 protocol_item = ProtocolItemOMR.from_dict(element)
             elif element['type'] == 'OKR':
