@@ -10,7 +10,7 @@ except:
     print('Ximea camera not imported')
 
 # flags
-DEBUG = False
+DEBUG = True
 LCr = False
 RECORD_VIDEO = False
 OPEN_LOOP = False

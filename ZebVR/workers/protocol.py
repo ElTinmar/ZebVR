@@ -35,6 +35,15 @@ class ProtocolItem(ABC):
         '''Run cleanup steps in target worker process'''
         pass
 
+    @classmethod
+    @abstractmethod
+    def from_dict(cls, d: Dict) -> None:
+        pass
+    
+    @abstractmethod
+    def to_dict(self) -> Dict:
+        pass
+
 # TODO implement this. maybe use keyboard module
 '''
 class ProtocolItemWaitKeyPress(ProtocolItem):
@@ -53,6 +62,16 @@ class ProtocolItemPause(ProtocolItem):
     def run(self) -> None:
         time.sleep(self.pause_sec)
         return None
+
+    @classmethod
+    def from_dict(cls, d: Dict):
+        return cls(pause_sec = d['pause_sec'])
+
+    def to_dict(self) -> Dict:
+        res = {}
+        res['type'] = 'pause'
+        res['pause_sec'] = self.pause_sec
+        return res
 
 # TODO: implement trigger
 """
@@ -104,6 +123,22 @@ class ProtocolItemPhototaxis(ProtocolItem):
         })
         return command 
     
+    @classmethod
+    def from_dict(cls, d: Dict) -> None:
+        return cls(
+            phototaxis_polarity = d['phototaxis_polarity'],
+            foreground_color = d['foreground_color'],
+            background_color = d['background_color']
+        )
+
+    def to_dict(self) -> Dict:
+        res = {}
+        res['type'] = 'phototaxis'
+        res['phototaxis_polarity'] = self.phototaxis_polarity
+        res['foreground_color'] = self.foreground_color
+        res['background_color'] = self.background_color
+        return res
+    
 class ProtocolItemOKR(ProtocolItem):
 
     STIM_SELECT = Stim.OKR
@@ -133,6 +168,24 @@ class ProtocolItemOKR(ProtocolItem):
         })
         return command 
 
+    @classmethod
+    def from_dict(cls, d: Dict) -> None:
+        return cls(
+            okr_spatial_frequency_deg = d['okr_spatial_frequency_deg'],
+            okr_speed_deg_per_sec = d['okr_speed_deg_per_sec'],
+            foreground_color = d['foreground_color'],
+            background_color = d['background_color']
+        )
+
+    def to_dict(self) -> Dict:
+        res = {}
+        res['type'] = 'OKR'
+        res['okr_spatial_frequency_deg'] = self.okr_spatial_frequency_deg
+        res['okr_speed_deg_per_sec'] = self.okr_speed_deg_per_sec
+        res['foreground_color'] = self.foreground_color
+        res['background_color'] = self.background_color
+        return res
+    
 class ProtocolItemOMR(ProtocolItem):
     
     STIM_SELECT = Stim.OMR
@@ -165,6 +218,26 @@ class ProtocolItemOMR(ProtocolItem):
         })
         return command 
 
+    @classmethod
+    def from_dict(cls, d: Dict) -> None:
+        return cls(
+            omr_spatial_period_mm = d['omr_spatial_period_mm'],
+            omr_angle_deg = d['omr_angle_deg'],
+            omr_speed_mm_per_sec = d['omr_speed_mm_per_sec'],
+            foreground_color = d['foreground_color'],
+            background_color = d['background_color']
+        )
+
+    def to_dict(self) -> Dict:
+        res = {}
+        res['type'] = 'OMR'
+        res['omr_spatial_period_mm'] = self.omr_spatial_period_mm
+        res['omr_angle_deg'] = self.omr_angle_deg
+        res['omr_speed_mm_per_sec'] = self.omr_speed_mm_per_sec
+        res['foreground_color'] = self.foreground_color
+        res['background_color'] = self.background_color
+        return res
+    
 class ProtocolItemDark(ProtocolItem):
 
     STIM_SELECT = Stim.DARK
@@ -188,6 +261,20 @@ class ProtocolItemDark(ProtocolItem):
         })
         return command 
 
+    @classmethod
+    def from_dict(cls, d: Dict) -> None:
+        return cls(
+            foreground_color = d['foreground_color'],
+            background_color = d['background_color']
+        )
+
+    def to_dict(self) -> Dict:
+        res = {}
+        res['type'] = 'dark'
+        res['foreground_color'] = self.foreground_color
+        res['background_color'] = self.background_color
+        return res
+
 class ProtocolItemBright(ProtocolItem):
 
     STIM_SELECT = Stim.BRIGHT
@@ -210,6 +297,20 @@ class ProtocolItemBright(ProtocolItem):
             'looming_center_mm': (0, 0)
         })
         return command 
+    
+    @classmethod
+    def from_dict(cls, d: Dict) -> None:
+        return cls(
+            foreground_color = d['foreground_color'],
+            background_color = d['background_color']
+        )
+
+    def to_dict(self) -> Dict:
+        res = {}
+        res['type'] = 'bright'
+        res['foreground_color'] = self.foreground_color
+        res['background_color'] = self.background_color
+        return res
 
 class ProtocolItemLooming(ProtocolItem):
 
@@ -244,7 +345,29 @@ class ProtocolItemLooming(ProtocolItem):
             'background_color': self.background_color,
         })
         return command 
-        
+
+    @classmethod
+    def from_dict(cls, d: Dict) -> None:
+        return cls(
+            foreground_color = d['foreground_color'],
+            background_color = d['background_color'],
+            looming_center_mm = d['looming_center_mm'],
+            looming_period_sec = d['looming_period_sec'],
+            looming_expansion_time_sec = d['looming_expansion_time_sec'],
+            looming_expansion_speed_mm_per_sec = d['looming_expansion_speed_mm_per_sec']
+        )
+
+    def to_dict(self) -> Dict:
+        res = {}
+        res['type'] = 'looming'
+        res['looming_center_mm'] = self.looming_center_mm
+        res['looming_period_sec'] = self.looming_period_sec
+        res['looming_expansion_time_sec'] = self.looming_expansion_time_sec
+        res['looming_expansion_speed_mm_per_sec'] = self.looming_expansion_speed_mm_per_sec
+        res['foreground_color'] = self.foreground_color
+        res['background_color'] = self.background_color
+        return res
+    
 class Protocol(WorkerNode):
 
     def __init__(
