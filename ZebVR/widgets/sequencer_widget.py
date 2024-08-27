@@ -61,79 +61,41 @@ class PauseSequencerItem(SequencerItem):
     
 class StimSequencerItem(SequencerItem, StimWidget):
     
-    def set_protocol_item(self, item: ProtocolItem):            
+    def set_protocol_item(self, item: ProtocolItem):   
+
+        self.sb_foreground_color_R.setValue(item.foreground_color[0])
+        self.sb_foreground_color_G.setValue(item.foreground_color[1])
+        self.sb_foreground_color_B.setValue(item.foreground_color[2])
+        self.sb_foreground_color_A.setValue(item.foreground_color[3])
+        
+        self.sb_background_color_R.setValue(item.background_color[0])
+        self.sb_background_color_G.setValue(item.background_color[1])
+        self.sb_background_color_B.setValue(item.background_color[2])
+        self.sb_background_color_A.setValue(item.background_color[3])         
         
         if isinstance(item, ProtocolItemBright):
             self.cmb_stim_select.setCurrentText('Bright')
-            self.sb_foreground_color_R.setValue(item.foreground_color[0])
-            self.sb_foreground_color_G.setValue(item.foreground_color[1])
-            self.sb_foreground_color_B.setValue(item.foreground_color[2])
-            self.sb_foreground_color_A.setValue(item.foreground_color[3])
-            self.sb_background_color_R.setValue(item.background_color[0])
-            self.sb_background_color_R.setValue(item.background_color[1])
-            self.sb_background_color_R.setValue(item.background_color[2])
-            self.sb_background_color_R.setValue(item.background_color[3])
-    
+
         elif isinstance(item, ProtocolItemDark):
             self.cmb_stim_select.setCurrentText('Dark')
-            self.sb_foreground_color_R.setValue(item.foreground_color[0])
-            self.sb_foreground_color_G.setValue(item.foreground_color[1])
-            self.sb_foreground_color_B.setValue(item.foreground_color[2])
-            self.sb_foreground_color_A.setValue(item.foreground_color[3])
-            self.sb_background_color_R.setValue(item.background_color[0])
-            self.sb_background_color_R.setValue(item.background_color[1])
-            self.sb_background_color_R.setValue(item.background_color[2])
-            self.sb_background_color_R.setValue(item.background_color[3])
 
         elif isinstance(item, ProtocolItemPhototaxis):
             self.cmb_stim_select.setCurrentText('Phototaxis')
-            self.sb_foreground_color_R.setValue(item.foreground_color[0])
-            self.sb_foreground_color_G.setValue(item.foreground_color[1])
-            self.sb_foreground_color_B.setValue(item.foreground_color[2])
-            self.sb_foreground_color_A.setValue(item.foreground_color[3])
-            self.sb_background_color_R.setValue(item.background_color[0])
-            self.sb_background_color_R.setValue(item.background_color[1])
-            self.sb_background_color_R.setValue(item.background_color[2])
-            self.sb_background_color_R.setValue(item.background_color[3])
             self.chb_phototaxis_polarity.setChecked(item.phototaxis_polarity == 1) 
 
         elif isinstance(item, ProtocolItemOMR):
             self.cmb_stim_select.setCurrentText('OMR')
-            self.sb_foreground_color_R.setValue(item.foreground_color[0])
-            self.sb_foreground_color_G.setValue(item.foreground_color[1])
-            self.sb_foreground_color_B.setValue(item.foreground_color[2])
-            self.sb_foreground_color_A.setValue(item.foreground_color[3])
-            self.sb_background_color_R.setValue(item.background_color[0])
-            self.sb_background_color_R.setValue(item.background_color[1])
-            self.sb_background_color_R.setValue(item.background_color[2])
-            self.sb_background_color_R.setValue(item.background_color[3])
             self.sb_omr_spatial_freq.setValue(item.omr_spatial_period_mm)
             self.sb_omr_angle.setValue(item.omr_angle_deg)
             self.sb_omr_speed.setValue(item.omr_speed_mm_per_sec)  
     
         elif isinstance(item, ProtocolItemOKR):
             self.cmb_stim_select.setCurrentText('OKR')
-            self.sb_foreground_color_R.setValue(item.foreground_color[0])
-            self.sb_foreground_color_G.setValue(item.foreground_color[1])
-            self.sb_foreground_color_B.setValue(item.foreground_color[2])
-            self.sb_foreground_color_A.setValue(item.foreground_color[3])
-            self.sb_background_color_R.setValue(item.background_color[0])
-            self.sb_background_color_R.setValue(item.background_color[1])
-            self.sb_background_color_R.setValue(item.background_color[2])
-            self.sb_background_color_R.setValue(item.background_color[3])
             self.sb_okr_spatial_freq.setValue(item.okr_spatial_frequency_deg)
             self.sb_okr_speed.setValue(item.okr_speed_deg_per_sec) 
     
         elif isinstance(item, ProtocolItemLooming):
             self.cmb_stim_select.setCurrentText('Looming')
-            self.sb_foreground_color_R.setValue(item.foreground_color[0])
-            self.sb_foreground_color_G.setValue(item.foreground_color[1])
-            self.sb_foreground_color_B.setValue(item.foreground_color[2])
-            self.sb_foreground_color_A.setValue(item.foreground_color[3])
-            self.sb_background_color_R.setValue(item.background_color[0])
-            self.sb_background_color_R.setValue(item.background_color[1])
-            self.sb_background_color_R.setValue(item.background_color[2])
-            self.sb_background_color_R.setValue(item.background_color[3])
             self.sb_looming_center_mm_x.setValue(item.looming_center_mm[0])
             self.sb_looming_center_mm_y.setValue(item.looming_center_mm[1])
             self.sb_looming_period_sec.setValue(item.looming_period_sec)
