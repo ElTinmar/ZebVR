@@ -140,5 +140,5 @@ class DisplayWidget(QWidget):
         pixmap = NDarray_to_QPixmap(image_resized)
         self.lbl_image.setPixmap(pixmap)
         self.lbl_index.setText(f'{index}')
-        self.lbl_timestamp.setText(f'{timestamp}')
+        self.lbl_timestamp.setText(f'{timestamp:.03f}')
         self.update()

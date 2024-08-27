@@ -23,6 +23,7 @@ class TrackingDisplay(WorkerNode):
         self.overlay = overlay
         self.fps = fps
         self.prev_time = 0
+        self.first_timestamp = 0
 
     def initialize(self) -> None:
 
@@ -38,6 +39,9 @@ class TrackingDisplay(WorkerNode):
         
         if data is not None:
             index, timestamp, tracking = data
+
+            if self.first_timestamp == 0:
+                self.first_timestamp = timestamp
 
             # restrict update freq to save resources
             if time.monotonic() - self.prev_time > 1/self.fps:
@@ -114,7 +118,7 @@ class TrackingDisplay(WorkerNode):
                 if image_to_display is not None:
                     self.window.set_state(
                         index=index,
-                        timestamp=timestamp,
+                        timestamp=round((timestamp - self.first_timestamp)*1e-9,3),
                         image=image_to_display
                     )
 
