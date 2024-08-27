@@ -176,6 +176,7 @@ class GeneralStim(VisualStim):
             refresh_rate: int = 120,
             vsync: bool = True,
             timings_file: str = 'display_timings.csv',
+            num_tail_points_interp: int = 40,
             stim_select: float = 0,
             phototaxis_polarity: int = 1,
             omr_spatial_period_mm: float = 20,
@@ -214,7 +215,9 @@ class GeneralStim(VisualStim):
         self.default_looming_period_sec = looming_period_sec
         self.default_looming_expansion_time_sec = looming_expansion_time_sec
         self.default_looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
+        self.num_tail_points_interp = num_tail_points_interp
 
+        self.tail_points = Array('d', 2*self.num_tail_points_interp)
         self.foreground_color = Array('d', self.default_foreground_color)
         self.background_color = Array('d', self.default_background_color)
         self.stim_select = Value('d', self.default_stim_select) 
@@ -329,6 +332,10 @@ class GeneralStim(VisualStim):
             'right_eye_x',
             'right_eye_y',
             'right_eye_angle',
+        ) \
+        + tuple(f'tail_point_{n:03d}_x' for n in range(self.num_tail_points_interp)) \
+        + tuple(f'tail_point_{n:03d}_y' for n in range(self.num_tail_points_interp)) \
+        + (
             'stim_id',
             'phototaxis_polarity',
             'omr_spatial_period_mm',
@@ -389,6 +396,10 @@ class GeneralStim(VisualStim):
             f'{self.right_eye_centroid[0]}',
             f'{self.right_eye_centroid[1]}',
             f'{self.right_eye_angle.value}',
+        ) \
+        + tuple(f'{self.tail_points[i]}' for i in range(self.num_tail_points_interp)) \
+        + tuple(f'{self.tail_points[i]}' for i in range(self.num_tail_points_interp,2*self.num_tail_points_interp)) \
+        + (
             f'{self.stim_select.value}',
             f'{self.phototaxis_polarity.value}',
             f'{self.omr_spatial_period_mm.value}',
@@ -430,16 +441,18 @@ class GeneralStim(VisualStim):
                 if tracking.eyes[k] is not None:
 
                     if tracking.eyes[k].left_eye is not None:
-                        self.left_eye_centroid[:] = tracking.eyes[k].left_eye.centroid #TODO transform coordinates
+                        self.left_eye_centroid[:] = tracking.eyes[k].left_eye.centroid 
                         self.left_eye_angle.value = tracking.eyes[k].left_eye.angle
 
                     if tracking.eyes[k].right_eye is not None:
                         self.right_eye_centroid[:] = tracking.eyes[k].right_eye.centroid
                         self.right_eye_angle.value = tracking.eyes[k].right_eye.angle
 
-                # TODO tail
+                # tail
                 if tracking.tail[k] is not None:
                     skeleton_interp = tracking.tail[k].skeleton_interp  
+                    self.tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
+                    self.tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
 
             except KeyError:
                 return None 

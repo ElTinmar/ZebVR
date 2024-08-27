@@ -12,7 +12,7 @@ except:
 # flags
 DEBUG = False
 LCr = False
-RECORD_VIDEO = True
+RECORD_VIDEO = False
 OPEN_LOOP = False
 BACKGROUND_GPU = True
 
@@ -87,10 +87,10 @@ BACKGROUND_POLARITY = Polarity.DARK_ON_BRIGHT
 ANIMAL_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 5,
-    'animal_intensity': 0.15,
+    'animal_intensity': 0.20,
     'animal_brightness': 0.0,
     'animal_gamma': 1.0,
-    'animal_contrast': 1.0,
+    'animal_contrast': 2.0,
     'min_animal_size_mm': 2.0,
     'max_animal_size_mm': 300.0, 
     'min_animal_length_mm': 0,
@@ -105,10 +105,10 @@ BODY_TRACKING = True
 BODY_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 7.5,
-    'body_intensity': 0.25,
+    'body_intensity': 0.20,
     'body_brightness': 0.0,
     'body_gamma': 1.0,
-    'body_contrast': 2.0,
+    'body_contrast': 3.0,
     'min_body_size_mm': 5.0,
     'max_body_size_mm': 300.0,
     'min_body_length_mm': 0,
@@ -128,7 +128,7 @@ EYES_TRACKING_PARAM = {
     'eye_thresh_hi': 0.7,
     'eye_dyntresh_res': 5,
     'eye_brightness': 0.0,
-    'eye_gamma': 2.5,
+    'eye_gamma': 1.75,
     'eye_contrast': 6.0,
     'eye_size_lo_mm': 2.0,
     'eye_size_hi_mm': 20.0,
@@ -139,6 +139,7 @@ EYES_TRACKING_PARAM = {
 }
 
 TAIL_TRACKING = True
+N_PTS_INTERP = 40
 TAIL_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 20,
@@ -149,8 +150,8 @@ TAIL_TRACKING_PARAM = {
     'arc_angle_deg': 90,
     'n_pts_arc': 20,
     'n_tail_points': 6,
-    'n_pts_interp': 40,
-    'tail_length_mm': 3.0,
+    'n_pts_interp': N_PTS_INTERP,
+    'tail_length_mm': 3.25,
     'dist_swim_bladder_mm': 0.00,
     'crop_dimension_mm': (4.5, 4.5),
     'crop_offset_tail_mm': 3.5,

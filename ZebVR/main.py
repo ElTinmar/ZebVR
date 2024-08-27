@@ -102,7 +102,8 @@ from config import (
     FOREGROUND_COLOR, 
     BACKGROUND_COLOR, 
     OPEN_LOOP,
-    OPEN_LOOP_DATAFILE
+    OPEN_LOOP_DATAFILE,
+    N_PTS_INTERP
 )
 
 def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
@@ -230,6 +231,7 @@ if __name__ == "__main__":
         vsync=True,
         timings_file = 'display_timings.csv',
         stim_select = 0,
+        num_tail_points_interp = N_PTS_INTERP,
         phototaxis_polarity = PHOTOTAXIS_POLARITY,
         omr_spatial_period_mm = OMR_SPATIAL_PERIOD_MM,
         omr_angle_deg = OMR_ANGLE_DEG,
