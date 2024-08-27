@@ -223,6 +223,22 @@ class TrackerWidget(QWidget):
         self.body_max_width_mm.setValue(self.body_tracking_param['max_body_width_mm'])
         self.body_max_width_mm.valueChanged.connect(self.on_change)
 
+        self.body_crop_width_mm = LabeledDoubleSpinBox()
+        self.body_crop_width_mm.setText('crop width')
+        self.body_crop_width_mm.setRange(0,100)
+        self.body_crop_width_mm.setSingleStep(0.05)
+        self.body_crop_width_mm.setValue(self.body_tracking_param['crop_dimension_mm'][0])
+        self.body_crop_width_mm.valueChanged.connect(self.on_change)
+        self.body_crop_width_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+
+        self.body_crop_height_mm = LabeledDoubleSpinBox()
+        self.body_crop_height_mm.setText('crop height')
+        self.body_crop_height_mm.setRange(0,100)
+        self.body_crop_height_mm.setSingleStep(0.05)
+        self.body_crop_height_mm.setValue(self.body_tracking_param['crop_dimension_mm'][1])
+        self.body_crop_height_mm.valueChanged.connect(self.on_change)
+        self.body_crop_height_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+
         self.body_blur_sz_mm = LabeledDoubleSpinBox()
         self.body_blur_sz_mm.setText('blur size (mm)')
         self.body_blur_sz_mm.setRange(0,1000)
@@ -510,6 +526,8 @@ class TrackerWidget(QWidget):
         body.addWidget(self.body_max_length_mm)
         body.addWidget(self.body_min_width_mm)
         body.addWidget(self.body_max_width_mm)
+        body.addWidget(self.body_crop_width_mm)
+        body.addWidget(self.body_crop_height_mm)
         body.addWidget(self.body_blur_sz_mm)
         body.addWidget(self.body_median_filter_sz_mm)
         body.addStretch()
@@ -615,6 +633,7 @@ class TrackerWidget(QWidget):
         state['body_tracking']['max_body_length_mm']=self.body_max_length_mm.value()
         state['body_tracking']['min_body_width_mm']=self.body_min_width_mm.value()
         state['body_tracking']['max_body_width_mm']=self.body_max_width_mm.value()
+        state['body_tracking']['crop_dimension_mm']=(self.body_crop_width_mm.value(),self.body_crop_height_mm.value())
         state['body_tracking']['blur_sz_mm']=self.body_blur_sz_mm.value()
         state['body_tracking']['median_filter_sz_mm']=self.body_median_filter_sz_mm.value()
 
