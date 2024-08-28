@@ -3,12 +3,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Iterable
 from datetime import datetime
 import re 
 from enum import IntEnum
 import seaborn as sns
 from scipy.stats import ranksums
+
+#plt.style.use('./images/presentation.mplstyle')
+
+matplotlib.rcParams['font.size'] = 12
 
 class StimType(IntEnum):
     DARK = 0
@@ -17,6 +21,8 @@ class StimType(IntEnum):
     OMR = 3
     OKR = 4
     LOOMING = 5
+
+COLORS = ('#FF6900', '#002BFF')
 
 # # experiment computer has locale set to german -_-
 import locale
@@ -36,32 +42,56 @@ DATAFILES = [
     '02_09dpf_Di_27_Aug_2024_16h03min14sec.csv',
     '03_09dpf_Di_27_Aug_2024_17h17min12sec.csv',
     '04_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
-    '05_09dpf_Di_27_Aug_2024_20h27min13sec.csv'
+    '05_09dpf_Di_27_Aug_2024_20h27min13sec.csv',
+    '04_10dpf_Mi_28_Aug_2024_14h30min41sec.csv',
+    '06_10dpf_Mi_28_Aug_2024_17h41min49sec.csv'
 ]
 
-def ranksum_plot(summary: Dict, col = ['blue', 'red']):
+def asterisk(p_value: float) -> str:
 
-    keys = list(summary.keys())
-
-    if len(keys) != 2:
-        RuntimeError('Provide dict with two keys')
-    
-    # plot summary
-    stat, p_value = ranksums(summary[keys[0]], summary[keys[1]])
-
-    if p_value < 0.001:
+    if p_value < 0.0001:
+        significance = '****'
+    elif p_value < 0.001:
         significance = '***'
     elif p_value < 0.01:
         significance = '**'
     elif p_value < 0.05:
         significance = '*'
     else:
-        significance = 'ns'  
+        significance = 'ns' 
 
-    df = pd.DataFrame(summary)
+    return significance
+
+def significance_bridge(ax,x,y,p_value,fontsize,prct_offset=0.05):
+
+    bottom, top = ax.get_ylim()
+    height = top-bottom
+    offset = prct_offset * height
+
+    Mx = max(x) + 1.5 * offset
+    My = max(y) + 1.5 * offset
+    Mxy = max((Mx,My)) + offset
+    plt.plot([0, 0, 1, 1], [Mx, Mxy, Mxy, My], color='#555555', lw=1.5)
+
+    significance = asterisk(p_value)
+    plt.text(
+        0.5, Mxy + offset, 
+        f'{significance}', 
+        horizontalalignment='center', 
+        fontsize=fontsize
+    )
+    
+    ax.set_ylim(bottom, Mxy + 3*offset)
+
+def ranksum_plot(x, y, cat_names: Iterable, ylabel: str, col: Iterable, fontsize: int = 12, *args, **kwargs):
+    
+    stat, p_value = ranksums(x, y, *args, **kwargs)
+
+    df = pd.DataFrame({cat_names[0]: x, cat_names[1]: y})
     df_melted = df.melt(var_name='cat', value_name='val')
 
     fig = plt.figure()
+
     ax = sns.stripplot(
         data=df_melted, x='cat', y='val', hue='cat',
         alpha=.5, legend=False, palette=sns.color_palette(col)
@@ -72,21 +102,16 @@ def ranksum_plot(summary: Dict, col = ['blue', 'red']):
         marker="_", markersize=20, markeredgewidth=3,
         palette=sns.color_palette(col)
     )
-
-    M = max(df_melted['val'])
-    plt.plot([0, 1], [M * 1.1] * 2, color='black', lw=1)
-    plt.plot([0, 0], [M * 1.05, M * 1.1], color='black', lw=1)
-    plt.plot([1, 1], [M * 1.05, M * 1.1], color='black', lw=1)
-    plt.text(
-        0.5, M * 1.15, 
-        f'{significance}', 
-        horizontalalignment='center', 
-        fontsize=12
-    )
-    bottom, top = ax.get_ylim()
-    ax.set_ylim(bottom, M * 1.25)
     ax.set_xlim(-0.5, 1.5)
-    plt.show()
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel('')
+    ax.set_box_aspect(1)
+
+    significance_bridge(ax,x,y,p_value,fontsize)
+
+    fig.tight_layout()
+
+    plt.show(block=False)
 
 def parse_filename(filename: str, loc: str = 'de_DE.utf8') -> Tuple:
 
@@ -253,21 +278,29 @@ def plot_dark_vs_bright(data):
                 plt.plot(
                     data_light['time'], 
                     cum_distance, 
-                    color='r' if light == StimType.BRIGHT else 'b' if light==StimType.DARK else 'k',
+                    color = COLORS[0] if light == StimType.BRIGHT else COLORS[1] if light==StimType.DARK else 'k',
                     marker ='o',
                     markevery=[-1]
                 )
+                plt.xlabel('time (s)')
+                plt.ylabel('cum. distance (px)')
                 summary[light].append(cum_distance.iloc[-1])
-        plt.show()
+        plt.show(block=False)
 
-        ranksum_plot(summary)
+        ranksum_plot(
+            x = summary[StimType.BRIGHT], 
+            y = summary[StimType.DARK],
+            cat_names=('bright', 'dark'),
+            ylabel='cum. distance (px)',
+            col=COLORS
+        )
 
 def plot_omr_left_vs_right(data):
 
     for dpf, data_dpf in data.groupby('dpf'):
 
         summary = {}
-        summary[-90.0] = []
+        summary[-90] = []
         summary[90] = []
 
         fig = plt.figure()
@@ -280,22 +313,31 @@ def plot_omr_left_vs_right(data):
                     plt.plot(
                         angle_unwrapped, 
                         data_omr['time'], 
-                        color='r' if omr_angle==90 else 'b' if omr_angle==-90 else 'k',
+                        color=COLORS[0] if omr_angle==90 else COLORS[1] if omr_angle==-90 else 'k',
                         marker ='o',
                         markevery=[-1]
                     )
+                    plt.xlabel('cumulative angle (rad)')
+                    plt.ylabel('time (s)')
                     summary[omr_angle].append(angle_unwrapped.iloc[-1])
-        plt.show()
 
-        ranksum_plot(summary)
+        plt.show(block=False)
+
+        ranksum_plot(
+            x = summary[90], 
+            y = summary[-90],
+            cat_names=('leftward', 'rightward'),
+            ylabel='cum. angle (rad)',
+            col=COLORS
+        )
 
 def plot_omr_back_vs_front(data):
     
     for dpf, data_dpf in data.groupby('dpf'):
 
         summary = {}
-        summary[0.0] = []
-        summary[180.0] = []
+        summary[0] = []
+        summary[180] = []
 
         fig = plt.figure()
         fig.suptitle(f'{dpf} dpf')
@@ -307,14 +349,23 @@ def plot_omr_back_vs_front(data):
                     plt.plot(
                         data_omr['time'], 
                         cum_distance, 
-                        color='r' if omr_angle==0.0 else 'b' if omr_angle==180.0 else 'k',
+                        color=COLORS[0] if omr_angle==0 else COLORS[1] if omr_angle==180 else 'k',
                         marker ='o',
                         markevery=[-1]
                     )
+                    plt.xlabel('time (s)')
+                    plt.ylabel('cum. distance (px)')
                     summary[omr_angle].append(cum_distance.iloc[-1])
-        plt.show()
 
-        ranksum_plot(summary)
+        plt.show(block=False)
+
+        ranksum_plot(
+            x = summary[0], 
+            y = summary[180],
+            cat_names=('backward', 'forward'),
+            ylabel='cum. distance (px)',
+            col=COLORS
+        )
 
 def plot_okr_eyes(data):
 
@@ -326,14 +377,14 @@ def plot_okr_eyes(data):
                 ax[ax_id].plot(
                     data_okr['time'], 
                     data_okr['left_eye_angle'], 
-                    color='b'
+                    color=COLORS[0]
                 )
                 ax[ax_id].plot(
                     data_okr['time'], 
                     data_okr['right_eye_angle'], 
-                    color='r'
+                    color=COLORS[1]
                 )
-        plt.show()
+        plt.show(block=False)
 
 def plot_okr_turns(data):
 
@@ -352,14 +403,23 @@ def plot_okr_turns(data):
                 plt.plot(
                     angle_unwrapped, 
                     data_omr['time'], 
-                    color='r' if okr_angle==36 else 'b' if okr_angle==-36 else 'k',
+                    color=COLORS[0] if okr_angle==36 else COLORS[1] if okr_angle==-36 else 'k',
                     marker ='o',
                     markevery=[-1]
                 )
+                plt.xlabel('cumulative angle (rad)')
+                plt.ylabel('time (s)')
                 summary[okr_angle].append(angle_unwrapped.iloc[-1])
-        plt.show()
 
-        ranksum_plot(summary)
+        plt.show(block=False)
+
+        ranksum_plot(
+            x = summary[36], 
+            y = summary[-36],
+            cat_names=('clockwise', 'counterclockwise'),
+            ylabel='cum. angle (rad)',
+            col=COLORS
+        )
 
 def plot_phototaxis(data):
 
@@ -378,16 +438,26 @@ def plot_phototaxis(data):
                 plt.plot(
                     data_polarity['angle_unwrapped'], 
                     data_polarity['time'], 
-                    color='r' if polarity==1 else 'b',
+                    color=COLORS[0] if polarity==1 else COLORS[1],
                     marker ='o',
                     markevery=[-1]
                 )
+                plt.xlabel('cumulative angle (rad)')
+                plt.ylabel('time (s)')
                 summary[polarity].append(angle_unwrapped.iloc[-1])
-        plt.show()
 
-        ranksum_plot(summary)
+        plt.show(block=False)
+
+        ranksum_plot(
+            x = summary[1], 
+            y = summary[-1],
+            cat_names=('dark-left', 'dark-right'),
+            ylabel='cum. angle (rad)',
+            col=COLORS
+        )
 
 def plot_loomings(data):
+    # distance and escape trajectories
     pass
 
 phototaxis = pd.DataFrame()
