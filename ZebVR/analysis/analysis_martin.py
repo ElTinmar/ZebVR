@@ -4,9 +4,21 @@ import matplotlib.pyplot as plt
 import matplotlib
 import matplotlib.animation as animation
 import numpy as np
+from numpy.typing import NDArray
 from typing import Tuple
 from datetime import datetime
 import re 
+from tqdm import tqdm
+from dataclasses import dataclass
+from enum import IntEnum
+
+class StimType(IntEnum):
+    DARK = 0
+    BRIGHT = 1
+    PHOTOTAXIS = 2
+    OMR = 3
+    OKR = 4
+    LOOMING = 5
 
 # # experiment computer has locale set to german -_-
 import locale
@@ -17,9 +29,16 @@ def setlocale(*args, **kw):
     yield locale.setlocale(*args, **kw)
     locale.setlocale(locale.LC_ALL, saved)
 
+#TODO add legends and labels
+# compare cumulative stuff at the last point in time
+
 ## Visualization of the results --------------------------------------------------------------------
 DATAFILES = [
-    ''
+    '01_09dpf_Di_27_Aug_2024_14h50min47sec.csv',
+    '02_09dpf_Di_27_Aug_2024_16h03min14sec.csv',
+    '03_09dpf_Di_27_Aug_2024_17h17min12sec.csv',
+    '04_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
+    '05_09dpf_Di_27_Aug_2024_20h27min13sec.csv'
 ]
 
 def parse_filename(filename: str, loc: str = 'de_DE.utf8') -> Tuple:
@@ -41,136 +60,266 @@ def parse_filename(filename: str, loc: str = 'de_DE.utf8') -> Tuple:
         date = datetime.strptime(match.group('datetime'),'%a_%d_%b_%Y_%Hh%Mmin%Ssec')
     
     return (fish_id, dpf, date)
+
+def get_n_tail_pts(data):
+    header = data.columns
+    tail_points = [t for t in header if "tail_point" in t]
+    return int(len(tail_points)/2)
     
+def tail_skeleton_to_angles(tail_skeleton):
+    tail_vectors = tail_skeleton[:,1:] - tail_skeleton[:,:-1] 
+    angles = np.arctan2(tail_vectors[1,:], tail_vectors[0,:]) 
+    return angles
 
-FILENAME = 'darkleft_Thu_04_Jul_2024_18h00min54sec.csv'
+def get_tail(panda_series,n_tail_pts):
+    tail_skeleton = np.array([
+        [panda_series[f'tail_point_{n:03d}_x'] for n in range(n_tail_pts)],
+        [panda_series[f'tail_point_{n:03d}_y'] for n in range(n_tail_pts)]
+    ])
+    tail_angle = tail_skeleton_to_angles(tail_skeleton)
+    return tail_skeleton, tail_angle
 
-data = pd.read_csv(FILENAME)
-data_filtered = data.groupby('image_index').first()
-data_filtered = data_filtered[1:]
+def get_heading_angle(data):
+    angle = np.arctan2(data['pc1_y'],data['pc1_x'])
+    angle_unwrapped = np.unwrap(angle) 
+    return angle, angle_unwrapped
 
-time = 1e-9*(data_filtered['t_display'] - data_filtered['t_display'].iloc[0])
-time = time.values
+def get_relative_time(data):
+    return data['t_local'] - data['t_local'].iloc[0]
 
-## time
-plt.plot(1/data['t_local'].diff())
-plt.show()
+def get_distance(data):
+    x_diff = data['centroid_x'].diff()
+    y_diff = data['centroid_y'].diff()
+    distance = np.sqrt(x_diff**2+y_diff**2)
+    return distance
 
-plt.plot(1/np.diff(time))
-plt.show()
+def analyse_dark_vs_bright(data):
+    dark = data[data['stim_id'] == StimType.DARK]
+    bright = data[data['stim_id'] == StimType.BRIGHT]
 
-## trajectories
-plt.plot(data_filtered['centroid_x'],data_filtered['centroid_y'])
-plt.axis('square')
-plt.show()
+def analyse_phototaxis(data, fish_id, dpf):
+    phototaxis = data[data['stim_id'] == StimType.PHOTOTAXIS]
 
-## distance
-x_diff = data_filtered['centroid_x'].diff()
-y_diff = data_filtered['centroid_y'].diff()
-distance = np.sqrt(x_diff**2+y_diff**2)
+    def get_data(polarity):
+        pol = phototaxis[phototaxis['phototaxis_polarity'] == polarity]
+        time = get_relative_time(pol)
+        angle, angle_unwrapped = get_heading_angle(pol)
+        res = pd.DataFrame({
+            'time': time, 
+            'angle': angle, 
+            'angle_unwrapped': angle_unwrapped,
+            'polarity': polarity,
+            'fish_id': fish_id,
+            'dpf': dpf
+        })
+        return res
 
-## bout detection 
-distance_ewm = distance.ewm(alpha=0.05).mean()
-bouts = 1*(distance_ewm > 5)
-start = np.where(bouts.diff()>0)[0]
-stop = np.where(bouts.diff()<0)[0]
+    res = pd.concat((get_data(1),get_data(-1)))
+    return res
 
-fig = plt.figure() 
-ax = fig.add_subplot(111) 
-for x0,x1 in zip(start,stop):
-    rect = matplotlib.patches.Rectangle((time[x0],0), time[x1]-time[x0], 100, color='lightgray')
-    ax.add_patch(rect)
-plt.plot(time,distance_ewm)
-plt.plot(time,distance)
-plt.show()
+def plot_phototaxis(data):
+    for dpf, data_dpf in data.groupby('dpf'):
+        fig = plt.figure()
+        fig.suptitle(f'{dpf} dpf')
+        for fish_id, data_fish in data_dpf.groupby('fish_id'):
+            for polarity, data_polarity in data_fish.groupby('polarity'):
+                plt.plot(
+                    data_polarity['angle_unwrapped'], 
+                    data_polarity['time'], 
+                    color='r' if polarity==1 else 'b'
+                )
+        plt.show()
 
-## angle
-# positive angles: fish turning right
-# negative angles: fish turning left
-angle = np.arctan2(data_filtered['pc2_y'],data_filtered['pc2_x'])
-angle_unwrapped = np.unwrap(angle) 
-plt.plot(time,angle_unwrapped)
-plt.show()
+def analyse_dark_vs_bright(data, fish_id, dpf):
 
-## animation with trajectories and angle
-fig = plt.figure() 
+    def get_data(stim_type):
+        light = data[data['stim_id'] == stim_type]
+        res = pd.DataFrame({
+            'time': get_relative_time(light), 
+            'distance':  get_distance(light),
+            'condition': stim_type,
+            'fish_id': fish_id,
+            'dpf': dpf
+        })
+        return res
+    
+    res = pd.concat((
+        get_data(StimType.BRIGHT),
+        get_data(StimType.DARK)
+    ))
+    return res
 
-ax0 = fig.add_subplot(311) 
-angle_global = ax0.plot(time,angle_unwrapped)[0]
-distance_global = ax0.plot(time,distance_ewm)[0]
-location = ax0.plot([0, 0],[-200,200])[0]
-ax0.set(ylim=[min(angle_unwrapped)-10, max(angle_unwrapped)+10])
+def plot_dark_vs_bright(data):
 
-ax1 = fig.add_subplot(312) 
-pc2_x = np.array([data_filtered['centroid_x'].iloc[0], 
-                  data_filtered['centroid_x'].iloc[0] + 100*data_filtered['pc2_x'].iloc[0]])
-pc2_y = np.array([data_filtered['centroid_y'].iloc[0], 
-                  data_filtered['centroid_y'].iloc[0] + 100*data_filtered['pc2_y'].iloc[0]])
-trajectory_line = ax1.plot(data_filtered['centroid_x'].iloc[0],data_filtered['centroid_y'].iloc[0])[0]
-orientation_line = ax1.plot(pc2_x,pc2_y)[0]
-ax1.set(xlim=[0, 2048], ylim=[0, 2048])
-ax1.axis('square')
+    for dpf, data_dpf in data.groupby('dpf'):
+        fig = plt.figure()
+        fig.suptitle(f'{dpf} dpf')
+        for fish_id, data_fish in data_dpf.groupby('fish_id'):
+            for light, data_light in data_fish.groupby('condition'):
+                plt.plot(
+                    data_light['time'], 
+                    data_light['distance'].cumsum(), 
+                    color='r' if light == StimType.BRIGHT else 'b' if light==StimType.DARK else 'k'
+                )
+        plt.show()
 
-ax2 = fig.add_subplot(313) 
-angle_line = ax2.plot(time[0],angle_unwrapped[0])[0]
-ax2.set(ylim=[min(angle_unwrapped)-10, max(angle_unwrapped)+10])
+def analyse_omr(data, fish_id, dpf):
+    omr = data[data['stim_id'] == StimType.OMR]
 
+    def get_data(omr_angle):
+        ang = omr[omr['omr_angle_deg'] == omr_angle]
+        angle, angle_unwrapped = get_heading_angle(ang)
+        res = pd.DataFrame({
+            'time': get_relative_time(ang), 
+            'angle': angle, 
+            'angle_unwrapped': angle_unwrapped,
+            'distance':  get_distance(ang),
+            'omr_angle': omr_angle,
+            'fish_id': fish_id,
+            'dpf': dpf
+        })
+        return res
+    
+    res = pd.concat((
+        get_data(0.0),
+        get_data(90.0),
+        get_data(-90.0),
+        get_data(180.0),
+    ))
+    return res
 
-def update(frame, history:int = 250):
-    angle_line.set_xdata(time[max(frame-history,0):frame])
-    angle_line.set_ydata(angle_unwrapped[max(frame-history,0):frame])
-    ax2.set(xlim=[time[frame]-5, time[frame]+1])
+def plot_omr_left_vs_right(data):
 
-    trajectory_line.set_xdata(data_filtered['centroid_x'].iloc[max(frame-history,0):frame])
-    trajectory_line.set_ydata(data_filtered['centroid_y'].iloc[max(frame-history,0):frame])
-    pc2_x = np.array([data_filtered['centroid_x'].iloc[frame], 
-                  data_filtered['centroid_x'].iloc[frame] + 100*data_filtered['pc2_x'].iloc[frame]])
-    pc2_y = np.array([data_filtered['centroid_y'].iloc[frame], 
-                  data_filtered['centroid_y'].iloc[frame] + 100*data_filtered['pc2_y'].iloc[frame]])
-    orientation_line.set_xdata(pc2_x)
-    orientation_line.set_ydata(pc2_y)
-    ax1.set(xlim=[0, 2048], ylim=[0, 2048])
+    for dpf, data_dpf in data.groupby('dpf'):
+        fig = plt.figure()
+        fig.suptitle(f'{dpf} dpf')
+        for fish_id, data_fish in data_dpf.groupby('fish_id'):
+            for omr_angle, data_omr in data_fish.groupby('omr_angle'):
+                if omr_angle in [-90.0,90.0]:
+                    plt.plot(
+                        data_omr['angle_unwrapped'], 
+                        data_omr['time'], 
+                        color='r' if omr_angle==90 else 'b' if omr_angle==-90 else 'k'
+                    )
+        plt.show()
 
-    location.set_xdata([time[frame], time[frame]])
+def plot_omr_back_vs_front(data):
 
-    return (angle_line, trajectory_line, orientation_line, location)
+    for dpf, data_dpf in data.groupby('dpf'):
+        fig = plt.figure()
+        fig.suptitle(f'{dpf} dpf')
+        for fish_id, data_fish in data_dpf.groupby('fish_id'):
+            for omr_angle, data_omr in data_fish.groupby('omr_angle'):
+                if omr_angle in [0.0,180.0]:
+                    plt.plot(
+                        data_omr['time'], 
+                        data_omr['distance'].cumsum(), 
+                        color='r' if omr_angle==0.0 else 'b' if omr_angle==180.0 else 'k'
+                    )
+        plt.show()
 
-ani = animation.FuncAnimation(fig=fig, func=update, frames=range(0,len(time),5), interval=200)
-plt.show()
+def analyse_okr(data, fish_id, dpf):
+    okr = data[data['stim_id'] == StimType.OKR]
+    
+    def get_data(okr_angle):
+        ang = okr[okr['okr_speed_deg_per_sec'] == okr_angle]
+        time = get_relative_time(ang)
+        angle, angle_unwrapped = get_heading_angle(ang)
+        res = pd.DataFrame({
+            'time': time, 
+            'angle': angle, 
+            'angle_unwrapped': angle_unwrapped,
+            'left_eye_angle': ang['left_eye_angle'],
+            'right_eye_angle': ang['right_eye_angle'],
+            'okr_angle': okr_angle,
+            'fish_id': fish_id,
+            'dpf': dpf
+        })
+        return res
 
-## Plotting 7dpf together
+    res = pd.concat((
+        get_data(36.0),
+        get_data(-36.0)
+    ))
+    return res
 
-LEFT = True
-RIGHT = False
-FILENAME = [
-    ('20240703_7dpf_LD_02_01.csv',LEFT,7),
-    ('20240703_7dpf_RD_03_01.csv',RIGHT,7),
-    ('20240703_7dpf_RD_04_01.csv',RIGHT,7),
-    ('20240704_8dpf_LD_02_01.csv',LEFT,8),
-    ('20240704_8dpf_LD_03_01.csv',LEFT,8),
-    ('20240704_8dpf_RD_01_01.csv',RIGHT,8),
-    ('20240705_9dpf_LD_01_01.csv',LEFT,9),
-    ('20240705_9dpf_LD_02_01.csv',LEFT,9),
-    ('20240705_9dpf_RD_03_01.csv',RIGHT,9)
-]
-color = {LEFT: 'b', RIGHT: 'r'}
-dpfs = np.unique([c for a,b,c in FILENAME])
+def plot_okr_eyes(data):
 
-fig, ax = plt.subplots(1,len(dpfs)) 
+    for dpf, data_dpf in data.groupby('dpf'):
+        for fish_id, data_fish in data_dpf.groupby('fish_id'):
+            fig, ax = plt.subplots(2)
+            for okr_angle, data_okr in data_fish.groupby('okr_angle'):
+                ax_id = 0 if okr_angle == 36 else 1
+                ax[ax_id].plot(
+                    data_okr['time'], 
+                    data_okr['left_eye_angle'], 
+                    color='b'
+                )
+                ax[ax_id].plot(
+                    data_okr['time'], 
+                    data_okr['right_eye_angle'], 
+                    color='r'
+                )
+        plt.show()
 
-for n, target_dpf in enumerate(dpfs):
-    for filename, direction, age in FILENAME:
-        if age == target_dpf:
-            data = pd.read_csv(filename)
-            data_filtered = data.groupby('image_index').first()
-            data_filtered = data_filtered[1:]
+def plot_okr_turns(data):
 
-            time = 1e-9*(data_filtered['t_display'] - data_filtered['t_display'].iloc[0])
-            time = time.values
+    for dpf, data_dpf in data.groupby('dpf'):
+        fig = plt.figure()
+        fig.suptitle(f'{dpf} dpf')
+        for fish_id, data_fish in data_dpf.groupby('fish_id'):
+            for okr_angle, data_omr in data_fish.groupby('okr_angle'):
+                plt.plot(
+                    data_omr['angle_unwrapped'], 
+                    data_omr['time'], 
+                    color='r' if okr_angle==36 else 'b' if okr_angle==-36 else 'k'
+                )
+        plt.show()
 
-            angle = np.arctan2(data_filtered['pc2_y'],data_filtered['pc2_x'])
-            angle_unwrapped = np.unwrap(angle) 
-            ax[n].plot(time,angle_unwrapped, color=color[direction])
+def analyse_looming(data):
+    looming = data[data['stim_id'] == StimType.LOOMING]
+    rel_time =  looming['t_local'] % looming['looming_period_sec']
+    looming_on =  rel_time <= looming['looming_expansion_time_sec']
 
-plt.show()
+phototaxis = pd.DataFrame()
+omr = pd.DataFrame()
+okr = pd.DataFrame()
+bright_vs_dark = pd.DataFrame()
+for file in DATAFILES:
+    print(file)
+    fish_id, dpf, date = parse_filename(file)
+    data = pd.read_csv(file)
+    data_filtered = data.groupby('image_index').first()
+    data_filtered = data_filtered[1:]
+    data_filtered['stim_id'] = data_filtered['stim_id'].astype(int)
+    
+    bright_vs_dark = pd.concat((
+        bright_vs_dark,
+        analyse_dark_vs_bright(data_filtered, fish_id, dpf)
+    ))
+
+    phototaxis = pd.concat((
+        phototaxis, 
+        analyse_phototaxis(data_filtered, fish_id, dpf)
+    ))
+
+    omr = pd.concat((
+        omr, 
+        analyse_omr(data_filtered, fish_id, dpf)
+    ))
+
+    okr = pd.concat((
+        okr,
+        analyse_okr(data_filtered, fish_id, dpf)
+    ))
+
+    #analyse_looming(data_filtered)
+
+plot_dark_vs_bright(bright_vs_dark)
+plot_phototaxis(phototaxis)
+plot_omr_left_vs_right(omr)
+plot_omr_back_vs_front(omr)
+plot_okr_eyes(okr)
+plot_okr_turns(okr)
+
 
