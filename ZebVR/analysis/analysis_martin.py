@@ -3,10 +3,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Dict
 from datetime import datetime
 import re 
 from enum import IntEnum
+import seaborn as sns
+from scipy.stats import ranksums
 
 class StimType(IntEnum):
     DARK = 0
@@ -36,6 +38,55 @@ DATAFILES = [
     '04_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
     '05_09dpf_Di_27_Aug_2024_20h27min13sec.csv'
 ]
+
+def ranksum_plot(summary: Dict, col = ['red', 'blue']):
+
+    keys = list(summary.keys())
+
+    if len(keys) != 2:
+        RuntimeError('Provide dict with two keys')
+    
+    # plot summary
+    stat, p_value = ranksums(summary[keys[0]], summary[keys[1]])
+
+    if p_value < 0.001:
+        significance = '***'
+    elif p_value < 0.01:
+        significance = '**'
+    elif p_value < 0.05:
+        significance = '*'
+    else:
+        significance = 'ns'  
+
+    df = pd.DataFrame(summary)
+    df_melted = df.melt(var_name='cat', value_name='val')
+
+    fig = plt.figure()
+    ax = sns.stripplot(
+        data=df_melted, x='cat', y='val', hue='cat',
+        alpha=.5, legend=False, palette=sns.color_palette(col)
+    )
+    sns.pointplot(
+        data=df_melted, x='cat', y="val", hue='cat',
+        linestyle="none", errorbar=None,
+        marker="_", markersize=20, markeredgewidth=3,
+        palette=sns.color_palette(col)
+    )
+
+    M = max(df_melted['val'])
+    plt.plot([0, 1], [M * 1.1] * 2, color='black', lw=1)
+    plt.plot([0, 0], [M * 1.05, M * 1.1], color='black', lw=1)
+    plt.plot([1, 1], [M * 1.05, M * 1.1], color='black', lw=1)
+    plt.text(
+        0.5, M * 1.15, 
+        f'{significance}', 
+        horizontalalignment='center', 
+        fontsize=12
+    )
+    bottom, top = ax.get_ylim()
+    ax.set_ylim(bottom, M * 1.2)
+    ax.set_xlim(-0.5, 1.5)
+    plt.show()
 
 def parse_filename(filename: str, loc: str = 'de_DE.utf8') -> Tuple:
 
@@ -187,52 +238,83 @@ def analyse_looming(data, fish_id, dpf):
 def plot_dark_vs_bright(data):
 
     for dpf, data_dpf in data.groupby('dpf'):
+
+        summary = {}
+        summary[StimType.BRIGHT] = []
+        summary[StimType.DARK] = []
+
         fig = plt.figure()
         fig.suptitle(f'{dpf} dpf')
+
+        # plot trajectory
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
             for light, data_light in data_fish.groupby('condition'):
+                cum_distance = data_light['distance'].cumsum()
                 plt.plot(
                     data_light['time'], 
-                    data_light['distance'].cumsum(), 
+                    cum_distance, 
                     color='r' if light == StimType.BRIGHT else 'b' if light==StimType.DARK else 'k',
                     marker ='o',
                     markevery=[-1]
                 )
+                summary[light].append(cum_distance.iloc[-1])
         plt.show()
+
+        ranksum_plot(summary)
 
 def plot_omr_left_vs_right(data):
 
     for dpf, data_dpf in data.groupby('dpf'):
+
+        summary = {}
+        summary[-90.0] = []
+        summary[90] = []
+
         fig = plt.figure()
         fig.suptitle(f'{dpf} dpf')
+
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
             for omr_angle, data_omr in data_fish.groupby('omr_angle'):
                 if omr_angle in [-90.0,90.0]:
+                    angle_unwrapped = data_omr['angle_unwrapped']
                     plt.plot(
-                        data_omr['angle_unwrapped'], 
+                        angle_unwrapped, 
                         data_omr['time'], 
                         color='r' if omr_angle==90 else 'b' if omr_angle==-90 else 'k',
                         marker ='o',
                         markevery=[-1]
                     )
+                    summary[omr_angle].append(angle_unwrapped.iloc[-1])
         plt.show()
 
-def plot_omr_back_vs_front(data):
+        ranksum_plot(summary)
 
+def plot_omr_back_vs_front(data):
+    
     for dpf, data_dpf in data.groupby('dpf'):
+
+        summary = {}
+        summary[0.0] = []
+        summary[180.0] = []
+
         fig = plt.figure()
         fig.suptitle(f'{dpf} dpf')
+
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
             for omr_angle, data_omr in data_fish.groupby('omr_angle'):
                 if omr_angle in [0.0,180.0]:
+                    cum_distance = data_omr['distance'].cumsum()
                     plt.plot(
                         data_omr['time'], 
-                        data_omr['distance'].cumsum(), 
+                        cum_distance, 
                         color='r' if omr_angle==0.0 else 'b' if omr_angle==180.0 else 'k',
                         marker ='o',
                         markevery=[-1]
                     )
+                    summary[omr_angle].append(cum_distance.iloc[-1])
         plt.show()
+
+        ranksum_plot(summary)
 
 def plot_okr_eyes(data):
 
@@ -256,25 +338,43 @@ def plot_okr_eyes(data):
 def plot_okr_turns(data):
 
     for dpf, data_dpf in data.groupby('dpf'):
+
+        summary = {}
+        summary[36.0] = []
+        summary[-36.0] = []
+
         fig = plt.figure()
         fig.suptitle(f'{dpf} dpf')
+
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
             for okr_angle, data_omr in data_fish.groupby('okr_angle'):
+                angle_unwrapped = data_omr['angle_unwrapped']
                 plt.plot(
-                    data_omr['angle_unwrapped'], 
+                    angle_unwrapped, 
                     data_omr['time'], 
                     color='r' if okr_angle==36 else 'b' if okr_angle==-36 else 'k',
                     marker ='o',
                     markevery=[-1]
                 )
+                summary[okr_angle].append(angle_unwrapped.iloc[-1])
         plt.show()
 
+        ranksum_plot(summary)
+
 def plot_phototaxis(data):
+
     for dpf, data_dpf in data.groupby('dpf'):
+
+        summary = {}
+        summary[1] = []
+        summary[-1] = []
+
         fig = plt.figure()
         fig.suptitle(f'{dpf} dpf')
+
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
             for polarity, data_polarity in data_fish.groupby('polarity'):
+                angle_unwrapped = data_polarity['angle_unwrapped']
                 plt.plot(
                     data_polarity['angle_unwrapped'], 
                     data_polarity['time'], 
@@ -282,7 +382,10 @@ def plot_phototaxis(data):
                     marker ='o',
                     markevery=[-1]
                 )
+                summary[polarity].append(angle_unwrapped.iloc[-1])
         plt.show()
+
+        ranksum_plot(summary)
 
 def plot_loomings(data):
     pass
