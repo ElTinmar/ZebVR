@@ -2,14 +2,10 @@ import matplotlib.patches
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
-import matplotlib.animation as animation
 import numpy as np
-from numpy.typing import NDArray
 from typing import Tuple
 from datetime import datetime
 import re 
-from tqdm import tqdm
-from dataclasses import dataclass
 from enum import IntEnum
 
 class StimType(IntEnum):
