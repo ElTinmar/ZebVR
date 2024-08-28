@@ -39,7 +39,7 @@ DATAFILES = [
     '05_09dpf_Di_27_Aug_2024_20h27min13sec.csv'
 ]
 
-def ranksum_plot(summary: Dict, col = ['red', 'blue']):
+def ranksum_plot(summary: Dict, col = ['blue', 'red']):
 
     keys = list(summary.keys())
 
@@ -84,7 +84,7 @@ def ranksum_plot(summary: Dict, col = ['red', 'blue']):
         fontsize=12
     )
     bottom, top = ax.get_ylim()
-    ax.set_ylim(bottom, M * 1.2)
+    ax.set_ylim(bottom, M * 1.25)
     ax.set_xlim(-0.5, 1.5)
     plt.show()
 
