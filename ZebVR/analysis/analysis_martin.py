@@ -272,16 +272,22 @@ def plot_okr_turns(data):
                 )
         plt.show()
 
-def analyse_looming(data):
+def analyse_looming(data, fish_id, dpf):
     looming = data[data['stim_id'] == StimType.LOOMING]
     rel_time =  looming['t_local'] % looming['looming_period_sec']
     looming_on =  rel_time <= looming['looming_expansion_time_sec']
+
+def plot_loomings(data):
+    pass
 
 phototaxis = pd.DataFrame()
 omr = pd.DataFrame()
 okr = pd.DataFrame()
 bright_vs_dark = pd.DataFrame()
+looming = pd.DataFrame()
+
 for file in DATAFILES:
+
     print(file)
     fish_id, dpf, date = parse_filename(file)
     data = pd.read_csv(file)
@@ -309,7 +315,10 @@ for file in DATAFILES:
         analyse_okr(data_filtered, fish_id, dpf)
     ))
 
-    #analyse_looming(data_filtered)
+    looming = pd.concat((
+        looming,
+        analyse_looming(data_filtered, fish_id, dpf)
+    ))
 
 plot_dark_vs_bright(bright_vs_dark)
 plot_phototaxis(phototaxis)
@@ -317,5 +326,6 @@ plot_omr_left_vs_right(omr)
 plot_omr_back_vs_front(omr)
 plot_okr_eyes(okr)
 plot_okr_turns(okr)
+plot_loomings(looming)
 
 
