@@ -89,10 +89,6 @@ def get_distance(data):
     distance = np.sqrt(x_diff**2+y_diff**2)
     return distance
 
-def analyse_dark_vs_bright(data):
-    dark = data[data['stim_id'] == StimType.DARK]
-    bright = data[data['stim_id'] == StimType.BRIGHT]
-
 def analyse_phototaxis(data, fish_id, dpf):
     phototaxis = data[data['stim_id'] == StimType.PHOTOTAXIS]
 
@@ -113,19 +109,6 @@ def analyse_phototaxis(data, fish_id, dpf):
     res = pd.concat((get_data(1),get_data(-1)))
     return res
 
-def plot_phototaxis(data):
-    for dpf, data_dpf in data.groupby('dpf'):
-        fig = plt.figure()
-        fig.suptitle(f'{dpf} dpf')
-        for fish_id, data_fish in data_dpf.groupby('fish_id'):
-            for polarity, data_polarity in data_fish.groupby('polarity'):
-                plt.plot(
-                    data_polarity['angle_unwrapped'], 
-                    data_polarity['time'], 
-                    color='r' if polarity==1 else 'b'
-                )
-        plt.show()
-
 def analyse_dark_vs_bright(data, fish_id, dpf):
 
     def get_data(stim_type):
@@ -144,20 +127,6 @@ def analyse_dark_vs_bright(data, fish_id, dpf):
         get_data(StimType.DARK)
     ))
     return res
-
-def plot_dark_vs_bright(data):
-
-    for dpf, data_dpf in data.groupby('dpf'):
-        fig = plt.figure()
-        fig.suptitle(f'{dpf} dpf')
-        for fish_id, data_fish in data_dpf.groupby('fish_id'):
-            for light, data_light in data_fish.groupby('condition'):
-                plt.plot(
-                    data_light['time'], 
-                    data_light['distance'].cumsum(), 
-                    color='r' if light == StimType.BRIGHT else 'b' if light==StimType.DARK else 'k'
-                )
-        plt.show()
 
 def analyse_omr(data, fish_id, dpf):
     omr = data[data['stim_id'] == StimType.OMR]
@@ -184,36 +153,6 @@ def analyse_omr(data, fish_id, dpf):
     ))
     return res
 
-def plot_omr_left_vs_right(data):
-
-    for dpf, data_dpf in data.groupby('dpf'):
-        fig = plt.figure()
-        fig.suptitle(f'{dpf} dpf')
-        for fish_id, data_fish in data_dpf.groupby('fish_id'):
-            for omr_angle, data_omr in data_fish.groupby('omr_angle'):
-                if omr_angle in [-90.0,90.0]:
-                    plt.plot(
-                        data_omr['angle_unwrapped'], 
-                        data_omr['time'], 
-                        color='r' if omr_angle==90 else 'b' if omr_angle==-90 else 'k'
-                    )
-        plt.show()
-
-def plot_omr_back_vs_front(data):
-
-    for dpf, data_dpf in data.groupby('dpf'):
-        fig = plt.figure()
-        fig.suptitle(f'{dpf} dpf')
-        for fish_id, data_fish in data_dpf.groupby('fish_id'):
-            for omr_angle, data_omr in data_fish.groupby('omr_angle'):
-                if omr_angle in [0.0,180.0]:
-                    plt.plot(
-                        data_omr['time'], 
-                        data_omr['distance'].cumsum(), 
-                        color='r' if omr_angle==0.0 else 'b' if omr_angle==180.0 else 'k'
-                    )
-        plt.show()
-
 def analyse_okr(data, fish_id, dpf):
     okr = data[data['stim_id'] == StimType.OKR]
     
@@ -238,6 +177,62 @@ def analyse_okr(data, fish_id, dpf):
         get_data(-36.0)
     ))
     return res
+
+def analyse_looming(data, fish_id, dpf):
+    looming = data[data['stim_id'] == StimType.LOOMING]
+    rel_time =  looming['t_local'] % looming['looming_period_sec']
+    looming_on =  rel_time <= looming['looming_expansion_time_sec']
+
+
+def plot_dark_vs_bright(data):
+
+    for dpf, data_dpf in data.groupby('dpf'):
+        fig = plt.figure()
+        fig.suptitle(f'{dpf} dpf')
+        for fish_id, data_fish in data_dpf.groupby('fish_id'):
+            for light, data_light in data_fish.groupby('condition'):
+                plt.plot(
+                    data_light['time'], 
+                    data_light['distance'].cumsum(), 
+                    color='r' if light == StimType.BRIGHT else 'b' if light==StimType.DARK else 'k',
+                    marker ='o',
+                    markevery=[-1]
+                )
+        plt.show()
+
+def plot_omr_left_vs_right(data):
+
+    for dpf, data_dpf in data.groupby('dpf'):
+        fig = plt.figure()
+        fig.suptitle(f'{dpf} dpf')
+        for fish_id, data_fish in data_dpf.groupby('fish_id'):
+            for omr_angle, data_omr in data_fish.groupby('omr_angle'):
+                if omr_angle in [-90.0,90.0]:
+                    plt.plot(
+                        data_omr['angle_unwrapped'], 
+                        data_omr['time'], 
+                        color='r' if omr_angle==90 else 'b' if omr_angle==-90 else 'k',
+                        marker ='o',
+                        markevery=[-1]
+                    )
+        plt.show()
+
+def plot_omr_back_vs_front(data):
+
+    for dpf, data_dpf in data.groupby('dpf'):
+        fig = plt.figure()
+        fig.suptitle(f'{dpf} dpf')
+        for fish_id, data_fish in data_dpf.groupby('fish_id'):
+            for omr_angle, data_omr in data_fish.groupby('omr_angle'):
+                if omr_angle in [0.0,180.0]:
+                    plt.plot(
+                        data_omr['time'], 
+                        data_omr['distance'].cumsum(), 
+                        color='r' if omr_angle==0.0 else 'b' if omr_angle==180.0 else 'k',
+                        marker ='o',
+                        markevery=[-1]
+                    )
+        plt.show()
 
 def plot_okr_eyes(data):
 
@@ -268,14 +263,26 @@ def plot_okr_turns(data):
                 plt.plot(
                     data_omr['angle_unwrapped'], 
                     data_omr['time'], 
-                    color='r' if okr_angle==36 else 'b' if okr_angle==-36 else 'k'
+                    color='r' if okr_angle==36 else 'b' if okr_angle==-36 else 'k',
+                    marker ='o',
+                    markevery=[-1]
                 )
         plt.show()
 
-def analyse_looming(data, fish_id, dpf):
-    looming = data[data['stim_id'] == StimType.LOOMING]
-    rel_time =  looming['t_local'] % looming['looming_period_sec']
-    looming_on =  rel_time <= looming['looming_expansion_time_sec']
+def plot_phototaxis(data):
+    for dpf, data_dpf in data.groupby('dpf'):
+        fig = plt.figure()
+        fig.suptitle(f'{dpf} dpf')
+        for fish_id, data_fish in data_dpf.groupby('fish_id'):
+            for polarity, data_polarity in data_fish.groupby('polarity'):
+                plt.plot(
+                    data_polarity['angle_unwrapped'], 
+                    data_polarity['time'], 
+                    color='r' if polarity==1 else 'b',
+                    marker ='o',
+                    markevery=[-1]
+                )
+        plt.show()
 
 def plot_loomings(data):
     pass
