@@ -10,8 +10,6 @@ from enum import IntEnum
 import seaborn as sns
 from scipy.stats import ranksums
 
-#plt.style.use('./images/presentation.mplstyle')
-
 matplotlib.rcParams['font.size'] = 12
 
 class StimType(IntEnum):
@@ -43,7 +41,11 @@ DATAFILES = [
     '03_09dpf_Di_27_Aug_2024_17h17min12sec.csv',
     '04_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
     '05_09dpf_Di_27_Aug_2024_20h27min13sec.csv',
+    '01_10dpf_Mi_28_Aug_2024_10h18min41sec.csv',
+    '02_10dpf_Mi_28_Aug_2024_11h44min03sec.csv',
+    '03_10dpf_Mi_28_Aug_2024_13h16min25sec.csv',
     '04_10dpf_Mi_28_Aug_2024_14h30min41sec.csv',
+    '05_10dpf_Mi_28_Aug_2024_16h21min17sec.csv',
     '06_10dpf_Mi_28_Aug_2024_17h41min49sec.csv'
 ]
 
@@ -83,7 +85,16 @@ def significance_bridge(ax,x,y,p_value,fontsize,prct_offset=0.05):
     
     ax.set_ylim(bottom, Mxy + 3*offset)
 
-def ranksum_plot(x, y, cat_names: Iterable, ylabel: str, col: Iterable, fontsize: int = 12, *args, **kwargs):
+def ranksum_plot(
+        x, 
+        y, 
+        cat_names: Iterable, 
+        ylabel: str, 
+        title: str,
+        col: Iterable, 
+        fontsize: int = 12, 
+        *args, 
+        **kwargs):
     
     stat, p_value = ranksums(x, y, *args, **kwargs)
 
@@ -91,6 +102,7 @@ def ranksum_plot(x, y, cat_names: Iterable, ylabel: str, col: Iterable, fontsize
     df_melted = df.melt(var_name='cat', value_name='val')
 
     fig = plt.figure()
+    fig.suptitle(title)
 
     ax = sns.stripplot(
         data=df_melted, x='cat', y='val', hue='cat',
@@ -292,6 +304,7 @@ def plot_dark_vs_bright(data):
             y = summary[StimType.DARK],
             cat_names=('bright', 'dark'),
             ylabel='cum. distance (px)',
+            title=f'{dpf} dpf',
             col=COLORS
         )
 
@@ -328,6 +341,7 @@ def plot_omr_left_vs_right(data):
             y = summary[-90],
             cat_names=('leftward', 'rightward'),
             ylabel='cum. angle (rad)',
+            title=f'{dpf} dpf',
             col=COLORS
         )
 
@@ -364,6 +378,7 @@ def plot_omr_back_vs_front(data):
             y = summary[180],
             cat_names=('backward', 'forward'),
             ylabel='cum. distance (px)',
+            title=f'{dpf} dpf',
             col=COLORS
         )
 
@@ -418,6 +433,7 @@ def plot_okr_turns(data):
             y = summary[-36],
             cat_names=('clockwise', 'counterclockwise'),
             ylabel='cum. angle (rad)',
+            title=f'{dpf} dpf',
             col=COLORS
         )
 
@@ -453,6 +469,7 @@ def plot_phototaxis(data):
             y = summary[-1],
             cat_names=('dark-left', 'dark-right'),
             ylabel='cum. angle (rad)',
+            title=f'{dpf} dpf',
             col=COLORS
         )
 
