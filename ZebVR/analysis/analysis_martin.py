@@ -26,9 +26,10 @@ class StimType(IntEnum):
     LOOMING = 5
 
 COLORS = ('#FF6900', '#002BFF')
+
+ARENA_CENTER = (1049,1049)
 ARENA_DIAMETER_MM = 50
 ARENA_DIAMETER_PX = PIX_PER_MM * ARENA_DIAMETER_MM
-ARENA_CENTER = (1037, 1165)
 
 # # experiment computer has locale set to german -_-
 import locale
@@ -192,6 +193,16 @@ def correct_spurious_flips(data):
     pass 
 
 def remove_data_on_well_edges(data, threshold_radius_mm = 22.5):
+
+    '''
+    # Some fish don't explore the whole arena. This does not work
+    mx = data.loc[data['centroid_x']>0, 'centroid_x'].min()
+    Mx = data['centroid_x'].max()
+    my = data.loc[data['centroid_y']>0, 'centroid_y'].min()
+    My = data['centroid_y'].max()
+    center_x = .5*(mx+Mx) 
+    center_y = .5*(my+My) 
+    '''
 
     threshold_radius_px = PIX_PER_MM * threshold_radius_mm
     x,y = np.mgrid[0:CAM_WIDTH:10,0:CAM_HEIGHT:10]
