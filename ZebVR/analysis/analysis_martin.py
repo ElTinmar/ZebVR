@@ -9,6 +9,11 @@ import re
 from enum import IntEnum
 import seaborn as sns
 from scipy.stats import ranksums
+from ZebVR.config import (
+    PIX_PER_MM,
+    CAM_WIDTH,
+    CAM_HEIGHT
+)
 
 matplotlib.rcParams['font.size'] = 12
 
@@ -21,6 +26,9 @@ class StimType(IntEnum):
     LOOMING = 5
 
 COLORS = ('#FF6900', '#002BFF')
+ARENA_DIAMETER_MM = 50
+ARENA_DIAMETER_PX = PIX_PER_MM * ARENA_DIAMETER_MM
+ARENA_CENTER = (1037, 1165)
 
 # # experiment computer has locale set to german -_-
 import locale
@@ -70,9 +78,9 @@ def significance_bridge(ax,x,y,p_value,fontsize,prct_offset=0.05):
     height = top-bottom
     offset = prct_offset * height
 
-    Mx = max(x) + 1.5 * offset
-    My = max(y) + 1.5 * offset
-    Mxy = max((Mx,My)) + offset
+    Mx = np.nanmax(x) + 1.5 * offset
+    My = np.nanmax(y) + 1.5 * offset
+    Mxy = np.nanmax((Mx,My)) + offset
     plt.plot([0, 0, 1, 1], [Mx, Mxy, Mxy, My], color='#555555', lw=1.5)
 
     significance = asterisk(p_value)
@@ -95,8 +103,8 @@ def ranksum_plot(
         fontsize: int = 12, 
         *args, 
         **kwargs):
-    
-    stat, p_value = ranksums(x, y, *args, **kwargs)
+        
+    stat, p_value = ranksums(x, y, nan_policy='omit', *args, **kwargs)
 
     df = pd.DataFrame({cat_names[0]: x, cat_names[1]: y})
     df_melted = df.melt(var_name='cat', value_name='val')
@@ -165,7 +173,9 @@ def get_tail(panda_series,n_tail_pts):
 
 def get_heading_angle(data):
     angle = np.arctan2(data['pc1_y'],data['pc1_x'])
-    angle_unwrapped = np.unwrap(angle) 
+    notna = ~np.isnan(angle)
+    angle_unwrapped = np.zeros_like(angle) * np.nan
+    angle_unwrapped[notna] = np.unwrap(angle[notna]) # TODO this is probably a bit wrong
     return angle, angle_unwrapped
 
 def get_relative_time(data):
@@ -176,6 +186,28 @@ def get_distance(data):
     y_diff = data['centroid_y'].diff()
     distance = np.sqrt(x_diff**2+y_diff**2)
     return distance
+
+def correct_spurious_flips(data):
+    # correct tracking errror where the body axis is flipped 180 deg
+    pass 
+
+def remove_data_on_well_edges(data, threshold_radius_mm = 22.5):
+
+    threshold_radius_px = PIX_PER_MM * threshold_radius_mm
+    x,y = np.mgrid[0:CAM_WIDTH:10,0:CAM_HEIGHT:10]
+    circle = (x - ARENA_CENTER[0])**2 + (y - ARENA_CENTER[0])**2 <= threshold_radius_px**2 
+    ind_edges = (data['centroid_x']-ARENA_CENTER[0])**2 + (data['centroid_y']-ARENA_CENTER[0])**2 >= threshold_radius_px**2 
+
+    fig = plt.figure()
+    plt.plot(data['centroid_x'],data['centroid_y'])
+    plt.plot(x[circle],y[circle], 'or', alpha = 0.05)
+    plt.axis('square')
+    plt.show()
+
+    # I don't want to compute heading based properties (e.g turns) on the wall
+    data.loc[ind_edges, ['pc1_x','pc1_y','pc2_x','pc2_y']] = pd.NA
+
+    return data
 
 def analyse_phototaxis(data, fish_id, dpf):
     phototaxis = data[data['stim_id'] == StimType.PHOTOTAXIS]
@@ -287,16 +319,17 @@ def plot_dark_vs_bright(data):
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
             for light, data_light in data_fish.groupby('condition'):
                 cum_distance = data_light['distance'].cumsum()
+                valid = cum_distance.notna()
                 plt.plot(
-                    data_light['time'], 
-                    cum_distance, 
+                    data_light.loc[valid, 'time'], 
+                    cum_distance[valid], 
                     color = COLORS[0] if light == StimType.BRIGHT else COLORS[1] if light==StimType.DARK else 'k',
                     marker ='o',
                     markevery=[-1]
                 )
                 plt.xlabel('time (s)')
                 plt.ylabel('cum. distance (px)')
-                summary[light].append(cum_distance.iloc[-1])
+                summary[light].append(cum_distance[valid].iloc[-1])
         plt.show(block=False)
 
         ranksum_plot(
@@ -451,8 +484,9 @@ def plot_phototaxis(data):
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
             for polarity, data_polarity in data_fish.groupby('polarity'):
                 angle_unwrapped = data_polarity['angle_unwrapped']
+                valid = angle_unwrapped.notna()
                 plt.plot(
-                    data_polarity['angle_unwrapped'], 
+                    angle_unwrapped, 
                     data_polarity['time'], 
                     color=COLORS[0] if polarity==1 else COLORS[1],
                     marker ='o',
@@ -460,7 +494,10 @@ def plot_phototaxis(data):
                 )
                 plt.xlabel('cumulative angle (rad)')
                 plt.ylabel('time (s)')
-                summary[polarity].append(angle_unwrapped.iloc[-1])
+                if sum(valid) == 0:
+                    summary[polarity].append(np.nan)
+                else:
+                    summary[polarity].append(angle_unwrapped[valid].iloc[-1])
 
         plt.show(block=False)
 
@@ -490,6 +527,7 @@ for file in DATAFILES:
     data = pd.read_csv(file)
     data_filtered = data.groupby('image_index').first()
     data_filtered = data_filtered[1:]
+    #data_filtered = remove_data_on_well_edges(data_filtered)
     data_filtered['stim_id'] = data_filtered['stim_id'].astype(int)
     
     bright_vs_dark = pd.concat((
