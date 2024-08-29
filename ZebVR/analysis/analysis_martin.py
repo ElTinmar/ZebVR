@@ -312,8 +312,19 @@ def analyse_okr(data, fish_id, dpf):
 def analyse_looming(data, fish_id, dpf):
     looming = data[data['stim_id'] == StimType.LOOMING]
     rel_time =  looming['t_local'] % looming['looming_period_sec']
-    looming_on =  rel_time <= looming['looming_expansion_time_sec']
-
+    looming_on = rel_time <= looming['looming_expansion_time_sec']
+    angle, angle_unwrapped = get_heading_angle(looming)
+    res =  pd.DataFrame({
+        'time': get_relative_time(looming), 
+        'angle': angle, 
+        'looming_on': looming_on,
+        'distance': get_distance(looming),
+        'centroid_x': looming['centroid_x'],
+        'centroid_y': looming['centroid_y'],
+        'fish_id': fish_id,
+        'dpf': dpf
+    })
+    return res
 
 def plot_dark_vs_bright(data):
 
@@ -522,8 +533,11 @@ def plot_phototaxis(data):
         )
 
 def plot_loomings(data):
-    # distance and escape trajectories
-    pass
+
+    for dpf, data_dpf in data.groupby('dpf'):
+        for fish_id, data_fish in data_dpf.groupby('fish_id'):
+            fig = plt.figure()
+            fig.suptitle(f'{dpf} dpf, fish ID: {fish_id}')
 
 phototaxis = pd.DataFrame()
 omr = pd.DataFrame()
