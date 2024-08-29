@@ -536,8 +536,24 @@ def plot_loomings(data):
 
     for dpf, data_dpf in data.groupby('dpf'):
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
+
             fig = plt.figure()
             fig.suptitle(f'{dpf} dpf, fish ID: {fish_id}')
+            plt.plot(
+                data_fish['time'], 
+                data_fish['distance']
+            )
+            plt.fill_between(
+                data_fish['time'],
+                data_fish['distance'].max(),
+                0,
+                where=data_fish['looming_on'],
+                alpha=0.2
+            )
+            plt.show()
+
+
+
 
 phototaxis = pd.DataFrame()
 omr = pd.DataFrame()
