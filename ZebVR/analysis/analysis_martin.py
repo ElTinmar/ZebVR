@@ -553,7 +553,43 @@ def plot_loomings(data):
             plt.show()
 
 
+            boundaries = get_boundaries(data_fish['looming_on'].to_list())
 
+            fig = plt.figure()
+            fig.suptitle(f'{dpf} dpf, fish ID: {fish_id}')
+            for start, stop in boundaries:
+                trajectory = np.array([
+                    [data_fish.iloc[start:stop]['centroid_x'] - data_fish.iloc[start]['centroid_x']],
+                    [data_fish.iloc[start:stop]['centroid_y'] - data_fish.iloc[start]['centroid_y']]
+                ]).squeeze()
+                theta = -looming.iloc[start]['angle']
+                rot = np.array([[np.cos(theta), -np.sin(theta)], 
+                                [np.sin(theta),  np.cos(theta)]])
+                trajectory_egocentric = rot @ trajectory
+                
+                looming_start_pos = [PIX_PER_MM*15]*2
+                plt.plot(
+                    trajectory_egocentric[0,:], 
+                    trajectory_egocentric[1,:]
+                )
+                plt.scatter(looming_start_pos[0],looming_start_pos[1], s=20)
+                plt.axis('square')
+
+            plt.show()
+
+
+def get_boundaries(bool_vec: Iterable):
+    in_region = False
+    boundaries = []
+    for i in range(len(bool_vec)):
+        if bool_vec[i] and not in_region:
+            start = i
+            in_region = True
+        elif not bool_vec[i] and in_region:
+            end = i
+            boundaries.append((start, end))
+            in_region = False
+    return boundaries
 
 phototaxis = pd.DataFrame()
 omr = pd.DataFrame()
