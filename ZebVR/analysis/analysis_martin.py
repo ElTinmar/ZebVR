@@ -354,12 +354,22 @@ def plot_helper(
         for i, k in enumerate(keys):
             summary[k] = []
             average_val = data_dpf[data_dpf[cat] == k].pivot(columns='fish_id',values=val).mean(axis=1,skipna=False)
+            std_val = data_dpf[data_dpf[cat] == k].pivot(columns='fish_id',values=val).std(axis=1,skipna=False)
             average_time = data_dpf[data_dpf[cat] == k].pivot(columns='fish_id',values='time').mean(axis=1,skipna=False)
             plt.plot(
                 average_val if vertical_time_axis else average_time, 
                 average_time if vertical_time_axis else average_val, 
                 color=col[i],
                 linewidth = 2
+            )
+            plt_fun =  plt.fill_betweenx if vertical_time_axis else plt.fill_between
+            plt_fun(
+                average_time,
+                average_val - std_val,
+                average_val + std_val,
+                color = col[i],
+                alpha = 0.3,
+                edgecolor = None
             )
         
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
@@ -398,7 +408,7 @@ def plot_dark_vs_bright(data):
         keys = (StimType.BRIGHT,StimType.DARK),
         key_names = ('bright', 'dark'),
         col=COLORS,
-        vertical_time_axis=True
+        vertical_time_axis=False
     )
         
 def plot_omr_left_vs_right(data):
