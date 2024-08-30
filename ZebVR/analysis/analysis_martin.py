@@ -375,22 +375,41 @@ def plot_omr_left_vs_right(data):
     for dpf, data_dpf in data.groupby('dpf'):
 
         summary = {}
-        summary[-90] = []
         summary[90] = []
+        summary[-90] = []
+
+        average_leftward_angle = data_dpf[data_dpf['omr_angle'] == 90].pivot(columns='fish_id',values='angle_unwrapped').mean(axis=1,skipna=False)
+        average_leftward_time = data_dpf[data_dpf['omr_angle'] == 90].pivot(columns='fish_id',values='time').mean(axis=1,skipna=False)
+        average_rightward_angle = data_dpf[data_dpf['omr_angle'] == -90].pivot(columns='fish_id',values='angle_unwrapped').mean(axis=1,skipna=False)
+        average_rightward_time = data_dpf[data_dpf['omr_angle'] == -90].pivot(columns='fish_id',values='time').mean(axis=1,skipna=False)
 
         fig = plt.figure()
         fig.suptitle(f'{dpf} dpf')
 
+        plt.plot(
+            average_leftward_angle, 
+            average_leftward_time,
+            color=COLORS[0],
+            linewidth = 2
+        )
+        plt.plot(
+            average_rightward_angle, 
+            average_rightward_time,
+            color=COLORS[1],
+            linewidth = 2
+        )
+
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
             for omr_angle, data_omr in data_fish.groupby('omr_angle'):
-                if omr_angle in [-90.0,90.0]:
+                if omr_angle in [90.0,-90.0]:
                     angle_unwrapped = data_omr['angle_unwrapped']
                     plt.plot(
                         angle_unwrapped, 
                         data_omr['time'], 
                         color=COLORS[0] if omr_angle==90 else COLORS[1] if omr_angle==-90 else 'k',
                         marker ='o',
-                        markevery=[-1]
+                        markevery=[-1],
+                        alpha=0.15
                     )
                     plt.xlabel('cumulative angle (rad)')
                     plt.ylabel('time (s)')
@@ -471,8 +490,26 @@ def plot_okr_turns(data):
         summary[36.0] = []
         summary[-36.0] = []
 
+        average_clockwise_angle = data_dpf[data_dpf['okr_angle'] == 36].pivot(columns='fish_id',values='angle_unwrapped').mean(axis=1,skipna=False)
+        average_clockwise_time = data_dpf[data_dpf['okr_angle'] == 36].pivot(columns='fish_id',values='time').mean(axis=1,skipna=False)
+        average_counterclockwise_angle = data_dpf[data_dpf['okr_angle'] == -36].pivot(columns='fish_id',values='angle_unwrapped').mean(axis=1,skipna=False)
+        average_counterclockwise_time = data_dpf[data_dpf['okr_angle'] == -36].pivot(columns='fish_id',values='time').mean(axis=1,skipna=False)
+
         fig = plt.figure()
         fig.suptitle(f'{dpf} dpf')
+
+        plt.plot(
+            average_clockwise_angle, 
+            average_clockwise_time,
+            color=COLORS[0],
+            linewidth = 2
+        )
+        plt.plot(
+            average_counterclockwise_angle, 
+            average_counterclockwise_time,
+            color=COLORS[1],
+            linewidth = 2
+        )
 
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
             for okr_angle, data_omr in data_fish.groupby('okr_angle'):
@@ -482,11 +519,15 @@ def plot_okr_turns(data):
                     data_omr['time'], 
                     color=COLORS[0] if okr_angle==36 else COLORS[1] if okr_angle==-36 else 'k',
                     marker ='o',
-                    markevery=[-1]
+                    markevery=[-1],
+                    alpha=0.15
                 )
                 plt.xlabel('cumulative angle (rad)')
                 plt.ylabel('time (s)')
                 summary[okr_angle].append(angle_unwrapped.iloc[-1])
+
+        ax = plt.gca()
+        ax.set_box_aspect(1)
 
         plt.show(block=False)
 
@@ -507,8 +548,26 @@ def plot_phototaxis(data):
         summary[1] = []
         summary[-1] = []
 
+        average_darkleft_angle = data_dpf[data_dpf['polarity'] == 1].pivot(columns='fish_id',values='angle_unwrapped').mean(axis=1,skipna=False)
+        average_darkleft_time = data_dpf[data_dpf['polarity'] == 1].pivot(columns='fish_id',values='time').mean(axis=1,skipna=False)
+        average_darkright_angle = data_dpf[data_dpf['polarity'] == -1].pivot(columns='fish_id',values='angle_unwrapped').mean(axis=1,skipna=False)
+        average_darkright_time = data_dpf[data_dpf['polarity'] == -1].pivot(columns='fish_id',values='time').mean(axis=1,skipna=False)
+
         fig = plt.figure()
         fig.suptitle(f'{dpf} dpf')
+
+        plt.plot(
+            average_darkleft_angle, 
+            average_darkleft_time,
+            color=COLORS[0],
+            linewidth = 2
+        )
+        plt.plot(
+            average_darkright_angle, 
+            average_darkright_time,
+            color=COLORS[1],
+            linewidth = 2
+        )
 
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
             for polarity, data_polarity in data_fish.groupby('polarity'):
@@ -519,7 +578,8 @@ def plot_phototaxis(data):
                     data_polarity['time'], 
                     color=COLORS[0] if polarity==1 else COLORS[1],
                     marker ='o',
-                    markevery=[-1]
+                    markevery=[-1],
+                    alpha=0.15
                 )
                 plt.xlabel('cumulative angle (rad)')
                 plt.ylabel('time (s)')
@@ -527,6 +587,9 @@ def plot_phototaxis(data):
                     summary[polarity].append(np.nan)
                 else:
                     summary[polarity].append(angle_unwrapped[valid].iloc[-1])
+
+        ax = plt.gca()
+        ax.set_box_aspect(1)
 
         plt.show(block=False)
 
