@@ -62,6 +62,13 @@ DATAFILES = [
     '04_07dpf_Do_29_Aug_2024_14h38min17sec.csv',
     '05_07dpf_Do_29_Aug_2024_16h11min51sec.csv',
     '06_07dpf_Do_29_Aug_2024_17h43min56sec.csv',
+    '07_07dpf_Do_29_Aug_2024_19h17min38sec.csv',
+    '01_07dpf_Do_29_Aug_2024_09h50min07sec.csv',
+    '02_07dpf_Do_29_Aug_2024_11h31min10sec.csv',
+    '03_07dpf_Do_29_Aug_2024_13h06min01sec.csv',
+    '04_07dpf_Do_29_Aug_2024_14h38min17sec.csv',
+    '05_07dpf_Do_29_Aug_2024_16h11min51sec.csv',
+    '06_07dpf_Do_29_Aug_2024_17h43min56sec.csv',
     '07_07dpf_Do_29_Aug_2024_19h17min38sec.csv'
 ]
 
