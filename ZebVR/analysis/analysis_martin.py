@@ -587,7 +587,7 @@ plot_phototaxis(phototaxis)
 plot_omr_left_vs_right(omr)
 plot_omr_back_vs_front(omr)
 plot_okr_eyes(okr)
-plot_okr_turns(okr)
+plot_okr_turns(okr) # TODO: compare the slope of the average (almost linear) to the angular speed of the stimulus (linear regression on the average time series)
 plot_loomings(looming)
 
 
