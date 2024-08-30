@@ -493,7 +493,6 @@ def plot_loomings(data):
             )
             plt.show()
 
-
             boundaries = get_boundaries(data_fish['looming_on'].to_list())
 
             fig = plt.figure()
