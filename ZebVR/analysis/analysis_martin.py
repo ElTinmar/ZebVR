@@ -471,6 +471,36 @@ def plot_phototaxis(data):
         vertical_time_axis=True
     )
 
+def plot_heading_angle(data):
+    angle, angle_unwrapped = get_heading_angle(data)
+    distance = get_distance(data)
+
+    plt.figure()
+    ax1 = plt.subplot(311)
+    ax1.plot(
+        data['t_local'], 
+        angle
+    )
+    ax1.plot(
+        data['t_local'], 
+        (angle.diff()**2).ewm(span=50).mean()
+    )
+    ax1.set_ylabel('angle')
+    ax2 = plt.subplot(312, sharex=ax1)
+    ax2.plot(
+        data['t_local'], 
+        angle_unwrapped
+    )
+    ax2.set_ylabel('cum. angle')
+    ax3 = plt.subplot(313, sharex=ax1)
+    ax3.plot(
+        data['t_local'], 
+        distance
+    )
+    ax3.set_ylabel('distance')
+    plt.show()
+
+
 def plot_okr_eyes(data):
 
     for dpf, data_dpf in data.groupby('dpf'):
