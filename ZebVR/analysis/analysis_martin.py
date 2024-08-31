@@ -45,17 +45,17 @@ def setlocale(*args, **kw):
 
 ## Visualization of the results --------------------------------------------------------------------
 DATAFILES = [
-    '01_09dpf_Di_27_Aug_2024_14h50min47sec.csv',
-    '02_09dpf_Di_27_Aug_2024_16h03min14sec.csv',
-    '03_09dpf_Di_27_Aug_2024_17h17min12sec.csv',
-    '04_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
-    '05_09dpf_Di_27_Aug_2024_20h27min13sec.csv',
-    '01_10dpf_Mi_28_Aug_2024_10h18min41sec.csv',
-    '02_10dpf_Mi_28_Aug_2024_11h44min03sec.csv',
-    '03_10dpf_Mi_28_Aug_2024_13h16min25sec.csv',
-    '04_10dpf_Mi_28_Aug_2024_14h30min41sec.csv',
-    '05_10dpf_Mi_28_Aug_2024_16h21min17sec.csv',
-    '06_10dpf_Mi_28_Aug_2024_17h41min49sec.csv',
+    '08_09dpf_Di_27_Aug_2024_14h50min47sec.csv',
+    '09_09dpf_Di_27_Aug_2024_16h03min14sec.csv',
+    '10_09dpf_Di_27_Aug_2024_17h17min12sec.csv',
+    '11_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
+    '12_09dpf_Di_27_Aug_2024_20h27min13sec.csv',
+    '08_10dpf_Mi_28_Aug_2024_10h18min41sec.csv',
+    '09_10dpf_Mi_28_Aug_2024_11h44min03sec.csv',
+    '10_10dpf_Mi_28_Aug_2024_13h16min25sec.csv',
+    '11_10dpf_Mi_28_Aug_2024_14h30min41sec.csv',
+    '12_10dpf_Mi_28_Aug_2024_16h21min17sec.csv',
+    '13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv',
     '01_07dpf_Do_29_Aug_2024_09h50min07sec.csv',
     '02_07dpf_Do_29_Aug_2024_11h31min10sec.csv',
     '03_07dpf_Do_29_Aug_2024_13h06min01sec.csv',
@@ -69,7 +69,14 @@ DATAFILES = [
     '04_08dpf_Fr_30_Aug_2024_14h15min52sec.csv',
     '05_08dpf_Fr_30_Aug_2024_15h47min53sec.csv',
     '06_08dpf_Fr_30_Aug_2024_17h17min41sec.csv',
-    '07_08dpf_Fr_30_Aug_2024_18h48min39sec.csv'
+    '07_08dpf_Fr_30_Aug_2024_18h48min39sec.csv',
+    '01_09dpf_Sa_31_Aug_2024_09h34min08sec.csv',
+    '02_09dpf_Sa_31_Aug_2024_11h06min41sec.csv',
+    '03_09dpf_Sa_31_Aug_2024_12h40min20sec.csv',
+    '04_09dpf_Sa_31_Aug_2024_14h14min07sec.csv',
+    '05_09dpf_Sa_31_Aug_2024_15h57min07sec.csv',
+    '06_09dpf_Sa_31_Aug_2024_17h28min16sec.csv',
+    '07_09dpf_Sa_31_Aug_2024_19h00min21sec.csv',
 ]
 
 def asterisk(p_value: float) -> str:
@@ -481,11 +488,6 @@ def plot_heading_angle(data):
         data['t_local'], 
         angle
     )
-    ax1.plot(
-        data['t_local'], 
-        (angle.diff()**2).ewm(span=50).mean()
-    )
-    ax1.set_ylabel('angle')
     ax2 = plt.subplot(312, sharex=ax1)
     ax2.plot(
         data['t_local'], 
