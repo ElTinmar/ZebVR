@@ -17,6 +17,15 @@ from ZebVR.config import (
 
 matplotlib.rcParams['font.size'] = 12
 
+# TODO ---------------------
+# check for jumping centroid
+# check for jumping heading
+# -> remove offending data
+# 
+# IDEAS: 
+#   - wavelet transform to identify high freq jumping? 
+#   - speed threshold  
+
 class StimType(IntEnum):
     DARK = 0
     BRIGHT = 1
