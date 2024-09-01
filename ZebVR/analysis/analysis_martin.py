@@ -26,6 +26,9 @@ matplotlib.rcParams['font.size'] = 12
 #   - wavelet transform to identify high freq jumping? 
 #   - speed threshold  
 
+# TODO ---------------------
+# Better plotting with images
+
 class StimType(IntEnum):
     DARK = 0
     BRIGHT = 1
