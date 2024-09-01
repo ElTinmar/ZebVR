@@ -413,7 +413,7 @@ class MainGui(QWidget):
                 "pix_per_mm": PIX_PER_MM,
                 "size_to_check": CALIBRATION_CHECK_DIAMETER_MM,
                 "registration_file": REGISTRATION_FILE,
-                "thickness": 10.0,
+                "thickness": 3.0,
                 "pixel_scaling": PIXEL_SCALING, 
             }
         )
