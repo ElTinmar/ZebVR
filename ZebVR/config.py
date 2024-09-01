@@ -3,7 +3,7 @@ from video_tools import Polarity
 import numpy as np
 from functools import partial
 #from lightcrafter import set_lcr_video_mode
-from camera_tools import OpenCV_Webcam, MovieFileCam
+from camera_tools import OpenCV_Webcam_InitEveryFrame, MovieFileCam
 try:
     from camera_tools import XimeaCamera 
 except:
@@ -11,10 +11,10 @@ except:
 
 # flags
 DEBUG = False
-LCr = False
+LCr = True
 RECORD_VIDEO = False
-OPEN_LOOP = False
-BACKGROUND_GPU = True
+OPEN_LOOP = True
+BACKGROUND_GPU = False
 
 # general settings
 N_BACKGROUND_WORKERS = 1
@@ -39,9 +39,12 @@ BACKGROUND_COLOR = (0.0, 0.0, 0.0, 1.0)
 
 # camera
 if not DEBUG:
-    CAMERA_CONSTRUCTOR = XimeaCamera
-CAM_HEIGHT = 2048
-CAM_WIDTH = 2048
+    #CAMERA_CONSTRUCTOR = XimeaCamera
+    webcam = partial(OpenCV_Webcam_InitEveryFrame, cam_id=4)
+    CAMERA_CONSTRUCTOR = webcam 
+
+CAM_HEIGHT = 480
+CAM_WIDTH = 640
 CAM_OFFSETX = 0
 CAM_OFFSETY = 0
 CAM_EXPOSURE_MS = 3000
@@ -57,26 +60,26 @@ BACKGROUND_FILE = 'background.npy'
 IMAGE_FOLDER = os.path.join(os.getcwd(), 'recording_0')
 
 # calibration
-DETECTION_THRESHOLD = 0.15
+DETECTION_THRESHOLD = 0.8
 CONTRAST = 1
 GAMMA = 1
 BRIGHTNESS = 0
 BLUR_SIZE_PX = 1
 DOT_RADIUS = 10
-BAR_STEPS = 200
+BAR_STEPS = 50
 DOT_STEPS = 11
 CAM_REGISTRATION_EXPOSURE_MS = 5_000
 CAM_REGISTRATION_BARS_FPS = 30
-CAM_REGISTRATION_DOTS_FPS = 5
+CAM_REGISTRATION_DOTS_FPS = 30
 PATTERN_INTENSITY = 128
 
 # pix/mm
-CALIBRATION_SQUARE_SIZE_MM = 2
+CALIBRATION_SQUARE_SIZE_MM = 3
 CALIBRATION_CAM_EXPOSURE_MS = 15_000
 CALIBRATION_CAM_FPS = 10
 CALIBRATION_CHECKER_SIZE = (9, 6)
 CALIBRATION_CHECK_DIAMETER_MM = [15, 30, 45, 60]
-PIX_PER_MM = 38.773681409813456
+PIX_PER_MM = 4.116
 
 # static background
 NUM_IMAGES = 40

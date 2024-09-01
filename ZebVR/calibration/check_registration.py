@@ -178,7 +178,8 @@ def check_registration(
 
     # project point        
     proj.draw_image(mask_proj)
-    time.sleep(0.1)
+
+    time.sleep(1)
 
     # get camera frame 
     camera.start_acquisition() 
