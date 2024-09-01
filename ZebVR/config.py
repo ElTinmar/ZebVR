@@ -36,11 +36,12 @@ PROJ_POS = (1080, 0)
 PROJ_FPS = 240
 FOREGROUND_COLOR = (1.0, 0.0, 0.0, 1.0)
 BACKGROUND_COLOR = (0.0, 0.0, 0.0, 1.0)
+WEBCAM_ID = 4
 
 # camera
 if not DEBUG:
     #CAMERA_CONSTRUCTOR = XimeaCamera
-    webcam = partial(OpenCV_Webcam_InitEveryFrame, cam_id=4)
+    webcam = partial(OpenCV_Webcam_InitEveryFrame, cam_id=WEBCAM_ID)
     CAMERA_CONSTRUCTOR = webcam 
 
 CAM_HEIGHT = 480
@@ -60,12 +61,12 @@ BACKGROUND_FILE = 'background.npy'
 IMAGE_FOLDER = os.path.join(os.getcwd(), 'recording_0')
 
 # calibration
-DETECTION_THRESHOLD = 0.8
-CONTRAST = 1
-GAMMA = 1
+DETECTION_THRESHOLD = 0.5
+CONTRAST = 0.5
+GAMMA = 0.75
 BRIGHTNESS = 0
 BLUR_SIZE_PX = 1
-DOT_RADIUS = 10
+DOT_RADIUS = 3
 BAR_STEPS = 50
 DOT_STEPS = 11
 CAM_REGISTRATION_EXPOSURE_MS = 5_000
@@ -79,7 +80,7 @@ CALIBRATION_CAM_EXPOSURE_MS = 15_000
 CALIBRATION_CAM_FPS = 10
 CALIBRATION_CHECKER_SIZE = (9, 6)
 CALIBRATION_CHECK_DIAMETER_MM = [15, 30, 45, 60]
-PIX_PER_MM = 4.116
+PIX_PER_MM = 3.5766
 
 # static background
 NUM_IMAGES = 40
