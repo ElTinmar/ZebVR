@@ -203,11 +203,14 @@ def get_heading_angle(data):
 def get_relative_time(data):
     return data['t_local'] - data['t_local'].iloc[0]
 
+def get_relative_index(data):
+    return data.index - data.index[0]
+
 def get_distance(data):
     x_diff = data['centroid_x'].diff()
     y_diff = data['centroid_y'].diff()
     distance = np.sqrt(x_diff**2+y_diff**2)
-    return distance
+    return distance * 1/PIX_PER_MM
 
 def correct_spurious_flips(data):
     # correct tracking errror where the body axis is flipped 180 deg
@@ -256,6 +259,7 @@ def analyse_phototaxis(data, fish_id, dpf):
             'fish_id': fish_id,
             'dpf': dpf
         })
+        res = res.set_index(get_relative_index(pol))
         return res
 
     res = pd.concat((get_data(1),get_data(-1)))
@@ -272,6 +276,7 @@ def analyse_dark_vs_bright(data, fish_id, dpf):
             'fish_id': fish_id,
             'dpf': dpf
         })
+        res = res.set_index(get_relative_index(light))
         return res
     
     res = pd.concat((
@@ -295,6 +300,7 @@ def analyse_omr(data, fish_id, dpf):
             'fish_id': fish_id,
             'dpf': dpf
         })
+        res = res.set_index(get_relative_index(ang))
         return res
     
     res = pd.concat((
@@ -322,6 +328,7 @@ def analyse_okr(data, fish_id, dpf):
             'fish_id': fish_id,
             'dpf': dpf
         })
+        res = res.set_index(get_relative_index(ang))
         return res
 
     res = pd.concat((
@@ -345,6 +352,7 @@ def analyse_looming(data, fish_id, dpf):
         'fish_id': fish_id,
         'dpf': dpf
     })
+    res = res.set_index(get_relative_index(looming))
     return res
 
 
@@ -360,7 +368,7 @@ def plot_helper(
     ):
 
     for dpf, data_dpf in data.groupby('dpf'):
-
+            
         fig = plt.figure()
         fig.suptitle(f'{dpf} dpf')
 
@@ -397,8 +405,12 @@ def plot_helper(
                         markevery=[-1],
                         alpha=0.15
                     )
-                    plt.xlabel(xlabel)
-                    plt.ylabel('time (s)')
+                    if vertical_time_axis:
+                        plt.xlabel(xlabel) 
+                        plt.ylabel('time (s)')
+                    else:
+                        plt.xlabel('time (s)') 
+                        plt.ylabel(xlabel)
                     summary[cat_value].append(data_cat[val].iloc[-1])
 
         plt.show(block=False)
@@ -418,7 +430,7 @@ def plot_dark_vs_bright(data):
         data=data, 
         cat='light_condition', 
         val='cum_distance', 
-        xlabel='cum. distance (px)',
+        xlabel='cum. distance (mm)',
         keys = (StimType.BRIGHT,StimType.DARK),
         key_names = ('bright', 'dark'),
         col=COLORS,
@@ -444,7 +456,7 @@ def plot_omr_back_vs_front(data):
         data=data, 
         cat='omr_angle', 
         val='cum_distance', 
-        xlabel='cum. distance (px)',
+        xlabel='cum. distance (mm)',
         keys = (0,180),
         key_names = ('backwards', 'forwards'),
         col=COLORS,
@@ -459,7 +471,7 @@ def plot_okr_turns(data):
         val='angle_unwrapped', 
         xlabel='cum. angle (rad)',
         keys = (36,-36),
-        key_names = ('clockwise', 'counterclockwise'),
+        key_names = ('counterclockwise', 'clockwise'),
         col=COLORS,
         vertical_time_axis=True
     )
@@ -472,7 +484,7 @@ def plot_phototaxis(data):
         cat='polarity', 
         val='angle_unwrapped', 
         xlabel='cum. angle (rad)',
-        keys = (1,-1),
+        keys = (-1,1),
         key_names = ('dark-left', 'dark-right'),
         col=COLORS,
         vertical_time_axis=True
