@@ -28,6 +28,11 @@ matplotlib.rcParams['font.size'] = 12
 # TODO ---------------------
 # Better plotting with images
 
+# NOTE ---------------------
+# For the 9 dpfs of Sa_31_Aug_2024, the cold
+# mirror was likely off. Maybe discard non
+# global stimuli
+
 class StimType(IntEnum):
     DARK = 0
     BRIGHT = 1
