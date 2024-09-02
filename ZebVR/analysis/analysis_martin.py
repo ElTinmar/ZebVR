@@ -9,11 +9,10 @@ import re
 from enum import IntEnum
 import seaborn as sns
 from scipy.stats import ranksums
-from ZebVR.config import (
-    PIX_PER_MM,
-    CAM_WIDTH,
-    CAM_HEIGHT
-)
+
+PIX_PER_MM = 38.773681409813456
+CAM_WIDTH = 2048
+CAM_HEIGHT = 2048
 
 matplotlib.rcParams['font.size'] = 12
 
@@ -89,6 +88,13 @@ DATAFILES = [
     '05_09dpf_Sa_31_Aug_2024_15h57min07sec.csv',
     '06_09dpf_Sa_31_Aug_2024_17h28min16sec.csv',
     '07_09dpf_Sa_31_Aug_2024_19h00min21sec.csv',
+    '01_10dpf_So_01_Sep_2024_09h18min10sec.csv',
+    '02_10dpf_So_01_Sep_2024_11h51min15sec.csv',
+    '03_10dpf_So_01_Sep_2024_14h42min31sec.csv',
+    '04_10dpf_So_01_Sep_2024_16h12min08sec.csv',
+    '05_10dpf_So_01_Sep_2024_17h42min55sec.csv',
+    '06_10dpf_So_01_Sep_2024_19h13min20sec.csv',
+    '07_10dpf_So_01_Sep_2024_20h44min18sec.csv',
 ]
 
 def asterisk(p_value: float) -> str:
