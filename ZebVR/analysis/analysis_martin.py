@@ -33,6 +33,10 @@ matplotlib.rcParams['font.size'] = 12
 # mirror was likely off. Maybe discard non
 # global stimuli
 
+# NOTE ---------------------
+# Resolve the 300/600s phototaxis 
+# duration discrepancy for ranksum tests 
+
 class StimType(IntEnum):
     DARK = 0
     BRIGHT = 1
