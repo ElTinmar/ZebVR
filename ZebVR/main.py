@@ -2,6 +2,7 @@ from multiprocessing import set_start_method
 
 # This is apparently very important to set. Otherwise OpenCV warpAffine
 # takes way to much time when run in a separate process
+# NOTE setting to low value but not necessarily 1 ?
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
