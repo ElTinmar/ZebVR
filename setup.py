@@ -12,6 +12,7 @@ setup(
     install_requires=[
         "vispy",
         "PyQt5",
+        "opencv-python",
         "qt_widgets @ git+https://github.com/ElTinmar/qt_widgets.git@main",
         "tracker @ git+https://github.com/ElTinmar/tracker.git@main",
         "Lightcrafter @ git+https://github.com/ElTinmar/Lightcrafter.git@main",
