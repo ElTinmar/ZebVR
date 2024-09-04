@@ -36,7 +36,7 @@ PROJ_POS = (1080, 0)
 PROJ_FPS = 240
 FOREGROUND_COLOR = (1.0, 0.0, 0.0, 1.0)
 BACKGROUND_COLOR = (0.0, 0.0, 0.0, 1.0)
-WEBCAM_ID = 4
+WEBCAM_ID = 0
 
 # camera
 if not DEBUG:
