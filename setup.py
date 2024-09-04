@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='ZebVR',
-    python_requires='>=3.8',
+    python_requires='==3.8',
     author='Martin Privat',
     version='0.1.2',
     packages=['ZebVR', 'ZebVR.background', 'ZebVR.calibration', 'ZebVR.lightcrafter', 'ZebVR.stimulus', 'ZebVR.widgets', 'ZebVR.workers'],
