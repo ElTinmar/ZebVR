@@ -8,6 +8,19 @@ python ZebVR/main.py
 
 ## Installation
 
+```
+conda create -n VR python=3.8
+pip install git+https://github.com/ElTinmar/ZebVR.git@open_loop
+```
+
+## Use
+
+```
+python -m ZebVR
+```
+
+## 
+
 ### Get code from github and create conda environment 
 
 ```
