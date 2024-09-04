@@ -16,7 +16,7 @@ from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ObjectRingBuffer2, QueueMP
 from video_tools import BackroundImage
 from dagline import receive_strategy, send_strategy
-from stimulus import VisualStimWorker, GeneralStim
+from ZebVR.stimulus import VisualStimWorker, GeneralStim
 from tracker import (
     GridAssignment, 
     MultiFishTracker_CPU,
@@ -40,7 +40,7 @@ from tracker import (
     TailTrackerParamOverlay,
     BodyTracking
 )
-from workers import (
+from ZebVR.workers import (
     BackgroundSubWorker, 
     CameraWorker, 
     TrackerWorker, 
