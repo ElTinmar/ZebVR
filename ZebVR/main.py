@@ -16,12 +16,12 @@ from typing import Tuple
 import json
 from PyQt5.QtWidgets import QApplication
 
-from gui import MainGui
+from ZebVR.gui import MainGui
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ObjectRingBuffer2, QueueMP
 from video_tools import BackroundImage
 from dagline import receive_strategy, send_strategy
-from stimulus import VisualStimWorker, GeneralStim
+from ZebVR.stimulus import VisualStimWorker, GeneralStim
 from tracker import (
     GridAssignment, 
     MultiFishTracker_CPU,
@@ -45,7 +45,7 @@ from tracker import (
     TailTrackerParamOverlay,
     BodyTracking
 )
-from workers import (
+from ZebVR.workers import (
     BackgroundSubWorker, 
     CameraWorker, 
     TrackerWorker, 
@@ -57,7 +57,7 @@ from workers import (
     TrackingDisplay,
     Protocol
 )
-from config import (
+from ZebVR.config import (
     REGISTRATION_FILE, 
     CAM_WIDTH, 
     CAM_HEIGHT,

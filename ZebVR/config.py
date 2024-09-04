@@ -2,7 +2,7 @@ import os
 from video_tools import Polarity
 import numpy as np
 from functools import partial
-#from lightcrafter import set_lcr_video_mode
+#from ZebVR.lightcrafter import set_lcr_video_mode
 from camera_tools import OpenCV_Webcam, MovieFileCam
 try:
     from camera_tools import XimeaCamera 

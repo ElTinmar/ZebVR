@@ -22,7 +22,7 @@ from ZebVR.calibration import (
 )
 from ZebVR.background import inpaint_background, static_background
 
-from config import *
+from ZebVR.config import *
 
 # NOTE this is tightly coupled with main.py through the keys present in the Dicts.
 # Potential fix: explicitly expand dicts into keyword arguments
