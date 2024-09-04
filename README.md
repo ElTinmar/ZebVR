@@ -18,6 +18,15 @@ conda activate ZebVR
 conda develop . 
 ```
 
+### CUDA
+
+This seems necessary for now
+TODO make that optional
+
+```
+sudo apt install nvidia-cuda-toolkit
+```
+
 ### Install ximea package into environment
 ```
 conda activate ZebVR
