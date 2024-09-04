@@ -7,11 +7,6 @@ import cv2
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
-# solve the annoying version mismatch with th PyQt5 version shipped with opencv
-os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = QLibraryInfo.location(
-    QLibraryInfo.PluginsPath
-)
-
 from PyQt5.QtWidgets import QApplication
 
 import numpy as np
