@@ -1,15 +1,22 @@
 from multiprocessing import set_start_method
+from PyQt5.QtCore import QLibraryInfo
 
 # This is apparently very important to set. Otherwise OpenCV warpAffine
 # takes way to much time when run in a separate process
 import os
 os.environ["OMP_NUM_THREADS"] = "1"
 
+# solve the annoying version mismatch with th PyQt5 version shipped with opencv
+os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = QLibraryInfo.location(
+    QLibraryInfo.PluginsPath
+)
+
+from PyQt5.QtWidgets import QApplication
+
 import numpy as np
 from numpy.typing import NDArray
 from typing import Tuple
 import json
-from PyQt5.QtWidgets import QApplication
 
 from ZebVR.gui import MainGui
 from multiprocessing_logger import Logger
