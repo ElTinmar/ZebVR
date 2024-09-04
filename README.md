@@ -10,12 +10,20 @@ python ZebVR/main.py
 
 ### Get code from github and create conda environment 
 
+
+
 ```
 git clone https://github.com/ElTinmar/ZebVR.git
 cd ZebVR
 conda env create -f ZebVR.yml
 conda activate ZebVR
 conda develop . 
+```
+
+If conda complains that conda develop does not exist:
+
+```
+conda install conda-build
 ```
 
 ### CUDA
