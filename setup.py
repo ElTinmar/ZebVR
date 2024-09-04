@@ -2,9 +2,9 @@ from distutils.core import setup
 
 setup(
     name='ZebVR',
-    python_requires='==3.8',
+    python_requires='>=3.8, <3.11',
     author='Martin Privat',
-    version='0.1.3',
+    version='0.1.4',
     packages=['ZebVR', 'ZebVR.background', 'ZebVR.calibration', 'ZebVR.lightcrafter', 'ZebVR.stimulus', 'ZebVR.widgets', 'ZebVR.workers'],
     license='Creative Commons Attribution-Noncommercial-Share Alike license',
     description='Open and closed-loop virtual reality',
