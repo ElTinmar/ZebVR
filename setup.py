@@ -10,6 +10,7 @@ setup(
     description='Open and closed-loop virtual reality',
     long_description=open('README.md').read(),
     install_requires=[
+        "vispy",
         "qt_widgets @ git+https://github.com/ElTinmar/qt_widgets.git@main",
         "tracker @ git+https://github.com/ElTinmar/tracker.git@main",
         "Lightcrafter @ git+https://github.com/ElTinmar/Lightcrafter.git@main",
