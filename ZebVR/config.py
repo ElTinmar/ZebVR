@@ -7,7 +7,7 @@ from camera_tools import OpenCV_Webcam, MovieFileCam
 try:
     from camera_tools import XimeaCamera 
 except:
-    print('Ximea camera not imported')
+    pass
 
 # flags
 DEBUG = False
