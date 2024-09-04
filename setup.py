@@ -13,7 +13,6 @@ setup(
         "qt_widgets @ git+https://github.com/ElTinmar/qt_widgets.git@main",
         "tracker @ git+https://github.com/ElTinmar/tracker.git@main",
         "Lightcrafter @ git+https://github.com/ElTinmar/Lightcrafter.git@main",
-        "email @ git+https://github.com/ElTinmar/email.git@main",
         "multiprocessing_logger @ git+https://github.com/ElTinmar/multiprocessing_logger.git@main",
         "video_tools @ git+https://github.com/ElTinmar/video_tools.git@main",
         "image_tools @ git+https://github.com/ElTinmar/image_tools.git@main",
