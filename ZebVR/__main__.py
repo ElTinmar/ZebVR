@@ -11,7 +11,7 @@ from typing import Tuple
 import json
 from PyQt5.QtWidgets import QApplication
 
-from gui import MainGui
+from ZebVR.gui import MainGui
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ObjectRingBuffer2, QueueMP
 from video_tools import BackroundImage
@@ -52,7 +52,7 @@ from workers import (
     TrackingDisplay,
     Protocol
 )
-from config import (
+from ZebVR.config import (
     REGISTRATION_FILE, 
     CAM_WIDTH, 
     CAM_HEIGHT,
