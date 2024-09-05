@@ -10,6 +10,7 @@ os.environ["OMP_NUM_THREADS"] = "1"
 #os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 #os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
+from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 from typing import Tuple
@@ -155,22 +156,30 @@ if __name__ == "__main__":
 
     ## Declare workers -----------------------------------------------------------------------------
 
+    tracker_control = TrackerGui(
+        n_tracker_workers=N_TRACKER_WORKERS,
+        name='tracker_gui',  
+        logger=worker_logger, 
+        logger_queues=queue_logger,
+        receive_data_timeout=1.0   
+    )
+
     if BODY_TRACKING:
-        body_tracker=BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**BODY_TRACKING_PARAM))
+        body_tracker=BodyTracker_CPU(tracking_param=BodyTrackerParamTracking())
         body_overlay=BodyOverlay_opencv(BodyTrackerParamOverlay())
     else:
         body_tracker=None
         body_overlay=None
 
     if EYES_TRACKING:
-        eyes_tracker=EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**EYES_TRACKING_PARAM))
+        eyes_tracker=EyesTracker_CPU(tracking_param=EyesTrackerParamTracking())
         eyes_overlay=EyesOverlay_opencv(EyesTrackerParamOverlay())
     else:
         eyes_tracker=None
         eyes_overlay=None
 
     if TAIL_TRACKING:
-        tail_tracker=TailTracker_CPU(tracking_param=TailTrackerParamTracking(**TAIL_TRACKING_PARAM))
+        tail_tracker=TailTracker_CPU(tracking_param=TailTrackerParamTracking())
         tail_overlay=TailOverlay_opencv(TailTrackerParamOverlay())
     else:
         tail_tracker=None
@@ -284,13 +293,6 @@ if __name__ == "__main__":
     )
 
     tracker_control = TrackerGui(
-        animal_tracking_param=ANIMAL_TRACKING_PARAM,
-        body_tracking_param=BODY_TRACKING_PARAM,
-        eyes_tracking_param=EYES_TRACKING_PARAM,
-        tail_tracking_param=TAIL_TRACKING_PARAM,
-        body_tracking=BODY_TRACKING,
-        eyes_tracking=EYES_TRACKING,
-        tail_tracking=TAIL_TRACKING,
         n_tracker_workers=N_TRACKER_WORKERS,
         name='tracker_gui',  
         logger=worker_logger, 

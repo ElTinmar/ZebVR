@@ -233,8 +233,6 @@ class SequencerWidget(QWidget):
 
     def declare_components(self) -> None:
 
-
-
         # QListWidget
         self.list = QListWidget()
         self.list.setFixedWidth(460)
