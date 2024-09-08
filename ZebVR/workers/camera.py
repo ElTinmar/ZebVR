@@ -4,6 +4,7 @@ from image_tools import im2gray
 from dagline import WorkerNode
 import time
 from typing import Callable, Any
+import numpy as np
 
 class CameraWorker(WorkerNode):
 
@@ -51,11 +52,22 @@ class CameraWorker(WorkerNode):
     
     def process_data(self, data: None): 
         frame = self.cam.get_frame()
+        
         if frame:
-            img = im2gray(frame.image)
+
+            img = im2gray(frame['image'])
+            img_res = np.array(
+                (frame['index'], time.perf_counter_ns(), img),
+                dtype=np.dtype([
+                    ('index', int),
+                    ('timestamp', np.float64),
+                    ('image', img.dtype, img.shape)
+                ])
+            )
+
             res = {}
-            res['background_subtraction'] = (frame.index, time.perf_counter_ns(), img)
-            res['image_saver'] = (frame.index, time.perf_counter_ns(), img)
+            res['background_subtraction'] = img_res
+            res['image_saver'] = img_res
             return res
         
     def process_metadata(self, metadata) -> Any:

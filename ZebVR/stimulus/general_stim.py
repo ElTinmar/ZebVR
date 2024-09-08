@@ -417,40 +417,38 @@ class GeneralStim(VisualStim):
 
     def process_data(self, data) -> None:
         if data is not None:
-            
-            index, timestamp, tracking = data
 
             try:
-                self.index.value = index
-                self.timestamp.value = timestamp
+                self.index.value = data['index']
+                self.timestamp.value = data['timestamp']
 
-                print(f"{index}: latency {1e-6*(time.perf_counter_ns() - timestamp)}")
+                print(f"{data['index']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
 
                 # TODO choose animal
-                k = tracking.animals.identities[0]
+                k = data['tracking']['animals']['identities'][0]
 
-                if tracking.body[k] is not None:
-                    self.fish_centroid[:] = tracking.body[k].centroid_original_space
-                    heading = tracking.body[k].heading
+                if data['tracking']['body'][k] is not None:
+                    self.fish_centroid[:] = data['tracking']['body'][k]['centroid_original_space']
+                    heading = data['tracking']['body'][k]['heading']
                     self.fish_caudorostral_axis[:] = heading[:,0]
                     self.fish_mediolateral_axis[:] = heading[:,1]
                 else:
-                    self.fish_centroid[:] = tracking.animals.centroids[k,:]
+                    self.fish_centroid[:] = data['tracking']['animals']['centroids'][k,:]
 
                 # eyes
-                if tracking.eyes[k] is not None:
+                if data['tracking']['eyes'][k] is not None:
 
-                    if tracking.eyes[k].left_eye is not None:
-                        self.left_eye_centroid[:] = tracking.eyes[k].left_eye.centroid 
-                        self.left_eye_angle.value = tracking.eyes[k].left_eye.angle
+                    if data['tracking']['eyes'][k]['left_eye'] is not None:
+                        self.left_eye_centroid[:] = data['tracking']['eyes'][k]['left_eye']['centroid'] 
+                        self.left_eye_angle.value = data['tracking']['eyes'][k]['left_eye']['angle']
 
-                    if tracking.eyes[k].right_eye is not None:
-                        self.right_eye_centroid[:] = tracking.eyes[k].right_eye.centroid
-                        self.right_eye_angle.value = tracking.eyes[k].right_eye.angle
+                    if data['tracking']['eyes'][k]['right_eye'] is not None:
+                        self.right_eye_centroid[:] = data['tracking']['eyes'][k]['right_eye']['centroid']
+                        self.right_eye_angle.value = data['tracking']['eyes'][k]['right_eye']['angle']
 
                 # tail
-                if tracking.tail[k] is not None:
-                    skeleton_interp = tracking.tail[k].skeleton_interp  
+                if data['tracking']['tail'][k] is not None:
+                    skeleton_interp = data['tracking']['tail'][k]['skeleton_interp']  
                     self.tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
                     self.tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
 

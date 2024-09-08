@@ -10,11 +10,11 @@ except:
     pass
 
 # flags
-DEBUG = False
+DEBUG = True
 LCr = False
 RECORD_VIDEO = False
 OPEN_LOOP = False
-BACKGROUND_GPU = True
+BACKGROUND_GPU = False
 
 # general settings
 N_BACKGROUND_WORKERS = 1

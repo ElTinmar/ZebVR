@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import QApplication
 
 from ZebVR.gui import MainGui
 from multiprocessing_logger import Logger
-from ipc_tools import MonitoredQueue, ObjectRingBuffer2, QueueMP
+from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
 from video_tools import BackroundImage
 from dagline import receive_strategy, send_strategy
 from ZebVR.stimulus import VisualStimWorker, GeneralStim
@@ -27,7 +27,6 @@ from tracker import (
     GridAssignment, 
     MultiFishTracker_CPU,
     MultiFishOverlay_opencv, 
-    MultiFishTracking,
     AnimalTracker_CPU, 
     AnimalOverlay_opencv, 
     AnimalTrackerParamTracking, 
@@ -44,7 +43,6 @@ from tracker import (
     TailOverlay_opencv,
     TailTrackerParamTracking, 
     TailTrackerParamOverlay,
-    BodyTracking
 )
 from ZebVR.workers import (
     BackgroundSubWorker, 
@@ -80,11 +78,8 @@ from ZebVR.config import (
     VIDEO_RECORDING_RESIZE,
     ANIMAL_TRACKING_PARAM,
     BODY_TRACKING,
-    BODY_TRACKING_PARAM, 
     EYES_TRACKING,
-    EYES_TRACKING_PARAM,
     TAIL_TRACKING,
-    TAIL_TRACKING_PARAM,
     CAMERA_CONSTRUCTOR,
     LOGFILE_WORKERS, 
     LOGFILE_QUEUES,
@@ -112,30 +107,6 @@ from ZebVR.config import (
     N_PTS_INTERP
 )
 
-def serialize_image(buffer: NDArray, obj: Tuple[int, float, NDArray]) -> None:
-    index, timestamp, image = obj 
-    buffer['index'] = index
-    buffer['timestamp'] = timestamp
-    buffer['image'] = image
-
-def deserialize_image(arr: NDArray) -> Tuple[int, float, NDArray]:
-    index = arr['index'].item()
-    timestamp = arr['timestamp'].item()
-    image = arr[0]['image']
-    return (index, timestamp, image)
-
-def serialize_tracking_multifish(buffer: NDArray, obj: Tuple[int, float, MultiFishTracking]) -> NDArray:
-    index, timestamp, tracking = obj
-    buffer['index'] = index
-    buffer['timestamp'] = timestamp
-    tracking.to_numpy(buffer['tracking'])
-
-def deserialize_tracking_multifish(arr: NDArray) -> Tuple[int, float, MultiFishTracking]:
-    index = arr['index'].item()
-    timestamp = arr['timestamp'].item()
-    tracking = MultiFishTracking.from_numpy(arr[0]['tracking'][0])
-    return (index, timestamp, tracking)
-
 if __name__ == "__main__":
 
     set_start_method('spawn')
@@ -146,8 +117,6 @@ if __name__ == "__main__":
     except FileNotFoundError:
         print('Registration file not found, please run calibration first')
         calibration = {}
-        #calibration['cam_to_proj'] = [[1,0,0],[0,1,0],[0,0,1]]
-        #calibration['proj_to_cam'] = [[1,0,0],[0,1,0],[0,0,1]]
         calibration['cam_to_proj'] = [[1,0,0],[0,-1,504],[0,0,1]]
         calibration['proj_to_cam'] = [[1,0,0],[0,-1,-504],[0,0,1]]
 
@@ -205,26 +174,6 @@ if __name__ == "__main__":
         eyes=eyes_tracker,
         tail=tail_tracker
     )
-
-    # get dtype and itemsize for tracker results
-    tracking = t.track(np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.float32))
-    arr_multifish = tracking.to_numpy()
-    if OPEN_LOOP:
-        try:
-            with open(OPEN_LOOP_DATAFILE, 'r') as f:
-                open_loop_coords = json.load(f)
-        except FileNotFoundError:
-            print('Open loop coordinates file not found, please run and restart')
-            open_loop_coords = {}
-            open_loop_coords['centroid'] = [CAM_WIDTH/2, CAM_HEIGHT/2]
-            open_loop_coords['heading'] = [[0,1],[1,0]]
-    
-        # dirty trick to get the right byte size 
-        tracking_openloop = MultiFishTracking.from_numpy(arr_multifish)
-        tracking_openloop.animals.identities = np.array([-1])
-        tracking_openloop.animals.centroids = open_loop_coords['centroid']
-        tracking_openloop.body[-1].centroid_original_space = open_loop_coords['centroid']
-        tracking_openloop.body[-1].heading = open_loop_coords['heading']
 
     b = BackroundImage(
         image_file_name = BACKGROUND_FILE,
@@ -346,7 +295,7 @@ if __name__ == "__main__":
         if OPEN_LOOP:
             trck.append(
                 DummyTrackerWorker(
-                    tracking_openloop,
+                    tracking_openloop, #TODO fix that
                     name=f'tracker{i}', 
                     logger=worker_logger, 
                     logger_queues=queue_logger, 
@@ -390,36 +339,9 @@ if __name__ == "__main__":
 
     ## Declare queues -----------------------------------------------------------------------------
 
-    dt_uint8_RGB = np.dtype([
-        ('index', int, (1,)),
-        ('timestamp', float, (1,)), 
-        ('image', np.uint8, (CAM_HEIGHT,CAM_WIDTH,3))
-    ])
-
-    dt_uint8_gray = np.dtype([
-        ('index', int, (1,)),
-        ('timestamp', float, (1,)), 
-        ('image', np.uint8, (CAM_HEIGHT,CAM_WIDTH))
-    ])
-
-    dt_downsampled_uint8_RGB = np.dtype([
-        ('index', int, (1,)),
-        ('timestamp', float, (1,)), 
-        ('image', np.uint8, (round(CAM_HEIGHT*t.downsample_fullres_export), round(CAM_WIDTH*t.downsample_fullres_export), 3))
-    ])
-        
-    dt_single_gray = np.dtype([
-        ('index', int, (1,)),
-        ('timestamp', float, (1,)), 
-        ('image', np.float32, (CAM_HEIGHT,CAM_WIDTH))
-    ])
-
     q_cam = MonitoredQueue(
-        ObjectRingBuffer2(
-            num_items = 100,
-            data_type = dt_uint8_gray,
-            serialize = serialize_image,
-            deserialize = deserialize_image,
+        ModifiableRingBuffer(
+            num_bytes = 1e9,
             logger = queue_logger,
             name = 'camera_to_background',
             t_refresh=T_REFRESH
@@ -427,11 +349,8 @@ if __name__ == "__main__":
     )
 
     q_save_image = MonitoredQueue(
-        ObjectRingBuffer2(
-            num_items = 100,
-            data_type = dt_uint8_gray,
-            serialize = serialize_image,
-            deserialize = deserialize_image,
+        ModifiableRingBuffer(
+            num_bytes = 1e9,
             logger = queue_logger,
             name = 'camera_to_image_saver',
             t_refresh=T_REFRESH
@@ -444,11 +363,8 @@ if __name__ == "__main__":
     # set copy=True
 
     q_back = MonitoredQueue(
-        ObjectRingBuffer2(
-            num_items = 100,
-            data_type = dt_single_gray,
-            serialize = serialize_image,
-            deserialize = deserialize_image,
+        ModifiableRingBuffer(
+            num_bytes = 1e9,
             copy=False, # you probably don't need to copy if processing is fast enough
             logger = queue_logger,
             name = 'background_to_trackers',
@@ -456,21 +372,10 @@ if __name__ == "__main__":
         )
     )
 
-    # tracking ring buffer -------------------------------------------------------------------
-
-    dt_tracking_multifish = np.dtype([
-        ('index', int, (1,)),
-        ('timestamp', float, (1,)), 
-        ('tracking', arr_multifish.dtype, (1,))
-    ])
-
     # ---
     q_tracking = MonitoredQueue(
-        ObjectRingBuffer2(
-            num_items = 100,
-            data_type = dt_tracking_multifish,
-            serialize = serialize_tracking_multifish,
-            deserialize = deserialize_tracking_multifish,
+        ModifiableRingBuffer(
+            num_bytes = 1e9,
             logger = queue_logger,
             name = 'tracker_to_stim',
             t_refresh=T_REFRESH
@@ -478,11 +383,8 @@ if __name__ == "__main__":
     )
 
     q_overlay = MonitoredQueue(
-        ObjectRingBuffer2(
-            num_items = 100,
-            data_type = dt_tracking_multifish,
-            serialize = serialize_tracking_multifish,
-            deserialize = deserialize_tracking_multifish,
+        ModifiableRingBuffer(
+            num_bytes = 1e9,
             logger = queue_logger,
             name = 'tracker_to_overlay',
             t_refresh=T_REFRESH

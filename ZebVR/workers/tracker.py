@@ -10,7 +10,6 @@ from tracker import (
     EyesTrackerParamTracking, 
     TailTracker_CPU,
     TailTrackerParamTracking,
-    MultiFishTracking
 )
 from dagline import WorkerNode
 import numpy as np
@@ -18,17 +17,20 @@ from numpy.typing import NDArray
 from typing import Any, Dict
 import time
 
+# TODO fix that
 class DummyTrackerWorker(WorkerNode):
     '''For open loop tracking, sends the centroid / main direction'''
     def __init__(
             self,
-            tracking: MultiFishTracking,
+            heading: NDArray,
+            centroid: NDArray,
             *args, 
             **kwargs
         ):
         super().__init__(*args, **kwargs)
 
-        self.tracking = tracking
+        self.heading = heading
+        self.centroid = centroid
 
     def initialize(self) -> None:
         super().initialize()
@@ -84,9 +86,18 @@ class TrackerWorker(WorkerNode):
         if tracking is None:
             return None
         
+        msg = np.array(
+            (index, timestamp, tracking),
+            dtpye=np.dtype([
+                ('index', int),
+                ('timestamp', np.float64),
+                ('tracking', tracking.dtype)
+            ])
+        )
+
         res = {}    
-        res['stimulus'] = (index, timestamp, tracking)
-        res['overlay'] = (index, timestamp, tracking)
+        res['stimulus'] = msg
+        res['overlay'] = msg
         return res
         
     def process_metadata(self, metadata) -> Any:

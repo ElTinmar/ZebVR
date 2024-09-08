@@ -39,13 +39,9 @@ class ImageSaverWorker(WorkerNode):
 
             if time.monotonic() - self.prev_time > 1/self.fps:
                 
-                index, timestamp, image = data
-                image_resized = cv2.resize(image,None,None,self.resize,self.resize,cv2.INTER_NEAREST)
-                metadata = np.array( 
-                    (index, timestamp), 
-                    dtype = np.dtype([('index',np.int64), ('timestamp',np.float32)]) 
-                )
-                filename = os.path.join(self.folder, f'{index:0{self.zero_padding}}')
+                image_resized = cv2.resize(data['image'],None,None,self.resize,self.resize,cv2.INTER_NEAREST)
+                metadata = data[['index','timestamp']]
+                filename = os.path.join(self.folder, f'{data['index']:0{self.zero_padding}}')
                 if self.compress:
                     np.savez_compressed(filename, image=image_resized, metadata=metadata)
                 else:
