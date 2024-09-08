@@ -80,14 +80,13 @@ class TrackerWorker(WorkerNode):
         if data is None:
             return None
 
-        index, timestamp, image = data
-        tracking = self.tracker.track(image)
+        tracking = self.tracker.track(data['image'])
         
         if tracking is None:
             return None
         
         msg = np.array(
-            (index, timestamp, tracking),
+            (data['index'], data['timestamp'], tracking),
             dtpye=np.dtype([
                 ('index', int),
                 ('timestamp', np.float64),
