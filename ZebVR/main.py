@@ -27,6 +27,8 @@ from tracker import (
     GridAssignment, 
     MultiFishTracker_CPU,
     MultiFishOverlay_opencv, 
+    MultiFishTrackerParamTracking,
+    MultiFishTrackerParamOverlay,
     AnimalTracker_CPU, 
     AnimalOverlay_opencv, 
     AnimalTrackerParamTracking, 
@@ -155,24 +157,26 @@ if __name__ == "__main__":
         tail_overlay=None
 
     o = MultiFishOverlay_opencv(
-        AnimalOverlay_opencv(AnimalTrackerParamOverlay()),
-        body_overlay,
-        eyes_overlay,
-        tail_overlay,
+        MultiFishTrackerParamOverlay(
+            AnimalOverlay_opencv(AnimalTrackerParamOverlay()),
+            body_overlay,
+            eyes_overlay,
+            tail_overlay
+        )
     )
-    
+
+
     t = MultiFishTracker_CPU(
-        max_num_animals=1,
-        accumulator=None, 
-        export_fullres_image=True,
-        downsample_fullres_export=DOWNSAMPLE_TRACKING_EXPORT,
-        animal=AnimalTracker_CPU(
-            assignment=GridAssignment(LUT=np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.int_)), 
-            tracking_param=AnimalTrackerParamTracking(**ANIMAL_TRACKING_PARAM)
-        ),
-        body=body_tracker,
-        eyes=eyes_tracker,
-        tail=tail_tracker
+        MultiFishTrackerParamTracking(
+            accumulator=None,
+            animal=AnimalTracker_CPU(
+                assignment=GridAssignment(LUT=np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.int_)), 
+                tracking_param=AnimalTrackerParamTracking(**ANIMAL_TRACKING_PARAM)
+            ),
+            body=body_tracker, 
+            eyes=eyes_tracker, 
+            tail=tail_tracker
+        )
     )
 
     b = BackroundImage(
@@ -295,7 +299,7 @@ if __name__ == "__main__":
         if OPEN_LOOP:
             trck.append(
                 DummyTrackerWorker(
-                    tracking_openloop, #TODO fix that
+                    None, #TODO fix that
                     name=f'tracker{i}', 
                     logger=worker_logger, 
                     logger_queues=queue_logger, 
@@ -338,10 +342,10 @@ if __name__ == "__main__":
     )
 
     ## Declare queues -----------------------------------------------------------------------------
-
+    
     q_cam = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 1e9,
+            num_bytes = 1*1024**3,
             logger = queue_logger,
             name = 'camera_to_background',
             t_refresh=T_REFRESH
@@ -350,7 +354,7 @@ if __name__ == "__main__":
 
     q_save_image = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 1e9,
+            num_bytes = 1*1024**3,
             logger = queue_logger,
             name = 'camera_to_image_saver',
             t_refresh=T_REFRESH
@@ -364,7 +368,7 @@ if __name__ == "__main__":
 
     q_back = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 1e9,
+            num_bytes = 1*1024**3,
             copy=False, # you probably don't need to copy if processing is fast enough
             logger = queue_logger,
             name = 'background_to_trackers',
@@ -375,7 +379,7 @@ if __name__ == "__main__":
     # ---
     q_tracking = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 1e9,
+            num_bytes = 1*1024**3,
             logger = queue_logger,
             name = 'tracker_to_stim',
             t_refresh=T_REFRESH
@@ -384,7 +388,7 @@ if __name__ == "__main__":
 
     q_overlay = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 1e9,
+            num_bytes = 1*1024**3,
             logger = queue_logger,
             name = 'tracker_to_overlay',
             t_refresh=T_REFRESH

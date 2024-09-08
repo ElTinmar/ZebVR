@@ -98,7 +98,8 @@ ANIMAL_TRACKING_PARAM = {
     'min_animal_width_mm': 0,
     'max_animal_width_mm': 0,
     'blur_sz_mm': 0.60,
-    'median_filter_sz_mm': 0
+    'median_filter_sz_mm': 0,
+    'source_image_shape': (CAM_HEIGHT, CAM_WIDTH)
 }
 
 BODY_TRACKING = True
