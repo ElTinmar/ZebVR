@@ -42,7 +42,7 @@ def static_background(
         frame = camera.get_frame()
         camera.stop_acquisition()
 
-        image = im2single(im2gray(frame.image))
+        image = im2single(im2gray(frame['image']))
         sample_frames[:,:,i] = image
         
         image_resized = cv2.resize(image,(resized_width,RESIZED_HEIGHT))

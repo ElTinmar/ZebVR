@@ -32,7 +32,7 @@ def inpaint_background(
     camera.start_acquisition() 
     frame = camera.get_frame()
     camera.stop_acquisition()
-    image = frame.image
+    image = frame['image']
 
     app = QApplication([])
     window = DrawPolyMask(image)

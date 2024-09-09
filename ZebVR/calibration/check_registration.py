@@ -184,7 +184,7 @@ def check_registration(
     camera.start_acquisition() 
     frame = camera.get_frame()
     camera.stop_acquisition()        
-    image = im2rgb(frame.image)
+    image = im2rgb(frame['image'])
     image[:,:,0] = im2uint8(mask_cam)
 
     resized_width = int(RESIZED_HEIGHT * cam_width/cam_height)

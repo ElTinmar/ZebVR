@@ -28,7 +28,7 @@ def open_loop_coords(
     camera.start_acquisition() 
     frame = camera.get_frame()
     camera.stop_acquisition()
-    image = frame.image
+    image = frame['image']
 
     # get centroid, heading, maybe eye position
     app = QApplication([])
