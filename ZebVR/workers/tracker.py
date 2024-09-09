@@ -87,7 +87,7 @@ class TrackerWorker(WorkerNode):
         
         msg = np.array(
             (data['index'], data['timestamp'], tracking),
-            dtpye=np.dtype([
+            dtype=np.dtype([
                 ('index', int),
                 ('timestamp', np.float64),
                 ('tracking', tracking.dtype)
