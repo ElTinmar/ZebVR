@@ -2,6 +2,7 @@ from tracker import (
     GridAssignment, 
     MultiFishTracker, 
     MultiFishTracker_CPU,
+    MultiFishTrackerParamTracking,
     AnimalTracker_CPU,  
     AnimalTrackerParamTracking,
     BodyTracker_CPU, 
@@ -132,13 +133,12 @@ class TrackerWorker(WorkerNode):
                 tail = None  
             
             self.tracker = MultiFishTracker_CPU(
-                max_num_animals=1,
-                accumulator=None, 
-                export_fullres_image=True,
-                downsample_fullres_export=self.downsample_tracker_export,
-                animal=animal,
-                body=body,
-                eyes=eyes,
-                tail=tail
+                MultiFishTrackerParamTracking(
+                    accumulator=None,
+                    animal=animal,
+                    body=body,
+                    eyes=eyes,
+                    tail=tail
+                )
             )
 

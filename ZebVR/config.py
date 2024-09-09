@@ -87,10 +87,10 @@ BACKGROUND_POLARITY = Polarity.DARK_ON_BRIGHT
 ANIMAL_TRACKING_PARAM = {
     'pix_per_mm': PIX_PER_MM,
     'target_pix_per_mm': 5,
-    'animal_intensity': 0.15,
+    'animal_intensity': 0.20,
     'animal_brightness': 0.0,
     'animal_gamma': 1.0,
-    'animal_contrast': 2.0,
+    'animal_contrast': 1.0,
     'min_animal_size_mm': 2.0,
     'max_animal_size_mm': 300.0, 
     'min_animal_length_mm': 0,
@@ -98,7 +98,9 @@ ANIMAL_TRACKING_PARAM = {
     'min_animal_width_mm': 0,
     'max_animal_width_mm': 0,
     'blur_sz_mm': 0.60,
+    'downsample_fullres': 0.25,
     'median_filter_sz_mm': 0,
+    'num_animals': 1,
     'source_image_shape': (CAM_HEIGHT, CAM_WIDTH)
 }
 
@@ -110,7 +112,7 @@ BODY_TRACKING_PARAM = {
     'body_brightness': 0.0,
     'body_gamma': 1.0,
     'body_contrast': 3.0,
-    'min_body_size_mm': 5.0,
+    'min_body_size_mm': 2.0,
     'max_body_size_mm': 300.0,
     'min_body_length_mm': 0,
     'max_body_length_mm': 0,
@@ -118,7 +120,7 @@ BODY_TRACKING_PARAM = {
     'max_body_width_mm': 0,
     'blur_sz_mm': 0.60,
     'median_filter_sz_mm': 0,
-    'crop_dimension_mm': (9.0, 9.0)
+    'crop_dimension_mm': (5.0, 5.0)
 }
 
 EYES_TRACKING = True

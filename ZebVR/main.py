@@ -165,7 +165,6 @@ if __name__ == "__main__":
         )
     )
 
-
     t = MultiFishTracker_CPU(
         MultiFishTrackerParamTracking(
             accumulator=None,

@@ -660,6 +660,10 @@ class TrackerWidget(QWidget):
         state['animal_tracking']['max_animal_width_mm']=self.animal_max_width_mm.value()
         state['animal_tracking']['blur_sz_mm']=self.animal_blur_sz_mm.value()
         state['animal_tracking']['median_filter_sz_mm']=self.animal_median_filter_sz_mm.value()
+        # TODO very dirty hack, please fix this
+        state['animal_tracking']['source_image_shape']=(500,504)
+        state['animal_tracking']['downsample_fullres']=0.25
+        state['animal_tracking']['num_animals']=1
         
         state['body_tracking_enabled']=self.group_body.isChecked()
         state['body_tracking'] = {}
