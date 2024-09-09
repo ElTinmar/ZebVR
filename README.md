@@ -59,3 +59,11 @@ if error 57 device already open, or if program is slower than usual
 ```
 sudo killall python
 ```
+
+cupy compiling error:
+
+```
+ /usr/include/c++/11/bits/std_function.h:530:146: error: parameter packs not expanded with ‘...’:
+```
+
+check https://github.com/NVIDIA/nccl/issues/650#issuecomment-1145173577
