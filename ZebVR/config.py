@@ -83,84 +83,9 @@ NUM_IMAGES = 40
 TIME_BETWEEN_IMAGES = 10
 BACKGROUND_POLARITY = Polarity.DARK_ON_BRIGHT
 
-# tracking
-ANIMAL_TRACKING_PARAM = {
-    'pix_per_mm': PIX_PER_MM,
-    'target_pix_per_mm': 5,
-    'animal_intensity': 0.20,
-    'animal_brightness': 0.0,
-    'animal_gamma': 1.0,
-    'animal_contrast': 1.0,
-    'min_animal_size_mm': 2.0,
-    'max_animal_size_mm': 300.0, 
-    'min_animal_length_mm': 0,
-    'max_animal_length_mm': 0,
-    'min_animal_width_mm': 0,
-    'max_animal_width_mm': 0,
-    'blur_sz_mm': 0.60,
-    'downsample_fullres': 0.25,
-    'median_filter_sz_mm': 0,
-    'num_animals': 1,
-    'source_image_shape': (CAM_HEIGHT, CAM_WIDTH)
-}
 
-BODY_TRACKING = True
-BODY_TRACKING_PARAM = {
-    'pix_per_mm': PIX_PER_MM,
-    'target_pix_per_mm': 7.5,
-    'body_intensity': 0.25,
-    'body_brightness': 0.0,
-    'body_gamma': 1.0,
-    'body_contrast': 3.0,
-    'min_body_size_mm': 2.0,
-    'max_body_size_mm': 300.0,
-    'min_body_length_mm': 0,
-    'max_body_length_mm': 0,
-    'min_body_width_mm': 0,
-    'max_body_width_mm': 0,
-    'blur_sz_mm': 0.60,
-    'median_filter_sz_mm': 0,
-    'crop_dimension_mm': (5.0, 5.0)
-}
-
-EYES_TRACKING = True
-EYES_TRACKING_PARAM = {
-    'pix_per_mm': PIX_PER_MM,
-    'target_pix_per_mm': 40,
-    'eye_thresh_lo': 0.3,
-    'eye_thresh_hi': 0.6,
-    'eye_dyntresh_res': 5,
-    'eye_brightness': 0.0,
-    'eye_gamma': 1.15,
-    'eye_contrast': 3.25,
-    'eye_size_lo_mm': 2.0,
-    'eye_size_hi_mm': 20.0,
-    'crop_offset_mm': -0.75,
-    'crop_dimension_mm': (1.5, 2.5),
-    'blur_sz_mm': 0.06,
-    'median_filter_sz_mm': 0
-}
-
-TAIL_TRACKING = True
 N_PTS_INTERP = 40
-TAIL_TRACKING_PARAM = {
-    'pix_per_mm': PIX_PER_MM,
-    'target_pix_per_mm': 20,
-    'tail_brightness': 0.0,
-    'tail_gamma': 0.75,
-    'tail_contrast': 3.0,
-    'ball_radius_mm': 0.15,
-    'arc_angle_deg': 90,
-    'n_pts_arc': 20,
-    'n_tail_points': 6,
-    'n_pts_interp': N_PTS_INTERP,
-    'tail_length_mm': 4.0,
-    'dist_swim_bladder_mm': 0.00,
-    'crop_dimension_mm': (4.5, 4.5),
-    'crop_offset_tail_mm': 3.5,
-    'blur_sz_mm': 0.06,
-    'median_filter_sz_mm': 0
-}
+
 
 # Display
 DISPLAY_FPS = 30

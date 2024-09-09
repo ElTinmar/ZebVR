@@ -33,17 +33,11 @@ from tracker import (
     AnimalOverlay_opencv, 
     AnimalTrackerParamTracking, 
     AnimalTrackerParamOverlay, 
-    BodyTracker_CPU, 
     BodyOverlay_opencv, 
-    BodyTrackerParamTracking, 
     BodyTrackerParamOverlay,  
-    EyesTracker_CPU,
     EyesOverlay_opencv,
-    EyesTrackerParamTracking, 
     EyesTrackerParamOverlay,
-    TailTracker_CPU,
     TailOverlay_opencv,
-    TailTrackerParamTracking, 
     TailTrackerParamOverlay,
 )
 from ZebVR.workers import (
@@ -78,10 +72,6 @@ from ZebVR.config import (
     VIDEO_RECORDING_FPS,
     VIDEO_RECORDING_COMPRESSION,
     VIDEO_RECORDING_RESIZE,
-    ANIMAL_TRACKING_PARAM,
-    BODY_TRACKING,
-    EYES_TRACKING,
-    TAIL_TRACKING,
     CAMERA_CONSTRUCTOR,
     LOGFILE_WORKERS, 
     LOGFILE_QUEUES,
@@ -135,33 +125,12 @@ if __name__ == "__main__":
         receive_data_timeout=1.0   
     )
 
-    if BODY_TRACKING:
-        body_tracker=BodyTracker_CPU(tracking_param=BodyTrackerParamTracking())
-        body_overlay=BodyOverlay_opencv(BodyTrackerParamOverlay())
-    else:
-        body_tracker=None
-        body_overlay=None
-
-    if EYES_TRACKING:
-        eyes_tracker=EyesTracker_CPU(tracking_param=EyesTrackerParamTracking())
-        eyes_overlay=EyesOverlay_opencv(EyesTrackerParamOverlay())
-    else:
-        eyes_tracker=None
-        eyes_overlay=None
-
-    if TAIL_TRACKING:
-        tail_tracker=TailTracker_CPU(tracking_param=TailTrackerParamTracking())
-        tail_overlay=TailOverlay_opencv(TailTrackerParamOverlay())
-    else:
-        tail_tracker=None
-        tail_overlay=None
-
     o = MultiFishOverlay_opencv(
         MultiFishTrackerParamOverlay(
             AnimalOverlay_opencv(AnimalTrackerParamOverlay()),
-            body_overlay,
-            eyes_overlay,
-            tail_overlay
+            BodyOverlay_opencv(BodyTrackerParamOverlay()),
+            EyesOverlay_opencv(EyesTrackerParamOverlay()),
+            TailOverlay_opencv(TailTrackerParamOverlay())
         )
     )
 
@@ -170,11 +139,11 @@ if __name__ == "__main__":
             accumulator=None,
             animal=AnimalTracker_CPU(
                 assignment=GridAssignment(LUT=np.zeros((CAM_HEIGHT,CAM_WIDTH), dtype=np.int_)), 
-                tracking_param=AnimalTrackerParamTracking(**ANIMAL_TRACKING_PARAM)
+                tracking_param=AnimalTrackerParamTracking(source_image_shape=(CAM_HEIGHT,CAM_WIDTH))
             ),
-            body=body_tracker, 
-            eyes=eyes_tracker, 
-            tail=tail_tracker
+            body=None, 
+            eyes=None, 
+            tail=None
         )
     )
 
