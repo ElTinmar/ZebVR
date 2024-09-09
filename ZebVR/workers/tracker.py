@@ -114,7 +114,10 @@ class TrackerWorker(WorkerNode):
 
             animal = AnimalTracker_CPU(
                 assignment=GridAssignment(LUT=np.zeros((self.cam_height, self.cam_width), dtype=np.int_)), 
-                tracking_param=AnimalTrackerParamTracking(**control['animal_tracking'])
+                tracking_param=AnimalTrackerParamTracking( 
+                    source_image_shape = (self.cam_height,self.cam_width), 
+                    **control['animal_tracking']
+                )
             )
             
             if control['body']:

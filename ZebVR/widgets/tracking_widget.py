@@ -32,13 +32,21 @@ class TrackerWidget(QWidget):
             self.load_from_file(settings_file)
 
     def declare_components(self):
+
+        self.animal_num_animals = LabeledSpinBox()
+        self.animal_num_animals.setText('#animals')
+        self.animal_num_animals.setRange(0,100)
+        self.animal_num_animals.setSingleStep(1)
+        self.animal_num_animals.setValue(1)
+        self.animal_num_animals.valueChanged.connect(self.on_change)
+    
         self.animal_pix_per_mm = LabeledDoubleSpinBox()
         self.animal_pix_per_mm.setText('pix/mm')
         self.animal_pix_per_mm.setRange(0,200)
         self.animal_pix_per_mm.setValue(50)
         self.animal_pix_per_mm.setSingleStep(0.25)
         self.animal_pix_per_mm.valueChanged.connect(self.on_change)
-        self.animal_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.animal_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
         self.animal_target_pix_per_mm = LabeledDoubleSpinBox()
         self.animal_target_pix_per_mm.setText('target pix/mm')
@@ -46,7 +54,7 @@ class TrackerWidget(QWidget):
         self.animal_target_pix_per_mm.setValue(5)
         self.animal_target_pix_per_mm.setSingleStep(0.25)
         self.animal_target_pix_per_mm.valueChanged.connect(self.on_change)
-        self.animal_target_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.animal_target_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
         self.animal_intensity = LabeledDoubleSpinBox()
         self.animal_intensity.setText('intensity')
@@ -132,13 +140,27 @@ class TrackerWidget(QWidget):
         self.animal_median_filter_sz_mm.setValue(0.0)
         self.animal_median_filter_sz_mm.valueChanged.connect(self.on_change)
 
+        self.animal_downsample_ratio = LabeledDoubleSpinBox()
+        self.animal_downsample_ratio.setText('downsample ratio')
+        self.animal_downsample_ratio.setRange(0,1.0)
+        self.animal_downsample_ratio.setSingleStep(0.05)
+        self.animal_downsample_ratio.setValue(0.25)
+        self.animal_downsample_ratio.valueChanged.connect(self.on_change)
+
+        self.animal_downsample_ratio = LabeledDoubleSpinBox()
+        self.animal_downsample_ratio.setText('downsample ratio')
+        self.animal_downsample_ratio.setRange(0,1.0)
+        self.animal_downsample_ratio.setSingleStep(0.05)
+        self.animal_downsample_ratio.setValue(0.25)
+        self.animal_downsample_ratio.valueChanged.connect(self.on_change)
+
         self.body_pix_per_mm = LabeledDoubleSpinBox()
         self.body_pix_per_mm.setText('pix/mm')
         self.body_pix_per_mm.setRange(0,200)
         self.body_pix_per_mm.setSingleStep(0.25)
         self.body_pix_per_mm.setValue(50)
         self.body_pix_per_mm.valueChanged.connect(self.on_change)
-        self.body_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.body_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
         
         self.body_target_pix_per_mm = LabeledDoubleSpinBox()
         self.body_target_pix_per_mm.setText('target pix/mm')
@@ -146,7 +168,7 @@ class TrackerWidget(QWidget):
         self.body_target_pix_per_mm.setSingleStep(0.25)
         self.body_target_pix_per_mm.setValue(7.5)
         self.body_target_pix_per_mm.valueChanged.connect(self.on_change)
-        self.body_target_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.body_target_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
         
         self.body_intensity = LabeledDoubleSpinBox()
         self.body_intensity.setText('intensity')
@@ -224,7 +246,7 @@ class TrackerWidget(QWidget):
         self.body_crop_width_mm.setSingleStep(0.05)
         self.body_crop_width_mm.setValue(9.0)
         self.body_crop_width_mm.valueChanged.connect(self.on_change)
-        self.body_crop_width_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.body_crop_width_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
         self.body_crop_height_mm = LabeledDoubleSpinBox()
         self.body_crop_height_mm.setText('crop height')
@@ -232,7 +254,7 @@ class TrackerWidget(QWidget):
         self.body_crop_height_mm.setSingleStep(0.05)
         self.body_crop_height_mm.setValue(9.0)
         self.body_crop_height_mm.valueChanged.connect(self.on_change)
-        self.body_crop_height_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.body_crop_height_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
         self.body_blur_sz_mm = LabeledDoubleSpinBox()
         self.body_blur_sz_mm.setText('blur size (mm)')
@@ -254,7 +276,7 @@ class TrackerWidget(QWidget):
         self.eyes_pix_per_mm.setSingleStep(0.25)
         self.eyes_pix_per_mm.setValue(50)
         self.eyes_pix_per_mm.valueChanged.connect(self.on_change)
-        self.eyes_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.eyes_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
         self.eyes_target_pix_per_mm = LabeledDoubleSpinBox()
         self.eyes_target_pix_per_mm.setText('target pix/mm')
@@ -262,7 +284,7 @@ class TrackerWidget(QWidget):
         self.eyes_target_pix_per_mm.setSingleStep(0.25)
         self.eyes_target_pix_per_mm.setValue(40)
         self.eyes_target_pix_per_mm.valueChanged.connect(self.on_change)
-        self.eyes_target_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.eyes_target_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
         
         self.eyes_intensity_lo = LabeledDoubleSpinBox()
         self.eyes_intensity_lo.setText('thresh low')
@@ -333,7 +355,7 @@ class TrackerWidget(QWidget):
         self.eyes_crop_width_mm.setSingleStep(0.05)
         self.eyes_crop_width_mm.setValue(5)
         self.eyes_crop_width_mm.valueChanged.connect(self.on_change)
-        self.eyes_crop_width_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.eyes_crop_width_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
         self.eyes_crop_height_mm = LabeledDoubleSpinBox()
         self.eyes_crop_height_mm.setText('crop height')
@@ -341,7 +363,7 @@ class TrackerWidget(QWidget):
         self.eyes_crop_height_mm.setSingleStep(0.05)
         self.eyes_crop_height_mm.setValue(5)
         self.eyes_crop_height_mm.valueChanged.connect(self.on_change)
-        self.eyes_crop_height_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.eyes_crop_height_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
         self.eyes_blur_sz_mm = LabeledDoubleSpinBox()
         self.eyes_blur_sz_mm.setText('blur size (mm)')
@@ -363,7 +385,7 @@ class TrackerWidget(QWidget):
         self.tail_pix_per_mm.setSingleStep(0.25)
         self.tail_pix_per_mm.setValue(50)
         self.tail_pix_per_mm.valueChanged.connect(self.on_change)
-        self.tail_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.tail_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
         
         self.tail_target_pix_per_mm = LabeledDoubleSpinBox()
         self.tail_target_pix_per_mm.setText('target pix/mm')
@@ -371,7 +393,7 @@ class TrackerWidget(QWidget):
         self.tail_target_pix_per_mm.setSingleStep(0.25)
         self.tail_target_pix_per_mm.setValue(20)
         self.tail_target_pix_per_mm.valueChanged.connect(self.on_change)
-        self.tail_target_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.tail_target_pix_per_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
         self.tail_brightness = LabeledDoubleSpinBox()
         self.tail_brightness.setText('brightness')
@@ -421,7 +443,7 @@ class TrackerWidget(QWidget):
         self.n_tail_points.setSingleStep(1)
         self.n_tail_points.setValue(6)
         self.n_tail_points.valueChanged.connect(self.on_change)
-        self.n_tail_points.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.n_tail_points.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
         self.n_tail_points_interp = LabeledSpinBox()
         self.n_tail_points_interp.setText('#tail points interp')
@@ -429,7 +451,7 @@ class TrackerWidget(QWidget):
         self.n_tail_points_interp.setSingleStep(1)
         self.n_tail_points_interp.setValue(40)
         self.n_tail_points_interp.valueChanged.connect(self.on_change)
-        self.n_tail_points_interp.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.n_tail_points_interp.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
         self.tail_length_mm = LabeledDoubleSpinBox()
         self.tail_length_mm.setText('tail length (mm)')
@@ -458,7 +480,7 @@ class TrackerWidget(QWidget):
         self.tail_crop_width_mm.setSingleStep(0.05)
         self.tail_crop_width_mm.setValue(5)
         self.tail_crop_width_mm.valueChanged.connect(self.on_change)
-        self.tail_crop_width_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.tail_crop_width_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
         self.tail_crop_height_mm = LabeledDoubleSpinBox()
         self.tail_crop_height_mm.setText('crop height (mm)')
@@ -466,7 +488,7 @@ class TrackerWidget(QWidget):
         self.tail_crop_height_mm.setSingleStep(0.05)
         self.tail_crop_height_mm.setValue(5)
         self.tail_crop_height_mm.valueChanged.connect(self.on_change)
-        self.tail_crop_height_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
+        #self.tail_crop_height_mm.setEnabled(False) # changes message size for ipc, not supported yet so disabled
 
         self.tail_blur_sz_mm = LabeledDoubleSpinBox()
         self.tail_blur_sz_mm.setText('blur size (mm)')
@@ -492,6 +514,7 @@ class TrackerWidget(QWidget):
 
         self.group_animal = QGroupBox('animal')
         animal = QVBoxLayout()
+        animal.addWidget(self.animal_num_animals)
         animal.addWidget(self.animal_pix_per_mm)
         animal.addWidget(self.animal_target_pix_per_mm)
         animal.addWidget(self.animal_intensity)
@@ -506,6 +529,7 @@ class TrackerWidget(QWidget):
         animal.addWidget(self.animal_max_width_mm)
         animal.addWidget(self.animal_blur_sz_mm)
         animal.addWidget(self.animal_median_filter_sz_mm)
+        animal.addWidget(self.animal_downsample_ratio)
         animal.addStretch()
         self.group_animal.setLayout(animal)
 
@@ -660,10 +684,8 @@ class TrackerWidget(QWidget):
         state['animal_tracking']['max_animal_width_mm']=self.animal_max_width_mm.value()
         state['animal_tracking']['blur_sz_mm']=self.animal_blur_sz_mm.value()
         state['animal_tracking']['median_filter_sz_mm']=self.animal_median_filter_sz_mm.value()
-        # TODO very dirty hack, please fix this
-        state['animal_tracking']['source_image_shape']=(500,504)
-        state['animal_tracking']['downsample_fullres']=0.25
-        state['animal_tracking']['num_animals']=1
+        state['animal_tracking']['downsample_fullres']=self.animal_downsample_ratio.value()
+        state['animal_tracking']['num_animals']=self.animal_num_animals.value()
         
         state['body_tracking_enabled']=self.group_body.isChecked()
         state['body_tracking'] = {}
@@ -740,6 +762,8 @@ class TrackerWidget(QWidget):
         self.animal_max_width_mm.setValue(state['animal_tracking']['max_animal_width_mm'])
         self.animal_blur_sz_mm.setValue(state['animal_tracking']['blur_sz_mm'])
         self.animal_median_filter_sz_mm.setValue(state['animal_tracking']['median_filter_sz_mm'])
+        self.animal_num_animals.setValue(state['animal_tracking']['num_animals'])
+        self.animal_downsample_ratio.setValue(state['animal_tracking']['downsample_fullres'])
         
         self.group_body.setChecked(state['body_tracking_enabled'])
         self.body_pix_per_mm.setValue(state['body_tracking']['pix_per_mm'])
