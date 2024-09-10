@@ -308,7 +308,6 @@ if __name__ == "__main__":
         )
     )
 
-    # ---
     q_tracking = MonitoredQueue(
         ModifiableRingBuffer(
             num_bytes = 500*1024**2,
