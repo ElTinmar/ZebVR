@@ -416,6 +416,9 @@ class GeneralStim(VisualStim):
         self.fd.write(','.join(row) + '\n')
 
     def process_data(self, data) -> None:
+        
+        # TODO reinitialize if number of tail points changes
+
         if data is not None:
 
             try:
