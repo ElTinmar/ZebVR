@@ -9,7 +9,8 @@ from PyQt5.QtWidgets import (
     QHBoxLayout, 
     QComboBox, 
     QLabel, 
-    QPushButton
+    QPushButton,
+    QTabWidget
 )
 from qt_widgets import LabeledEditLine, LabeledSpinBox
 from ZebVR.widgets import SequencerWidget
@@ -191,8 +192,10 @@ class MainGui(QWidget):
 
     def create_components(self):
 
+        self.tabs = QTabWidget()
+        self.tabs.setTabPosition(QTabWidget.West)
+
         self.sequencer_widget = SequencerWidget()
-        self.sequencer_widget.show()
         
         # calibration
         self.registration_button = QPushButton()
@@ -257,6 +260,22 @@ class MainGui(QWidget):
         self.record_button.setText('record')
         self.record_button.clicked.connect(self.record)
 
+        # TODO make those widget as separate classes
+        self.projector = QWidget()
+        self.camera = QWidget()
+        self.registration = QWidget()
+        self.calibration = QWidget()
+        self.background = QWidget()
+        self.output = QWidget() # video recording + csv file name
+
+        self.tabs.addTab(self.projector, "Projector")
+        self.tabs.addTab(self.camera, "Camera")
+        self.tabs.addTab(self.registration, "Registration")
+        self.tabs.addTab(self.calibration, "Calibration")
+        self.tabs.addTab(self.background, "Background")
+        self.tabs.addTab(self.sequencer_widget, "Protocol")
+        self.tabs.addTab(self.output, "Output") 
+
     def layout_components(self):
         
         controls = QHBoxLayout()
@@ -265,6 +284,7 @@ class MainGui(QWidget):
         controls.addWidget(self.record_button)
 
         layout = QVBoxLayout(self)
+        layout.addWidget(self.tabs)
         layout.addStretch()
         layout.addWidget(self.registration_button)
         layout.addWidget(self.check_registration_button)
