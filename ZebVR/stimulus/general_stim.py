@@ -435,6 +435,8 @@ class GeneralStim(VisualStim):
                 else:
                     self.fish_centroid[:] = data['tracking']['animals']['centroids'][k,:]
 
+
+                # TODO use eyes heading vector if present?
                 # eyes
                 if data['tracking']['eyes'][k] is not None:
 
