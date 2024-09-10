@@ -13,6 +13,17 @@ class CameraWidget(QWidget):
     def __init__(self,*args,**kwargs):
 
         super().__init__(*args, **kwargs)
+        
+        self.controls = [
+            'framerate', 
+            'exposure', 
+            'gain', 
+            'offsetX', 
+            'offsetY', 
+            'height',
+            'width'
+        ]
+
         self.updated = False
         self.declare_components()
         self.layout_components()
@@ -34,16 +45,6 @@ class CameraWidget(QWidget):
         self.movie_load.clicked.connect(self.load_file)
     
         self.filename = QLabel('')
-
-        self.controls = [
-            'framerate', 
-            'exposure', 
-            'gain', 
-            'offsetX', 
-            'offsetY', 
-            'height',
-            'width'
-        ]
 
         # controls 
         for control in self.controls:
@@ -180,6 +181,12 @@ if __name__ == "__main__":
     from PyQt5.QtCore import  QRunnable, QThreadPool
     from camera_tools import Camera, OpenCV_Webcam, MovieFileCam
 
+    try:
+        from camera_tools import XimeaCamera
+        XIMEA_ENABLED = True
+    except ImportError:
+        XIMEA_ENABLED = False
+
     class Acquisition(QRunnable):
 
         def __init__(self, camera: Camera, widget: CameraWidget, *args, **kwargs):
@@ -211,6 +218,7 @@ if __name__ == "__main__":
             self.camera_widget = CameraWidget()
             self.camera_widget.camera_source.connect(self.set_camera)
             self.camera_widget.preview.connect(self.preview)
+            self.camera_widget.state_changed.connect(self.update_camera_settings)
             self.thread_pool = QThreadPool()
             self.acq = None
             self.setCentralWidget(self.camera_widget)
@@ -221,14 +229,18 @@ if __name__ == "__main__":
                 self.camera = OpenCV_Webcam(cam_id=id)
             elif name=='Movie':
                 self.camera = MovieFileCam(filename)
-            elif name=='XIMEA':
-                #self.camera = XimeaCamera(dev_id=id)
-                pass
+            elif name=='XIMEA' and XIMEA_ENABLED:
+                self.camera = XimeaCamera(dev_id=id)
 
             # read camera properties and set widget state accordingly
 
+        def update_camera_settings(self):
+            state = self.camera_widget.get_state()
+            # update camera
+
         def get_camera_properties(self):
-            pass
+            state = {}
+            return state
 
         def preview(self, enable: bool):
             if enable:
