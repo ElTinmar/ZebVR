@@ -239,7 +239,9 @@ if __name__ == "__main__":
             # update camera
 
         def get_camera_properties(self):
+            # TODO I was here
             state = {}
+            state['framerate_value'] = self.camera.get_framerate()
             return state
 
         def preview(self, enable: bool):
