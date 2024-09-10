@@ -10,7 +10,12 @@ except:
     pass
 
 # flags
-DEBUG = True
+
+# set only one of the 3 to True
+USE_MOVIE = False
+USE_WEBCAM = True
+USE_XIMEA = False
+
 LCr = False
 RECORD_VIDEO = False
 OPEN_LOOP = False
@@ -37,16 +42,37 @@ PROJ_FPS = 240
 FOREGROUND_COLOR = (1.0, 0.0, 0.0, 1.0)
 BACKGROUND_COLOR = (0.0, 0.0, 0.0, 1.0)
 
-# camera
-if not DEBUG:
-    CAMERA_CONSTRUCTOR = XimeaCamera
-CAM_HEIGHT = 2048
-CAM_WIDTH = 2048
-CAM_OFFSETX = 0
-CAM_OFFSETY = 0
 CAM_EXPOSURE_MS = 3000
 CAM_GAIN = 0
-CAM_FPS = 60
+CAM_OFFSETX = 0
+CAM_OFFSETY = 0
+
+if USE_MOVIE:
+    movie_file = os.path.abspath(os.path.join(os.getcwd(), "../toy_data/single_freelyswimming_504x500px.avi"))
+    mov = partial(MovieFileCam, filename=movie_file)
+
+    CAMERA_CONSTRUCTOR = mov 
+    CAM_HEIGHT = 500
+    CAM_WIDTH = 504
+    PROJ_HEIGHT = 500
+    PROJ_WIDTH = 504
+    CAM_FPS = 100
+
+if USE_XIMEA:
+    CAMERA_CONSTRUCTOR = XimeaCamera
+    CAM_HEIGHT = 2048
+    CAM_WIDTH = 2048
+    CAM_OFFSETX = 0
+    CAM_OFFSETY = 0
+    CAM_GAIN = 0
+    CAM_FPS = 60
+
+if USE_WEBCAM:
+    cam = partial(OpenCV_Webcam, cam_id=0)
+    CAMERA_CONSTRUCTOR = cam 
+    CAM_HEIGHT = 480
+    CAM_WIDTH = 640
+    CAM_FPS = 30
 
 # files
 LOGFILE_WORKERS = 'workers.log'
@@ -114,17 +140,4 @@ LOOMING_PERIOD_SEC = 10
 LOOMING_EXPANSION_TIME_SEC = 10
 LOOMING_EXPANSION_SPEED_MM_PER_SEC = 20
 
-if DEBUG:
-    movie_file = os.path.abspath(os.path.join(os.getcwd(), "../toy_data/single_freelyswimming_504x500px.avi"))
-    mov = partial(MovieFileCam, filename=movie_file)
-
-    CAMERA_CONSTRUCTOR = mov 
-    CAM_HEIGHT = 500
-    CAM_WIDTH = 504
-    PROJ_HEIGHT = 500
-    PROJ_WIDTH = 504
-    CAM_FPS = 100
-    PIXEL_SCALING = (1.0, 1.0)
-    EYES_TRACKING = True
-    TAIL_TRACKING = True
 
