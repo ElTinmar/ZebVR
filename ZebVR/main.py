@@ -82,18 +82,6 @@ from ZebVR.config import (
     N_TRACKER_WORKERS,
     BACKGROUND_GPU, 
     T_REFRESH, 
-    PHOTOTAXIS_POLARITY,
-    OMR_SPATIAL_PERIOD_MM,
-    OMR_ANGLE_DEG,
-    OMR_SPEED_MM_PER_SEC,
-    OKR_SPATIAL_FREQUENCY_DEG,
-    OKR_SPEED_DEG_PER_SEC,
-    LOOMING_CENTER_MM,
-    LOOMING_PERIOD_SEC,
-    LOOMING_EXPANSION_TIME_SEC,
-    LOOMING_EXPANSION_SPEED_MM_PER_SEC,
-    FOREGROUND_COLOR, 
-    BACKGROUND_COLOR, 
     OPEN_LOOP,
     OPEN_LOOP_DATAFILE,
     N_PTS_INTERP
@@ -156,8 +144,6 @@ if __name__ == "__main__":
     stim = GeneralStim(
         window_size=(PROJ_WIDTH, PROJ_HEIGHT),
         window_position=PROJ_POS,
-        foreground_color=FOREGROUND_COLOR,
-        background_color=BACKGROUND_COLOR,
         window_decoration=False,
         transformation_matrix=np.array(calibration['cam_to_proj'], dtype=np.float32),
         pixel_scaling=PIXEL_SCALING,
@@ -167,16 +153,6 @@ if __name__ == "__main__":
         timings_file = 'display_timings.csv',
         stim_select = 0,
         num_tail_points_interp = N_PTS_INTERP,
-        phototaxis_polarity = PHOTOTAXIS_POLARITY,
-        omr_spatial_period_mm = OMR_SPATIAL_PERIOD_MM,
-        omr_angle_deg = OMR_ANGLE_DEG,
-        omr_speed_mm_per_sec = OMR_SPEED_MM_PER_SEC,
-        okr_spatial_frequency_deg = OKR_SPATIAL_FREQUENCY_DEG,
-        okr_speed_deg_per_sec = OKR_SPEED_DEG_PER_SEC,
-        looming_center_mm = LOOMING_CENTER_MM,
-        looming_period_sec = LOOMING_PERIOD_SEC,
-        looming_expansion_time_sec = LOOMING_EXPANSION_TIME_SEC,
-        looming_expansion_speed_mm_per_sec = LOOMING_EXPANSION_SPEED_MM_PER_SEC
     )
 
     stim_worker = VisualStimWorker(
@@ -188,18 +164,6 @@ if __name__ == "__main__":
     )
 
     stim_control = StimGUI(
-        phototaxis_polarity = PHOTOTAXIS_POLARITY,
-        omr_spatial_period_mm = OMR_SPATIAL_PERIOD_MM,
-        omr_angle_deg = OMR_ANGLE_DEG,
-        omr_speed_mm_per_sec = OMR_SPEED_MM_PER_SEC,
-        okr_spatial_frequency_deg = OKR_SPATIAL_FREQUENCY_DEG,
-        okr_speed_deg_per_sec = OKR_SPEED_DEG_PER_SEC,
-        looming_center_mm = LOOMING_CENTER_MM,
-        looming_period_sec = LOOMING_PERIOD_SEC,
-        looming_expansion_time_sec = LOOMING_EXPANSION_TIME_SEC,
-        looming_expansion_speed_mm_per_sec = LOOMING_EXPANSION_SPEED_MM_PER_SEC,
-        foreground_color=FOREGROUND_COLOR,
-        background_color=BACKGROUND_COLOR,
         name='stim_gui', 
         logger=worker_logger, 
         logger_queues=queue_logger, 
@@ -313,7 +277,7 @@ if __name__ == "__main__":
     
     q_cam = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 1*1024**3,
+            num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'camera_to_background',
             t_refresh=T_REFRESH
@@ -322,7 +286,7 @@ if __name__ == "__main__":
 
     q_save_image = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 1*1024**3,
+            num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'camera_to_image_saver',
             t_refresh=T_REFRESH
@@ -336,7 +300,7 @@ if __name__ == "__main__":
 
     q_back = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 1*1024**3,
+            num_bytes = 500*1024**2,
             copy=False, # you probably don't need to copy if processing is fast enough
             logger = queue_logger,
             name = 'background_to_trackers',
@@ -347,7 +311,7 @@ if __name__ == "__main__":
     # ---
     q_tracking = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 1*1024**3,
+            num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'tracker_to_stim',
             t_refresh=T_REFRESH
@@ -356,7 +320,7 @@ if __name__ == "__main__":
 
     q_overlay = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 1*1024**3,
+            num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'tracker_to_overlay',
             t_refresh=T_REFRESH
