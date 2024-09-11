@@ -313,7 +313,7 @@ class MainGui(QWidget):
 
     def experiment_data(self):
         self.filename = f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv'
-        self.edt_filename.setEditField(self.filename)
+        self.edt_filename.setText(self.filename)
 
     def registration_callback(self):
         p = Process(
