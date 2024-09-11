@@ -7,13 +7,10 @@ from PyQt5.QtWidgets import (
     QWidget, 
     QVBoxLayout, 
     QHBoxLayout, 
-    QComboBox, 
-    QLabel, 
     QPushButton,
     QTabWidget
 )
 from PyQt5.QtGui import QIcon
-from qt_widgets import LabeledEditLine, LabeledSpinBox
 from ZebVR.widgets import SequencerWidget
 from ZebVR.calibration import (
     check_pix_per_mm, 
@@ -31,31 +28,43 @@ from ZebVR.widgets import (
     RegistrationWidget,
     CalibrationWidget,
     BackgroundWidget,
+    OpenLoopWidget,
     OutputWidget
 )
+from functools import partial
 
-# NOTE this is tightly coupled with main.py through the keys present in the Dicts.
-# Potential fix: explicitly expand dicts into keyword arguments
-# Potential fix #2: pass the DAG as argument (do I still need to rebuild the dag everytime ?)
-
-# TODO add widgets to set most of the variables present in config.py 
-
+try:
+    from camera_tools import XimeaCamera
+    XIMEA_ENABLED = True
+except ImportError:
+    XIMEA_ENABLED = False
+    
 class MainGui(QWidget):
     
     def __init__(self, workers: Dict, queues: Dict, worker_logger: Logger, queue_logger: Logger, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
 
+        self.camera_constructor = None
+        self.settings = {}
         self.dag = None
         self.workers = workers
         self.queues = queues
         self.worker_logger = worker_logger
         self.queue_logger = queue_logger
+        self.record_flag = False
+        
         self.create_components()
         self.layout_components()
-        self.experiment_data()
-        self.record_flag = False
-        self.filename = 'display_timing.csv'
+
+        self.update_camera_settings()
+        self.update_projector_settings()
+        self.update_registration_settings()
+        self.update_calibration_settings()
+        self.update_background_settings()
+        self.update_openloop_settings()
+        self.update_output_settings()
+
         self.setWindowTitle('ZebVR')
         self.setWindowIcon(QIcon('ZebVR/resources/zebvr.png'))
 
@@ -202,62 +211,48 @@ class MainGui(QWidget):
 
     def create_components(self):
 
-        self.tabs = QTabWidget()
-        self.tabs.setTabPosition(QTabWidget.West)
+        self.camera_widget = CameraWidget()
+        self.camera_widget.state_changed.connect(self.update_camera_settings)
+        self.camera_widget.camera_source.connect(self.update_camera_source)
+        self.camera_widget.preview.connect(self.camera_preview)
+
+        self.projector_widget = ProjectorWidget()
+        self.projector_widget.state_changed.connect(self.update_projector_settings)
+
+        self.registration_widget = RegistrationWidget()
+        self.registration_widget.state_changed.connect(self.update_registration_settings)
+        self.registration_widget.registration_signal.connect(self.registration_callback)
+        self.registration_widget.check_registration_signal.connect(self.check_registration_callback)
+
+        self.calibration_widget = CalibrationWidget()
+        self.calibration_widget.state_changed.connect(self.update_calibration_settings)
+        self.calibration_widget.calibration_signal.connect(self.get_pix_per_mm_callback)
+        self.calibration_widget.check_calibration_signal.connect(self.check_pix_per_mm_callback)
+
+        self.background_widget = BackgroundWidget()
+        self.background_widget.state_changed.connect(self.update_background_settings)
+        self.background_widget.background_signal.connect(self.background_callback)
 
         self.sequencer_widget = SequencerWidget()
-        
-        # calibration
-        self.registration_button = QPushButton()
-        self.registration_button.setText('registration')
-        self.registration_button.clicked.connect(self.registration_callback)
 
-        self.check_registration_button = QPushButton()
-        self.check_registration_button.setText('check registration')
-        self.check_registration_button.clicked.connect(self.check_registration_callback)
+        self.openloop_widget = OpenLoopWidget()
+        self.openloop_widget.state_changed.connect(self.update_openloop_settings)
+        self.openloop_widget.openloop_signal.connect(self.open_loop_coords_callback)
 
-        self.pixel_size_button = QPushButton()
-        self.pixel_size_button.setText('get pix/mm')
-        self.pixel_size_button.clicked.connect(self.get_pix_per_mm_callback)
+        self.output_widget = OutputWidget()
+        self.output_widget.state_changed.connect(self.update_output_settings)
 
-        self.check_pixel_size_button = QPushButton()
-        self.check_pixel_size_button.setText('check pix/mm')
-        self.check_pixel_size_button.clicked.connect(self.check_pix_per_mm_callback)
+        self.tabs = QTabWidget()
+        self.tabs.setTabPosition(QTabWidget.West)
+        self.tabs.addTab(self.camera_widget, "Camera")
+        self.tabs.addTab(self.projector_widget, "Projector")
+        self.tabs.addTab(self.registration_widget, "Registration")
+        self.tabs.addTab(self.calibration_widget, "Calibration")
+        self.tabs.addTab(self.background_widget, "Background")
+        self.tabs.addTab(self.sequencer_widget, "Protocol")
+        self.tabs.addTab(self.openloop_widget, "VR")
+        self.tabs.addTab(self.output_widget, "Output") 
 
-        self.open_loop_coords_button = QPushButton()
-        self.open_loop_coords_button.setText('open loop coords')
-        self.open_loop_coords_button.clicked.connect(self.open_loop_coords_callback)
-
-        self.label_method = QLabel()
-        self.label_method.setText('Background type:')
-        self.background_method = QComboBox()
-        self.background_method.addItem('inpaint')
-        self.background_method.addItem('static')
-        
-        self.background_button = QPushButton()
-        self.background_button.setText('background')
-        self.background_button.clicked.connect(self.background_callback)
-
-        # experiment
-        self.fish_id = LabeledSpinBox()
-        self.fish_id.setText('Fish ID:')
-        self.fish_id.setValue(0)
-        self.fish_id.valueChanged.connect(self.experiment_data)
-
-        self.dpf = LabeledSpinBox()
-        self.dpf.setText('Fish age (dpf):')
-        self.dpf.setValue(7)
-        self.dpf.valueChanged.connect(self.experiment_data)
-
-        self.duration = LabeledSpinBox()
-        self.duration.setText('rec. duration (s)')
-        self.duration.setValue(60)
-        self.duration.setRange(0,36_000)
-        self.duration.valueChanged.connect(self.experiment_data)
-
-        self.edt_filename = LabeledEditLine()
-        self.edt_filename.setLabel('result file:')
-        
         self.start_button = QPushButton()
         self.start_button.setText('start')
         self.start_button.clicked.connect(self.preview)
@@ -270,22 +265,6 @@ class MainGui(QWidget):
         self.record_button.setText('record')
         self.record_button.clicked.connect(self.record)
 
-        # TODO make those widget as separate classes
-        self.camera = CameraWidget()
-        self.projector = ProjectorWidget()
-        self.registration = RegistrationWidget()
-        self.calibration = CalibrationWidget()
-        self.background = BackgroundWidget()
-        self.output = OutputWidget() # video recording + csv file name
-
-        self.tabs.addTab(self.camera, "Camera")
-        self.tabs.addTab(self.projector, "Projector")
-        self.tabs.addTab(self.registration, "Registration")
-        self.tabs.addTab(self.calibration, "Calibration")
-        self.tabs.addTab(self.background, "Background")
-        self.tabs.addTab(self.sequencer_widget, "Protocol")
-        self.tabs.addTab(self.output, "Output") 
-
     def layout_components(self):
         
         controls = QHBoxLayout()
@@ -295,25 +274,43 @@ class MainGui(QWidget):
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.tabs)
-        layout.addStretch()
-        layout.addWidget(self.registration_button)
-        layout.addWidget(self.check_registration_button)
-        layout.addWidget(self.pixel_size_button)
-        layout.addWidget(self.check_pixel_size_button)
-        layout.addWidget(self.open_loop_coords_button)
-        layout.addWidget(self.label_method)
-        layout.addWidget(self.background_method)
-        layout.addWidget(self.background_button)
-        layout.addWidget(self.fish_id)
-        layout.addWidget(self.dpf)
-        layout.addWidget(self.duration)
-        layout.addWidget(self.edt_filename)
         layout.addLayout(controls)
         layout.addStretch()
 
-    def experiment_data(self):
-        self.filename = f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv'
-        self.edt_filename.setText(self.filename)
+    def update_camera_source(self, cam_source: str, cam_ind: int, filename: str):
+
+        if cam_source=='Webcam':
+            self.camera_constructor = partial(OpenCV_Webcam, cam_id=cam_ind)
+
+        elif cam_source=='Movie':
+            self.camera_constructor = partial(MovieFileCam, filename=filename)
+
+        elif cam_source=='XIMEA' and XIMEA_ENABLED:
+            self.camera_constructor = partial(XimeaCamera, dev_id=cam_ind)
+
+    def camera_preview(self):
+        pass
+
+    def update_camera_settings(self):
+        self.settings['camera'] = self.camera_widget.get_state()
+
+    def update_projector_settings(self):
+        self.settings['projector'] = self.projector_widget.get_state()
+
+    def update_registration_settings(self):
+        self.settings['registration'] = self.registration_widget.get_state()
+
+    def update_calibration_settings(self):
+        self.settings['calibration'] = self.calibration_widget.get_state()
+
+    def update_background_settings(self):
+        self.settings['background'] = self.background_widget.get_state()
+
+    def update_openloop_settings(self):
+        self.settings['openloop'] = self.openloop_widget.get_state()
+
+    def update_output_settings(self):
+        self.settings['output'] = self.output_widget.get_state()
 
     def registration_callback(self):
         p = Process(
