@@ -110,6 +110,20 @@ class ProjectorWidget(QWidget):
         state['pixel_scale'] = (self.scale_x.value(), self.scale_y.value())
         state['fps'] = self.proj_fps.value()
         return state
+    
+    def set_state(self, state: Dict) -> None:
+        try:
+            self.proj_width.setValue(state['resolution'][0])
+            self.proj_height.setValue(state['resolution'][1])
+            self.offset_x.setValue(state['offset'][0])
+            self.offset_y.setValue(state['offset'][1])
+            self.scale_x.setValue(state['pixel_scale'][0])
+            self.scale_y.setValue(state['pixel_scale'][1])
+            self.proj_fps.setValue(state['fps'])
+
+        except KeyError:
+            print('Wrong state keys provided to projector widget')
+            raise
 
 if __name__ == "__main__":
 
