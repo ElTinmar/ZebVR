@@ -45,6 +45,8 @@ class OutputWidget(QWidget):
         self.queue_logfile.setLabel('queue log file:')
         self.queue_logfile.setText('queues.log')
         self.queue_logfile.textChanged.connect(self.state_changed)
+        
+        # TODO add video recording
 
     def experiment_data(self):
         self.filename = f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv'
