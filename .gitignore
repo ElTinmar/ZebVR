@@ -1,6 +1,5 @@
 toy_data/
 *.csv
-*.json
 
 # numpy arrays
 *.npy
