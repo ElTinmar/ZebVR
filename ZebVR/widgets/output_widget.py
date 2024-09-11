@@ -1,11 +1,18 @@
 from PyQt5.QtWidgets import (
     QWidget, 
-    QVBoxLayout
+    QVBoxLayout,
+    QHBoxLayout,
+    QFileDialog,
+    QLineEdit,
+    QPushButton,
+    QCheckBox,
+    QGroupBox,
+    QLabel
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
 
-from qt_widgets import LabeledSpinBox, LabeledEditLine
+from qt_widgets import LabeledSpinBox, LabeledDoubleSpinBox, LabeledEditLine
 
 class OutputWidget(QWidget):
 
@@ -21,6 +28,9 @@ class OutputWidget(QWidget):
 
     def declare_components(self):
         
+        # data recording
+        self.data_group = QGroupBox('Data')
+    
         self.fish_id = LabeledSpinBox()
         self.fish_id.setText('Fish ID:')
         self.fish_id.setValue(0)
@@ -34,7 +44,40 @@ class OutputWidget(QWidget):
         self.edt_filename = LabeledEditLine()
         self.edt_filename.setLabel('result file:')
         self.edt_filename.setText(f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv')
-        self.edt_filename.setEnabled(False)
+        self.edt_filename.textChanged.connect(self.state_changed)
+
+        # video recording
+        self.video_group = QGroupBox('Enable video recording')
+        self.video_group.setCheckable(True)
+        self.video_group.setChecked(False)
+        self.video_group.toggled.connect(self.state_changed)
+
+        self.video_recording_button = QPushButton('Video directory') 
+        self.video_recording_button.clicked.connect(self.select_video_dir)
+
+        self.video_recording_dir = QLineEdit()
+        self.video_recording_dir.setText('')
+        self.video_recording_dir.textChanged.connect(self.state_changed)
+
+        self.video_recording_compress = QCheckBox('Compress')
+        self.video_recording_compress.setChecked(True)
+        self.video_recording_compress.stateChanged.connect(self.state_changed)
+
+        self.video_recording_resize = LabeledDoubleSpinBox()
+        self.video_recording_resize.setText('Resize video:')
+        self.video_recording_resize.setRange(0,1)
+        self.video_recording_resize.setSingleStep(0.05)
+        self.video_recording_resize.setValue(0.25)
+        self.video_recording_resize.valueChanged.connect(self.state_changed)
+
+        self.video_recording_fps = LabeledSpinBox()
+        self.video_recording_fps.setText('FPS Recording:')
+        self.video_recording_fps.setRange(0, 1_000)
+        self.video_recording_fps.setValue(20)
+        self.video_recording_fps.valueChanged.connect(self.state_changed)
+
+        # logs
+        self.log_group = QGroupBox('Logs')
 
         self.worker_logfile = LabeledEditLine()
         self.worker_logfile.setLabel('worker log file:')
@@ -45,22 +88,46 @@ class OutputWidget(QWidget):
         self.queue_logfile.setLabel('queue log file:')
         self.queue_logfile.setText('queues.log')
         self.queue_logfile.textChanged.connect(self.state_changed)
-        
-        # TODO add video recording
 
     def experiment_data(self):
         self.filename = f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv'
         self.edt_filename.setText(self.filename)
         self.state_changed.emit()
 
+    def select_video_dir(self):
+        filename = QFileDialog.getExistingDirectory(self, "Select Directory")
+        self.video_recording_dir.setText(filename)
+
     def layout_components(self):
+        
+        select_video = QHBoxLayout()
+        select_video.addWidget(self.video_recording_button)
+        select_video.addWidget(self.video_recording_dir)
+
+        video_layout = QVBoxLayout()
+        video_layout.addLayout(select_video)
+        video_layout.addWidget(self.video_recording_compress)
+        video_layout.addWidget(self.video_recording_resize)
+        video_layout.addWidget(self.video_recording_fps)
+        self.video_group.setLayout(video_layout)
+
+        data_layout = QVBoxLayout()
+        data_layout.addWidget(self.fish_id)
+        data_layout.addWidget(self.dpf)
+        data_layout.addWidget(self.edt_filename)
+        self.data_group.setLayout(data_layout)
+
+        log_layout = QVBoxLayout()
+        log_layout.addWidget(self.worker_logfile)
+        log_layout.addWidget(self.queue_logfile)
+        self.log_group.setLayout(log_layout)
 
         main_layout = QVBoxLayout(self)
-        main_layout.addWidget(self.fish_id)
-        main_layout.addWidget(self.dpf)
-        main_layout.addWidget(self.edt_filename)
-        main_layout.addWidget(self.worker_logfile)
-        main_layout.addWidget(self.queue_logfile)
+        main_layout.addWidget(self.data_group)
+        main_layout.addSpacing(20) 
+        main_layout.addWidget(self.video_group)
+        main_layout.addSpacing(20) 
+        main_layout.addWidget(self.log_group)
         main_layout.addStretch()
 
     def get_state(self) -> Dict:

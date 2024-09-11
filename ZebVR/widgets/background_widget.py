@@ -12,7 +12,6 @@ from numpy.typing import NDArray
 import numpy as np
 import cv2
 
-from video_tools import Polarity
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledComboBox, NDarray_to_QPixmap
 import numpy as np
 

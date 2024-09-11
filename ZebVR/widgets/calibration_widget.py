@@ -108,10 +108,10 @@ class CalibrationWidget(QWidget):
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.explanation)
         main_layout.addLayout(layout_checkerboard)
-        main_layout.addWidget(QLabel('')) # Just for spacing
+        main_layout.addSpacing(20)
         main_layout.addWidget(self.explanation_check)
         main_layout.addLayout(layout_reticle)
-        main_layout.addWidget(QLabel('')) # Just for spacing
+        main_layout.addSpacing(20)
         main_layout.addWidget(self.checkerboard_square_size_mm)
         main_layout.addLayout(layout_grid_size)
         main_layout.addWidget(self.camera_exposure_ms)

@@ -152,7 +152,7 @@ class RegistrationWidget(QWidget):
 
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.explanation)
-        main_layout.addWidget(QLabel('')) # Just for spacing
+        main_layout.addSpacing(20)
         main_layout.addWidget(self.detection_threshold)
         main_layout.addWidget(self.image_contrast)
         main_layout.addWidget(self.image_gamma)

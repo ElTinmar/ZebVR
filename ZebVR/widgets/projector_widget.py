@@ -96,7 +96,7 @@ class ProjectorWidget(QWidget):
         main_layout.addLayout(offset_layout)
         main_layout.addLayout(scale_layout)
         main_layout.addWidget(self.proj_fps)
-        main_layout.addWidget(QLabel('')) # empty label just for spacing
+        main_layout.addSpacing(20)
         main_layout.addLayout(power_layout)
         main_layout.addWidget(self.video_source)
         main_layout.addWidget(self.fast_input_mode)
