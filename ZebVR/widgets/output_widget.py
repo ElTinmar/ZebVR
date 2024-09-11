@@ -135,6 +135,11 @@ class OutputWidget(QWidget):
         state['fish_id'] = self.fish_id.value()
         state['dpf'] = self.dpf.value()
         state['edt_filename'] = self.edt_filename.text()
+        state['video_recording'] = self.video_group.isChecked()
+        state['video_recording_dir'] = self.video_recording_dir.text()
+        state['video_recording_compression'] = self.video_recording_compress.isChecked()
+        state['video_recording_resize'] = self.video_recording_resize.value()
+        state['video_recording_fps'] = self.video_recording_fps.value()
         state['worker_logfile'] = self.worker_logfile.text()
         state['queue_logfile'] = self.queue_logfile.text()
         return state
@@ -144,6 +149,11 @@ class OutputWidget(QWidget):
             self.fish_id.setValue(state['fish_id'])
             self.fish_id.setValue(state['dpf'])
             self.edt_filename.setText(state['edt_filename'])
+            self.video_group.setChecked(state['video_recording'])
+            self.video_recording_dir.setText(state['video_recording_dir'])
+            self.video_recording_compress.setChecked(state['video_recording_compression'])
+            self.video_recording_resize.setValue(state['video_recording_resize'])
+            self.video_recording_fps.setValue(state['video_recording_fps'])
             self.worker_logfile.setText(state['worker_logfile'])
             self.queue_logfile.setText(state['queue_logfile'])
 
