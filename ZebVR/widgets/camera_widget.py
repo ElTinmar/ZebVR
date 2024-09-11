@@ -3,12 +3,15 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButt
 from qt_widgets import LabeledDoubleSpinBox, LabeledSliderDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
 from numpy.typing import NDArray
 from PyQt5.QtCore import pyqtSignal
+import numpy as np
+import cv2
 
 class CameraWidget(QWidget):
 
     state_changed = pyqtSignal()
     preview = pyqtSignal(bool)
     camera_source = pyqtSignal(str, int, str)
+    PREVIEW_HEIGHT: int = 512
 
     def __init__(self,*args,**kwargs):
 
@@ -70,6 +73,7 @@ class CameraWidget(QWidget):
         self.preview_stop.clicked.connect(self.stop)
 
         self.image = QLabel()
+        self.set_image(np.zeros((512,512), dtype=np.uint8))
 
     def load_file(self):
         filename, _ = QFileDialog.getOpenFileName(
@@ -89,7 +93,10 @@ class CameraWidget(QWidget):
 
     def set_image(self, image: NDArray):
         # TODO maybe check that image is uint8
-        self.image.setPixmap(NDarray_to_QPixmap(image))
+        h, w = image.shape
+        preview_width = int(w * self.PREVIEW_HEIGHT/h)
+        image_resized = cv2.resize(image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
+        self.image.setPixmap(NDarray_to_QPixmap(image_resized))
 
     def camera_changed(self):
         name = self.camera_choice.currentText()
