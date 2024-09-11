@@ -25,7 +25,14 @@ from ZebVR.calibration import (
 from ZebVR.background import inpaint_background, static_background
 
 from ZebVR.config import *
-from ZebVR.widgets import CameraWidget, ProjectorWidget, RegistrationWidget
+from ZebVR.widgets import (
+    CameraWidget, 
+    ProjectorWidget, 
+    RegistrationWidget,
+    CalibrationWidget,
+    BackgroundWidget,
+    OutputWidget
+)
 
 # NOTE this is tightly coupled with main.py through the keys present in the Dicts.
 # Potential fix: explicitly expand dicts into keyword arguments
@@ -267,9 +274,9 @@ class MainGui(QWidget):
         self.camera = CameraWidget()
         self.projector = ProjectorWidget()
         self.registration = RegistrationWidget()
-        self.calibration = QWidget()
-        self.background = QWidget()
-        self.output = QWidget() # video recording + csv file name
+        self.calibration = CalibrationWidget()
+        self.background = BackgroundWidget()
+        self.output = OutputWidget() # video recording + csv file name
 
         self.tabs.addTab(self.camera, "Camera")
         self.tabs.addTab(self.projector, "Projector")

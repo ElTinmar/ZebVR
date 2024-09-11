@@ -5,3 +5,6 @@ from .tracking_widget import *
 from .sequencer_widget import *
 from .projector_widget import *
 from .registration_widget import *
+from .calibration_widget import *
+from .background_widget import *
+from .output_widget import *

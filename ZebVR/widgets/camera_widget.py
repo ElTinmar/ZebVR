@@ -115,10 +115,8 @@ class CameraWidget(QWidget):
     def layout_components(self):
 
         layout_buttons = QHBoxLayout()
-        layout_buttons.addStretch()
         layout_buttons.addWidget(self.preview_start)
         layout_buttons.addWidget(self.preview_stop)
-        layout_buttons.addStretch()
 
         layout_moviecam = QHBoxLayout()
         layout_moviecam.addWidget(self.movie_load)
