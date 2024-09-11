@@ -125,7 +125,12 @@ class BackgroundWidget(QWidget):
     
     def set_state(self, state: Dict) -> None:
         try:
-            self.detection_threshold.setValue(state['detection_threshold'])
+            self.inpaint_radius.setValue(state['inpaint_radius'])
+            self.static_num_images.setValue(state['static_num_images'])
+            self.static_pause_duration.setValue(state['static_pause_duration'])
+            self.inpaint_algo.setCurrentIndex(state['inpaint_algo'])
+            self.bckgsub_method_combobox.setCurrentIndex(state['bckgsub_method'])
+            self.bckgsub_polarity_combobox.setCurrentIndex(state['bckgsub_polarity'])
 
         except KeyError:
             print('Wrong state keys provided to background widget')
