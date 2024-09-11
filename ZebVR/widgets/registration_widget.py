@@ -6,7 +6,8 @@ from PyQt5.QtWidgets import (
     QFrame, 
     QHeaderView, 
     QTableWidget, 
-    QTableWidgetItem
+    QTableWidgetItem,
+    QLabel
 )
 from PyQt5.QtCore import pyqtSignal, Qt
 from typing import Dict
@@ -34,6 +35,12 @@ class RegistrationWidget(QWidget):
 
     
     def declare_components(self):
+
+        self.explanation = QLabel(
+            "The projector light must be visible on camera. \n"
+            "Please ensure that the IR longpass filter has been removed, \n"
+            "and that the IR light is off."
+        )
         
         self.detection_threshold = LabeledDoubleSpinBox()
         self.detection_threshold.setText('intensity threshold:')
@@ -144,6 +151,8 @@ class RegistrationWidget(QWidget):
         button_layout.addWidget(self.check_registration)
 
         main_layout = QVBoxLayout(self)
+        main_layout.addWidget(self.explanation)
+        main_layout.addWidget(QLabel('')) # Just for spacing
         main_layout.addWidget(self.detection_threshold)
         main_layout.addWidget(self.image_contrast)
         main_layout.addWidget(self.image_gamma)

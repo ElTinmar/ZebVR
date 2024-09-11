@@ -6,99 +6,66 @@ from PyQt5.QtWidgets import (
     QFrame, 
     QHeaderView, 
     QTableWidget, 
-    QTableWidgetItem
+    QTableWidgetItem,
+    QLabel
 )
 from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtGui import QPixmap
 from typing import Dict
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
 
 class CalibrationWidget(QWidget):
 
-    registration_signal = pyqtSignal()
-    check_registration_signal = pyqtSignal()
+    calibration_signal = pyqtSignal()
+    check_calibration_signal = pyqtSignal()
     state_changed = pyqtSignal()
+    checkerboard_tooltip = "Printed checkerboard target size (internal corners)"
+    CALIBRATION_CHECK_DIAMETER_MM  = [15, 30, 45, 60] #TODO make a list out of that
 
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         
-        self.transformation_matrix = [
-            [1.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0],
-            [0.0, 0.0, 1.0]
-        ]
-
         self.declare_components()
         self.layout_components()
 
-    
     def declare_components(self):
+
+        self.explanation = QLabel('To calibrate, place the calibration target under the camera')
+        self.checkerboard = QLabel()
+        self.checkerboard.setPixmap(QPixmap('ZebVR/resources/checkerboard.png'))
+
+        self.explanation_check = QLabel('To check calibration, place the reticle under the camera')
+        self.reticle = QLabel()
+        self.reticle.setPixmap(QPixmap('ZebVR/resources/reticle.png'))
         
-        self.detection_threshold = LabeledDoubleSpinBox()
-        self.detection_threshold.setText('intensity threshold:')
-        self.detection_threshold.setRange(0, 1)
-        self.detection_threshold.setSingleStep(0.01)
-        self.detection_threshold.setValue(0.15)
-        self.detection_threshold.valueChanged.connect(self.state_changed)
+        self.checkerboard_square_size_mm = LabeledDoubleSpinBox()
+        self.checkerboard_square_size_mm.setText('checkerboard square size (mm):')
+        self.checkerboard_square_size_mm.setRange(0, 100)
+        self.checkerboard_square_size_mm.setSingleStep(0.5)
+        self.checkerboard_square_size_mm.setValue(2)
+        self.checkerboard_square_size_mm.valueChanged.connect(self.state_changed)
 
-        self.image_contrast = LabeledDoubleSpinBox()
-        self.image_contrast.setText('contrast:')
-        self.image_contrast.setRange(0, 10)
-        self.image_contrast.setSingleStep(0.05)
-        self.image_contrast.setValue(1.0)
-        self.image_contrast.valueChanged.connect(self.state_changed)
+        self.checkerboard_grid_size_x = LabeledSpinBox()
+        self.checkerboard_grid_size_x.setText('#squares X:')
+        self.checkerboard_grid_size_x.setRange(0, 20)
+        self.checkerboard_grid_size_x.setValue(9)
+        self.checkerboard_grid_size_x.valueChanged.connect(self.state_changed)
+        self.checkerboard_grid_size_x.setToolTip(self.checkerboard_tooltip)
 
-        self.image_gamma = LabeledDoubleSpinBox()
-        self.image_gamma.setText('gamma:')
-        self.image_gamma.setRange(0, 10)
-        self.image_gamma.setSingleStep(0.05)
-        self.image_gamma.setValue(1.0)
-        self.image_gamma.valueChanged.connect(self.state_changed)
+        self.checkerboard_grid_size_y = LabeledSpinBox()
+        self.checkerboard_grid_size_y.setText('#squares Y:')
+        self.checkerboard_grid_size_y.setRange(0, 20)
+        self.checkerboard_grid_size_y.setValue(6)
+        self.checkerboard_grid_size_y.valueChanged.connect(self.state_changed)
+        self.checkerboard_grid_size_y.setToolTip(self.checkerboard_tooltip)
 
-        self.image_brightness = LabeledDoubleSpinBox()
-        self.image_brightness.setText('brightness:')
-        self.image_brightness.setRange(0, 10)
-        self.image_brightness.setSingleStep(0.05)
-        self.image_brightness.setValue(1.0)
-        self.image_brightness.valueChanged.connect(self.state_changed)
-
-        self.dot_radius_px = LabeledDoubleSpinBox()
-        self.dot_radius_px.setText('dot radius (px):')
-        self.dot_radius_px.setRange(0, 1_000)
-        self.dot_radius_px.setSingleStep(0.5)
-        self.dot_radius_px.setValue(10.0)
-        self.dot_radius_px.valueChanged.connect(self.state_changed)
-
-        self.dot_steps = LabeledSpinBox()
-        self.dot_steps.setText('#dot step:')
-        self.dot_steps.setRange(0, 1_000)
-        self.dot_steps.setValue(11)
-        self.dot_steps.valueChanged.connect(self.state_changed)
-
-        self.dot_fps = LabeledDoubleSpinBox()
-        self.dot_fps.setText('FPS dot:')
-        self.dot_fps.setRange(0, 1_000)
-        self.dot_fps.setValue(5)
-        self.dot_fps.valueChanged.connect(self.state_changed)
-
-        self.bar_width_px = LabeledDoubleSpinBox()
-        self.bar_width_px.setText('bar width (px):')
-        self.bar_width_px.setRange(0, 1_000)
-        self.bar_width_px.setValue(10.0)
-        self.bar_width_px.valueChanged.connect(self.state_changed)
-
-        self.bar_step_px = LabeledSpinBox()
-        self.bar_step_px.setText('bar step size (px):')
-        self.bar_step_px.setRange(0, 1_000)
-        self.bar_step_px.setValue(200)
-        self.bar_step_px.valueChanged.connect(self.state_changed)
-
-        self.bar_fps = LabeledDoubleSpinBox()
-        self.bar_fps.setText('FPS bar:')
-        self.bar_fps.setRange(0, 1_000)
-        self.bar_fps.setValue(30)
-        self.bar_fps.valueChanged.connect(self.state_changed)
+        self.camera_fps = LabeledDoubleSpinBox()
+        self.camera_fps.setText('camera FPS:')
+        self.camera_fps.setRange(0, 1_000)
+        self.camera_fps.setValue(10)
+        self.camera_fps.valueChanged.connect(self.state_changed)
 
         self.camera_exposure_ms = LabeledDoubleSpinBox()
         self.camera_exposure_ms.setText('camera exposure (ms):')
@@ -106,96 +73,73 @@ class CalibrationWidget(QWidget):
         self.camera_exposure_ms.setValue(5_000)
         self.camera_exposure_ms.valueChanged.connect(self.state_changed)
 
-        self.pattern_intensity = LabeledSpinBox()
-        self.pattern_intensity.setText('pattern intensity')
-        self.pattern_intensity.setRange(1, 255)
-        self.pattern_intensity.setValue(64)
-        self.pattern_intensity.valueChanged.connect(self.state_changed)
+        self.calibration = QPushButton('calibration')
+        self.calibration.clicked.connect(self.calibration_signal)
 
-        self.registration = QPushButton('registration')
-        self.registration.clicked.connect(self.registration_signal)
+        self.check_calibration = QPushButton('check')
+        self.check_calibration.clicked.connect(self.check_calibration_signal)
 
-        self.check_registration = QPushButton('check')
-        self.check_registration.clicked.connect(self.check_registration_signal)
-        
-        self.transformation_matrix_table = QTableWidget()
-        self.transformation_matrix_table.setRowCount(3)
-        self.transformation_matrix_table.setColumnCount(3)  
-        self.transformation_matrix_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.transformation_matrix_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.transformation_matrix_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.transformation_matrix_table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.transformation_matrix_table.horizontalHeader().hide()
-        self.transformation_matrix_table.verticalHeader().hide()
-        self.transformation_matrix_table.setFrameShape(QFrame.NoFrame)
-        self.transformation_matrix_table.setMaximumHeight(100)
-        self.transformation_matrix_table.setEnabled(False)
-        self.update_table()
-
-    def update_table(self):
-        for i in range(3):
-            for j in range(3):
-                self.transformation_matrix_table.setItem(i,j,QTableWidgetItem(f'{self.transformation_matrix[i][j]:2f}'))
+        self.pix_per_mm = LabeledDoubleSpinBox()
+        self.pix_per_mm.setText('pix/mm:')
+        self.pix_per_mm.setRange(0, 10_000)
+        self.pix_per_mm.setValue(0)
+        self.pix_per_mm.setEnabled(False)
 
     def layout_components(self):
 
         button_layout = QHBoxLayout()
-        button_layout.addWidget(self.registration)
-        button_layout.addWidget(self.check_registration)
+        button_layout.addWidget(self.calibration)
+        button_layout.addWidget(self.check_calibration)
+
+        layout_grid_size = QHBoxLayout()
+        layout_grid_size.addWidget(self.checkerboard_grid_size_x)
+        layout_grid_size.addWidget(self.checkerboard_grid_size_y)
+
+        layout_checkerboard = QHBoxLayout()
+        layout_checkerboard.addStretch()
+        layout_checkerboard.addWidget(self.checkerboard)
+        layout_checkerboard.addStretch()
+
+        layout_reticle = QHBoxLayout()
+        layout_reticle.addStretch()
+        layout_reticle.addWidget(self.reticle)
+        layout_reticle.addStretch()
 
         main_layout = QVBoxLayout(self)
-        main_layout.addWidget(self.detection_threshold)
-        main_layout.addWidget(self.image_contrast)
-        main_layout.addWidget(self.image_gamma)
-        main_layout.addWidget(self.image_brightness)
-        main_layout.addWidget(self.dot_radius_px)
-        main_layout.addWidget(self.dot_steps)
-        main_layout.addWidget(self.dot_fps)
-        main_layout.addWidget(self.bar_width_px)
-        main_layout.addWidget(self.bar_step_px)
-        main_layout.addWidget(self.bar_fps)
+        main_layout.addWidget(self.explanation)
+        main_layout.addLayout(layout_checkerboard)
+        main_layout.addWidget(QLabel('')) # Just for spacing
+        main_layout.addWidget(self.explanation_check)
+        main_layout.addLayout(layout_reticle)
+        main_layout.addWidget(QLabel('')) # Just for spacing
+        main_layout.addWidget(self.checkerboard_square_size_mm)
+        main_layout.addLayout(layout_grid_size)
         main_layout.addWidget(self.camera_exposure_ms)
-        main_layout.addWidget(self.pattern_intensity)
+        main_layout.addWidget(self.camera_fps)
         main_layout.addLayout(button_layout)
-        main_layout.addWidget(self.transformation_matrix_table)
+        main_layout.addWidget(self.pix_per_mm)
         main_layout.addStretch()
 
     def get_state(self) -> Dict:
         state = {}
-        state['detection_threshold'] = self.detection_threshold.value()
-        state['image_contrast'] = self.image_contrast.value()
-        state['image_gamma'] = self.image_gamma.value()
-        state['image_brightness'] = self.image_brightness.value()
-        state['dot_radius_px'] = self.dot_radius_px.value()
-        state['dot_steps'] = self.dot_steps.value()
-        state['dot_fps'] = self.dot_fps.value()
-        state['bar_width_px'] = self.bar_width_px.value()
-        state['bar_step_px'] = self.bar_step_px.value()
-        state['bar_fps'] = self.bar_fps.value()
+        state['checkerboard_square_size_mm'] = self.checkerboard_square_size_mm.value()
+        state['checkerboard_grid_size'] = (self.checkerboard_grid_size_x.value(), self.checkerboard_grid_size_y.value())
         state['camera_exposure_ms'] = self.camera_exposure_ms.value()
-        state['pattern_intensity'] = self.pattern_intensity.value()
-        state['transformation_matrix'] = self.transformation_matrix
+        state['camera_fps'] = self.camera_fps.value()
+        state['pix_per_mm'] = self.pix_per_mm.value()
         return state
     
     def set_state(self, state: Dict) -> None:
         try:
-            self.detection_threshold.setValue(state['detection_threshold'])
-            self.image_contrast.setValue(state['image_contrast'])
-            self.image_gamma.setValue(state['image_gamma'])
-            self.image_brightness.setValue(state['image_brightness'])
-            self.dot_radius_px.setValue(state['dot_radius_px'])
-            self.dot_steps.setValue(state['dot_steps'])
-            self.dot_fps.setValue(state['dot_fps'])
-            self.bar_width_px.setValue(state['bar_width_px'])
-            self.bar_step_px.setValue(state['bar_step_px'])
-            self.bar_fps.setValue(state['bar_fps'])
+            self.checkerboard_square_size_mm.setValue(state['checkerboard_square_size_mm'])
+            self.checkerboard_grid_size_x.setValue(state['checkerboard_grid_size'][0])
+            self.checkerboard_grid_size_y.setValue(state['checkerboard_grid_size'][1])
             self.camera_exposure_ms.setValue(state['camera_exposure_ms'])
-            self.pattern_intensity.setValue(state['pattern_intensity'])
-            self.transformation_matrix = state['transformation_matrix']
-            self.update_table()
+            self.camera_fps.setValue(state['camera_fps'])
+            self.pix_per_mm.setValue(state['pix_per_mm'])
 
         except KeyError:
-            print('Wrong state keys provided to registration widget')
+            print('Wrong state keys provided to calibration widget')
             raise
 
 if __name__ == "__main__":
@@ -210,15 +154,15 @@ if __name__ == "__main__":
             super().__init__(*args, **kwargs)
             self.calibration_widget = CalibrationWidget()
             self.setCentralWidget(self.calibration_widget)
-            self.calibration_widget.registration_signal.connect(self.registration)
-            self.calibration_widget.check_registration_signal.connect(self.check_registration)
+            self.calibration_widget.calibration_signal.connect(self.calibration)
+            self.calibration_widget.check_calibration_signal.connect(self.check_calibration)
             self.calibration_widget.state_changed.connect(self.state_changed)
 
-        def registration(self):
-            print('registration clicked')
+        def calibration(self):
+            print('calibration clicked')
 
-        def check_registration(self):
-            print('check registration clicked')
+        def check_calibration(self):
+            print('check calibration clicked')
 
         def state_changed(self):
             print(self.calibration_widget.get_state())
