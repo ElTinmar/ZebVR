@@ -122,7 +122,6 @@ class CameraWidget(QWidget):
         layout_cam.addLayout(layout_moviecam)
 
         layout_controls = QVBoxLayout(self)
-        layout_controls.addStretch()
         layout_controls.addWidget(self.camera_choice)
         layout_controls.addLayout(layout_cam)
 
@@ -187,7 +186,7 @@ if __name__ == "__main__":
     except ImportError:
         XIMEA_ENABLED = False
 
-    class Acquisition(QRunnable):
+    class CameraAcquisition(QRunnable):
 
         def __init__(self, camera: Camera, widget: CameraWidget, *args, **kwargs):
             super().__init__(*args, **kwargs)
@@ -214,7 +213,7 @@ if __name__ == "__main__":
 
             super().__init__(*args, **kwargs)
             self.camera = None
-            self.preview_started = False
+            self.preview_started = False # maybe move that out of here and to the code that handles the camera
             self.camera_widget = CameraWidget()
             self.camera_widget.camera_source.connect(self.set_camera)
             self.camera_widget.preview.connect(self.preview)
@@ -248,7 +247,7 @@ if __name__ == "__main__":
             if enable:
                 if not self.preview_started:
                     self.preview_started = True
-                    self.acq = Acquisition(self.camera, self.camera_widget)
+                    self.acq = CameraAcquisition(self.camera, self.camera_widget)
                     self.thread_pool.start(self.acq)
             else:
                 if self.preview_started:

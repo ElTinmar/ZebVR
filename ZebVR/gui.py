@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QTabWidget
 )
+from PyQt5.QtGui import QIcon
 from qt_widgets import LabeledEditLine, LabeledSpinBox
 from ZebVR.widgets import SequencerWidget
 from ZebVR.calibration import (
@@ -24,6 +25,7 @@ from ZebVR.calibration import (
 from ZebVR.background import inpaint_background, static_background
 
 from ZebVR.config import *
+from ZebVR.widgets import CameraWidget, ProjectorWidget
 
 # NOTE this is tightly coupled with main.py through the keys present in the Dicts.
 # Potential fix: explicitly expand dicts into keyword arguments
@@ -42,12 +44,13 @@ class MainGui(QWidget):
         self.queues = queues
         self.worker_logger = worker_logger
         self.queue_logger = queue_logger
-        self.setWindowTitle('Main controls')
         self.create_components()
         self.layout_components()
         self.experiment_data()
         self.record_flag = False
         self.filename = 'display_timing.csv'
+        self.setWindowTitle('ZebVR')
+        self.setWindowIcon(QIcon('ZebVR/resources/zebvr.png'))
 
     def create_open_loop_dag(self):
 
@@ -261,15 +264,15 @@ class MainGui(QWidget):
         self.record_button.clicked.connect(self.record)
 
         # TODO make those widget as separate classes
-        self.projector = QWidget()
-        self.camera = QWidget()
+        self.camera = CameraWidget()
+        self.projector = ProjectorWidget()
         self.registration = QWidget()
         self.calibration = QWidget()
         self.background = QWidget()
         self.output = QWidget() # video recording + csv file name
 
-        self.tabs.addTab(self.projector, "Projector")
         self.tabs.addTab(self.camera, "Camera")
+        self.tabs.addTab(self.projector, "Projector")
         self.tabs.addTab(self.registration, "Registration")
         self.tabs.addTab(self.calibration, "Calibration")
         self.tabs.addTab(self.background, "Background")
