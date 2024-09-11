@@ -69,8 +69,8 @@ class BackgroundWidget(QWidget):
 
         self.bckgsub_polarity_combobox = LabeledComboBox(self)
         self.bckgsub_polarity_combobox.setText('polarity')
-        self.bckgsub_polarity_combobox.addItem(Polarity.DARK_ON_BRIGHT)
-        self.bckgsub_polarity_combobox.addItem(Polarity.BRIGHT_ON_DARK)
+        self.bckgsub_polarity_combobox.addItem('dark on bright')
+        self.bckgsub_polarity_combobox.addItem('bright on dark')
         self.bckgsub_polarity_combobox.currentIndexChanged.connect(self.state_changed)
 
         self.bckgsub_parameter_stack = QStackedWidget(self)
@@ -80,7 +80,7 @@ class BackgroundWidget(QWidget):
         self.background = QPushButton('background')
         self.background.clicked.connect(self.background_signal)
 
-        self.background_image = QLabel()
+        self.image = QLabel()
         self.set_image(np.zeros((512,512), dtype=np.uint8))
 
     def method_change(self, index: int):
@@ -101,9 +101,10 @@ class BackgroundWidget(QWidget):
 
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.bckgsub_method_combobox)
-        main_layout.addWidget(self.bckgsub_polarity_combobox)
         main_layout.addWidget(self.bckgsub_parameter_stack)
-        main_layout.addWidget(self.background_image)
+        main_layout.addWidget(self.bckgsub_polarity_combobox)
+        main_layout.addWidget(self.background)
+        main_layout.addWidget(self.image)
     
     def set_image(self, image: NDArray):
         # TODO maybe check that image is uint8
@@ -116,6 +117,7 @@ class BackgroundWidget(QWidget):
         state = {}
         state['inpaint_radius'] = self.inpaint_radius.value()
         state['static_num_images'] = self.static_num_images.value()
+        state['static_pause_duration'] = self.static_pause_duration.value()
         state['inpaint_algo'] = self.inpaint_algo.currentIndex()
         state['bckgsub_method'] = self.bckgsub_method_combobox.currentIndex()
         state['bckgsub_polarity'] = self.bckgsub_polarity_combobox.currentIndex()
