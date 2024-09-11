@@ -7,6 +7,7 @@ from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
 class ProjectorWidget(QWidget):
 
     state_changed = pyqtSignal()
+    scale_tooltip = "Used for non-rectangular micromirror arrays (e.g. Lightcrafters)"
 
     def __init__(self,*args,**kwargs):
 
@@ -52,12 +53,14 @@ class ProjectorWidget(QWidget):
         self.scale_x.setValue(1.0)
         self.scale_x.setSingleStep(0.05)
         self.scale_x.valueChanged.connect(self.state_changed.emit)
+        self.scale_x.setToolTip(self.scale_tooltip)
 
         self.scale_y = LabeledDoubleSpinBox()
         self.scale_y.setText('scale Y:')
         self.scale_y.setValue(1.0)
         self.scale_y.setSingleStep(0.05)
         self.scale_y.valueChanged.connect(self.state_changed.emit)
+        self.scale_y.setToolTip(self.scale_tooltip)
 
         # Serial communication with the projector
         self.power_on = QPushButton('Power On')
