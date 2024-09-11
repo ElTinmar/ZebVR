@@ -48,14 +48,14 @@ class CalibrationWidget(QWidget):
         self.checkerboard_square_size_mm.valueChanged.connect(self.state_changed)
 
         self.checkerboard_grid_size_x = LabeledSpinBox()
-        self.checkerboard_grid_size_x.setText('#squares X:')
+        self.checkerboard_grid_size_x.setText('# inner corner X:')
         self.checkerboard_grid_size_x.setRange(0, 20)
         self.checkerboard_grid_size_x.setValue(9)
         self.checkerboard_grid_size_x.valueChanged.connect(self.state_changed)
         self.checkerboard_grid_size_x.setToolTip(self.checkerboard_tooltip)
 
         self.checkerboard_grid_size_y = LabeledSpinBox()
-        self.checkerboard_grid_size_y.setText('#squares Y:')
+        self.checkerboard_grid_size_y.setText('# inner corner Y:')
         self.checkerboard_grid_size_y.setRange(0, 20)
         self.checkerboard_grid_size_y.setValue(6)
         self.checkerboard_grid_size_y.valueChanged.connect(self.state_changed)

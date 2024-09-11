@@ -78,7 +78,7 @@ class RegistrationWidget(QWidget):
         self.dot_radius_px.valueChanged.connect(self.state_changed)
 
         self.dot_steps = LabeledSpinBox()
-        self.dot_steps.setText('#dot step:')
+        self.dot_steps.setText('# dot step:')
         self.dot_steps.setRange(0, 1_000)
         self.dot_steps.setValue(11)
         self.dot_steps.valueChanged.connect(self.state_changed)
