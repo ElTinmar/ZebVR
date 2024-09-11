@@ -6,6 +6,8 @@ from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
 
 class ProjectorWidget(QWidget):
 
+    state_changed = pyqtSignal()
+
     def __init__(self,*args,**kwargs):
 
         super().__init__(*args, **kwargs)
@@ -19,37 +21,43 @@ class ProjectorWidget(QWidget):
         self.proj_height.setText('height:')
         self.proj_height.setRange(1, 10_000)
         self.proj_height.setValue(1080)
+        self.proj_height.valueChanged.connect(self.state_changed.emit)
 
         self.proj_width = LabeledSpinBox()
         self.proj_width.setText('width:')
         self.proj_width.setRange(1, 10_000)
         self.proj_width.setValue(1920)
+        self.proj_width.valueChanged.connect(self.state_changed.emit)
 
-        self.offsetX = LabeledSpinBox()
-        self.offsetX.setText('offset X:')
-        self.offsetX.setRange(0, 100_000)
-        self.offsetX.setValue(1080)
+        self.offset_x = LabeledSpinBox()
+        self.offset_x.setText('offset X:')
+        self.offset_x.setRange(0, 100_000)
+        self.offset_x.setValue(1080)
+        self.offset_x.valueChanged.connect(self.state_changed.emit)
     
-        self.offsetY = LabeledSpinBox()
-        self.offsetY.setText('offset Y:')
-        self.offsetY.setRange(0, 100_000)
-        self.offsetY.setValue(0)
+        self.offset_y = LabeledSpinBox()
+        self.offset_y.setText('offset Y:')
+        self.offset_y.setRange(0, 100_000)
+        self.offset_y.setValue(0)
+        self.offset_y.valueChanged.connect(self.state_changed.emit)
 
         self.proj_fps = LabeledSpinBox()
         self.proj_fps.setText('FPS:')
         self.proj_fps.setRange(0, 960)
         self.proj_fps.setValue(240)
-        self.proj_fps.setEnabled(False)     
+        self.proj_fps.valueChanged.connect(self.state_changed.emit)
 
         self.scale_x = LabeledDoubleSpinBox()
         self.scale_x.setText('scale X:')
         self.scale_x.setValue(1.0)
         self.scale_x.setSingleStep(0.05)
+        self.scale_x.valueChanged.connect(self.state_changed.emit)
 
         self.scale_y = LabeledDoubleSpinBox()
         self.scale_y.setText('scale Y:')
         self.scale_y.setValue(1.0)
         self.scale_y.setSingleStep(0.05)
+        self.scale_y.valueChanged.connect(self.state_changed.emit)
 
         # Serial communication with the projector
         self.power_on = QPushButton('Power On')
@@ -69,8 +77,8 @@ class ProjectorWidget(QWidget):
         resolution_layout.addWidget(self.proj_height)
 
         offset_layout = QHBoxLayout() 
-        offset_layout.addWidget(self.offsetX)
-        offset_layout.addWidget(self.offsetY)
+        offset_layout.addWidget(self.offset_x)
+        offset_layout.addWidget(self.offset_y)
 
         scale_layout = QHBoxLayout()
         scale_layout.addWidget(self.scale_x)
@@ -96,7 +104,12 @@ class ProjectorWidget(QWidget):
         main_layout.addStretch()
 
     def get_state(self) -> Dict:
-        pass
+        state = {}
+        state['resolution'] = (self.proj_width.value(), self.proj_height.value())
+        state['offset'] = (self.offset_x.value(), self.offset_y.value())
+        state['pixel_scale'] = (self.scale_x.value(), self.scale_y.value())
+        state['fps'] = self.proj_fps.value()
+        return state
 
 if __name__ == "__main__":
 
