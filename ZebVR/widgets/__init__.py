@@ -4,3 +4,4 @@ from .display_widget import *
 from .tracking_widget import *
 from .sequencer_widget import *
 from .projector_widget import *
+from .registration_widget import *
