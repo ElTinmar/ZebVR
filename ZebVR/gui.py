@@ -53,7 +53,7 @@ class MainGui(QWidget):
         self.worker_logger = worker_logger
         self.queue_logger = queue_logger
         self.record_flag = False
-        
+
         self.create_components()
         self.layout_components()
 
@@ -288,6 +288,8 @@ class MainGui(QWidget):
         elif cam_source=='XIMEA' and XIMEA_ENABLED:
             self.camera_constructor = partial(XimeaCamera, dev_id=cam_ind)
 
+        # TODO probe camera and update camera widget via set_state
+
     def camera_preview(self):
         pass
 
@@ -342,6 +344,8 @@ class MainGui(QWidget):
         )
         p.start()
         p.join()
+
+        # TODO update registration widget
         
     def check_registration_callback(self):
         p = Process(
@@ -406,6 +410,8 @@ class MainGui(QWidget):
             )
             p.start()
             p.join()
+
+        # TODO update background widget
     
     def get_pix_per_mm_callback(self):
         
@@ -426,6 +432,8 @@ class MainGui(QWidget):
         )
         p.start()
         p.join()
+
+        # TODO update calibration widget
 
     def check_pix_per_mm_callback(self):
 
@@ -465,6 +473,8 @@ class MainGui(QWidget):
         )   
         p.start()
         p.join() 
+
+        # TODO update openloop widget
 
     def start(self):
         if OPEN_LOOP:
