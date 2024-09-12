@@ -168,10 +168,10 @@ class CameraWidget(QWidget):
 
         try:
             for control in self.controls:
+                print(control)
                 spinbox = getattr(self, control + '_spinbox')
                 spinbox.setEnabled(state[control + '_enabled'])
-                spinbox.setMinimum(state[control + '_min'])
-                spinbox.setMaximum(state[control + '_max'])
+                spinbox.setRange(state[control + '_min'], state[control + '_max'])
                 spinbox.setSingleStep(state[control + '_step'])
                 spinbox.setValue(state[control + '_value'])
 
@@ -237,6 +237,51 @@ if __name__ == "__main__":
                 self.camera = XimeaCamera(dev_id=id)
 
             # read camera properties and set widget state accordingly
+            state = {}
+            
+            framerate_enabled = self.camera.framerate_available()
+            state['framerate_enabled'] = framerate_enabled
+            state['framerate_min'], state['framerate_max'] = self.camera.get_framerate_range() if framerate_enabled else (0,0)
+            state['framerate_step'] = self.camera.get_framerate_increment() if framerate_enabled else 0
+            state['framerate_value'] = self.camera.get_framerate() if framerate_enabled else 0
+
+            gain_enabled = self.camera.gain_available()
+            state['gain_enabled'] = gain_enabled
+            state['gain_min'], state['gain_max'] = self.camera.get_gain_range() if gain_enabled else (0,0)
+            state['gain_step'] = self.camera.get_gain_increment() if gain_enabled else 0
+            state['gain_value'] = self.camera.get_gain() if gain_enabled else 0
+
+            exposure_enabled = self.camera.exposure_available()
+            state['exposure_enabled'] = exposure_enabled
+            state['exposure_min'], state['exposure_max'] = self.camera.get_exposure_range() if exposure_enabled else (0,0)
+            state['exposure_step'] = self.camera.get_exposure_increment() if exposure_enabled else 0
+            state['exposure_value'] = self.camera.get_exposure() if exposure_enabled else 0
+
+            offsetX_enabled = self.camera.offsetX_available()
+            state['offsetX_enabled'] = offsetX_enabled
+            state['offsetX_min'], state['offsetX_max'] = self.camera.get_offsetX_range() if offsetX_enabled else (0,0)
+            state['offsetX_step'] = self.camera.get_offsetX_increment() if offsetX_enabled else 0
+            state['offsetX_value'] = self.camera.get_offsetX() if offsetX_enabled else 0
+
+            offsetY_enabled = self.camera.offsetY_available()
+            state['offsetY_enabled'] = offsetY_enabled
+            state['offsetY_min'], state['offsetY_max'] = self.camera.get_offsetY_range() if offsetY_enabled else (0,0)
+            state['offsetY_step'] = self.camera.get_offsetY_increment() if offsetY_enabled else 0
+            state['offsetY_value'] = self.camera.get_offsetY() if offsetY_enabled else 0
+
+            height_enabled = self.camera.height_available()
+            state['height_enabled'] = height_enabled
+            state['height_min'], state['height_max'] = self.camera.get_height_range() if height_enabled else (0,0)
+            state['height_step'] = self.camera.get_height_increment() if height_enabled else 0
+            state['height_value'] = self.camera.get_height() if height_enabled else 0
+
+            width_enabled = self.camera.width_available()
+            state['width_enabled'] = width_enabled
+            state['width_min'], state['width_max'] = self.camera.get_width_range() if width_enabled else (0,0)
+            state['width_step'] = self.camera.get_width_increment() if width_enabled else 0
+            state['width_value'] = self.camera.get_width() if width_enabled else 0
+
+            self.camera_widget.set_state(state)
 
         def update_camera_settings(self):
             state = self.camera_widget.get_state()
