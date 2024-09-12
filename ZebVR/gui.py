@@ -36,7 +36,7 @@ from ZebVR.widgets import (
     OutputWidget
 )
 
-from camera_tools import Camera
+from camera_tools import Camera, OpenCV_Webcam_InitEveryFrame
 try:
     from camera_tools import XimeaCamera
     XIMEA_ENABLED = True
@@ -311,7 +311,7 @@ class MainGui(QWidget):
     def update_camera_source(self, cam_source: str, cam_ind: int, filename: str):
 
         if cam_source=='Webcam':
-            self.camera_constructor = partial(OpenCV_Webcam, cam_id=cam_ind)
+            self.camera_constructor = partial(OpenCV_Webcam_InitEveryFrame, cam_id=cam_ind)
 
         elif cam_source=='Movie' and os.path.exists(filename):
             self.camera_constructor = partial(MovieFileCam, filename=filename)
