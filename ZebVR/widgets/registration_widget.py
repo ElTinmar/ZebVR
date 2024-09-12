@@ -66,9 +66,9 @@ class RegistrationWidget(QWidget):
 
         self.image_brightness = LabeledDoubleSpinBox()
         self.image_brightness.setText('brightness:')
-        self.image_brightness.setRange(0, 10)
+        self.image_brightness.setRange(-100, 100)
         self.image_brightness.setSingleStep(0.05)
-        self.image_brightness.setValue(1.0)
+        self.image_brightness.setValue(0.0)
         self.image_brightness.valueChanged.connect(self.state_changed)
 
         self.blur_size_px = LabeledSpinBox()
