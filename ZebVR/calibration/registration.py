@@ -216,7 +216,7 @@ def dots_position(
 
         # get camera frame 
         frame = camera.get_frame()
-        image = enhance_fun(im2single(im2gray(frame.image)))
+        image = enhance_fun(im2single(im2gray(frame['image'])))
         
         mask = (image >= dot_detection_threshold)
         centroid = bwareafilter_centroids(

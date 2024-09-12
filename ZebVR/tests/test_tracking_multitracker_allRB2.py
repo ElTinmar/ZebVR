@@ -48,7 +48,7 @@ class CameraWorker(WorkerNode):
         
         frame = self.cam.get_frame()
         if frame:
-            im_gray = im2gray(frame.image)
+            im_gray = im2gray(frame['image'])
             elapsed = (time.monotonic_ns() - self.prev_time) 
             while elapsed < 1e9/self.fps:
                 elapsed = (time.monotonic_ns() - self.prev_time) 
