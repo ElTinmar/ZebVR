@@ -97,6 +97,7 @@ class CameraWidget(QWidget):
         preview_width = int(w * self.PREVIEW_HEIGHT/h)
         image_resized = cv2.resize(image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
         self.image.setPixmap(NDarray_to_QPixmap(image_resized))
+        self.update()
 
     def camera_changed(self):
         name = self.camera_choice.currentText()
@@ -168,7 +169,6 @@ class CameraWidget(QWidget):
 
         try:
             for control in self.controls:
-                print(control)
                 spinbox = getattr(self, control + '_spinbox')
                 spinbox.setEnabled(state[control + '_enabled'])
                 spinbox.setRange(state[control + '_min'], state[control + '_max'])
@@ -280,7 +280,7 @@ if __name__ == "__main__":
             state['width_min'], state['width_max'] = self.camera.get_width_range() if width_enabled else (0,0)
             state['width_step'] = self.camera.get_width_increment() if width_enabled else 0
             state['width_value'] = self.camera.get_width() if width_enabled else 0
-
+            
             self.camera_widget.set_state(state)
 
         def update_camera_settings(self):
