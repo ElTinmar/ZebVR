@@ -139,7 +139,7 @@ class RegistrationWidget(QWidget):
         self.pattern_grid_size.valueChanged.connect(self.state_changed)
 
         self.registration_file = FileSaveLabeledEditButton()
-        self.registration_file.setLabel('reigstration file:')
+        self.registration_file.setLabel('registration file:')
         self.registration_file.setDefault('ZebVR/default/registration.json')
         self.registration_file.textChanged.connect(self.state_changed)
 
