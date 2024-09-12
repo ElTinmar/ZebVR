@@ -401,6 +401,9 @@ class MainGui(QWidget):
         self.settings['output'] = self.output_widget.get_state()
 
     def registration_callback(self):
+        # TODO make sure the camera is not previewing
+        self.camera.stop_acquisition()
+
         p = Process(
             target = registration,
             kwargs = {
