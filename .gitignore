@@ -1,14 +1,11 @@
 toy_data/
-*.csv
+results/
+logs/
+video_output/
 
 # numpy arrays
 *.npy
 *.npz
-
-# logs
-*.log
-*.prof 
-*.png
 
 # Video examples
 *.avi
