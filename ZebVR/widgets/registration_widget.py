@@ -132,6 +132,12 @@ class RegistrationWidget(QWidget):
         self.pattern_intensity.setValue(64)
         self.pattern_intensity.valueChanged.connect(self.state_changed)
 
+        self.pattern_grid_size = LabeledSpinBox()
+        self.pattern_grid_size.setText('pattern grid size')
+        self.pattern_grid_size.setRange(2, 10)
+        self.pattern_grid_size.setValue(5)
+        self.pattern_grid_size.valueChanged.connect(self.state_changed)
+
         self.registration_file = FileSaveLabeledEditButton()
         self.registration_file.setLabel('reigstration file:')
         self.registration_file.setDefault('ZebVR/default/registration.json')
@@ -185,6 +191,7 @@ class RegistrationWidget(QWidget):
         main_layout.addWidget(self.camera_exposure_ms)
         main_layout.addWidget(self.camera_gain)
         main_layout.addWidget(self.pattern_intensity)
+        main_layout.addWidget(self.pattern_grid_size)
         main_layout.addWidget(self.registration_file)
         main_layout.addLayout(button_layout)
         main_layout.addWidget(self.transformation_matrix_table)
@@ -206,6 +213,7 @@ class RegistrationWidget(QWidget):
         state['camera_exposure_ms'] = self.camera_exposure_ms.value()
         state['camera_gain'] = self.camera_gain.value()
         state['pattern_intensity'] = self.pattern_intensity.value()
+        state['pattern_grid_size'] = self.pattern_grid_size.value()
         state['registration_file'] = self.registration_file.text()
         state['transformation_matrix'] = self.transformation_matrix
         return state
@@ -226,6 +234,7 @@ class RegistrationWidget(QWidget):
             self.camera_exposure_ms.setValue(state['camera_exposure_ms'])
             self.camera_gain.setValue(state['camera_gain'])
             self.pattern_intensity.setValue(state['pattern_intensity'])
+            self.pattern_grid_size.setValue(state['pattern_grid_size'])
             self.registration_file.setText(state['registration_file'])
             self.transformation_matrix = state['transformation_matrix']
             self.update_table()

@@ -427,6 +427,7 @@ class MainGui(QWidget):
                 "gamma": self.settings['registration']['image_gamma'],
                 "blur_size_px": self.settings['registration']['blur_size_px'], 
                 "dot_radius": self.settings['registration']['dot_radius_px'],
+                "bar_width": self.settings['registration']['bar_width_px'],
                 "bar_num_steps": self.settings['registration']['bar_step'],
                 "dots_num_steps": self.settings['registration']['dot_steps'],
                 "dot_detection_threshold": self.settings['registration']['detection_threshold']
@@ -440,26 +441,31 @@ class MainGui(QWidget):
             registration_data = json.load(f)
             state = self.settings['registration']
             state['transformation_matrix'] = registration_data['cam_to_proj']
+            self.registration_widget.set_state(state)
         
     def check_registration_callback(self):
+        if self.camera_preview_started:
+            self.camera_preview_started = False
+            self.acq.stop()
+
         p = Process(
             target = check_registration,
             kwargs = {
-                "camera_constructor": CAMERA_CONSTRUCTOR,
-                "cam_exposure_microsec": CAM_EXPOSURE_MS,
-                "cam_gain": CAM_GAIN,
-                "cam_fps": CAM_FPS,
-                "cam_height": CAM_HEIGHT,
-                "cam_width": CAM_WIDTH,
-                "cam_offset_x": CAM_OFFSETX,
-                "cam_offset_y": CAM_OFFSETY,
-                "proj_width": PROJ_WIDTH,
-                "proj_height": PROJ_HEIGHT,
-                "proj_pos": PROJ_POS,
-                "registration_file": REGISTRATION_FILE,
-                "pattern_grid_size": 5,
-                "pattern_intensity": PATTERN_INTENSITY,
-                "pixel_scaling": PIXEL_SCALING
+                "camera_constructor": self.camera_constructor,
+                "cam_height": self.settings['camera']['height_value'],
+                "cam_width": self.settings['camera']['width_value'],
+                "cam_offset_x": self.settings['camera']['offsetX_value'],
+                "cam_offset_y": self.settings['camera']['offsetY_value'],
+                "proj_width": self.settings['projector']['resolution'][0],
+                "proj_height": self.settings['projector']['resolution'][1],
+                "proj_pos": self.settings['projector']['offset'],
+                "pixel_scaling": self.settings['projector']['pixel_scale'],
+                "cam_exposure_microsec": self.settings['registration']['camera_exposure_ms'],
+                "cam_gain": self.settings['registration']['camera_gain'],
+                "cam_fps":  self.settings['registration']['dot_fps'],
+                "registration_file": self.settings['registration']['registration_file'],
+                "pattern_grid_size": self.settings['registration']['pattern_grid_size'],
+                "pattern_intensity": self.settings['registration']['pattern_intensity'],
             }
         )
         p.start()

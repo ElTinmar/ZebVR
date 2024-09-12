@@ -150,6 +150,9 @@ def check_registration(
     )
     proj.start()
 
+    # wait for proj to be initialized
+    time.sleep(5)
+
     camera = camera_constructor()
     camera.set_exposure(cam_exposure_microsec)
     camera.set_gain(cam_gain)
@@ -178,7 +181,7 @@ def check_registration(
 
     # project point        
     proj.draw_image(mask_proj)
-    time.sleep(0.1)
+    time.sleep(0.1) # wait for image to be displayed
 
     # get camera frame 
     camera.start_acquisition() 

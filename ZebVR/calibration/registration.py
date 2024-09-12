@@ -22,23 +22,27 @@ class Pattern(IntEnum):
 
 VERT_SHADER_CALIBRATION = """
 attribute float a_radius;
+attribute float a_bar_width;
 attribute vec2 a_point;
 attribute vec2 a_position;
 
 varying vec2 v_point;
 varying float v_radius;
+varying float v_bar_width;
 
 void main()
 {
     gl_Position = vec4(a_position, 0.0, 1.0);
     v_point = a_point;
     v_radius = a_radius;
+    v_bar_width = a_bar_width;
 } 
 """
 
 FRAG_SHADER_CALIBRATION = """
 varying vec2 v_point;
 varying float v_radius;
+varying float v_bar_width;
 uniform vec2 u_pixel_scaling;
 uniform int u_pattern;
 
@@ -58,13 +62,13 @@ void main()
     }
 
     if (u_pattern == HBAR) {
-        if ( abs(pix_coords.y - v_point.y) <= v_radius ) {
+        if ( abs(pix_coords.y - v_point.y) <= v_bar_width ) {
             gl_FragColor = vec4(1.0,1.0,1.0,1.0);
         }
     }
     
     if (u_pattern == VBAR) {
-        if ( abs(pix_coords.x - v_point.x) <= v_radius ) {
+        if ( abs(pix_coords.x - v_point.x) <= v_bar_width ) {
             gl_FragColor = vec4(1.0,1.0,1.0,1.0);
         }
     }
@@ -80,6 +84,7 @@ class Projector(app.Canvas, Process):
             window_decoration: bool = False,
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             radius: int = 10,
+            bar_width: int = 10,
             *args,
             **kwargs
         ) -> None:
@@ -91,6 +96,7 @@ class Projector(app.Canvas, Process):
             self.window_decoration = window_decoration 
             self.pixel_scaling = pixel_scaling
             self.radius = radius
+            self.bar_width = bar_width
             self.x = Value('f', 0)
             self.y = Value('f', 0)
             self.pattern = Value('i', 0)
@@ -110,6 +116,7 @@ class Projector(app.Canvas, Process):
 
         # set attributes, these must be present in the vertex shader
         self.program['a_radius'] = self.radius
+        self.program['a_bar_width'] = self.bar_width
         self.program['a_point'] =  [0, 0]
         self.program['a_position'] = [(-1, -1), (-1, +1),
                                     (+1, -1), (+1, +1)]
@@ -264,6 +271,7 @@ def registration(
     gamma: float,
     blur_size_px: float,
     dot_radius: float,
+    bar_width: float,
     bar_num_steps: int,
     dots_num_steps: int,
     dot_detection_threshold: float,
@@ -274,6 +282,7 @@ def registration(
         window_size=(proj_width, proj_height), 
         window_position=proj_pos, 
         radius=dot_radius,
+        bar_width=bar_width,
         pixel_scaling=pixel_scaling
     )
     proj.start()
@@ -396,6 +405,7 @@ if __name__ == '__main__':
         gamma=GAMMA,
         blur_size_px=BLUR_SIZE_PX,
         dot_radius=DOT_RADIUS,
+        bar_width=DOT_RADIUS,
         bar_num_steps=BAR_STEPS,
         dots_num_steps=DOT_STEPS,
         dot_detection_threshold=DETECTION_THRESHOLD,
