@@ -12,7 +12,13 @@ from numpy.typing import NDArray
 import numpy as np
 import cv2
 
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledComboBox, NDarray_to_QPixmap
+from qt_widgets import (
+    LabeledDoubleSpinBox, 
+    LabeledSpinBox, 
+    LabeledComboBox, 
+    NDarray_to_QPixmap, 
+    FileSaveLabeledEditButton
+)
 import numpy as np
 
 class BackgroundWidget(QWidget):
@@ -76,6 +82,11 @@ class BackgroundWidget(QWidget):
         self.bckgsub_parameter_stack.addWidget(self.parameters_inpaint)
         self.bckgsub_parameter_stack.addWidget(self.parameters_static)
 
+        self.background_file = FileSaveLabeledEditButton()
+        self.background_file.setLabel('background file:')
+        self.background_file.setDefault('ZebVR/default/background.npy')
+        self.background_file.textChanged.connect(self.state_changed)
+
         self.background = QPushButton('background')
         self.background.clicked.connect(self.background_signal)
 
@@ -102,6 +113,7 @@ class BackgroundWidget(QWidget):
         main_layout.addWidget(self.bckgsub_method_combobox)
         main_layout.addWidget(self.bckgsub_parameter_stack)
         main_layout.addWidget(self.bckgsub_polarity_combobox)
+        main_layout.addWidget(self.background_file)
         main_layout.addWidget(self.background)
         main_layout.addWidget(self.image)
     
@@ -117,9 +129,10 @@ class BackgroundWidget(QWidget):
         state['inpaint_radius'] = self.inpaint_radius.value()
         state['static_num_images'] = self.static_num_images.value()
         state['static_pause_duration'] = self.static_pause_duration.value()
-        state['inpaint_algo'] = self.inpaint_algo.currentIndex()
-        state['bckgsub_method'] = self.bckgsub_method_combobox.currentIndex()
-        state['bckgsub_polarity'] = self.bckgsub_polarity_combobox.currentIndex()
+        state['inpaint_algo'] = self.inpaint_algo.currentText()
+        state['bckgsub_method'] = self.bckgsub_method_combobox.currentText()
+        state['bckgsub_polarity'] = self.bckgsub_polarity_combobox.currentText()
+        state['background_file'] =  self.background_file.text()
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -127,9 +140,10 @@ class BackgroundWidget(QWidget):
             self.inpaint_radius.setValue(state['inpaint_radius'])
             self.static_num_images.setValue(state['static_num_images'])
             self.static_pause_duration.setValue(state['static_pause_duration'])
-            self.inpaint_algo.setCurrentIndex(state['inpaint_algo'])
-            self.bckgsub_method_combobox.setCurrentIndex(state['bckgsub_method'])
-            self.bckgsub_polarity_combobox.setCurrentIndex(state['bckgsub_polarity'])
+            self.inpaint_algo.setCurrentText(state['inpaint_algo'])
+            self.bckgsub_method_combobox.setCurrentText(state['bckgsub_method'])
+            self.bckgsub_polarity_combobox.setCurrentText(state['bckgsub_polarity'])
+            self.background_file.setText(state['background_file'])
 
         except KeyError:
             print('Wrong state keys provided to background widget')

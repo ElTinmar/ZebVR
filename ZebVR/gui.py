@@ -12,6 +12,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import  QRunnable, QThreadPool
 from functools import partial
 import json
+import cv2
 
 from multiprocessing_logger import Logger
 from image_tools import im2gray
@@ -472,40 +473,45 @@ class MainGui(QWidget):
         p.join()
         
     def background_callback(self):
+        if self.camera_preview_started:
+            self.camera_preview_started = False
+            self.acq.stop()
 
-        if self.background_method.currentText() == 'inpaint':
+        if self.settings['background']['bckgsub_method'] == 'inpaint':
             p = Process(
                 target = inpaint_background,
                 kwargs = {
-                    "camera_constructor": CAMERA_CONSTRUCTOR,
-                    "exposure_microsec": CAM_EXPOSURE_MS,
-                    "cam_gain": CAM_GAIN,
-                    "cam_fps": CAM_FPS,
-                    "cam_height": CAM_HEIGHT,
-                    "cam_width": CAM_WIDTH,
-                    "cam_offset_x": CAM_OFFSETX,
-                    "cam_offset_y": CAM_OFFSETY,
-                    "background_file": BACKGROUND_FILE
+                    "camera_constructor": self.camera_constructor,
+                    "exposure_microsec": self.settings['camera']['exposure_value'],
+                    "cam_gain": self.settings['camera']['gain_value'],
+                    "cam_fps": self.settings['camera']['framerate_value'],
+                    "cam_height": self.settings['camera']['height_value'],
+                    "cam_width": self.settings['camera']['width_value'],
+                    "cam_offset_x": self.settings['camera']['offsetX_value'],
+                    "cam_offset_y": self.settings['camera']['offsetY_value'],
+                    "background_file": self.settings['background']['background_file'],
+                    "radius": self.settings['background']['inpaint_radius'],
+                    "algo": cv2.INPAINT_NS if self.settings['background']['inpaint_algo'] == 'navier-stokes' else cv2.INPAINT_TELEA
                 }
             )
             p.start()
             p.join()
 
-        elif self.background_method.currentText() == 'static':
+        elif self.settings['background']['bckgsub_method'] == 'static':
             p = Process(
                 target = static_background,
                 kwargs = {
-                    "camera_constructor": CAMERA_CONSTRUCTOR,
-                    "exposure_microsec": CAM_EXPOSURE_MS,
-                    "cam_gain": CAM_GAIN,
-                    "cam_fps": CAM_FPS,
-                    "cam_height": CAM_HEIGHT,
-                    "cam_width": CAM_WIDTH,
-                    "cam_offset_x": CAM_OFFSETX,
-                    "cam_offset_y": CAM_OFFSETY,
-                    "background_file": BACKGROUND_FILE,
-                    "num_images": NUM_IMAGES,
-                    "time_between_images": TIME_BETWEEN_IMAGES
+                    "camera_constructor": self.camera_constructor,
+                    "exposure_microsec": self.settings['camera']['exposure_value'],
+                    "cam_gain": self.settings['camera']['gain_value'],
+                    "cam_fps": self.settings['camera']['framerate_value'],
+                    "cam_height": self.settings['camera']['height_value'],
+                    "cam_width": self.settings['camera']['width_value'],
+                    "cam_offset_x": self.settings['camera']['offsetX_value'],
+                    "cam_offset_y": self.settings['camera']['offsetY_value'],
+                    "background_file": self.settings['background']['background_file'],
+                    "num_images": self.settings['background']['static_num_images'],
+                    "time_between_images": self.settings['background']['static_pause_duration']
                 }
             )
             p.start()
