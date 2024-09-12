@@ -298,7 +298,7 @@ def registration(
     cv2.namedWindow('calibration')
 
     # make sure that everything is initialized
-    time.sleep(5)     
+    time.sleep(2)     
 
     x_start, x_stop = bar_intensity_profile(
         camera=camera,
