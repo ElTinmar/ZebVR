@@ -97,7 +97,6 @@ class CameraWidget(QWidget):
         preview_width = int(w * self.PREVIEW_HEIGHT/h)
         image_resized = cv2.resize(image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
         self.image.setPixmap(NDarray_to_QPixmap(image_resized))
-        self.update()
 
     def camera_changed(self):
         name = self.camera_choice.currentText()
