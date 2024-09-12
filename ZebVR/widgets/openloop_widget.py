@@ -20,6 +20,7 @@ class OpenLoopWidget(QWidget):
 
         self.declare_components()
         self.layout_components()
+        self.method_change('closed-loop')
 
     def declare_components(self):
         
