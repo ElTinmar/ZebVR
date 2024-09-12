@@ -5,6 +5,8 @@ from numpy.typing import NDArray
 from PyQt5.QtCore import pyqtSignal
 import numpy as np
 import cv2
+from image_tools import im2gray
+import os
 
 class CameraWidget(QWidget):
 
@@ -207,7 +209,7 @@ if __name__ == "__main__":
                 try:
                     frame = self.camera.get_frame()
                     if frame['image'] is not None:
-                        self.widget.set_image(frame['image'])
+                        self.widget.set_image(im2gray(frame['image']))
                 except:
                     pass
             self.camera.stop_acquisition()
@@ -230,7 +232,7 @@ if __name__ == "__main__":
             
             if name=='Webcam':
                 self.camera = OpenCV_Webcam(cam_id=id)
-            elif name=='Movie':
+            elif name=='Movie' and os.path.exists(filename):
                 self.camera = MovieFileCam(filename)
             elif name=='XIMEA' and XIMEA_ENABLED:
                 self.camera = XimeaCamera(dev_id=id)
