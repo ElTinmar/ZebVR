@@ -522,42 +522,51 @@ class MainGui(QWidget):
         self.background_widget.set_image(image)
     
     def get_pix_per_mm_callback(self):
-        
+        if self.camera_preview_started:
+            self.camera_preview_started = False
+            self.acq.stop()
+
         p = Process(
             target = pix_per_mm,
             kwargs = {
-                "camera_constructor": CAMERA_CONSTRUCTOR,
-                "exposure_microsec": CALIBRATION_CAM_EXPOSURE_MS,
-                "cam_gain": CAM_GAIN,
-                "cam_fps": CALIBRATION_CAM_FPS,
-                "cam_height": CAM_HEIGHT,
-                "cam_width": CAM_WIDTH,
-                "cam_offset_x": CAM_OFFSETX,
-                "cam_offset_y": CAM_OFFSETY,
-                "checker_grid_size": CALIBRATION_CHECKER_SIZE,
-                "checker_square_size_mm": CALIBRATION_SQUARE_SIZE_MM
+                "camera_constructor": self.camera_constructor,
+                "cam_height": self.settings['camera']['height_value'],
+                "cam_width": self.settings['camera']['width_value'],
+                "cam_offset_x": self.settings['camera']['offsetX_value'],
+                "cam_offset_y": self.settings['camera']['offsetY_value'],
+                "cam_gain": self.settings['camera']['gain_value'],
+                "exposure_microsec": self.settings['calibration']['camera_exposure_ms'],
+                "cam_fps": self.settings['calibration']['camera_fps'],
+                "checker_grid_size":  self.settings['calibration']['checkerboard_grid_size'],
+                "checker_square_size_mm": self.settings['calibration']['checkerboard_square_size_mm'],
+                "calibration_file": self.settings['calibration']['calibration_file']
             }
         )
         p.start()
         p.join()
 
-        # TODO update calibration widget
+        # update calibration widget pix/mm
+        with open(self.settings['calibration']['calibration_file'],  'r') as f:
+            pix_per_mm = json.load(f)
+            state = self.settings['calibration']
+            state['pix_per_mm'] = pix_per_mm
+            self.registration_widget.set_state(state)
 
     def check_pix_per_mm_callback(self):
 
         p = Process(
             target = check_pix_per_mm,
             kwargs = {
-                "proj_width": PROJ_WIDTH,
-                "proj_height": PROJ_HEIGHT,
-                "proj_pos": PROJ_POS,
-                "cam_height": CAM_HEIGHT,
-                "cam_width": CAM_WIDTH,
-                "pix_per_mm": PIX_PER_MM,
-                "size_to_check": CALIBRATION_CHECK_DIAMETER_MM,
-                "registration_file": REGISTRATION_FILE,
-                "thickness": 10.0,
-                "pixel_scaling": PIXEL_SCALING, 
+                "proj_width": self.settings['projector']['resolution'][0],
+                "proj_height": self.settings['projector']['resolution'][1],
+                "proj_pos": self.settings['projector']['offset'],
+                "pixel_scaling": self.settings['projector']['pixel_scale'], 
+                "cam_height": self.settings['camera']['height_value'],
+                "cam_width": self.settings['camera']['width_value'],
+                "pix_per_mm": self.settings['calibration']['pix_per_mm'],
+                "thickness": self.settings['calibration']['reticle_thickness'],
+                "size_to_check": self.calibration_widget.CALIBRATION_CHECK_DIAMETER_MM, # TODO make a QWidget list
+                "registration_file": self.settings['registration']['registration_file'],
             }
         )
         p.start()

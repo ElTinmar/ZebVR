@@ -13,7 +13,7 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPixmap
 from typing import Dict
 
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEditButton
 
 class CalibrationWidget(QWidget):
 
@@ -73,6 +73,17 @@ class CalibrationWidget(QWidget):
         self.camera_exposure_ms.setValue(5_000)
         self.camera_exposure_ms.valueChanged.connect(self.state_changed)
 
+        self.reticle_thickness = LabeledDoubleSpinBox()
+        self.reticle_thickness.setText('reticle thickness (px):')
+        self.reticle_thickness.setRange(0, 20)
+        self.reticle_thickness.setValue(10.0)
+        self.reticle_thickness.valueChanged.connect(self.state_changed)
+
+        self.calibration_file = FileSaveLabeledEditButton()
+        self.calibration_file.setLabel('calibration file:')
+        self.calibration_file.setDefault('ZebVR/default/calibration.json')
+        self.calibration_file.textChanged.connect(self.state_changed)
+
         self.calibration = QPushButton('calibration')
         self.calibration.clicked.connect(self.calibration_signal)
 
@@ -83,7 +94,7 @@ class CalibrationWidget(QWidget):
         self.pix_per_mm.setText('pix/mm:')
         self.pix_per_mm.setRange(0, 10_000)
         self.pix_per_mm.setValue(0)
-        self.pix_per_mm.setEnabled(False)
+        self.pix_per_mm.valueChanged.connect(self.state_changed)
 
     def layout_components(self):
 
@@ -116,6 +127,8 @@ class CalibrationWidget(QWidget):
         main_layout.addLayout(layout_grid_size)
         main_layout.addWidget(self.camera_exposure_ms)
         main_layout.addWidget(self.camera_fps)
+        main_layout.addWidget(self.reticle_thickness)
+        main_layout.addWidget(self.calibration_file)
         main_layout.addLayout(button_layout)
         main_layout.addWidget(self.pix_per_mm)
         main_layout.addStretch()
@@ -127,6 +140,8 @@ class CalibrationWidget(QWidget):
         state['camera_exposure_ms'] = self.camera_exposure_ms.value()
         state['camera_fps'] = self.camera_fps.value()
         state['pix_per_mm'] = self.pix_per_mm.value()
+        state['reticle_thickness'] = self.reticle_thickness.value()
+        state['calibration_file'] = self.calibration_file.text()
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -137,6 +152,8 @@ class CalibrationWidget(QWidget):
             self.camera_exposure_ms.setValue(state['camera_exposure_ms'])
             self.camera_fps.setValue(state['camera_fps'])
             self.pix_per_mm.setValue(state['pix_per_mm'])
+            self.calibration_file.setText(state['calibration_file'])
+            self.reticle_thickness.setValue(state['reticle_thickness'])
 
         except KeyError:
             print('Wrong state keys provided to calibration widget')

@@ -1,6 +1,7 @@
 import numpy as np
 from camera_tools import get_camera_px_per_mm
 from typing import Callable, Tuple
+import json
 
 def pix_per_mm(
     camera_constructor: Callable,
@@ -12,7 +13,8 @@ def pix_per_mm(
     cam_offset_x: int,
     cam_offset_y: int,
     checker_grid_size: Tuple[int, int],
-    checker_square_size_mm: float
+    checker_square_size_mm: float,
+    calibration_file: str
 ):
 
     camera = camera_constructor()
@@ -40,7 +42,8 @@ def pix_per_mm(
         distortion_coef=None    
     )
 
-    print(px_per_mm)
+    with open(calibration_file, 'w') as f:
+        json.dump(px_per_mm, f)
 
 if __name__ == '__main__':
 
@@ -67,6 +70,7 @@ if __name__ == '__main__':
         cam_offset_x=CAM_OFFSETX,
         cam_offset_y=CAM_OFFSETY,
         checker_grid_size=CALIBRATION_CHECKER_SIZE,
-        checker_square_size_mm=CALIBRATION_SQUARE_SIZE_MM
+        checker_square_size_mm=CALIBRATION_SQUARE_SIZE_MM,
+        calibration_file='calibration.json'
     )
     
