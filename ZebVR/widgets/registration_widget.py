@@ -7,12 +7,13 @@ from PyQt5.QtWidgets import (
     QHeaderView, 
     QTableWidget, 
     QTableWidgetItem,
-    QLabel
+    QLabel,
+    QFileDialog
 )
 from PyQt5.QtCore import pyqtSignal, Qt
 from typing import Dict
 
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEditButton
 
 class RegistrationWidget(QWidget):
 
@@ -70,6 +71,13 @@ class RegistrationWidget(QWidget):
         self.image_brightness.setValue(1.0)
         self.image_brightness.valueChanged.connect(self.state_changed)
 
+        self.blur_size_px = LabeledDoubleSpinBox()
+        self.blur_size_px.setText('blur size (px):')
+        self.blur_size_px.setRange(0, 100)
+        self.blur_size_px.setSingleStep(0.05)
+        self.blur_size_px.setValue(2.0)
+        self.blur_size_px.valueChanged.connect(self.state_changed)
+
         self.dot_radius_px = LabeledDoubleSpinBox()
         self.dot_radius_px.setText('dot radius (px):')
         self.dot_radius_px.setRange(0, 1_000)
@@ -78,7 +86,7 @@ class RegistrationWidget(QWidget):
         self.dot_radius_px.valueChanged.connect(self.state_changed)
 
         self.dot_steps = LabeledSpinBox()
-        self.dot_steps.setText('# dot step:')
+        self.dot_steps.setText('# dot steps:')
         self.dot_steps.setRange(0, 1_000)
         self.dot_steps.setValue(11)
         self.dot_steps.valueChanged.connect(self.state_changed)
@@ -95,11 +103,11 @@ class RegistrationWidget(QWidget):
         self.bar_width_px.setValue(10.0)
         self.bar_width_px.valueChanged.connect(self.state_changed)
 
-        self.bar_step_px = LabeledSpinBox()
-        self.bar_step_px.setText('bar step size (px):')
-        self.bar_step_px.setRange(0, 1_000)
-        self.bar_step_px.setValue(200)
-        self.bar_step_px.valueChanged.connect(self.state_changed)
+        self.bar_step = LabeledSpinBox()
+        self.bar_step.setText('# bar steps:')
+        self.bar_step.setRange(0, 1_000)
+        self.bar_step.setValue(200)
+        self.bar_step.valueChanged.connect(self.state_changed)
 
         self.bar_fps = LabeledDoubleSpinBox()
         self.bar_fps.setText('FPS bar:')
@@ -113,11 +121,22 @@ class RegistrationWidget(QWidget):
         self.camera_exposure_ms.setValue(5_000)
         self.camera_exposure_ms.valueChanged.connect(self.state_changed)
 
+        self.camera_gain = LabeledDoubleSpinBox()
+        self.camera_gain.setText('camera gain:')
+        self.camera_gain.setRange(0, 100_000)
+        self.camera_gain.setValue(5_000)
+        self.camera_gain.valueChanged.connect(self.state_changed)
+
         self.pattern_intensity = LabeledSpinBox()
         self.pattern_intensity.setText('pattern intensity')
         self.pattern_intensity.setRange(1, 255)
         self.pattern_intensity.setValue(64)
         self.pattern_intensity.valueChanged.connect(self.state_changed)
+
+        self.registration_file = FileSaveLabeledEditButton()
+        self.registration_file.setLabel('reigstration file:')
+        self.registration_file.setDefault('ZebVR/default/registration.json')
+        self.registration_file.textChanged.connect(self.state_changed)
 
         self.registration = QPushButton('registration')
         self.registration.clicked.connect(self.registration_signal)
@@ -157,14 +176,17 @@ class RegistrationWidget(QWidget):
         main_layout.addWidget(self.image_contrast)
         main_layout.addWidget(self.image_gamma)
         main_layout.addWidget(self.image_brightness)
+        main_layout.addWidget(self.blur_size_px)
         main_layout.addWidget(self.dot_radius_px)
         main_layout.addWidget(self.dot_steps)
         main_layout.addWidget(self.dot_fps)
         main_layout.addWidget(self.bar_width_px)
-        main_layout.addWidget(self.bar_step_px)
+        main_layout.addWidget(self.bar_step)
         main_layout.addWidget(self.bar_fps)
         main_layout.addWidget(self.camera_exposure_ms)
+        main_layout.addWidget(self.camera_gain)
         main_layout.addWidget(self.pattern_intensity)
+        main_layout.addWidget(self.registration_file)
         main_layout.addLayout(button_layout)
         main_layout.addWidget(self.transformation_matrix_table)
         main_layout.addStretch()
@@ -175,14 +197,17 @@ class RegistrationWidget(QWidget):
         state['image_contrast'] = self.image_contrast.value()
         state['image_gamma'] = self.image_gamma.value()
         state['image_brightness'] = self.image_brightness.value()
+        state['blur_size_px'] = self.blur_size_px.value()
         state['dot_radius_px'] = self.dot_radius_px.value()
         state['dot_steps'] = self.dot_steps.value()
         state['dot_fps'] = self.dot_fps.value()
         state['bar_width_px'] = self.bar_width_px.value()
-        state['bar_step_px'] = self.bar_step_px.value()
+        state['bar_step'] = self.bar_step.value()
         state['bar_fps'] = self.bar_fps.value()
         state['camera_exposure_ms'] = self.camera_exposure_ms.value()
+        state['camera_gain'] = self.camera_gain.value()
         state['pattern_intensity'] = self.pattern_intensity.value()
+        state['registration_file'] = self.registration_file.text()
         state['transformation_matrix'] = self.transformation_matrix
         return state
     
@@ -192,14 +217,17 @@ class RegistrationWidget(QWidget):
             self.image_contrast.setValue(state['image_contrast'])
             self.image_gamma.setValue(state['image_gamma'])
             self.image_brightness.setValue(state['image_brightness'])
+            self.blur_size_px.setValue(state['blur_size_px'])
             self.dot_radius_px.setValue(state['dot_radius_px'])
             self.dot_steps.setValue(state['dot_steps'])
             self.dot_fps.setValue(state['dot_fps'])
             self.bar_width_px.setValue(state['bar_width_px'])
-            self.bar_step_px.setValue(state['bar_step_px'])
+            self.bar_step.setValue(state['bar_step'])
             self.bar_fps.setValue(state['bar_fps'])
             self.camera_exposure_ms.setValue(state['camera_exposure_ms'])
+            self.camera_gain.setValue(state['camera_gain'])
             self.pattern_intensity.setValue(state['pattern_intensity'])
+            self.registration_file.setText(state['registration_file'])
             self.transformation_matrix = state['transformation_matrix']
             self.update_table()
 

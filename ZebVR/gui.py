@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import  QRunnable, QThreadPool
 from functools import partial
-
+import json
 
 from multiprocessing_logger import Logger
 from image_tools import im2gray
@@ -404,34 +404,38 @@ class MainGui(QWidget):
         p = Process(
             target = registration,
             kwargs = {
-                "camera_constructor": CAMERA_CONSTRUCTOR,
-                "exposure_microsec": CAM_REGISTRATION_EXPOSURE_MS,
-                "cam_height": CAM_HEIGHT,
-                "cam_width": CAM_WIDTH,
-                "cam_gain": CAM_GAIN,
-                "fps_bars": CAM_REGISTRATION_BARS_FPS,
-                "fps_dots": CAM_REGISTRATION_DOTS_FPS,
-                "cam_offset_x": CAM_OFFSETX,
-                "cam_offset_y": CAM_OFFSETY,
-                "proj_width": PROJ_WIDTH,
-                "proj_height": PROJ_HEIGHT,
-                "proj_pos": PROJ_POS,
-                "registration_file": REGISTRATION_FILE, 
-                "contrast": CONTRAST,
-                "brightness": BRIGHTNESS,
-                "gamma": GAMMA,
-                "blur_size_px": BLUR_SIZE_PX,
-                "dot_radius": DOT_RADIUS,
-                "bar_num_steps": BAR_STEPS,
-                "dots_num_steps": DOT_STEPS,
-                "dot_detection_threshold": DETECTION_THRESHOLD,
-                "pixel_scaling": PIXEL_SCALING
+                "camera_constructor": self.camera_constructor,
+                "cam_height": self.settings['camera']['height_value'],
+                "cam_width": self.settings['camera']['width_value'],
+                "cam_offset_x": self.settings['camera']['offsetX_value'],
+                "cam_offset_y": self.settings['camera']['offsetY_value'], 
+                "proj_width": self.settings['projector']['resolution'][0], 
+                "proj_height": self.settings['projector']['resolution'][1],
+                "proj_pos": self.settings['projector']['offset'],
+                "pixel_scaling": self.settings['projector']['pixel_scale'],
+                "exposure_microsec": self.settings['registration']['camera_exposure_ms'],
+                "cam_gain": self.settings['registration']['camera_gain'], 
+                "fps_bars": self.settings['registration']['bar_fps'],
+                "fps_dots": self.settings['registration']['dot_fps'],
+                "registration_file": self.settings['registration']['registration_file'], 
+                "contrast": self.settings['registration']['image_contrast'],
+                "brightness": self.settings['registration']['image_brightness'],
+                "gamma": self.settings['registration']['image_gamma'],
+                "blur_size_px": self.settings['registration']['blur_size_px'], 
+                "dot_radius": self.settings['registration']['dot_radius_px'],
+                "bar_num_steps": self.settings['registration']['bar_step'],
+                "dots_num_steps": self.settings['registration']['dot_steps'],
+                "dot_detection_threshold": self.settings['registration']['detection_threshold']
             }
         )
         p.start()
         p.join()
 
-        # TODO update registration widget
+        # update registration widget
+        with open(self.settings['registration']['registration_file'],  'r') as f:
+            registration_data = json.load(f)
+            state = self.settings['registration']
+            state['transformation_matrix'] = registration_data['cam_to_proj']
         
     def check_registration_callback(self):
         p = Process(

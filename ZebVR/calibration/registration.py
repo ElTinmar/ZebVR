@@ -166,7 +166,7 @@ def bar_intensity_profile(
     for i, x in enumerate(coord):
         bar_fun(x)
         frame = camera.get_frame()
-        image = enhance_fun(im2single(im2gray(frame.image)))
+        image = enhance_fun(im2single(im2gray(frame['image'])))
         intensity_profile[i] = np.sum(image)
 
         (height, width) = image.shape[:2]
