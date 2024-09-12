@@ -122,8 +122,8 @@ class RegistrationWidget(QWidget):
 
         self.camera_gain = LabeledDoubleSpinBox()
         self.camera_gain.setText('camera gain:')
-        self.camera_gain.setRange(0, 100_000)
-        self.camera_gain.setValue(5_000)
+        self.camera_gain.setRange(-1000, 1000)
+        self.camera_gain.setValue(0)
         self.camera_gain.valueChanged.connect(self.state_changed)
 
         self.pattern_intensity = LabeledSpinBox()
