@@ -108,6 +108,7 @@ def check_pix_per_mm(
     size_to_check: List[float],
     registration_file: str,
     thickness: float = 10.0,
+    reticle_center: Tuple[float, float] = (0, 0),
     pixel_scaling: Tuple[float, float] = (1.0, 1.0), # only for exotic devices such as Lightcrafters in native mode
     ):
      
@@ -130,8 +131,8 @@ def check_pix_per_mm(
     for d in size_to_check:
         # concentric rings of different diameters centered on camera FOV
         radius = d/2 * pix_per_mm
-        ring_ind = disk([x,y],[cam_width//2,cam_height//2],radius+thickness/2) & \
-                  ~disk([x,y],[cam_width//2,cam_height//2],radius-thickness/2)
+        ring_ind = disk([x,y],reticle_center,radius+thickness/2) & \
+                  ~disk([x,y],reticle_center,radius-thickness/2)
         mask_cam[ring_ind] = 1.0
 
     # transform to proj space and measure if accurate
@@ -167,5 +168,6 @@ if __name__ == '__main__':
         size_to_check = CALIBRATION_CHECK_DIAMETER_MM,
         registration_file = REGISTRATION_FILE,
         thickness = 10.0,
+        reticle_center = (CAM_WIDTH//2, CAM_HEIGHT//2),
         pixel_scaling = PIXEL_SCALING, 
     )

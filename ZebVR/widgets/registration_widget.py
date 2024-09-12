@@ -12,6 +12,8 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal, Qt
 from typing import Dict
+import os
+import json
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEditButton
 
@@ -20,6 +22,8 @@ class RegistrationWidget(QWidget):
     registration_signal = pyqtSignal()
     check_registration_signal = pyqtSignal()
     state_changed = pyqtSignal()
+
+    DEFAULT_FILE = 'ZebVR/default/registration.json'
 
     def __init__(self, *args, **kwargs):
 
@@ -140,7 +144,7 @@ class RegistrationWidget(QWidget):
 
         self.registration_file = FileSaveLabeledEditButton()
         self.registration_file.setLabel('registration file:')
-        self.registration_file.setDefault('ZebVR/default/registration.json')
+        self.registration_file.setDefault(self.DEFAULT_FILE)
         self.registration_file.textChanged.connect(self.state_changed)
 
         self.registration = QPushButton('registration')
@@ -161,6 +165,12 @@ class RegistrationWidget(QWidget):
         self.transformation_matrix_table.setFrameShape(QFrame.NoFrame)
         self.transformation_matrix_table.setMaximumHeight(100)
         self.transformation_matrix_table.setEnabled(False)
+
+        if os.path.exists(self.DEFAULT_FILE):
+            with open(self.DEFAULT_FILE, 'r') as f:
+                data = json.load(f)
+            self.transformation_matrix = data['cam_to_proj']
+
         self.update_table()
 
     def update_table(self):

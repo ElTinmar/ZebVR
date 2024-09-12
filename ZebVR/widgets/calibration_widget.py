@@ -12,8 +12,14 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPixmap
 from typing import Dict
+import os
+import json
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEditButton
+
+# TODO 
+# add widget for CALIBRATION_CHECK_DIAMETER_MM
+# add widget to change the reticle center
 
 class CalibrationWidget(QWidget):
 
@@ -21,7 +27,9 @@ class CalibrationWidget(QWidget):
     check_calibration_signal = pyqtSignal()
     state_changed = pyqtSignal()
     checkerboard_tooltip = "Printed checkerboard target size (internal corners)"
+
     CALIBRATION_CHECK_DIAMETER_MM  = [15, 30, 45, 60] #TODO make a list out of that
+    DEFAULT_FILE = 'ZebVR/default/calibration.json'
 
     def __init__(self, *args, **kwargs):
 
@@ -32,7 +40,7 @@ class CalibrationWidget(QWidget):
 
     def declare_components(self):
 
-        self.explanation = QLabel('To calibrate, place the calibration target under the camera')
+        self.explanation = QLabel('To calibrate, place the calibration target under the camera. Ensure proper illumination with the IR light.')
         self.checkerboard = QLabel()
         self.checkerboard.setPixmap(QPixmap('ZebVR/resources/checkerboard.png'))
 
@@ -75,13 +83,25 @@ class CalibrationWidget(QWidget):
 
         self.reticle_thickness = LabeledDoubleSpinBox()
         self.reticle_thickness.setText('reticle thickness (px):')
-        self.reticle_thickness.setRange(0, 20)
+        self.reticle_thickness.setRange(1, 20)
         self.reticle_thickness.setValue(10.0)
         self.reticle_thickness.valueChanged.connect(self.state_changed)
 
+        self.reticle_center_x = LabeledDoubleSpinBox()
+        self.reticle_center_x.setText('reticle X (px):')
+        self.reticle_center_x.setRange(0, 100_000)
+        self.reticle_center_x.setValue(0.0)
+        self.reticle_center_x.valueChanged.connect(self.state_changed)
+
+        self.reticle_center_y = LabeledDoubleSpinBox()
+        self.reticle_center_y.setText('reticle Y (px):')
+        self.reticle_center_y.setRange(0, 100_000)
+        self.reticle_center_y.setValue(0.0)
+        self.reticle_center_y.valueChanged.connect(self.state_changed)
+
         self.calibration_file = FileSaveLabeledEditButton()
         self.calibration_file.setLabel('calibration file:')
-        self.calibration_file.setDefault('ZebVR/default/calibration.json')
+        self.calibration_file.setDefault(self.DEFAULT_FILE)
         self.calibration_file.textChanged.connect(self.state_changed)
 
         self.calibration = QPushButton('calibration')
@@ -95,6 +115,11 @@ class CalibrationWidget(QWidget):
         self.pix_per_mm.setRange(0, 10_000)
         self.pix_per_mm.setValue(0)
         self.pix_per_mm.valueChanged.connect(self.state_changed)
+
+        if os.path.exists(self.DEFAULT_FILE):
+            with open(self.DEFAULT_FILE, 'r') as f:
+                pix_per_mm = json.load(f)
+            self.pix_per_mm.setValue(pix_per_mm)
 
     def layout_components(self):
 
@@ -116,11 +141,17 @@ class CalibrationWidget(QWidget):
         layout_reticle.addWidget(self.reticle)
         layout_reticle.addStretch()
 
+        layout_reticle_center = QHBoxLayout()
+        layout_reticle_center.addWidget(self.reticle_center_x)
+        layout_reticle_center.addWidget(self.reticle_center_y)
+
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.explanation)
+        main_layout.addSpacing(10)
         main_layout.addLayout(layout_checkerboard)
         main_layout.addSpacing(20)
         main_layout.addWidget(self.explanation_check)
+        main_layout.addSpacing(10)
         main_layout.addLayout(layout_reticle)
         main_layout.addSpacing(20)
         main_layout.addWidget(self.checkerboard_square_size_mm)
@@ -128,6 +159,7 @@ class CalibrationWidget(QWidget):
         main_layout.addWidget(self.camera_exposure_ms)
         main_layout.addWidget(self.camera_fps)
         main_layout.addWidget(self.reticle_thickness)
+        main_layout.addLayout(layout_reticle_center)
         main_layout.addWidget(self.calibration_file)
         main_layout.addLayout(button_layout)
         main_layout.addWidget(self.pix_per_mm)
@@ -141,6 +173,7 @@ class CalibrationWidget(QWidget):
         state['camera_fps'] = self.camera_fps.value()
         state['pix_per_mm'] = self.pix_per_mm.value()
         state['reticle_thickness'] = self.reticle_thickness.value()
+        state['reticle_center'] = (self.reticle_center_x.value(), self.reticle_center_y.value())
         state['calibration_file'] = self.calibration_file.text()
         return state
     
@@ -154,6 +187,8 @@ class CalibrationWidget(QWidget):
             self.pix_per_mm.setValue(state['pix_per_mm'])
             self.calibration_file.setText(state['calibration_file'])
             self.reticle_thickness.setValue(state['reticle_thickness'])
+            self.reticle_center_x.setValue(state['reticle_center'][0])
+            self.reticle_center_y.setValue(state['reticle_center'][1])
 
         except KeyError:
             print('Wrong state keys provided to calibration widget')

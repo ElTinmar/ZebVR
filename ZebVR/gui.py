@@ -547,10 +547,10 @@ class MainGui(QWidget):
 
         # update calibration widget pix/mm
         with open(self.settings['calibration']['calibration_file'],  'r') as f:
-            pix_per_mm = json.load(f)
+            pix_per_mm_val = json.load(f)
             state = self.settings['calibration']
-            state['pix_per_mm'] = pix_per_mm
-            self.registration_widget.set_state(state)
+            state['pix_per_mm'] = pix_per_mm_val
+            self.calibration_widget.set_state(state)
 
     def check_pix_per_mm_callback(self):
 
@@ -566,6 +566,7 @@ class MainGui(QWidget):
                 "pix_per_mm": self.settings['calibration']['pix_per_mm'],
                 "thickness": self.settings['calibration']['reticle_thickness'],
                 "size_to_check": self.calibration_widget.CALIBRATION_CHECK_DIAMETER_MM, # TODO make a QWidget list
+                "reticle_center": self.settings['calibration']['reticle_center'],
                 "registration_file": self.settings['registration']['registration_file'],
             }
         )
