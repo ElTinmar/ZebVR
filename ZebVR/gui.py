@@ -1,6 +1,4 @@
 from multiprocessing import Process
-from multiprocessing_logger import Logger
-from dagline import ProcessingDAG
 import time
 from typing import Dict
 from PyQt5.QtWidgets import (
@@ -11,6 +9,13 @@ from PyQt5.QtWidgets import (
     QTabWidget
 )
 from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import  QRunnable, QThreadPool
+from functools import partial
+
+
+from multiprocessing_logger import Logger
+from image_tools import im2gray
+from dagline import ProcessingDAG
 from ZebVR.widgets import SequencerWidget
 from ZebVR.calibration import (
     check_pix_per_mm, 
@@ -20,7 +25,6 @@ from ZebVR.calibration import (
     registration
 )
 from ZebVR.background import inpaint_background, static_background
-
 from ZebVR.config import *
 from ZebVR.widgets import (
     CameraWidget, 
@@ -31,21 +35,48 @@ from ZebVR.widgets import (
     OpenLoopWidget,
     OutputWidget
 )
-from functools import partial
 
+from camera_tools import Camera
 try:
     from camera_tools import XimeaCamera
     XIMEA_ENABLED = True
 except ImportError:
     XIMEA_ENABLED = False
+
+class CameraAcquisition(QRunnable):
+
+    def __init__(self, camera: Camera, widget: CameraWidget, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.camera = camera
+        self.widget = widget
+        self.keepgoing = True
+        
+    def stop(self):
+        self.keepgoing = False
     
+    def run(self):
+        self.camera.start_acquisition()
+        while self.keepgoing:
+            try:
+                frame = self.camera.get_frame()
+                if frame['image'] is not None:
+                    self.widget.set_image(im2gray(frame['image']))
+            except:
+                pass
+        self.camera.stop_acquisition()
+        
 class MainGui(QWidget):
     
     def __init__(self, workers: Dict, queues: Dict, worker_logger: Logger, queue_logger: Logger, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
 
+        self.camera = None
         self.camera_constructor = None
+        self.thread_pool = QThreadPool()
+        self.acq = None
+        self.camera_preview_started = False
+
         self.settings = {}
         self.dag = None
         self.workers = workers
@@ -282,16 +313,71 @@ class MainGui(QWidget):
         if cam_source=='Webcam':
             self.camera_constructor = partial(OpenCV_Webcam, cam_id=cam_ind)
 
-        elif cam_source=='Movie':
+        elif cam_source=='Movie' and os.path.exists(filename):
             self.camera_constructor = partial(MovieFileCam, filename=filename)
 
         elif cam_source=='XIMEA' and XIMEA_ENABLED:
             self.camera_constructor = partial(XimeaCamera, dev_id=cam_ind)
 
-        # TODO probe camera and update camera widget via set_state
+        self.camera = self.camera_constructor()
 
-    def camera_preview(self):
-        pass
+        # read camera properties and set widget state accordingly
+        state = {}
+        
+        framerate_enabled = self.camera.framerate_available()
+        state['framerate_enabled'] = framerate_enabled
+        state['framerate_min'], state['framerate_max'] = self.camera.get_framerate_range() if framerate_enabled else (0,0)
+        state['framerate_step'] = self.camera.get_framerate_increment() if framerate_enabled else 0
+        state['framerate_value'] = self.camera.get_framerate() if framerate_enabled else 0
+
+        gain_enabled = self.camera.gain_available()
+        state['gain_enabled'] = gain_enabled
+        state['gain_min'], state['gain_max'] = self.camera.get_gain_range() if gain_enabled else (0,0)
+        state['gain_step'] = self.camera.get_gain_increment() if gain_enabled else 0
+        state['gain_value'] = self.camera.get_gain() if gain_enabled else 0
+
+        exposure_enabled = self.camera.exposure_available()
+        state['exposure_enabled'] = exposure_enabled
+        state['exposure_min'], state['exposure_max'] = self.camera.get_exposure_range() if exposure_enabled else (0,0)
+        state['exposure_step'] = self.camera.get_exposure_increment() if exposure_enabled else 0
+        state['exposure_value'] = self.camera.get_exposure() if exposure_enabled else 0
+
+        offsetX_enabled = self.camera.offsetX_available()
+        state['offsetX_enabled'] = offsetX_enabled
+        state['offsetX_min'], state['offsetX_max'] = self.camera.get_offsetX_range() if offsetX_enabled else (0,0)
+        state['offsetX_step'] = self.camera.get_offsetX_increment() if offsetX_enabled else 0
+        state['offsetX_value'] = self.camera.get_offsetX() if offsetX_enabled else 0
+
+        offsetY_enabled = self.camera.offsetY_available()
+        state['offsetY_enabled'] = offsetY_enabled
+        state['offsetY_min'], state['offsetY_max'] = self.camera.get_offsetY_range() if offsetY_enabled else (0,0)
+        state['offsetY_step'] = self.camera.get_offsetY_increment() if offsetY_enabled else 0
+        state['offsetY_value'] = self.camera.get_offsetY() if offsetY_enabled else 0
+
+        height_enabled = self.camera.height_available()
+        state['height_enabled'] = height_enabled
+        state['height_min'], state['height_max'] = self.camera.get_height_range() if height_enabled else (0,0)
+        state['height_step'] = self.camera.get_height_increment() if height_enabled else 0
+        state['height_value'] = self.camera.get_height() if height_enabled else 0
+
+        width_enabled = self.camera.width_available()
+        state['width_enabled'] = width_enabled
+        state['width_min'], state['width_max'] = self.camera.get_width_range() if width_enabled else (0,0)
+        state['width_step'] = self.camera.get_width_increment() if width_enabled else 0
+        state['width_value'] = self.camera.get_width() if width_enabled else 0
+        
+        self.camera_widget.set_state(state)
+
+    def camera_preview(self, enable: bool):
+        if enable:
+            if not self.camera_preview_started:
+                self.camera_preview_started = True
+                self.acq = CameraAcquisition(self.camera, self.camera_widget)
+                self.thread_pool.start(self.acq)
+        else:
+            if self.camera_preview_started:
+                self.camera_preview_started = False
+                self.acq.stop()
 
     def update_camera_settings(self):
         self.settings['camera'] = self.camera_widget.get_state()
