@@ -119,7 +119,7 @@ class BackgroundWidget(QWidget):
     
     def set_image(self, image: NDArray):
         # TODO maybe check that image is uint8
-        h, w = image.shape
+        h, w = image.shape[:2]
         preview_width = int(w * self.PREVIEW_HEIGHT/h)
         image_resized = cv2.resize(image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
         self.image.setPixmap(NDarray_to_QPixmap(image_resized))

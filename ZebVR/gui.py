@@ -61,7 +61,7 @@ class CameraAcquisition(QRunnable):
             try:
                 frame = self.camera.get_frame()
                 if frame['image'] is not None:
-                    self.widget.set_image(im2gray(frame['image']))
+                    self.widget.set_image(frame['image'])
             except:
                 pass
         self.camera.stop_acquisition()
@@ -518,6 +518,8 @@ class MainGui(QWidget):
             p.join()
 
         # TODO update background widget
+        image = np.load(self.settings['background']['background_file'])
+        self.background_widget.set_image(image)
     
     def get_pix_per_mm_callback(self):
         
