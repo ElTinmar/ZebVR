@@ -1,7 +1,5 @@
 toy_data/
-results/
-logs/
-video_output/
+output/
 
 # numpy arrays
 *.npy
