@@ -19,7 +19,7 @@ dependencies:
   - git+https://github.com/ElTinmar/video_tools.git@main
   - git+https://github.com/ElTinmar/image_tools.git@main
   - git+https://github.com/ElTinmar/qt_widgets.git@main
-  - git+https://github.com/ElTinmar/camera_tools.git@structured_array
+  - git+https://github.com/ElTinmar/camera_tools.git@main
   - git+https://github.com/ElTinmar/ipc_tools.git@main
   - git+https://github.com/ElTinmar/image_saver.git@main
   - git+https://github.com/ElTinmar/dagline.git@main
