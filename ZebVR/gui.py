@@ -402,7 +402,6 @@ class MainGui(QWidget):
 
     def registration_callback(self):
         # TODO make sure the camera is not previewing
-        self.camera.stop_acquisition()
 
         p = Process(
             target = registration,
