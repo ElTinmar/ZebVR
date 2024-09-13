@@ -869,7 +869,7 @@ class MainGui(QWidget):
 
         if self.dag is not None:
             self.dag.stop()
-            print('cam to background', self.queue_cam.get_average_freq(), self.self.queue_cam.queue.num_lost_item.value)
+            print('cam to background', self.queue_cam.get_average_freq(), self.queue_cam.queue.num_lost_item.value)
             if self.settings['output']['video_recording']:
                 print('cam to image saver', self.queue_save_image.get_average_freq(), self.queue_save_image.queue.num_lost_item.value)
             print('background to trackers', self.queue_background.get_average_freq(), self.queue_background.queue.num_lost_item.value)
