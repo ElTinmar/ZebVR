@@ -134,7 +134,7 @@ class OutputWidget(QWidget):
         state = {}
         state['fish_id'] = self.fish_id.value()
         state['dpf'] = self.dpf.value()
-        state['edt_filename'] = self.edt_filename.text()
+        state['csv_filename'] = self.edt_filename.text()
         state['video_recording'] = self.video_group.isChecked()
         state['video_recording_dir'] = self.video_recording_dir.text()
         state['video_recording_compression'] = self.video_recording_compress.isChecked()
@@ -148,7 +148,7 @@ class OutputWidget(QWidget):
         try:
             self.fish_id.setValue(state['fish_id'])
             self.fish_id.setValue(state['dpf'])
-            self.edt_filename.setText(state['edt_filename'])
+            self.edt_filename.setText(state['csv_filename'])
             self.video_group.setChecked(state['video_recording'])
             self.video_recording_dir.setText(state['video_recording_dir'])
             self.video_recording_compress.setChecked(state['video_recording_compression'])

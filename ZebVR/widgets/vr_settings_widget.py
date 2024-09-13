@@ -11,7 +11,7 @@ from typing import Dict
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEditButton
 
-class OpenLoopWidget(QWidget):
+class VRSettingsWidget(QWidget):
 
     state_changed = pyqtSignal()
     openloop_signal = pyqtSignal()

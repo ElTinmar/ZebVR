@@ -58,7 +58,6 @@ class TrackerWorker(WorkerNode):
             cam_width: int,
             cam_height: int,
             n_tracker_workers: int,
-            downsample_tracker_export: int,
             *args, 
             **kwargs
         ):
@@ -68,7 +67,6 @@ class TrackerWorker(WorkerNode):
         self.cam_width = cam_width 
         self.cam_height = cam_height
         self.n_tracker_workers = n_tracker_workers
-        self.downsample_tracker_export = downsample_tracker_export
         
     def initialize(self) -> None:
         super().initialize()
