@@ -578,21 +578,29 @@ class MainGui(QWidget):
         p = Process(
             target = open_loop_coords,
             kwargs = {
-                "camera_constructor": CAMERA_CONSTRUCTOR,
-                "exposure_microsec": CAM_EXPOSURE_MS,
-                "cam_gain": CAM_GAIN,
-                "cam_fps": CAM_FPS,
-                "cam_height": CAM_HEIGHT,
-                "cam_width": CAM_WIDTH,
-                "cam_offset_x": CAM_OFFSETX,
-                "cam_offset_y": CAM_OFFSETY,
-                "openloop_file": OPEN_LOOP_DATAFILE
+                "camera_constructor": self.camera_constructor,
+                "exposure_microsec": self.settings['camera']['exposure_value'],
+                "cam_gain": self.settings['camera']['gain_value'],
+                "cam_fps": self.settings['camera']['framerate_value'],
+                "cam_height": self.settings['camera']['height_value'],
+                "cam_width": self.settings['camera']['width_value'],
+                "cam_offset_x": self.settings['camera']['offsetX_value'],
+                "cam_offset_y": self.settings['camera']['offsetY_value'],
+                "openloop_file": self.settings['openloop']['openloop_coords_file']
             }
         )   
         p.start()
         p.join() 
 
         # TODO update openloop widget
+        with open(self.settings['openloop']['openloop_coords_file'],  'r') as f:
+            data = json.load(f)
+            state = self.settings['openloop']
+            state['centroid_x'] = data['centroid'][0]
+            state['centroid_y'] = data['centroid'][1]
+            state['direction_x'] = data['heading'][0][0] # TODO check that
+            state['direction_y'] = data['heading'][0][1]
+            self.openloop_widget.set_state(state)
 
     def start(self):
         if OPEN_LOOP:

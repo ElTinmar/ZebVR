@@ -7,12 +7,15 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
 
-from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox
+from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox, FileSaveLabeledEditButton
 
 class OpenLoopWidget(QWidget):
 
     state_changed = pyqtSignal()
     openloop_signal = pyqtSignal()
+
+    DEFAULT_FILE = 'ZebVR/default/open_loop_coords.json'
+
 
     def __init__(self, *args, **kwargs):
 
@@ -30,6 +33,11 @@ class OpenLoopWidget(QWidget):
         self.vr_choice.addItem('closed-loop')
         self.vr_choice.addItem('open-loop')
         self.vr_choice.currentTextChanged.connect(self.method_change)
+
+        self.openloop_coords_file = FileSaveLabeledEditButton()
+        self.openloop_coords_file.setLabel('open-loop coords file:')
+        self.openloop_coords_file.setDefault(self.DEFAULT_FILE)
+        self.openloop_coords_file.textChanged.connect(self.state_changed)
 
         self.openloop_coords = QPushButton('open-loop coords')
         self.openloop_coords.clicked.connect(self.openloop_signal)
@@ -72,6 +80,7 @@ class OpenLoopWidget(QWidget):
 
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.vr_choice)
+        main_layout.addWidget(self.openloop_coords_file)
         main_layout.addWidget(self.openloop_coords)
         main_layout.addLayout(layout_centroid)
         main_layout.addLayout(layout_direction)
@@ -81,6 +90,7 @@ class OpenLoopWidget(QWidget):
 
         if vr_type == 'closed-loop':
             self.openloop_coords.setEnabled(False)
+            self.openloop_coords_file.setEnabled(False)
             self.centroid_x.setEnabled(False)
             self.centroid_y.setEnabled(False)
             self.direction_x.setEnabled(False)
@@ -88,6 +98,7 @@ class OpenLoopWidget(QWidget):
             
         else:
             self.openloop_coords.setEnabled(True)
+            self.openloop_coords_file.setEnabled(True)
             self.centroid_x.setEnabled(True)
             self.centroid_y.setEnabled(True)
             self.direction_x.setEnabled(True)
@@ -99,6 +110,7 @@ class OpenLoopWidget(QWidget):
 
         state = {}
         state['vr_type'] = self.vr_choice.currentIndex()
+        state['openloop_coords_file'] = self.openloop_coords_file.text()
         state['centroid_x'] = self.centroid_x.value()
         state['centroid_y'] = self.centroid_y.value()
         state['direction_x'] = self.direction_x.value()
@@ -109,6 +121,7 @@ class OpenLoopWidget(QWidget):
 
         try:
             self.vr_choice.setCurrentIndex(state['vr_type'])
+            self.openloop_coords_file.setText(state['openloop_coords_file'])
             self.centroid_x.setValue(state['centroid_x'])
             self.centroid_y.setValue(state['centroid_y'])
             self.direction_x.setValue(state['direction_x'])
