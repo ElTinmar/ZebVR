@@ -11,12 +11,14 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
+import os
 
 from qt_widgets import LabeledSpinBox, LabeledDoubleSpinBox, LabeledEditLine
 
 class OutputWidget(QWidget):
 
     state_changed = pyqtSignal()
+    CSV_FOLDER = 'output/data'
 
     def __init__(self, *args, **kwargs):
 
@@ -90,7 +92,7 @@ class OutputWidget(QWidget):
         self.queue_logfile.textChanged.connect(self.state_changed)
 
     def experiment_data(self):
-        self.filename = f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv'
+        self.filename = os.path.join(self.CSV_FOLDER, f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv')
         self.edt_filename.setText(self.filename)
         self.state_changed.emit()
 
