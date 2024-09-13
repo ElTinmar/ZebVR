@@ -40,6 +40,7 @@ class DummyTrackerWorker(WorkerNode):
 
         index = -1
         timestamp = -1
+        tracking = np.array([])
         res = {}
         res['stimulus'] = (index, timestamp, self.tracking)
 
