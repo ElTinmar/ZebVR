@@ -13,6 +13,7 @@ from functools import partial
 import json
 import cv2
 import numpy as np
+import os
 
 from multiprocessing_logger import Logger
 from dagline import ProcessingDAG, receive_strategy, send_strategy
@@ -66,7 +67,7 @@ from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
 from video_tools import BackroundImage, Polarity
 from ZebVR.stimulus import VisualStimWorker, GeneralStim
 
-from camera_tools import Camera, OpenCV_Webcam, OpenCV_Webcam_InitEveryFrame
+from camera_tools import Camera, OpenCV_Webcam, OpenCV_Webcam_InitEveryFrame, MovieFileCam
 try:
     from camera_tools import XimeaCamera
     XIMEA_ENABLED = True
@@ -868,12 +869,12 @@ class MainGui(QWidget):
 
         if self.dag is not None:
             self.dag.stop()
-            print('cam to background', self.queues['camera_to_background'].get_average_freq(), self.queues['camera_to_background'].queue.num_lost_item.value)
+            print('cam to background', self.queue_cam.get_average_freq(), self.self.queue_cam.queue.num_lost_item.value)
             if self.settings['output']['video_recording']:
-                print('cam to image saver', self.queues['camera_to_video_recorder'].get_average_freq(), self.queues['camera_to_video_recorder'].queue.num_lost_item.value)
-            print('background to trackers', self.queues['background_to_tracker'].get_average_freq(), self.queues['background_to_tracker'].queue.num_lost_item.value)
-            print('trackers to visual stim', self.queues['tracker_to_stim'].get_average_freq(), self.queues['tracker_to_stim'].queue.num_lost_item.value)
-            print('trackers to display', self.queues['tracker_to_tracking_display'].get_average_freq(), self.queues['tracker_to_tracking_display'].queue.num_lost_item.value)
+                print('cam to image saver', self.queue_save_image.get_average_freq(), self.queue_save_image.queue.num_lost_item.value)
+            print('background to trackers', self.queue_background.get_average_freq(), self.queue_background.queue.num_lost_item.value)
+            print('trackers to visual stim', self.queue_tracking.get_average_freq(), self.queue_tracking.queue.num_lost_item.value)
+            print('trackers to display', self.queue_overlay.get_average_freq(), self.queue_overlay.queue.num_lost_item.value)
             self.worker_logger.stop()
             self.queue_logger.stop()
             self.p_worker_logger.join()
@@ -887,5 +888,5 @@ class MainGui(QWidget):
     def record(self):
         self.record_flag = True
         self.start()
-        time.sleep(self.duration.value())
+        time.sleep(self.duration.value()) # TODO fix that
         self.stop()
