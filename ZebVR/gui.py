@@ -1,6 +1,5 @@
 from multiprocessing import Process
 import time
-from typing import Dict
 from PyQt5.QtWidgets import (
     QWidget, 
     QVBoxLayout, 
@@ -13,6 +12,7 @@ from PyQt5.QtCore import  QRunnable, QThreadPool
 from functools import partial
 import json
 import cv2
+import numpy as np
 
 from multiprocessing_logger import Logger
 from dagline import ProcessingDAG, receive_strategy, send_strategy
