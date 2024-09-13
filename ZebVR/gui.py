@@ -36,6 +36,18 @@ from ZebVR.widgets import (
     OpenLoopWidget,
     OutputWidget
 )
+from ZebVR.workers import (
+    BackgroundSubWorker, 
+    CameraWorker, 
+    TrackerWorker, 
+    DummyTrackerWorker,
+    ImageSaverWorker, 
+    CameraGui, 
+    TrackerGui, 
+    StimGUI,
+    TrackingDisplay,
+    Protocol
+)
 
 from camera_tools import Camera, OpenCV_Webcam_InitEveryFrame
 try:
@@ -99,6 +111,22 @@ class MainGui(QWidget):
 
         self.setWindowTitle('ZebVR')
         self.setWindowIcon(QIcon('ZebVR/resources/zebvr.png'))
+
+    def create_loggers(self):
+        worker_logger = Logger(self.settings['output']['worker_logfile'], Logger.INFO)
+        queue_logger = Logger(self.settings['output']['queue_logfile'], Logger.INFO)
+
+    def create_workers(self):
+        TrackerGui(
+            n_tracker_workers=self.settings[''],
+            name='tracker_gui',  
+            logger=worker_logger, 
+            logger_queues=queue_logger,
+            receive_data_timeout=1.0   
+        )
+
+    def create_queues(self):
+        pass
 
     def create_open_loop_dag(self):
 
