@@ -2,12 +2,15 @@ from PyQt5.QtWidgets import (
     QWidget, 
     QVBoxLayout,
     QHBoxLayout,
-    QPushButton
+    QPushButton,
+    QGroupBox
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox, FileSaveLabeledEditButton
+
+# TODO add widgets to set the structure of the DAG: num background, num trackers, t_refresh, use GPU, maybe N_PTS_INTERP for the tail, DISPLAY_FPS ?
 
 class OpenLoopWidget(QWidget):
 
@@ -16,23 +19,20 @@ class OpenLoopWidget(QWidget):
 
     DEFAULT_FILE = 'ZebVR/default/open_loop_coords.json'
 
-
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
 
         self.declare_components()
         self.layout_components()
-        self.method_change('closed-loop')
 
     def declare_components(self):
         
-        # video recording
-        self.vr_choice = LabeledComboBox(self)
-        self.vr_choice.setText('VR type')
-        self.vr_choice.addItem('closed-loop')
-        self.vr_choice.addItem('open-loop')
-        self.vr_choice.currentTextChanged.connect(self.method_change)
+
+        self.openloop_group = QGroupBox('open-loop')
+        self.openloop_group.setCheckable(True)
+        self.openloop_group.setChecked(False)
+        self.openloop_group.toggled.connect(self.toggle_openloop)
 
         self.openloop_coords_file = FileSaveLabeledEditButton()
         self.openloop_coords_file.setLabel('open-loop coords file:')
@@ -68,6 +68,11 @@ class OpenLoopWidget(QWidget):
         self.direction_y.setValue(1)
         self.direction_y.valueChanged.connect(self.state_changed)
 
+        self.closedloop_group = QGroupBox('closed-loop')
+        self.closedloop_group.setCheckable(True)
+        self.closedloop_group.setChecked(True)
+        self.closedloop_group.toggled.connect(self.toggle_closedloop)
+
     def layout_components(self):
         
         layout_centroid = QHBoxLayout()
@@ -78,54 +83,51 @@ class OpenLoopWidget(QWidget):
         layout_direction.addWidget(self.direction_x)
         layout_direction.addWidget(self.direction_y)
 
+        openloop_layout = QVBoxLayout()
+        openloop_layout.addWidget(self.openloop_coords_file)
+        openloop_layout.addWidget(self.openloop_coords)
+        openloop_layout.addLayout(layout_centroid)
+        openloop_layout.addLayout(layout_direction)
+        self.openloop_group.setLayout(openloop_layout)
+
+        closedloop_layout = QVBoxLayout()
+        self.closedloop_group.setLayout(closedloop_layout)
+
         main_layout = QVBoxLayout(self)
-        main_layout.addWidget(self.vr_choice)
-        main_layout.addWidget(self.openloop_coords_file)
-        main_layout.addWidget(self.openloop_coords)
-        main_layout.addLayout(layout_centroid)
-        main_layout.addLayout(layout_direction)
+        main_layout.addWidget(self.closedloop_group)
+        main_layout.addWidget(self.openloop_group)
         main_layout.addStretch()
 
-    def method_change(self, vr_type: str):
+    def toggle_openloop(self, isChecked: bool):
+        self.closedloop_group.setChecked(not isChecked)
+        self.state_changed.emit()
 
-        if vr_type == 'closed-loop':
-            self.openloop_coords.setEnabled(False)
-            self.openloop_coords_file.setEnabled(False)
-            self.centroid_x.setEnabled(False)
-            self.centroid_y.setEnabled(False)
-            self.direction_x.setEnabled(False)
-            self.direction_y.setEnabled(False)
-            
-        else:
-            self.openloop_coords.setEnabled(True)
-            self.openloop_coords_file.setEnabled(True)
-            self.centroid_x.setEnabled(True)
-            self.centroid_y.setEnabled(True)
-            self.direction_x.setEnabled(True)
-            self.direction_y.setEnabled(True)
-
+    def toggle_closedloop(self, isChecked: bool):
+        self.openloop_group.setChecked(not isChecked)
         self.state_changed.emit()
 
     def get_state(self) -> Dict:
 
         state = {}
-        state['vr_type'] = self.vr_choice.currentIndex()
+        state['openloop'] = self.openloop_group.isChecked()
         state['openloop_coords_file'] = self.openloop_coords_file.text()
         state['centroid_x'] = self.centroid_x.value()
         state['centroid_y'] = self.centroid_y.value()
         state['direction_x'] = self.direction_x.value()
         state['direction_y'] = self.direction_y.value()
+        state['closedloop'] = self.closedloop_group.isChecked()
         return state
     
     def set_state(self, state: Dict) -> None:
 
         try:
-            self.vr_choice.setCurrentIndex(state['vr_type'])
+            self.openloop_group.setChecked(state['openloop'])
             self.openloop_coords_file.setText(state['openloop_coords_file'])
             self.centroid_x.setValue(state['centroid_x'])
             self.centroid_y.setValue(state['centroid_y'])
             self.direction_x.setValue(state['direction_x'])
             self.direction_y.setValue(state['direction_y'])
+            self.closedloop_group.setChecked(state['closedloop'])
 
         except KeyError:
             print('Wrong state keys provided to openloop widget')
