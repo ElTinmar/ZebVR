@@ -835,7 +835,7 @@ class MainGui(QWidget):
                 "cam_width": self.settings['camera']['width_value'],
                 "cam_offset_x": self.settings['camera']['offsetX_value'],
                 "cam_offset_y": self.settings['camera']['offsetY_value'],
-                "vr_settings_file": self.settings['vr_settings']['openloop_coords_file']
+                "openloop_file": self.settings['vr_settings']['openloop_coords_file']
             }
         )   
         p.start()
