@@ -14,7 +14,7 @@ from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEdit
 class VRSettingsWidget(QWidget):
 
     state_changed = pyqtSignal()
-    openloop_signal = pyqtSignal()
+    openloop_coords_signal = pyqtSignal()
 
     DEFAULT_FILE = 'ZebVR/default/open_loop_coords.json'
 
@@ -39,7 +39,7 @@ class VRSettingsWidget(QWidget):
         self.openloop_coords_file.textChanged.connect(self.state_changed)
 
         self.openloop_coords = QPushButton('open-loop coords')
-        self.openloop_coords.clicked.connect(self.openloop_signal)
+        self.openloop_coords.clicked.connect(self.openloop_coords_signal)
 
         self.centroid_x = LabeledDoubleSpinBox()
         self.centroid_x.setText('centroid X:')
@@ -190,10 +190,10 @@ if __name__ == "__main__":
         def __init__(self,*args,**kwargs):
 
             super().__init__(*args, **kwargs)
-            self.openloop_widget = OpenLoopWidget()
+            self.openloop_widget = VRSettingsWidget()
             self.setCentralWidget(self.openloop_widget)
             self.openloop_widget.state_changed.connect(self.state_changed)
-            self.openloop_widget.openloop_signal.connect(self.openloop)
+            self.openloop_widget.openloop_coords_signal.connect(self.openloop)
 
         def state_changed(self):
             print(self.openloop_widget.get_state())
