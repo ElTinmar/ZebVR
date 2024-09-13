@@ -117,7 +117,6 @@ class MainGui(QWidget):
         self.queue_logger = None
 
         self.camera_worker = None
-        self.camera_control_worker = None
         self.image_saver_worker = None
         self.background_worker_list = []
         self.tracker_worker_list = []
@@ -165,13 +164,6 @@ class MainGui(QWidget):
             logger_queues = self.queue_logger,
             receive_data_strategy = receive_strategy.COLLECT, 
             send_data_strategy = send_strategy.BROADCAST, 
-            receive_data_timeout = 1.0
-        )
-
-        self.camera_control_worker = CameraGui(
-            name = 'cam_gui',  
-            logger = self.worker_logger, 
-            logger_queues = self.queue_logger,
             receive_data_timeout = 1.0
         )
 
@@ -468,20 +460,7 @@ class MainGui(QWidget):
             )
 
         # metadata
-        self.dag.connect_metadata(
-            sender = self.camera_control_worker, 
-            receiver = self.camera_worker, 
-            queue = QueueMP(), 
-            name = 'camera_control'
-        )
         
-        self.dag.connect_metadata(
-            sender = self.camera_worker, 
-            receiver = self.camera_control_worker, 
-            queue = QueueMP(), 
-            name = 'camera_info'
-        )
-
         if self.record_flag:
             protocol = self.sequencer_widget.get_protocol()
             self.protocol_worker.set_protocol(protocol)
