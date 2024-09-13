@@ -64,7 +64,7 @@ class CameraWorker(WorkerNode):
                     ('image', img.dtype, img.shape)
                 ])
             )
-
+            
             res = {}
             res['background_subtraction'] = img_res
             res['image_saver'] = img_res

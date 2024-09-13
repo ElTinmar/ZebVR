@@ -329,7 +329,7 @@ class MainGui(QWidget):
                 num_bytes = 500*1024**2, # TODO add a widget for that?
                 logger = self.queue_logger,
                 name = 'camera_to_background',
-                t_refresh = self.settings['vr_settings']['queue_refresh_time_microsec']
+                t_refresh = 1e-6 * self.settings['vr_settings']['queue_refresh_time_microsec']
             )
         )
 
@@ -338,7 +338,7 @@ class MainGui(QWidget):
                 num_bytes = 500*1024**2,
                 logger = self.queue_logger,
                 name = 'camera_to_image_saver',
-                t_refresh = self.settings['vr_settings']['queue_refresh_time_microsec']
+                t_refresh = 1e-6 * self.settings['vr_settings']['queue_refresh_time_microsec']
             )
         )
 
@@ -348,7 +348,7 @@ class MainGui(QWidget):
                 copy=False, # you probably don't need to copy if processing is fast enough
                 logger = self.queue_logger,
                 name = 'background_to_trackers',
-                t_refresh = self.settings['vr_settings']['queue_refresh_time_microsec']
+                t_refresh = 1e-6 * self.settings['vr_settings']['queue_refresh_time_microsec']
             )
         )
 
@@ -357,7 +357,7 @@ class MainGui(QWidget):
                 num_bytes = 500*1024**2,
                 logger = self.queue_logger,
                 name = 'tracker_to_stim',
-                t_refresh = self.settings['vr_settings']['queue_refresh_time_microsec']
+                t_refresh = 1e-6 * self.settings['vr_settings']['queue_refresh_time_microsec']
             )
         )
 
@@ -366,7 +366,7 @@ class MainGui(QWidget):
                 num_bytes = 500*1024**2,
                 logger = self.queue_logger,
                 name = 'tracker_to_overlay',
-                t_refresh = self.settings['vr_settings']['queue_refresh_time_microsec']
+                t_refresh = 1e-6 * self.settings['vr_settings']['queue_refresh_time_microsec']
             )
         )
 
