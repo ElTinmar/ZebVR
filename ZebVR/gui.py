@@ -63,7 +63,7 @@ from tracker import (
     TailTrackerParamOverlay,
 )
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
-from video_tools import BackroundImage
+from video_tools import BackroundImage, Polarity
 from ZebVR.stimulus import VisualStimWorker, GeneralStim
 
 from camera_tools import Camera, OpenCV_Webcam, OpenCV_Webcam_InitEveryFrame
