@@ -321,6 +321,8 @@ class MainGui(QWidget):
         ) 
 
     def create_queues(self):
+
+        # TODO maybe use partial for that
             
         self.queue_cam = MonitoredQueue(
             ModifiableRingBuffer(
