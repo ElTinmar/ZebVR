@@ -144,30 +144,3 @@ def check_pix_per_mm(
     time.sleep(10)
     proj.terminate()
 
-if __name__ == '__main__':
-    
-    from ZebVR.config import (
-        REGISTRATION_FILE, 
-        CAM_WIDTH, 
-        CAM_HEIGHT,
-        PROJ_WIDTH, 
-        PROJ_HEIGHT, 
-        PROJ_POS,
-        PIXEL_SCALING, 
-        PIX_PER_MM, 
-        CALIBRATION_CHECK_DIAMETER_MM
-    )
-
-    check_pix_per_mm(
-        proj_width = PROJ_WIDTH,
-        proj_height = PROJ_HEIGHT,
-        proj_pos = PROJ_POS,
-        cam_height = CAM_HEIGHT,
-        cam_width = CAM_WIDTH,
-        pix_per_mm = PIX_PER_MM,
-        size_to_check = CALIBRATION_CHECK_DIAMETER_MM,
-        registration_file = REGISTRATION_FILE,
-        thickness = 10.0,
-        reticle_center = (CAM_WIDTH//2, CAM_HEIGHT//2),
-        pixel_scaling = PIXEL_SCALING, 
-    )

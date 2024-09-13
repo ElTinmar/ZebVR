@@ -25,7 +25,6 @@ from ZebVR.calibration import (
     registration
 )
 from ZebVR.background import inpaint_background, static_background
-from ZebVR.config import *
 from ZebVR.widgets import (
     CameraWidget, 
     ProjectorWidget, 
@@ -229,8 +228,8 @@ class MainGui(QWidget):
             if self.settings['vr_settings']['openloop']:
                 self.tracker_worker_list.append(
                     DummyTrackerWorker(
-                        heading = (self.settings['vr_settings']['centroid_x'],self.settings['vr_settings']['centroid_y'])
-                        centroid = (self.settings['vr_settings']['direction_x'],self.settings['vr_settings']['direction_y']) 
+                        heading = (self.settings['vr_settings']['centroid_x'],self.settings['vr_settings']['centroid_y']),
+                        centroid = (self.settings['vr_settings']['direction_x'],self.settings['vr_settings']['direction_y']),
                         name = f'tracker{i}', 
                         logger = self.worker_logger, 
                         logger_queues = self.queue_logger,

@@ -44,33 +44,3 @@ def pix_per_mm(
 
     with open(calibration_file, 'w') as f:
         json.dump(px_per_mm, f)
-
-if __name__ == '__main__':
-
-    from ZebVR.config import (
-        CAMERA_CONSTRUCTOR,
-        CAM_HEIGHT,
-        CAM_WIDTH,
-        CALIBRATION_CAM_EXPOSURE_MS,
-        CALIBRATION_CAM_FPS, 
-        CAM_GAIN, 
-        CAM_OFFSETX, 
-        CAM_OFFSETY, 
-        CALIBRATION_SQUARE_SIZE_MM, 
-        CALIBRATION_CHECKER_SIZE
-    )
-
-    pix_per_mm(
-        camera_constructor=CAMERA_CONSTRUCTOR,
-        exposure_microsec=CALIBRATION_CAM_EXPOSURE_MS,
-        cam_gain=CAM_GAIN,
-        cam_fps=CALIBRATION_CAM_FPS,
-        cam_height=CAM_HEIGHT,
-        cam_width=CAM_WIDTH,
-        cam_offset_x=CAM_OFFSETX,
-        cam_offset_y=CAM_OFFSETY,
-        checker_grid_size=CALIBRATION_CHECKER_SIZE,
-        checker_square_size_mm=CALIBRATION_SQUARE_SIZE_MM,
-        calibration_file='calibration.json'
-    )
-    

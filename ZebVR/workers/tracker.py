@@ -42,7 +42,7 @@ class DummyTrackerWorker(WorkerNode):
         timestamp = -1
         tracking = np.array([])
         res = {}
-        res['stimulus'] = (index, timestamp, self.tracking)
+        res['stimulus'] = (index, timestamp, tracking)
 
         time.sleep(0.010)
 

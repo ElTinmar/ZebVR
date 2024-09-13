@@ -41,28 +41,3 @@ def open_loop_coords(
     with open(openloop_file,'w') as f:
         json.dump(data, f)
 
-if __name__ == '__main__':
-
-    from ZebVR.config import (
-        CAMERA_CONSTRUCTOR,
-        CAM_WIDTH, 
-        CAM_HEIGHT,
-        CAM_EXPOSURE_MS, 
-        CAM_GAIN, 
-        CAM_FPS,
-        CAM_OFFSETX, 
-        CAM_OFFSETY, 
-        OPEN_LOOP_DATAFILE,
-    )
-
-    open_loop_coords(
-        camera_constructor=CAMERA_CONSTRUCTOR,
-        exposure_microsec=CAM_EXPOSURE_MS,
-        cam_gain=CAM_GAIN,
-        cam_fps=CAM_FPS,
-        cam_height=CAM_HEIGHT,
-        cam_width=CAM_WIDTH,
-        cam_offset_x=CAM_OFFSETX,
-        cam_offset_y=CAM_OFFSETY,
-        openloop_file=OPEN_LOOP_DATAFILE,
-    )    

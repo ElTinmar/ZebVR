@@ -66,32 +66,3 @@ def static_background(
     with open(background_file, 'wb') as f:
         np.save(f, background)
     
-if __name__ == '__main__':
-
-    from ZebVR.config import (
-        CAM_WIDTH, 
-        CAM_HEIGHT,
-        CAM_EXPOSURE_MS, 
-        CAM_GAIN, 
-        CAM_FPS,
-        CAM_OFFSETX, 
-        CAM_OFFSETY, 
-        BACKGROUND_FILE,
-        NUM_IMAGES, 
-        TIME_BETWEEN_IMAGES, 
-        CAMERA_CONSTRUCTOR
-    )
-
-    static_background(
-        camera_constructor=CAMERA_CONSTRUCTOR,
-        exposure_microsec=CAM_EXPOSURE_MS,
-        cam_gain=CAM_GAIN,
-        cam_fps=CAM_FPS,
-        cam_height=CAM_HEIGHT,
-        cam_width=CAM_WIDTH,
-        cam_offset_x=CAM_OFFSETX,
-        cam_offset_y=CAM_OFFSETY,
-        background_file=BACKGROUND_FILE,
-        num_images=NUM_IMAGES,
-        time_between_images=TIME_BETWEEN_IMAGES
-    )
