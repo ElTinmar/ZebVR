@@ -107,12 +107,12 @@ class CameraWidget(QWidget):
 
         self.camera_source.emit(name, id, filename)
 
-        if name in ["XIMEA", "Webcam"]:
-            self.camera_id.setEnabled(True)
-            self.movie_load.setEnabled(False)
-        else:
+        if name == 'Movie':
             self.camera_id.setEnabled(False)
             self.movie_load.setEnabled(True)
+        else:
+            self.camera_id.setEnabled(True)
+            self.movie_load.setEnabled(False)
 
     def layout_components(self):
 
