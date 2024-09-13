@@ -1,4 +1,4 @@
-from image_tools import DrawPolyMask, im2uint8
+from image_tools import DrawPolyMask, im2uint8, im2gray
 import numpy as np
 import cv2
 from PyQt5.QtWidgets import QApplication
@@ -32,7 +32,7 @@ def inpaint_background(
     camera.start_acquisition() 
     frame = camera.get_frame()
     camera.stop_acquisition()
-    image = frame['image']
+    image = im2gray(frame['image'])
 
     app = QApplication([])
     window = DrawPolyMask(image)

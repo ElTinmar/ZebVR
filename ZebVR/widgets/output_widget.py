@@ -45,7 +45,7 @@ class OutputWidget(QWidget):
 
         self.edt_filename = LabeledEditLine()
         self.edt_filename.setLabel('result file:')
-        self.edt_filename.setText(f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv')
+        self.edt_filename.setText(os.path.join(self.CSV_FOLDER, f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv'))
         self.edt_filename.textChanged.connect(self.state_changed)
 
         # video recording
