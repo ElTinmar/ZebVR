@@ -41,7 +41,6 @@ from ZebVR.workers import (
     TrackerWorker, 
     DummyTrackerWorker,
     ImageSaverWorker, 
-    CameraGui, 
     TrackerGui, 
     StimGUI,
     TrackingDisplay,
@@ -68,7 +67,7 @@ from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
 from video_tools import BackroundImage
 from ZebVR.stimulus import VisualStimWorker, GeneralStim
 
-from camera_tools import Camera, OpenCV_Webcam_InitEveryFrame
+from camera_tools import Camera, OpenCV_Webcam, OpenCV_Webcam_InitEveryFrame
 try:
     from camera_tools import XimeaCamera
     XIMEA_ENABLED = True
@@ -460,7 +459,7 @@ class MainGui(QWidget):
             )
 
         # metadata
-        
+
         if self.record_flag:
             protocol = self.sequencer_widget.get_protocol()
             self.protocol_worker.set_protocol(protocol)
@@ -557,6 +556,9 @@ class MainGui(QWidget):
     def update_camera_source(self, cam_source: str, cam_ind: int, filename: str):
 
         if cam_source=='Webcam':
+            self.camera_constructor = partial(OpenCV_Webcam, cam_id=cam_ind)
+        
+        elif cam_source=='Webcam (Registration Mode)':
             self.camera_constructor = partial(OpenCV_Webcam_InitEveryFrame, cam_id=cam_ind)
 
         elif cam_source=='Movie' and os.path.exists(filename):
