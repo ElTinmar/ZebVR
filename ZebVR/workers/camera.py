@@ -71,36 +71,4 @@ class CameraWorker(WorkerNode):
             return res
         
     def process_metadata(self, metadata) -> Any:
-        # receive
-        control = metadata['camera_control']
-        if control is not None: 
-            self.cam.stop_acquisition()
-            self.cam.set_exposure(control['exposure'])
-            self.cam.set_gain(control['gain'])
-            self.cam.set_framerate(control['framerate'])
-            self.cam.start_acquisition()
-            self.updated = True
-        
-        # send
-        # if camera settings were updated, send info
-        if self.updated:
-            self.updated = False
-            # TODO make sure all cameras support these functions and reply something coherent
-            try:
-                res = {}
-                res['camera_info'] = {}
-                res['camera_info']['exposure'] = {}
-                res['camera_info']['gain'] = {}
-                res['camera_info']['framerate'] = {}
-                res['camera_info']['exposure']['value'] = self.cam.get_exposure()
-                res['camera_info']['exposure']['min'], res['camera_info']['exposure']['max'] = self.cam.get_exposure_range()
-                res['camera_info']['exposure']['increment'] = self.cam.get_exposure_increment()
-                res['camera_info']['gain']['value'] = self.cam.get_gain()
-                res['camera_info']['gain']['min'], res['camera_info']['gain']['max'] = self.cam.get_gain_range()
-                res['camera_info']['gain']['increment'] = self.cam.get_gain_increment()
-                res['camera_info']['framerate']['value'] = self.cam.get_framerate()
-                res['camera_info']['framerate']['min'], res['camera_info']['framerate']['max'] = self.cam.get_framerate_range()
-                res['camera_info']['framerate']['increment'] = self.cam.get_framerate_increment()
-                return res
-            except:
-                pass
+        pass
