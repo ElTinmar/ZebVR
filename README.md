@@ -8,10 +8,15 @@ python ZebVR/main.py
 
 ## Using .desktop
 
+(Otional) If you change settings and want to check syntax:
+```
+desktop-file-validate ZebVR.desktop
+```
+
+
 ```
 cp ZebVR.desktop ~/.local/share/applications/
 ```
-
 
 ## Installation
 
