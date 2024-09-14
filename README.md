@@ -8,11 +8,13 @@ python ZebVR/main.py
 
 ## Using .desktop
 
+Change the content depending on where ZebVR was downloaded
+
+
 (Otional) If you change settings and want to check syntax:
 ```
 desktop-file-validate ZebVR.desktop
 ```
-
 
 ```
 cp ZebVR.desktop ~/.local/share/applications/
