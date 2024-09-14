@@ -755,7 +755,7 @@ class TrackerWidget(QWidget):
         self.body_max_length_mm.setValue(state['body_tracking']['max_body_length_mm'])
         self.body_min_width_mm.setValue(state['body_tracking']['min_body_width_mm'])
         self.body_max_width_mm.setValue(state['body_tracking']['max_body_width_mm'])
-        self.body_crop_width_mm.setValue(state['body_tracking']['crop_dimension_mm'][1])
+        self.body_crop_width_mm.setValue(state['body_tracking']['crop_dimension_mm'][0])
         self.body_crop_height_mm.setValue(state['body_tracking']['crop_dimension_mm'][1])
         self.body_blur_sz_mm.setValue(state['body_tracking']['blur_sz_mm'])
         self.body_median_filter_sz_mm.setValue(state['body_tracking']['median_filter_sz_mm'])
