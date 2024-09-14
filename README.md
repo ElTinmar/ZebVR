@@ -6,6 +6,13 @@ Virtual reality for zebrafish.
 python ZebVR/main.py
 ```
 
+## Using .desktop
+
+```
+cp ZebVR.desktop ~/.local/share/applications/
+```
+
+
 ## Installation
 
 ### Get code from github and create conda environment 

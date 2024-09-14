@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=ZebVR
+GenericName=ZebVR
+X-GNOME-FullName=ZebVR
+Exec=conda run -n ZebVR python /home/martin/Development/ZebVR/ZebVR/main.py
+Icon=/home/martin/Development/ZebVR/ZebVR/resources/zebvr.png
+Terminal=true
+Path=/home/martin/Development/ZebVR
+Type=Application
