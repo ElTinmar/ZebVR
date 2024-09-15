@@ -74,6 +74,8 @@ try:
 except ImportError:
     XIMEA_ENABLED = False
 
+PROFILE = False
+
 class CameraAcquisition(QRunnable):
 
     def __init__(self, camera: Camera, widget: CameraWidget, *args, **kwargs):
@@ -163,7 +165,8 @@ class MainGui(QWidget):
             logger_queues = self.queue_logger,
             receive_data_strategy = receive_strategy.COLLECT, 
             send_data_strategy = send_strategy.BROADCAST, 
-            receive_data_timeout = 1.0
+            receive_data_timeout = 1.0,
+            profile = PROFILE
         )
 
         # video recording ------------------------------------------
@@ -175,7 +178,8 @@ class MainGui(QWidget):
             name = 'image_saver',  
             logger = self.worker_logger, 
             logger_queues = self.queue_logger,
-            receive_data_timeout = 1.0
+            receive_data_timeout = 1.0,
+            profile = PROFILE
         )
 
         # background subtraction ------------------------------------
@@ -199,7 +203,7 @@ class MainGui(QWidget):
                     logger = self.worker_logger, 
                     logger_queues = self.queue_logger,
                     receive_data_timeout = 1.0, 
-                    profile = False
+                    profile = PROFILE
                 )
             )
 
@@ -236,7 +240,7 @@ class MainGui(QWidget):
                         logger_queues = self.queue_logger,
                         send_data_strategy = send_strategy.BROADCAST, 
                         receive_data_timeout = 1.0, 
-                        profile = False
+                        profile = PROFILE
                     )
                 )
 
@@ -252,7 +256,7 @@ class MainGui(QWidget):
                         logger_queues = self.queue_logger,
                         send_data_strategy = send_strategy.BROADCAST, 
                         receive_data_timeout = 1.0, 
-                        profile = False
+                        profile = PROFILE
                     )
                 )
         
@@ -261,7 +265,8 @@ class MainGui(QWidget):
             name = 'tracker_gui',  
             logger = self.worker_logger, 
             logger_queues = self.queue_logger,
-            receive_data_timeout = 1.0 # TODO add widget for that ?
+            receive_data_timeout = 1.0, # TODO add widget for that ?
+            profile = False
         )
 
         # tracking display -----------------------------------------
@@ -280,7 +285,8 @@ class MainGui(QWidget):
             name = "tracking_display", 
             logger = self.worker_logger, 
             logger_queues = self.queue_logger,
-            receive_data_timeout = 1.0
+            receive_data_timeout = 1.0,
+            profile = False
         )
 
         # protocol -------------------------------------------------
@@ -288,7 +294,8 @@ class MainGui(QWidget):
             name = "protocol", 
             logger = self.worker_logger, 
             logger_queues = self.queue_logger,
-            receive_data_timeout = 1.0
+            receive_data_timeout = 1.0,
+            profile = False
         )
 
         # visual stim ----------------------------------------------
@@ -311,14 +318,16 @@ class MainGui(QWidget):
             name = 'visual_stim', 
             logger = self.worker_logger, 
             logger_queues = self.queue_logger,
-            receive_data_timeout = 1.0
+            receive_data_timeout = 1.0,
+            profile = False
         )
 
         self.stim_control_worker = StimGUI(
             name = 'stim_gui', 
             logger = self.worker_logger, 
             logger_queues = self.queue_logger,
-            receive_data_timeout = 1.0
+            receive_data_timeout = 1.0,
+            profile = False
         ) 
 
     def create_queues(self):
@@ -652,9 +661,7 @@ class MainGui(QWidget):
         self.settings['output'] = self.output_widget.get_state()
 
     def registration_callback(self):
-        if self.camera_preview_started:
-            self.camera_preview_started = False
-            self.acq.stop()
+        self.camera_preview(False)
 
         p = Process(
             target = registration,
@@ -695,9 +702,7 @@ class MainGui(QWidget):
             self.registration_widget.set_state(state)
         
     def check_registration_callback(self):
-        if self.camera_preview_started:
-            self.camera_preview_started = False
-            self.acq.stop()
+        self.camera_preview(False)
 
         p = Process(
             target = check_registration,
@@ -723,9 +728,7 @@ class MainGui(QWidget):
         p.join()
         
     def background_callback(self):
-        if self.camera_preview_started:
-            self.camera_preview_started = False
-            self.acq.stop()
+        self.camera_preview(False)
 
         if self.settings['background']['bckgsub_method'] == 'inpaint':
             p = Process(
@@ -772,9 +775,7 @@ class MainGui(QWidget):
         self.background_widget.set_image(image)
     
     def get_pix_per_mm_callback(self):
-        if self.camera_preview_started:
-            self.camera_preview_started = False
-            self.acq.stop()
+        self.camera_preview(False)
 
         p = Process(
             target = pix_per_mm,
@@ -852,6 +853,7 @@ class MainGui(QWidget):
             self.vr_settings_widget.set_state(state)
 
     def start(self):
+        self.camera_preview(False)
 
         if self.settings['vr_settings']['openloop']:
             self.create_open_loop_dag()
@@ -886,6 +888,8 @@ class MainGui(QWidget):
         self.start()
         
     def record(self):
+        self.camera_preview(False)
+
         self.record_flag = True
         self.start()
         time.sleep(self.duration.value()) # TODO fix that
