@@ -42,6 +42,7 @@ class ImageSaverWorker(WorkerNode):
                 image_resized = cv2.resize(data['image'],None,None,self.resize,self.resize,cv2.INTER_NEAREST)
                 metadata = data[['index','timestamp']]
                 filename = os.path.join(self.folder, f"{data['index']:0{self.zero_padding}}")
+                
                 if self.compress:
                     np.savez_compressed(filename, image=image_resized, metadata=metadata)
                 else:
