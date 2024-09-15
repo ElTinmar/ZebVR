@@ -74,7 +74,7 @@ try:
 except ImportError:
     XIMEA_ENABLED = False
 
-PROFILE = False
+PROFILE = True
 
 class CameraAcquisition(QRunnable):
 
