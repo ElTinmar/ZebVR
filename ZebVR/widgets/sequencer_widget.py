@@ -316,6 +316,19 @@ class SequencerWidget(QWidget):
             widget = self.list.itemWidget(item)
             state.append(widget.get_protocol_item())
         return state
+    
+    def get_protocol_duration(self):
+        pause_duration = 0
+        num_items = self.list.count()
+        for row in range(num_items):
+            item = self.list.item(row)
+            widget = self.list.itemWidget(item)
+            protocol_item = widget.get_protocol_item()
+            print(protocol_item)
+            if isinstance(protocol_item, ProtocolItemPause):
+                data = protocol_item.to_dict()
+                pause_duration += data['pause_sec']
+        return pause_duration
 
     def load(self):
 
