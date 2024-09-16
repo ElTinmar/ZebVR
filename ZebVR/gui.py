@@ -858,8 +858,7 @@ class MainGui(QWidget):
             state = self.settings['vr_settings']
             state['centroid_x'] = data['centroid'][0]
             state['centroid_y'] = data['centroid'][1]
-            state['direction_x'] = data['heading'][0][0] # TODO check that
-            state['direction_y'] = data['heading'][0][1]
+            state['heading'] = data['heading']
             self.vr_settings_widget.set_state(state)
 
     def start(self):

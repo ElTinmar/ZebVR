@@ -69,11 +69,14 @@ class VRSettingsWidget(QWidget):
         self.heading_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.heading_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.heading_table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.heading_table.horizontalHeader().hide()
-        self.heading_table.verticalHeader().hide()
+        self.heading_table.setHorizontalHeaderItem(0, QTableWidgetItem('PC1'))
+        self.heading_table.setHorizontalHeaderItem(1, QTableWidgetItem('PC2'))
+        self.heading_table.setVerticalHeaderItem(0, QTableWidgetItem('x'))
+        self.heading_table.setVerticalHeaderItem(1, QTableWidgetItem('y'))
         self.heading_table.setFrameShape(QFrame.NoFrame)
         self.heading_table.setMaximumHeight(100)
-        self.heading_table.setEnabled(False)
+        self.heading_table.setEnabled(True)
+        self.heading_table.cellChanged.connect(self.table_callback)
 
         self.closedloop_group = QGroupBox('closed-loop')
         self.closedloop_group.setCheckable(True)
@@ -113,7 +116,7 @@ class VRSettingsWidget(QWidget):
         if os.path.exists(self.DEFAULT_FILE):
             with open(self.DEFAULT_FILE, 'r') as f:
                 data = json.load(f)
-            self.heading = data['heading']
+            self.heading = np.array(data['heading'])
             self.centroid_x.setValue(data['centroid'][0])
             self.centroid_y.setValue(data['centroid'][1])
 
@@ -150,6 +153,15 @@ class VRSettingsWidget(QWidget):
         for i in range(2):
             for j in range(2):
                 self.heading_table.setItem(i,j,QTableWidgetItem(f'{self.heading[i][j]:2f}'))
+
+    def table_callback(self, row, col):
+        item = self.heading_table.item(row, col)
+        try:
+            value = float(item.text())
+            self.heading[row, col] = value
+        except ValueError:
+            self.heading_table.setItem(row, col, QTableWidgetItem(f'{0:2f}'))
+            self.heading[row, col] = 0
 
     def toggle_openloop(self, isChecked: bool):
         self.closedloop_group.setChecked(not isChecked)
