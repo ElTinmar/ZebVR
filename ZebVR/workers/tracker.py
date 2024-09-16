@@ -23,26 +23,33 @@ class DummyTrackerWorker(WorkerNode):
     '''For open loop tracking, sends the centroid / main direction'''
     def __init__(
             self,
-            heading: NDArray,
+            tracker: MultiFishTracker, 
             centroid: NDArray,
+            heading: NDArray,
             *args, 
             **kwargs
         ):
         super().__init__(*args, **kwargs)
 
-        self.heading = heading
-        self.centroid = centroid
+        self.tracking = np.zeros(1, tracker.tracking_param.dtype())
+        self.tracking['body'][0]['centroid_original_space'] = centroid
+        self.tracking['body'][0]['heading'] = heading
 
     def initialize(self) -> None:
         super().initialize()
 
     def process_data(self, data: NDArray) -> Dict:
-
-        index = -1
-        timestamp = -1
-        tracking = np.array([])
+        
         res = {}
-        res['stimulus'] = (index, timestamp, tracking)
+        msg = np.array(
+            (-1, -1, self.tracking),
+            dtype=np.dtype([
+                ('index', int),
+                ('timestamp', np.float64),
+                ('tracking', self.tracking.dtype)
+            ])
+        )
+        res['stimulus'] = msg
 
         time.sleep(0.010)
 

@@ -56,12 +56,18 @@ from tracker import (
     AnimalOverlay_opencv, 
     AnimalTrackerParamTracking, 
     AnimalTrackerParamOverlay, 
+    BodyTracker_CPU,
     BodyOverlay_opencv, 
-    BodyTrackerParamOverlay,  
+    BodyTrackerParamOverlay,
+    BodyTrackerParamTracking,
+    EyesTracker_CPU,  
     EyesOverlay_opencv,
     EyesTrackerParamOverlay,
+    EyesTrackerParamTracking,
+    TailTracker_CPU,
     TailOverlay_opencv,
     TailTrackerParamOverlay,
+    TailTrackerParamTracking
 )
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
 from video_tools import BackroundImage, Polarity
@@ -74,7 +80,7 @@ try:
 except ImportError:
     XIMEA_ENABLED = False
 
-PROFILE = True
+PROFILE = False
 
 class CameraAcquisition(QRunnable):
 
@@ -221,9 +227,9 @@ class MainGui(QWidget):
                         source_image_shape = (self.settings['camera']['height_value'], self.settings['camera']['width_value'])
                     )
                 ),
-                body = None, 
-                eyes = None, 
-                tail = None
+                body = BodyTracker_CPU(BodyTrackerParamTracking()), 
+                eyes = EyesTracker_CPU(EyesTrackerParamTracking()), 
+                tail = TailTracker_CPU(TailTrackerParamTracking())
             )
         )
 
@@ -233,8 +239,15 @@ class MainGui(QWidget):
             if self.settings['vr_settings']['openloop']:
                 self.tracker_worker_list.append(
                     DummyTrackerWorker(
-                        heading = (self.settings['vr_settings']['centroid_x'],self.settings['vr_settings']['centroid_y']),
-                        centroid = (self.settings['vr_settings']['direction_x'],self.settings['vr_settings']['direction_y']),
+                        tracker,
+                        centroid = np.array([
+                            self.settings['vr_settings']['centroid_x'],
+                            self.settings['vr_settings']['centroid_y']
+                        ]),
+                        heading = np.array([
+                            [self.settings['vr_settings']['direction_x'], 0], 
+                            [self.settings['vr_settings']['direction_y'], 0]
+                        ]),
                         name = f'tracker{i}', 
                         logger = self.worker_logger, 
                         logger_queues = self.queue_logger,
