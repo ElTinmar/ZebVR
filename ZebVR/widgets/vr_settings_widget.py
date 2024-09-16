@@ -195,7 +195,7 @@ class VRSettingsWidget(QWidget):
             self.openloop_coords_file.setText(state['openloop_coords_file'])
             self.centroid_x.setValue(state['centroid_x'])
             self.centroid_y.setValue(state['centroid_y'])
-            self.heading = state['heading']
+            self.heading = np.asarray(state['heading'])
             self.closedloop_group.setChecked(state['closedloop'])
             self.n_background_workers.setValue(state['n_background_workers'])
             self.n_tracker_workers.setValue(state['n_tracker_workers'])
