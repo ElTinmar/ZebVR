@@ -893,10 +893,15 @@ class MainGui(QWidget):
             print('DAG stopped')
 
     def preview(self):
+        # maybe launch preview in QThread to prevent window from hanging
+
         self.record_flag = False
         self.start()
         
     def record(self):
+        # maybe launch record in QThread to prevent window from hanging
+        # TODO make sleep interruptible by stop ? 
+
         self.camera_preview(False)
 
         self.record_flag = True
