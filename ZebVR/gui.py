@@ -906,5 +906,5 @@ class MainGui(QWidget):
 
         self.record_flag = True
         self.start()
-        time.sleep(self.duration.value()) # TODO fix that
+        time.sleep(self.sequencer_widget.get_protocol_duration()) 
         self.stop()
