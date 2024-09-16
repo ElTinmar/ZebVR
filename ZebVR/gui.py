@@ -244,10 +244,7 @@ class MainGui(QWidget):
                             self.settings['vr_settings']['centroid_x'],
                             self.settings['vr_settings']['centroid_y']
                         ]),
-                        heading = np.array([
-                            [self.settings['vr_settings']['direction_x'], 0], 
-                            [self.settings['vr_settings']['direction_y'], 0]
-                        ]),
+                        heading = np.array(self.settings['vr_settings']['heading']),
                         name = f'tracker{i}', 
                         logger = self.worker_logger, 
                         logger_queues = self.queue_logger,

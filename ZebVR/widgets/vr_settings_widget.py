@@ -4,10 +4,17 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QGroupBox,
-    QCheckBox
+    QCheckBox,
+    QTableWidget,
+    QHeaderView,
+    QFrame,
+    QTableWidgetItem
 )
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, Qt
 from typing import Dict
+import numpy as np
+import os
+import json
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEditButton
 
@@ -24,6 +31,8 @@ class VRSettingsWidget(QWidget):
 
         self.declare_components()
         self.layout_components()
+
+        self.heading = np.eye(2) 
 
     def declare_components(self):
         
@@ -53,19 +62,18 @@ class VRSettingsWidget(QWidget):
         self.centroid_y.setValue(0)
         self.centroid_y.valueChanged.connect(self.state_changed)
 
-        self.direction_x = LabeledDoubleSpinBox()
-        self.direction_x.setText('direction X:')
-        self.direction_x.setRange(-1,1)
-        self.direction_x.setSingleStep(0.05)
-        self.direction_x.setValue(0)
-        self.direction_x.valueChanged.connect(self.state_changed)
-
-        self.direction_y = LabeledDoubleSpinBox()
-        self.direction_y.setText('direction Y:')
-        self.direction_y.setRange(-1,1)
-        self.direction_y.setSingleStep(0.05)
-        self.direction_y.setValue(1)
-        self.direction_y.valueChanged.connect(self.state_changed)
+        self.heading_table = QTableWidget()
+        self.heading_table.setRowCount(2)
+        self.heading_table.setColumnCount(2)  
+        self.heading_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.heading_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.heading_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.heading_table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.heading_table.horizontalHeader().hide()
+        self.heading_table.verticalHeader().hide()
+        self.heading_table.setFrameShape(QFrame.NoFrame)
+        self.heading_table.setMaximumHeight(100)
+        self.heading_table.setEnabled(False)
 
         self.closedloop_group = QGroupBox('closed-loop')
         self.closedloop_group.setCheckable(True)
@@ -102,21 +110,26 @@ class VRSettingsWidget(QWidget):
         self.display_fps.setValue(30)
         self.display_fps.valueChanged.connect(self.state_changed)
 
+        if os.path.exists(self.DEFAULT_FILE):
+            with open(self.DEFAULT_FILE, 'r') as f:
+                data = json.load(f)
+            self.heading = data['heading']
+            self.centroid_x.setValue(data['centroid'][0])
+            self.centroid_y.setValue(data['centroid'][1])
+
+        self.update_table()
+
     def layout_components(self):
         
         layout_centroid = QHBoxLayout()
         layout_centroid.addWidget(self.centroid_x)
         layout_centroid.addWidget(self.centroid_y)
 
-        layout_direction = QHBoxLayout()
-        layout_direction.addWidget(self.direction_x)
-        layout_direction.addWidget(self.direction_y)
-
         openloop_layout = QVBoxLayout()
         openloop_layout.addWidget(self.openloop_coords_file)
         openloop_layout.addWidget(self.openloop_coords)
         openloop_layout.addLayout(layout_centroid)
-        openloop_layout.addLayout(layout_direction)
+        openloop_layout.addWidget(self.heading_table)
         self.openloop_group.setLayout(openloop_layout)
 
         closedloop_layout = QVBoxLayout()
@@ -133,6 +146,11 @@ class VRSettingsWidget(QWidget):
         main_layout.addWidget(self.queue_refresh_time_microsec)
         main_layout.addStretch()
 
+    def update_table(self):
+        for i in range(2):
+            for j in range(2):
+                self.heading_table.setItem(i,j,QTableWidgetItem(f'{self.heading[i][j]:2f}'))
+
     def toggle_openloop(self, isChecked: bool):
         self.closedloop_group.setChecked(not isChecked)
         self.state_changed.emit()
@@ -148,8 +166,7 @@ class VRSettingsWidget(QWidget):
         state['openloop_coords_file'] = self.openloop_coords_file.text()
         state['centroid_x'] = self.centroid_x.value()
         state['centroid_y'] = self.centroid_y.value()
-        state['direction_x'] = self.direction_x.value()
-        state['direction_y'] = self.direction_y.value()
+        state['heading'] = self.heading
         state['closedloop'] = self.closedloop_group.isChecked()
         state['n_background_workers'] = self.n_background_workers.value()
         state['n_tracker_workers'] = self.n_tracker_workers.value()
@@ -166,8 +183,7 @@ class VRSettingsWidget(QWidget):
             self.openloop_coords_file.setText(state['openloop_coords_file'])
             self.centroid_x.setValue(state['centroid_x'])
             self.centroid_y.setValue(state['centroid_y'])
-            self.direction_x.setValue(state['direction_x'])
-            self.direction_y.setValue(state['direction_y'])
+            self.heading = state['heading']
             self.closedloop_group.setChecked(state['closedloop'])
             self.n_background_workers.setValue(state['n_background_workers'])
             self.n_tracker_workers.setValue(state['n_tracker_workers'])
@@ -175,6 +191,7 @@ class VRSettingsWidget(QWidget):
             self.n_tail_pts_interp.setValue(state['n_tail_pts_interp'])
             self.queue_refresh_time_microsec.setValue(state['queue_refresh_time_microsec'])
             self.display_fps.setValue(state['display_fps'])
+            self.update_table()
 
         except KeyError:
             print('Wrong state keys provided to openloop widget')
