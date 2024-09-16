@@ -324,7 +324,6 @@ class SequencerWidget(QWidget):
             item = self.list.item(row)
             widget = self.list.itemWidget(item)
             protocol_item = widget.get_protocol_item()
-            print(protocol_item)
             if isinstance(protocol_item, ProtocolItemPause):
                 data = protocol_item.to_dict()
                 pause_duration += data['pause_sec']
