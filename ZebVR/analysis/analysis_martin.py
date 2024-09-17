@@ -9,6 +9,7 @@ import re
 from enum import IntEnum
 import seaborn as sns
 from scipy.stats import ranksums
+import os
 
 PIX_PER_MM = 38.773681409813456
 CAM_WIDTH = 2048
@@ -50,6 +51,7 @@ COLORS = ('#FF6900', '#002BFF')
 ARENA_CENTER = (1049,1049)
 ARENA_DIAMETER_MM = 50
 ARENA_DIAMETER_PX = PIX_PER_MM * ARENA_DIAMETER_MM
+DATA_FOLDER = 'output/data'
 
 # # experiment computer has locale set to german -_-
 import locale
@@ -60,8 +62,6 @@ def setlocale(*args, **kw):
     yield locale.setlocale(*args, **kw)
     locale.setlocale(locale.LC_ALL, saved)
 
-#TODO add legends and labels
-# compare cumulative stuff at the last point in time
 
 ## Visualization of the results --------------------------------------------------------------------
 DATAFILES = [
@@ -90,14 +90,14 @@ DATAFILES = [
     '05_08dpf_Fr_30_Aug_2024_15h47min53sec.csv',
     '06_08dpf_Fr_30_Aug_2024_17h17min41sec.csv',
     '07_08dpf_Fr_30_Aug_2024_18h48min39sec.csv',
-    '01_09dpf_Sa_31_Aug_2024_09h34min08sec.csv',
-    '02_09dpf_Sa_31_Aug_2024_11h06min41sec.csv',
-    '03_09dpf_Sa_31_Aug_2024_12h40min20sec.csv',
-    '04_09dpf_Sa_31_Aug_2024_14h14min07sec.csv',
-    '05_09dpf_Sa_31_Aug_2024_15h57min07sec.csv',
-    '06_09dpf_Sa_31_Aug_2024_17h28min16sec.csv',
-    '07_09dpf_Sa_31_Aug_2024_19h00min21sec.csv',
-    '01_10dpf_So_01_Sep_2024_09h18min10sec.csv',
+    #'01_09dpf_Sa_31_Aug_2024_09h34min08sec.csv',
+    #'02_09dpf_Sa_31_Aug_2024_11h06min41sec.csv',
+    #'03_09dpf_Sa_31_Aug_2024_12h40min20sec.csv',
+    #'04_09dpf_Sa_31_Aug_2024_14h14min07sec.csv',
+    #'05_09dpf_Sa_31_Aug_2024_15h57min07sec.csv',
+    #'06_09dpf_Sa_31_Aug_2024_17h28min16sec.csv',
+    #'07_09dpf_Sa_31_Aug_2024_19h00min21sec.csv',
+    #'01_10dpf_So_01_Sep_2024_09h18min10sec.csv',
     '02_10dpf_So_01_Sep_2024_11h51min15sec.csv',
     '03_10dpf_So_01_Sep_2024_14h42min31sec.csv',
     '04_10dpf_So_01_Sep_2024_16h12min08sec.csv',
@@ -107,7 +107,8 @@ DATAFILES = [
     '14_10dpf_Mo_09_Sep_2024_12h17min25sec.csv',
     '15_10dpf_Mo_09_Sep_2024_13h49min54sec.csv',
     '16_10dpf_Mo_09_Sep_2024_15h24min48sec.csv',
-    '17_10dpf_Mo_09_Sep_2024_18h07min58sec.csv'
+    '17_10dpf_Mo_09_Sep_2024_18h07min58sec.csv',
+    ''
 ]
 
 def asterisk(p_value: float) -> str:
@@ -633,7 +634,7 @@ for file in DATAFILES:
 
     print(file)
     fish_id, dpf, date = parse_filename(file)
-    data = pd.read_csv(file)
+    data = pd.read_csv(os.path.join(DATA_FOLDER,file))
     data_filtered = data.groupby('image_index').first()
     data_filtered = data_filtered[1:]
     #data_filtered = remove_data_on_well_edges(data_filtered)
