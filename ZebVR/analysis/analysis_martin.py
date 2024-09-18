@@ -118,7 +118,8 @@ DATAFILES = [
     '10_08dpf_Mi_18_Sep_2024_13h13min31sec.csv',
     '11_08dpf_Mi_18_Sep_2024_14h42min48sec.csv',
     '12_08dpf_Mi_18_Sep_2024_16h14min00sec.csv',
-    '13_08dpf_Mi_18_Sep_2024_17h44min33sec.csv'
+    '13_08dpf_Mi_18_Sep_2024_17h44min33sec.csv',
+    '14_08dpf_Mi_18_Sep_2024_19h13min51sec.csv'
 ]
 
 def asterisk(p_value: float) -> str:
