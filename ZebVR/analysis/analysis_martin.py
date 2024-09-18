@@ -37,6 +37,7 @@ matplotlib.rcParams['font.size'] = 12
 # NOTE ---------------------
 # Resolve the 300/600s phototaxis 
 # duration discrepancy for ranksum tests 
+# (maybe just remove data acquired @ 300s)
 
 class StimType(IntEnum):
     DARK = 0
@@ -65,7 +66,7 @@ def setlocale(*args, **kw):
 
 ## Visualization of the results --------------------------------------------------------------------
 DATAFILES = [
-    '08_09dpf_Di_27_Aug_2024_14h50min47sec.csv',
+    '08_09dpf_Di_27_Aug_2024_14h50min47sec.csv', 
     '09_09dpf_Di_27_Aug_2024_16h03min14sec.csv',
     '10_09dpf_Di_27_Aug_2024_17h17min12sec.csv',
     '11_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
@@ -75,7 +76,7 @@ DATAFILES = [
     '10_10dpf_Mi_28_Aug_2024_13h16min25sec.csv',
     '11_10dpf_Mi_28_Aug_2024_14h30min41sec.csv',
     '12_10dpf_Mi_28_Aug_2024_16h21min17sec.csv',
-    '13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv',
+    '13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv', 
     '01_07dpf_Do_29_Aug_2024_09h50min07sec.csv',
     '02_07dpf_Do_29_Aug_2024_11h31min10sec.csv',
     '03_07dpf_Do_29_Aug_2024_13h06min01sec.csv',
@@ -108,7 +109,16 @@ DATAFILES = [
     '15_10dpf_Mo_09_Sep_2024_13h49min54sec.csv',
     '16_10dpf_Mo_09_Sep_2024_15h24min48sec.csv',
     '17_10dpf_Mo_09_Sep_2024_18h07min58sec.csv',
-    ''
+    '08_07dpf_Di_17_Sep_2024_16h43min16sec.csv',
+    '09_07dpf_Di_17_Sep_2024_18h15min51sec.csv',
+    '10_07dpf_Di_17_Sep_2024_19h46min28sec.csv',
+    '11_07dpf_Di_17_Sep_2024_21h16min13sec.csv',
+    '08_08dpf_Mi_18_Sep_2024_10h07min56sec.csv',
+    '09_08dpf_Mi_18_Sep_2024_11h43min18sec.csv',
+    '10_08dpf_Mi_18_Sep_2024_13h13min31sec.csv',
+    '11_08dpf_Mi_18_Sep_2024_14h42min48sec.csv',
+    '12_08dpf_Mi_18_Sep_2024_16h14min00sec.csv',
+    '13_08dpf_Mi_18_Sep_2024_17h44min33sec.csv'
 ]
 
 def asterisk(p_value: float) -> str:
@@ -396,7 +406,8 @@ def plot_helper(
         key_names: Iterable, 
         col: Iterable, 
         xlabel:str, 
-        vertical_time_axis: bool
+        vertical_time_axis: bool,
+        end_idx: int = -1
     ):
 
     for dpf, data_dpf in data.groupby('dpf'):
@@ -443,7 +454,7 @@ def plot_helper(
                     else:
                         plt.xlabel('time (s)') 
                         plt.ylabel(xlabel)
-                    summary[cat_value].append(data_cat[val].iloc[-1])
+                    summary[cat_value].append(data_cat[val].iloc[end_idx])
 
         plt.show(block=False)
 
