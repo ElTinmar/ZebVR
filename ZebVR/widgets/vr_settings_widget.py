@@ -28,11 +28,10 @@ class VRSettingsWidget(QWidget):
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
-
+        
+        self.heading = np.eye(2) 
         self.declare_components()
         self.layout_components()
-
-        self.heading = np.eye(2) 
 
     def declare_components(self):
         
