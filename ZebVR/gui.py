@@ -244,7 +244,7 @@ class MainGui(QWidget):
                             self.settings['vr_settings']['centroid_x'],
                             self.settings['vr_settings']['centroid_y']
                         ]),
-                        heading = np.array(self.settings['vr_settings']['heading']).T, # TODO check transposition is warranted (PC on col vs rows)
+                        heading = np.transpose(np.array(self.settings['vr_settings']['heading'])), # TODO check transposition is warranted (PC on col vs rows)
                         name = f'tracker{i}', 
                         logger = self.worker_logger, 
                         logger_queues = self.queue_logger,
@@ -863,6 +863,8 @@ class MainGui(QWidget):
 
     def start(self):
         self.camera_preview(False)
+
+        print(self.settings)
 
         if self.settings['vr_settings']['openloop']:
             self.create_open_loop_dag()
