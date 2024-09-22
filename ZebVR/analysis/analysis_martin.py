@@ -37,7 +37,9 @@ matplotlib.rcParams['font.size'] = 12
 # NOTE ---------------------
 # Resolve the 300/600s phototaxis 
 # duration discrepancy for ranksum tests 
-# (maybe just remove data acquired @ 300s)
+# (maybe just remove data acquired @ 300s, 
+# only for phototaxis though, the ohers are 
+# fine)
 
 class StimType(IntEnum):
     DARK = 0
