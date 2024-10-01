@@ -1,5 +1,4 @@
 import sympy
-import numpy as np
 
 # declare symbols ------------------------------------
 
@@ -81,28 +80,33 @@ solutions = sympy.solve(
         eq_line_SP0_y,
         eq_line_SP0_z,
         eq_screen_plane0,
+        eq_proj1_x,
+        eq_proj1_y,
+        eq_proj1_z,
         eq_line_SP1_x,
         eq_line_SP1_y,
         eq_line_SP1_z,
         eq_screen_plane1,
+        eq_proj2_x,
+        eq_proj2_y,
+        eq_proj2_z,
         eq_line_SP2_x,
         eq_line_SP2_y,
         eq_line_SP2_z,
         eq_screen_plane2,
+        eq_proj3_x,
+        eq_proj3_y,
+        eq_proj3_z,
         eq_line_SP3_x,
         eq_line_SP3_y,
         eq_line_SP3_z,
         eq_screen_plane3
     ], 
     [
-      x_sp0, x_sp1, x_sp2, x_sp3,
-      y_sp0, y_sp1, y_sp2, y_sp3,
-      z_sp0, z_sp1, z_sp2, z_sp3,
-      t_0, t_1, t_2, t_3,
-      x_p0, y_p0, z_p0, 
-      x_p1, y_p1, z_p1, 
-      x_p2, y_p2, z_p2, 
-      x_p3, y_p3, z_p3, 
+      x_sp0, y_sp0, z_sp0, t_0, x_p0, y_p0, z_p0, 
+      x_sp1, y_sp1, z_sp1, t_1, x_p1, y_p1, z_p1, 
+      x_sp2, y_sp2, z_sp2, t_2, x_p2, y_p2, z_p2, 
+      x_sp3, y_sp3, z_sp3, t_3, x_p3, y_p3, z_p3, 
       z_s, x_s, y_s, t
     ],
     dict=True
