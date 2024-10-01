@@ -122,23 +122,161 @@ solutions = sympy.solve(
     dict=True
 )
 
-# try to get only one sol
+def transform(r, d, x_o, y_o, x_f, y_f):
+    x_sp = -r
+    y_sp = -(-d + r) * (
+        - d*x_f**2*y_o 
+        + d*x_f*x_o*y_f 
+        + d*x_f*x_o*y_o 
+        - d*x_o**2*y_f 
+        - d*y_f*np.sqrt(
+            r**2*x_f**2 
+            - 2*r**2*x_f*x_o 
+            + r**2*x_o**2 
+            + r**2*y_f**2 
+            - 2*r**2*y_f*y_o 
+            + r**2*y_o**2 
+            - x_f**2*y_o**2 
+            + 2*x_f*x_o*y_f*y_o 
+            - x_o**2*y_f**2
+        ) 
+        + d*y_o*np.sqrt(
+            r**2*x_f**2 
+            - 2*r**2*x_f*x_o 
+            + r**2*x_o**2 
+            + r**2*y_f**2 
+            - 2*r**2*y_f*y_o 
+            + r**2*y_o**2 
+            - x_f**2*y_o**2 
+            + 2*x_f*x_o*y_f*y_o 
+            - x_o**2*y_f**2
+        ) 
+        + r**2*x_f*y_f 
+        - r**2*x_f*y_o 
+        - r**2*x_o*y_f 
+        + r**2*x_o*y_o 
+        + x_f*y_o*np.sqrt(
+            r**2*x_f**2 
+            - 2*r**2*x_f*x_o 
+            + r**2*x_o**2 
+            + r**2*y_f**2 
+            - 2*r**2*y_f*y_o 
+            + r**2*y_o**2 
+            - x_f**2*y_o**2 
+            + 2*x_f*x_o*y_f*y_o 
+            - x_o**2*y_f**2
+        ) 
+        - x_o*y_f*np.sqrt(
+            r**2*x_f**2 
+            - 2*r**2*x_f*x_o 
+            + r**2*x_o**2 
+            + r**2*y_f**2 
+            - 2*r**2*y_f*y_o 
+            + r**2*y_o**2 
+            - x_f**2*y_o**2 
+            + 2*x_f*x_o*y_f*y_o 
+            - x_o**2*y_f**2
+        )
+    ) / (
+        -d**2*x_f**2 
+        + 2*d**2*x_f*x_o 
+        - d**2*x_o**2 
+        - d**2*y_f**2 
+        + 2*d**2*y_f*y_o 
+        - d**2*y_o**2 
+        + 2*d*x_f*y_f*y_o 
+        - 2*d*x_f*y_o**2 
+        - 2*d*x_o*y_f**2 
+        + 2*d*x_o*y_f*y_o 
+        + r**2*x_f**2 
+        - 2*r**2*x_f*x_o 
+        + r**2*x_o**2 
+        - x_f**2*y_o**2 
+        + 2*x_f*x_o*y_f*y_o 
+        - x_o**2*y_f**2
+    )
+    z_sp = -(-d + r) * (
+        -d*x_f**2*z_o 
+        + d*x_f*x_o*z_f 
+        + d*x_f*x_o*z_o 
+        - d*x_o**2*z_f 
+        - d*y_f**2*z_o 
+        + d*y_f*y_o*z_f 
+        + d*y_f*y_o*z_o 
+        - d*y_o**2*z_f 
+        - d*z_f*np.sqrt(
+            r**2*x_f**2 
+            - 2*r**2*x_f*x_o 
+            + r**2*x_o**2 
+            + r**2*y_f**2 
+            - 2*r**2*y_f*y_o 
+            + r**2*y_o**2 
+            - x_f**2*y_o**2 
+            + 2*x_f*x_o*y_f*y_o 
+            - x_o**2*y_f**2
+        ) 
+        + d*z_o*np.sqrt(
+            r**2*x_f**2 
+            - 2*r**2*x_f*x_o 
+            + r**2*x_o**2 
+            + r**2*y_f**2 
+            - 2*r**2*y_f*y_o 
+            + r**2*y_o**2 
+            - x_f**2*y_o**2 
+            + 2*x_f*x_o*y_f*y_o 
+            - x_o**2*y_f**2
+        ) 
+        + r**2*x_f*z_f 
+        - r**2*x_f*z_o 
+        - r**2*x_o*z_f 
+        + r**2*x_o*z_o 
+        + x_f*y_f*y_o*z_o 
+        - x_f*y_o**2*z_f 
+        + x_f*z_o*np.sqrt(
+            r**2*x_f**2 
+            - 2*r**2*x_f*x_o 
+            + r**2*x_o**2 
+            + r**2*y_f**2 
+            - 2*r**2*y_f*y_o 
+            + r**2*y_o**2 
+            - x_f**2*y_o**2 
+            + 2*x_f*x_o*y_f*y_o 
+            - x_o**2*y_f**2
+        ) 
+        - x_o*y_f**2*z_o 
+        + x_o*y_f*y_o*z_f 
+        - x_o*z_f*np.sqrt(
+            r**2*x_f**2 
+            - 2*r**2*x_f*x_o 
+            + r**2*x_o**2 
+            + r**2*y_f**2 
+            - 2*r**2*y_f*y_o 
+            + r**2*y_o**2 
+            - x_f**2*y_o**2 
+            + 2*x_f*x_o*y_f*y_o 
+            - x_o**2*y_f**2
+        )
+    ) / (
+        -d**2*x_f**2 
+        + 2*d**2*x_f*x_o 
+        - d**2*x_o**2 
+        - d**2*y_f**2 
+        + 2*d**2*y_f*y_o 
+        - d**2*y_o**2 
+        + 2*d*x_f*y_f*y_o 
+        - 2*d*x_f*y_o**2 
+        - 2*d*x_o*y_f**2 
+        + 2*d*x_o*y_f*y_o 
+        + r**2*x_f**2 
+        - 2*r**2*x_f*x_o 
+        + r**2*x_o**2 
+        - x_f**2*y_o**2 
+        + 2*x_f*x_o*y_f*y_o 
+        - x_o**2*y_f**2
+    )
 
-eq_line_FO_x = sympy.Eq(x_s, x_f + (x_o - x_f) * t_0)
-eq_line_FO_y = sympy.Eq(y_s, y_f + (y_o - y_f) * t_0)
-eq_line_FO_z = sympy.Eq(z_s, 0)
-eq_cylinder = sympy.Eq(x_s*x_s + y_s*y_s, r*r)
+    return x_sp, y_sp, z_sp
 
-solutions = sympy.solve(
-    [
-        eq_line_FO_x,
-        eq_line_FO_y,
-        eq_line_FO_z,
-        eq_cylinder,
-    ], 
-    [z_s, x_s, y_s, t_0],
-    dict=True
-)
 
 # TODO: additional constraints: 
 # F has to be inside the cylinder
