@@ -136,7 +136,13 @@ DATAFILES = [
     '21_10dpf_Fr_20_Sep_2024_15h23min51sec.csv',
     '22_10dpf_Fr_20_Sep_2024_16h59min47sec.csv',
     '23_10dpf_Fr_20_Sep_2024_18h29min15sec.csv',
-    '24_10dpf_Fr_20_Sep_2024_20h02min20sec.csv'
+    '24_10dpf_Fr_20_Sep_2024_20h02min20sec.csv',
+    '12_07dpf_Do_03_Okt_2024_10h58min16sec.csv',
+    '13_07dpf_Do_03_Okt_2024_12h28min52sec.csv', 
+    '14_07dpf_Do_03_Okt_2024_14h02min07sec.csv', 
+    '15_07dpf_Do_03_Okt_2024_15h38min20sec.csv', 
+    '16_07dpf_Do_03_Okt_2024_17h07min50sec.csv', 
+    '17_07dpf_Do_03_Okt_2024_18h37min36sec.csv'
 ]
 
 def asterisk(p_value: float) -> str:
@@ -693,6 +699,22 @@ for file in DATAFILES:
         looming,
         analyse_looming(data_filtered, fish_id, dpf)
     ))
+
+
+## save 
+
+phototaxis.to_csv('phototaxis.csv')
+bright_vs_dark.to_csv('bright_vs_dark.csv')
+omr.to_csv('omr.csv')
+okr.to_csv('okr.csv')
+looming.to_csv('looming.csv')
+
+## 
+phototaxis = pd.read_csv'phototaxis.csv')
+bright_vs_dark = pd.read_csv('bright_vs_dark.csv')
+omr = pd.read_csv('omr.csv')
+okr = pd.read_csv('okr.csv')
+looming = pd.read_csv('looming.csv')
 
 plot_dark_vs_bright(bright_vs_dark)
 plot_phototaxis(phototaxis)
