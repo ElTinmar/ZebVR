@@ -710,7 +710,7 @@ okr.to_csv('okr.csv')
 looming.to_csv('looming.csv')
 
 ## 
-phototaxis = pd.read_csv'phototaxis.csv')
+phototaxis = pd.read_csv('phototaxis.csv')
 bright_vs_dark = pd.read_csv('bright_vs_dark.csv')
 omr = pd.read_csv('omr.csv')
 okr = pd.read_csv('okr.csv')
