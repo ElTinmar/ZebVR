@@ -6,7 +6,9 @@ from PyQt5.QtWidgets import (
     QHBoxLayout, 
     QPushButton,
     QTabWidget,
-    QMainWindow
+    QMainWindow,
+    QAction,
+    QFileDialog
 )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import  QRunnable, QThreadPool
@@ -567,6 +569,21 @@ class MainGui(QMainWindow):
         self.main_widget = QWidget()
         self.setCentralWidget(self.main_widget)
 
+        load_action = QAction('&Load', self)        
+        load_action.setShortcut('Ctrl+O')
+        load_action.setStatusTip('Load settings')
+        load_action.triggered.connect(self.load_settings)
+
+        save_action = QAction('&Save', self)        
+        save_action.setShortcut('Ctrl+S')
+        save_action.setStatusTip('Save settings')
+        save_action.triggered.connect(self.save_settings)
+
+        menu_bar = self.menuBar()
+        file_menu = menu_bar.addMenu('&File')
+        file_menu.addAction(load_action)
+        file_menu.addAction(save_action)
+
     def layout_components(self):
         
         controls = QHBoxLayout()
@@ -578,6 +595,30 @@ class MainGui(QMainWindow):
         layout.addWidget(self.tabs)
         layout.addLayout(controls)
         layout.addStretch()
+
+    def load_settings(self):
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'JSON (*.json)')
+        with open(filename, 'r') as fp:
+            state = json.load(fp)
+        self.set_state(state)
+
+    def save_settings(self):
+        state = self.get_state()
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', 'JSON (*.json)')
+        with open(filename, 'w') as fp:
+            state = json.dump(state, fp)
+
+    def set_state(self, state: dict) -> None:
+        self.camera_widget.set_state(state['camera'])
+        self.projector_widget.set_state(state['projector'])
+        self.registration_widget.set_state(state['registration'])
+        self.calibration_widget.set_state(state['calibration'])
+        self.background_widget.set_state(state['background'])
+        self.vr_settings_widget.set_state(state['vr_settings'])
+        self.output_widget.set_state(state['output'])
+
+    def get_state(self) -> dict:
+        return self.settings
 
     def update_camera_source(self, cam_source: str, cam_ind: int, filename: str):
 
