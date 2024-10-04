@@ -597,6 +597,7 @@ class MainGui(QMainWindow):
         layout.addStretch()
 
     def load_settings(self):
+        # TODO restore all settings for camera (camera choice dropmenu), for protocol 
         filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'JSON (*.json)')
         with open(filename, 'r') as fp:
             state = json.load(fp)
@@ -639,6 +640,10 @@ class MainGui(QMainWindow):
         # read camera properties and set widget state accordingly
         state = {}
         
+        state['camera_choice'] = cam_source
+        state['camera_index'] = cam_ind
+        state['movie_file'] = filename
+
         framerate_enabled = self.camera.framerate_available()
         state['framerate_enabled'] = framerate_enabled
         state['framerate_min'], state['framerate_max'] = self.camera.get_framerate_range() if framerate_enabled else (0,0)

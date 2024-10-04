@@ -157,6 +157,9 @@ class CameraWidget(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
+        state['camera_choice'] = self.camera_choice.currentText()
+        state['camera_index'] = self.camera_id.value()
+        state['movie_file'] = self.filename.text()
         for control in self.controls:
             spinbox = getattr(self, control + '_spinbox')
             state[control + '_enabled'] = spinbox.isEnabled()
@@ -169,6 +172,9 @@ class CameraWidget(QWidget):
     def set_state(self, state: Dict) -> None:
 
         try:
+            self.camera_choice.setCurrentText(state['camera_choice'])
+            self.camera_id.setValue(state['camera_index'])
+            self.filename.setText(state['movie_file'])
             for control in self.controls:
                 spinbox = getattr(self, control + '_spinbox')
                 spinbox.setEnabled(state[control + '_enabled'])

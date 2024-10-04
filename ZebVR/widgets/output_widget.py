@@ -149,7 +149,7 @@ class OutputWidget(QWidget):
     def set_state(self, state: Dict) -> None:
         try:
             self.fish_id.setValue(state['fish_id'])
-            self.fish_id.setValue(state['dpf'])
+            self.dpf.setValue(state['dpf'])
             self.edt_filename.setText(state['csv_filename'])
             self.video_group.setChecked(state['video_recording'])
             self.video_recording_dir.setText(state['video_recording_dir'])
