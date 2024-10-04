@@ -138,15 +138,7 @@ class MainGui(QMainWindow):
 
         self.create_components()
         self.layout_components()
-
-        self.update_camera_settings()
-        self.update_projector_settings()
-        self.update_registration_settings()
-        self.update_calibration_settings()
-        self.update_background_settings()
-        self.update_vr_settings_settings()
-        self.update_output_settings()
-
+        self.refresh_settings()
         self.create_loggers()
 
         self.setWindowTitle('ZebVR')
@@ -619,6 +611,7 @@ class MainGui(QMainWindow):
         self.output_widget.set_state(state['output'])
 
     def get_state(self) -> dict:
+        self.refresh_settings()
         return self.settings
 
     def update_camera_source(self, cam_source: str, cam_ind: int, filename: str):
@@ -720,6 +713,15 @@ class MainGui(QMainWindow):
     def update_output_settings(self):
         self.settings['output'] = self.output_widget.get_state()
 
+    def refresh_settings(self):
+        self.update_camera_settings()
+        self.update_projector_settings()
+        self.update_registration_settings()
+        self.update_calibration_settings()
+        self.update_background_settings()
+        self.update_vr_settings_settings()
+        self.update_output_settings()
+    
     def registration_callback(self):
         self.camera_preview(False)
 

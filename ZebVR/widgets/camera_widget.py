@@ -114,6 +114,9 @@ class CameraWidget(QWidget):
             self.camera_id.setEnabled(True)
             self.movie_load.setEnabled(False)
 
+        self.state_changed.emit()
+
+
     def layout_components(self):
 
         layout_buttons = QHBoxLayout()
@@ -172,9 +175,9 @@ class CameraWidget(QWidget):
     def set_state(self, state: Dict) -> None:
 
         try:
-            self.camera_choice.setCurrentText(state['camera_choice'])
             self.camera_id.setValue(state['camera_index'])
             self.filename.setText(state['movie_file'])
+            self.camera_choice.setCurrentText(state['camera_choice'])
             for control in self.controls:
                 spinbox = getattr(self, control + '_spinbox')
                 spinbox.setEnabled(state[control + '_enabled'])
