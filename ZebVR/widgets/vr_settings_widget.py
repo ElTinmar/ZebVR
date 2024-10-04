@@ -157,10 +157,10 @@ class VRSettingsWidget(QWidget):
         item = self.heading_table.item(row, col)
         try:
             value = float(item.text())
-            self.heading[row, col] = value
+            self.heading[row][col] = value
         except ValueError:
             self.heading_table.setItem(row, col, QTableWidgetItem(f'{0:2f}'))
-            self.heading[row, col] = 0
+            self.heading[row][col] = 0
 
     def toggle_openloop(self, isChecked: bool):
         self.closedloop_group.setChecked(not isChecked)
