@@ -29,7 +29,7 @@ class VRSettingsWidget(QWidget):
 
         super().__init__(*args, **kwargs)
         
-        self.heading = np.eye(2) 
+        self.heading = [[1.0, 0.0], [0.0, 1.0]] 
         self.declare_components()
         self.layout_components()
 
@@ -115,7 +115,7 @@ class VRSettingsWidget(QWidget):
         if os.path.exists(self.DEFAULT_FILE):
             with open(self.DEFAULT_FILE, 'r') as f:
                 data = json.load(f)
-            self.heading = np.array(data['heading'])
+            self.heading = data['heading']
             self.centroid_x.setValue(data['centroid'][0])
             self.centroid_y.setValue(data['centroid'][1])
 
@@ -194,7 +194,7 @@ class VRSettingsWidget(QWidget):
             self.openloop_coords_file.setText(state['openloop_coords_file'])
             self.centroid_x.setValue(state['centroid_x'])
             self.centroid_y.setValue(state['centroid_y'])
-            self.heading = np.asarray(state['heading'])
+            self.heading = state['heading']
             self.closedloop_group.setChecked(state['closedloop'])
             self.n_background_workers.setValue(state['n_background_workers'])
             self.n_tracker_workers.setValue(state['n_tracker_workers'])
