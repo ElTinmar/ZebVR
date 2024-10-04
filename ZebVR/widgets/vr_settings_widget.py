@@ -111,6 +111,10 @@ class VRSettingsWidget(QWidget):
         self.display_fps.setText('FPS display:')
         self.display_fps.setValue(30)
         self.display_fps.valueChanged.connect(self.state_changed)
+        
+        self.videorecording_group = QCheckBox('video recording')
+        self.videorecording_group.setChecked(False)
+        self.videorecording_group.toggled.connect(self.toggle_videorecording)
 
         if os.path.exists(self.DEFAULT_FILE):
             with open(self.DEFAULT_FILE, 'r') as f:
@@ -145,6 +149,7 @@ class VRSettingsWidget(QWidget):
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.closedloop_group)
         main_layout.addWidget(self.openloop_group)
+        main_layout.addWidget(self.videorecording_group)
         main_layout.addWidget(self.queue_refresh_time_microsec)
         main_layout.addStretch()
 
@@ -163,22 +168,33 @@ class VRSettingsWidget(QWidget):
             self.heading[row][col] = 0
 
     def toggle_openloop(self, isChecked: bool):
-        self.closedloop_group.setChecked(not isChecked)
+        if isChecked:
+            self.closedloop_group.setChecked(False)
+            self.videorecording_group.setChecked(False)
         self.state_changed.emit()
 
     def toggle_closedloop(self, isChecked: bool):
-        self.openloop_group.setChecked(not isChecked)
+        if isChecked:
+            self.openloop_group.setChecked(False)
+            self.videorecording_group.setChecked(False)
+        self.state_changed.emit()
+
+    def toggle_videorecording(self, isChecked: bool):
+        if isChecked:
+            self.openloop_group.setChecked(False)
+            self.closedloop_group.setChecked(False)
         self.state_changed.emit()
 
     def get_state(self) -> Dict:
 
         state = {}
         state['openloop'] = self.openloop_group.isChecked()
+        state['closedloop'] = self.closedloop_group.isChecked()
+        state['videorecording'] = self.videorecording_group.isChecked()
         state['openloop_coords_file'] = self.openloop_coords_file.text()
         state['centroid_x'] = self.centroid_x.value()
         state['centroid_y'] = self.centroid_y.value()
         state['heading'] = self.heading
-        state['closedloop'] = self.closedloop_group.isChecked()
         state['n_background_workers'] = self.n_background_workers.value()
         state['n_tracker_workers'] = self.n_tracker_workers.value()
         state['background_gpu'] = self.background_gpu.isChecked()
@@ -191,11 +207,12 @@ class VRSettingsWidget(QWidget):
 
         try:
             self.openloop_group.setChecked(state['openloop'])
+            self.closedloop_group.setChecked(state['closedloop'])
+            self.videorecording_group.setChecked(state['videorecording'])
             self.openloop_coords_file.setText(state['openloop_coords_file'])
             self.centroid_x.setValue(state['centroid_x'])
             self.centroid_y.setValue(state['centroid_y'])
             self.heading = state['heading']
-            self.closedloop_group.setChecked(state['closedloop'])
             self.n_background_workers.setValue(state['n_background_workers'])
             self.n_tracker_workers.setValue(state['n_tracker_workers'])
             self.background_gpu.setChecked(state['background_gpu'])
