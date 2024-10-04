@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, 
     QHBoxLayout, 
     QPushButton,
-    QTabWidget
+    QTabWidget,
+    QMainWindow
 )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import  QRunnable, QThreadPool
@@ -104,7 +105,7 @@ class CameraAcquisition(QRunnable):
                 pass
         self.camera.stop_acquisition()
         
-class MainGui(QWidget):
+class MainGui(QMainWindow):
     
     def __init__(self, *args, **kwargs):
 
@@ -563,6 +564,9 @@ class MainGui(QWidget):
         self.record_button.setText('record')
         self.record_button.clicked.connect(self.record)
 
+        self.main_widget = QWidget()
+        self.setCentralWidget(self.main_widget)
+
     def layout_components(self):
         
         controls = QHBoxLayout()
@@ -570,7 +574,7 @@ class MainGui(QWidget):
         controls.addWidget(self.stop_button)
         controls.addWidget(self.record_button)
 
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout(self.main_widget)
         layout.addWidget(self.tabs)
         layout.addLayout(controls)
         layout.addStretch()
