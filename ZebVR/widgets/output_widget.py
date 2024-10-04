@@ -91,6 +91,9 @@ class OutputWidget(QWidget):
         self.queue_logfile.setText('queues.log')
         self.queue_logfile.textChanged.connect(self.state_changed)
 
+    def enable_video_recording(self, isChecked: bool):
+        self.video_group.setChecked(isChecked)
+
     def experiment_data(self):
         self.filename = os.path.join(self.CSV_FOLDER, f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv')
         self.edt_filename.setText(self.filename)

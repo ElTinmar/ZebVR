@@ -22,6 +22,7 @@ class VRSettingsWidget(QWidget):
 
     state_changed = pyqtSignal()
     openloop_coords_signal = pyqtSignal()
+    video_recording_signal = pyqtSignal(bool)
 
     DEFAULT_FILE = 'ZebVR/default/open_loop_coords.json'
 
@@ -112,9 +113,10 @@ class VRSettingsWidget(QWidget):
         self.display_fps.setValue(30)
         self.display_fps.valueChanged.connect(self.state_changed)
         
-        self.videorecording_group = QCheckBox('video recording')
-        self.videorecording_group.setChecked(False)
-        self.videorecording_group.toggled.connect(self.toggle_videorecording)
+        #TODO when this is active toggle output widget video_group 
+        self.videorecording_checkbox = QCheckBox('video recording only')
+        self.videorecording_checkbox.setChecked(False)
+        self.videorecording_checkbox.toggled.connect(self.toggle_videorecording)
 
         if os.path.exists(self.DEFAULT_FILE):
             with open(self.DEFAULT_FILE, 'r') as f:
@@ -149,7 +151,7 @@ class VRSettingsWidget(QWidget):
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.closedloop_group)
         main_layout.addWidget(self.openloop_group)
-        main_layout.addWidget(self.videorecording_group)
+        main_layout.addWidget(self.videorecording_checkbox)
         main_layout.addWidget(self.queue_refresh_time_microsec)
         main_layout.addStretch()
 
@@ -170,13 +172,13 @@ class VRSettingsWidget(QWidget):
     def toggle_openloop(self, isChecked: bool):
         if isChecked:
             self.closedloop_group.setChecked(False)
-            self.videorecording_group.setChecked(False)
+            self.videorecording_checkbox.setChecked(False)
         self.state_changed.emit()
 
     def toggle_closedloop(self, isChecked: bool):
         if isChecked:
             self.openloop_group.setChecked(False)
-            self.videorecording_group.setChecked(False)
+            self.videorecording_checkbox.setChecked(False)
         self.state_changed.emit()
 
     def toggle_videorecording(self, isChecked: bool):
@@ -184,13 +186,14 @@ class VRSettingsWidget(QWidget):
             self.openloop_group.setChecked(False)
             self.closedloop_group.setChecked(False)
         self.state_changed.emit()
+        self.video_recording_signal.emit(isChecked)
 
     def get_state(self) -> Dict:
 
         state = {}
         state['openloop'] = self.openloop_group.isChecked()
         state['closedloop'] = self.closedloop_group.isChecked()
-        state['videorecording'] = self.videorecording_group.isChecked()
+        state['videorecording'] = self.videorecording_checkbox.isChecked()
         state['openloop_coords_file'] = self.openloop_coords_file.text()
         state['centroid_x'] = self.centroid_x.value()
         state['centroid_y'] = self.centroid_y.value()
@@ -208,7 +211,7 @@ class VRSettingsWidget(QWidget):
         try:
             self.openloop_group.setChecked(state['openloop'])
             self.closedloop_group.setChecked(state['closedloop'])
-            self.videorecording_group.setChecked(state['videorecording'])
+            self.videorecording_checkbox.setChecked(state['videorecording'])
             self.openloop_coords_file.setText(state['openloop_coords_file'])
             self.centroid_x.setValue(state['centroid_x'])
             self.centroid_y.setValue(state['centroid_y'])
@@ -222,7 +225,7 @@ class VRSettingsWidget(QWidget):
             self.update_table()
 
         except KeyError:
-            print('Wrong state keys provided to openloop widget')
+            print('Wrong state keys provided to VR setting widget')
             raise
 
 if __name__ == "__main__":

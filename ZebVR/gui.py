@@ -385,6 +385,21 @@ class MainGui(QMainWindow):
             )
         )
 
+    def create_video_recording_dag(self):
+
+        # clear workers and queues
+        self.create_workers()
+        self.create_queues()
+
+        self.dag = ProcessingDAG()
+
+        self.dag.connect_data(
+            sender = self.camera_worker, 
+            receiver = self.image_saver_worker, 
+            queue = self.queue_save_image, 
+            name = 'image_saver'
+        )
+
     def create_open_loop_dag(self):
 
         # clear workers and queues
@@ -534,6 +549,7 @@ class MainGui(QMainWindow):
 
         self.output_widget = OutputWidget()
         self.output_widget.state_changed.connect(self.update_output_settings)
+        self.vr_settings_widget.video_recording_signal.connect(self.output_widget.enable_video_recording)
 
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.West)
@@ -920,6 +936,8 @@ class MainGui(QMainWindow):
 
         if self.settings['vr_settings']['openloop']:
             self.create_open_loop_dag()
+        elif self.settings['vr_settings']['videorecording']:
+            self.create_video_recording_dag()
         else:
             self.create_closed_loop_dag()
 
