@@ -29,7 +29,9 @@ class DisplayType(IntEnum):
 # TODO: add a widget to select fish num
 # TODO: maybe add image histogram? Not sure about that though
 
-class DisplayWidget(QWidget):
+
+
+class TrackingDisplayWidget(QWidget):
 
     def __init__(
             self,
