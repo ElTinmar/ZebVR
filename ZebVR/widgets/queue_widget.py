@@ -40,7 +40,6 @@ class QueueWidget(QWidget):
             self.progress_bar.setMaximum(max)
         self.update()
 
-
 class QueueMonitorWidget(QWidget):
 
     def __init__(
