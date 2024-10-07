@@ -64,6 +64,7 @@ class VideoSaverWorker(WorkerNode):
             fps: int = 10,
             resize: float = 0.25,
             codec: str = 'h264',
+            gpu: bool = False,
             *args, 
             **kwargs
         ):
