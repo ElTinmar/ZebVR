@@ -203,14 +203,14 @@ class MainGui(QMainWindow):
         )
 
         self.queue_monitor_worker = QueueMonitor(
-            queues = [
-                self.queue_cam,
-                self.queue_save_image,
-                self.queue_display_image,
-                self.queue_background,
-                self.queue_tracking,
-                self.queue_overlay
-            ],
+            queues = {
+                self.queue_cam: 'camera',
+                self.queue_save_image: 'video recording',
+                self.queue_display_image: 'display',
+                self.queue_background: 'background',
+                self.queue_tracking: 'tracking',
+                self.queue_overlay: 'overlay'
+            },
             name = 'queue_monitor',
             logger = self.worker_logger, 
             logger_queues = self.queue_logger,

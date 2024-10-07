@@ -1,38 +1,45 @@
 from PyQt5.QtWidgets import (
     QWidget, 
     QVBoxLayout,
-    QProgressBar
+    QHBoxLayout,
+    QProgressBar,
+    QLabel
 )
+from typing import Optional
 
-#TODO add dropped frames
+#TODO add dropped frames and names
 
 class QueueWidget(QWidget):
 
     def __init__(
             self,
-            queue_size: int,
+            name: str,
             *args, 
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
 
-        self.queue_size = queue_size
+        self.name = name
         self.declare_components()
         self.layout_components()
 
     def declare_components(self):
+        self.name_label = QLabel(self.name)
         self.progress_bar = QProgressBar()
-        if self.queue_size is not None:
-            self.progress_bar.setMaximum(self.queue_size)
 
     def layout_components(self):
-        layout = QVBoxLayout(self)
+        layout = QHBoxLayout(self)
+        layout.addWidget(self.name_label)
         layout.addWidget(self.progress_bar)
 
-    def set_state(self, count: int) -> None:
-        self.progress_bar.setValue(count)
+    def set_state(self, count: Optional[int], max: Optional[int]) -> None:
+        if count is not None:
+            self.progress_bar.setValue(count)
+        if max is not None:
+            self.progress_bar.setMaximum(max)
         self.update()
+
 
 class QueueMonitorWidget(QWidget):
 

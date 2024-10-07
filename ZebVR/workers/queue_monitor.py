@@ -11,7 +11,7 @@ class QueueMonitor(WorkerNode):
 
     def __init__(
             self, 
-            queues : List[QueueLike],
+            queues : Dict[QueueLike, str],
             refresh_interval_seconds: int = 0.1,
             *args, 
             **kwargs
@@ -29,8 +29,8 @@ class QueueMonitor(WorkerNode):
         self.app = QApplication([])
         self.window = QueueMonitorWidget()
 
-        for q in self.queues:
-            queue_widget = QueueWidget(q.get_num_items())
+        for queue, name in self.queues.items():
+            queue_widget = QueueWidget(name)
             self.widgets.append(queue_widget)
             self.window.add_progress_bar(queue_widget)
 
@@ -41,8 +41,9 @@ class QueueMonitor(WorkerNode):
         self.app.processEvents()
         self.app.sendPostedEvents()
 
-        for queue, widget in zip(self.queues, self.widgets):
-            widget.set_state(queue.qsize())
+        for queue, widget in zip(self.queues.keys(), self.widgets):
+            print(queue.qsize(), queue.get_num_items())
+            widget.set_state(queue.qsize(), queue.get_num_items())
 
         time.sleep(self.refresh_interval_seconds)
 
