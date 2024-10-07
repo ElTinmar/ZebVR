@@ -42,7 +42,6 @@ class QueueMonitor(WorkerNode):
         self.app.sendPostedEvents()
 
         for queue, widget in zip(self.queues.keys(), self.widgets):
-            queue.queue.load_array_metadata() # hum
             widget.set_state(queue.qsize(), queue.get_num_items())
 
         time.sleep(self.refresh_interval_seconds)
