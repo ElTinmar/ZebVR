@@ -59,7 +59,8 @@ class ImageSaverWorker(WorkerNode):
 
 class VideoSaverWorker(WorkerNode):
     
-    SUPPORTED_CODECS = ['libx264', 'h264_nvenc', 'hevc', 'hevc_nvenc']
+    SUPPORTED_CODECS_CPU = ['libx264', 'hevc']
+    SUPPORTED_CODECS_GPU = ['h264_nvenc', 'hevc_nvenc']
 
     def __init__(
             self, 
@@ -80,8 +81,11 @@ class VideoSaverWorker(WorkerNode):
         self.height = 2*(height//2) # some codecs require images with even size
         self.width = 2*(width//2)
         
-        if not codec in self.SUPPORTED_CODECS:
-           raise ValueError(f'wrong codec type, supported codecs are: {self.SUPPORTED_CODECS}') 
+        if gpu and (not codec in self.SUPPORTED_CODECS_GPU):
+            raise ValueError(f'wrong codec type for GPU encoding, supported codecs are: {self.SUPPORTED_CODECS_GPU}') 
+
+        if (not gpu) and (not codec in self.SUPPORTED_CODECS_CPU):
+           raise ValueError(f'wrong codec type for CPU encoding, supported codecs are: {self.SUPPORTED_CODECS_CPU}')
     
         self.codec = codec
         self.gpu = gpu
