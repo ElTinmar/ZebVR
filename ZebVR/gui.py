@@ -1004,6 +1004,7 @@ class MainGui(QMainWindow):
             print('cam to background', self.queue_cam.get_average_freq(), self.queue_cam.queue.num_lost_item.value)
             if self.settings['output']['video_recording']:
                 print('cam to image saver', self.queue_save_image.get_average_freq(), self.queue_save_image.queue.num_lost_item.value)
+                print('image saver to display', self.queue_display_image.get_average_freq(), self.queue_display_image.queue.num_lost_item.value)
             print('background to trackers', self.queue_background.get_average_freq(), self.queue_background.queue.num_lost_item.value)
             print('trackers to visual stim', self.queue_tracking.get_average_freq(), self.queue_tracking.queue.num_lost_item.value)
             print('trackers to display', self.queue_overlay.get_average_freq(), self.queue_overlay.queue.num_lost_item.value)
