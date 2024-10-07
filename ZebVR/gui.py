@@ -44,6 +44,7 @@ from ZebVR.workers import (
     TrackerWorker, 
     DummyTrackerWorker,
     ImageSaverWorker, 
+    VideoSaverWorker,
     TrackerGui, 
     StimGUI,
     TrackingDisplay,
@@ -177,6 +178,21 @@ class MainGui(QMainWindow):
             compress = self.settings['output']['video_recording_compression'],
             resize = self.settings['output']['video_recording_resize'],
             name = 'image_saver',  
+            logger = self.worker_logger, 
+            logger_queues = self.queue_logger,
+            receive_data_timeout = 1.0,
+            profile = PROFILE
+        )
+
+        # TODO add widgets to the GUI to set those values
+        self.video_recorder_worker = VideoSaverWorker(
+            height = self.settings['camera']['height_value'],
+            width = self.settings['camera']['width_value'],
+            filename = 'output.avi',
+            fps = self.settings['output']['video_recording_fps'],
+            codec = 'libx264',
+            gpu = False,
+            name = 'video_recorder',
             logger = self.worker_logger, 
             logger_queues = self.queue_logger,
             receive_data_timeout = 1.0,
@@ -393,9 +409,16 @@ class MainGui(QMainWindow):
 
         self.dag = ProcessingDAG()
 
+        # self.dag.connect_data(
+        #     sender = self.camera_worker, 
+        #     receiver = self.image_saver_worker, 
+        #     queue = self.queue_save_image, 
+        #     name = 'image_saver'
+        # )
+        
         self.dag.connect_data(
             sender = self.camera_worker, 
-            receiver = self.image_saver_worker, 
+            receiver = self.video_recorder_worker, 
             queue = self.queue_save_image, 
             name = 'image_saver'
         )

@@ -8,7 +8,6 @@ import time
 from video_tools import FFMPEG_VideoWriter_CPU, FFMPEG_VideoWriter_GPU 
 
 #TODO: check zarr, maybe try cv2.imwrite
-#TODO: add option to save as video with h264/hevc on CPU/GPU  
 
 class ImageSaverWorker(WorkerNode):
 

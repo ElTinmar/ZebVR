@@ -54,6 +54,8 @@ class OutputWidget(QWidget):
         self.video_group.setChecked(False)
         self.video_group.toggled.connect(self.state_changed)
 
+        #TODO add options for video recording 
+
         self.video_recording_button = QPushButton('Video directory') 
         self.video_recording_button.clicked.connect(self.select_video_dir)
 
