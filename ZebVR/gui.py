@@ -48,6 +48,7 @@ from ZebVR.workers import (
     TrackerGui, 
     StimGUI,
     TrackingDisplay,
+    Display,
     Protocol
 )
 from tracker import (
@@ -310,6 +311,15 @@ class MainGui(QMainWindow):
             profile = False
         )
 
+        self.display_worker = Display(
+            fps = self.settings['vr_settings']['display_fps'], 
+            name = "display", 
+            logger = self.worker_logger, 
+            logger_queues = self.queue_logger,
+            receive_data_timeout = 1.0,
+            profile = False
+        )
+
         # protocol -------------------------------------------------
         self.protocol_worker = Protocol(
             name = "protocol", 
@@ -373,6 +383,15 @@ class MainGui(QMainWindow):
             )
         )
 
+        self.queue_display_image = MonitoredQueue(
+            ModifiableRingBuffer(
+                num_bytes = 500*1024**2,
+                logger = self.queue_logger,
+                name = 'image_saver_to_display',
+                t_refresh = 1e-6 * self.settings['vr_settings']['queue_refresh_time_microsec']
+            )
+        )
+
         self.queue_background = MonitoredQueue(
             ModifiableRingBuffer(
                 num_bytes = 500*1024**2,
@@ -421,6 +440,13 @@ class MainGui(QMainWindow):
             receiver = self.video_recorder_worker, 
             queue = self.queue_save_image, 
             name = 'image_saver'
+        )
+
+        self.dag.connect_data(
+            sender = self.video_recorder_worker, 
+            receiver = self.display_worker, 
+            queue = self.queue_display_image, 
+            name = 'display'
         )
 
     def create_open_loop_dag(self):

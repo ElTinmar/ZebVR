@@ -52,6 +52,8 @@ class ImageSaverWorker(WorkerNode):
                     np.savez(filename, image=image_resized, metadata=metadata)
 
                 self.prev_time = time.monotonic()
+                
+                return data
 
     def process_metadata(self, metadata) -> Any:
         pass
@@ -128,6 +130,7 @@ class VideoSaverWorker(WorkerNode):
         if data is not None:
             image_resized = cv2.resize(data['image'], (self.width, self.height), interpolation = cv2.INTER_NEAREST)
             self.writer.write_frame(image_resized)
+            return data
 
     def process_metadata(self, metadata) -> Any:
         pass

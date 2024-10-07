@@ -29,8 +29,61 @@ class DisplayType(IntEnum):
 # TODO: add a widget to select fish num
 # TODO: maybe add image histogram? Not sure about that though
 
+class DisplayWidget(QWidget):
 
+    def __init__(
+            self,
+            display_height: int = 512,
+            *args, 
+            **kwargs
+        ):
 
+        super().__init__(*args, **kwargs)
+
+        self.display_height = display_height 
+        self.declare_components()
+        self.layout_components()
+        self.setWindowTitle('Display')
+        self.show()
+
+    def declare_components(self):
+
+        self.lbl_index = QLabel()
+        self.lbl_timestamp = QLabel()        
+        self.lbl_image = QLabel()
+
+    def layout_components(self):
+
+        layout_status = QHBoxLayout()
+        layout_status.addWidget(QLabel('index:'))
+        layout_status.addWidget(self.lbl_index)
+        layout_status.addStretch()
+        layout_status.addWidget(QLabel('timestamp:'))
+        layout_status.addWidget(self.lbl_timestamp)
+
+        layout_image = QHBoxLayout()
+        layout_image.addStretch()
+        layout_image.addWidget(self.lbl_image)
+        layout_image.addStretch() 
+
+        layout = QVBoxLayout(self)
+        layout.addLayout(layout_image)
+        layout.addLayout(layout_status)
+
+    def set_state(self, index, timestamp, image) -> None:
+
+        # TODO make that an argument or controlled by a widget?    
+        width = int(image.shape[1] * self.display_height/image.shape[0])
+        image_resized = cv2.resize(image, (width, self.display_height), interpolation=cv2.INTER_NEAREST)
+
+        pixmap = NDarray_to_QPixmap(image_resized)
+        self.lbl_image.setPixmap(pixmap)
+        self.lbl_index.setText(f'{index}')
+        self.lbl_timestamp.setText(f'{timestamp:.03f}')
+        self.update()
+
+# TODO maybe rewrite this to inherit from DisplayWidget 
+# to remove duplicate code
 class TrackingDisplayWidget(QWidget):
 
     def __init__(

@@ -5,5 +5,6 @@ from .image_saver import *
 from .protocol import *
 
 from .tracking_display import *
+from .display import *
 from .tracker_gui import *
 from .stim_gui import *
