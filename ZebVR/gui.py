@@ -1,5 +1,11 @@
 from multiprocessing import Process
 import time
+from functools import partial
+import json
+import os
+
+import cv2
+import numpy as np
 from PyQt5.QtWidgets import (
     QWidget, 
     QVBoxLayout, 
@@ -12,45 +18,9 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import  QRunnable, QThreadPool
-from functools import partial
-import json
-import cv2
-import numpy as np
-import os
 
 from multiprocessing_logger import Logger
 from dagline import ProcessingDAG, receive_strategy, send_strategy
-from ZebVR.widgets import SequencerWidget
-from ZebVR.calibration import (
-    check_pix_per_mm, 
-    check_registration, 
-    open_loop_coords, 
-    pix_per_mm, 
-    registration
-)
-from ZebVR.background import inpaint_background, static_background
-from ZebVR.widgets import (
-    CameraWidget, 
-    ProjectorWidget, 
-    RegistrationWidget,
-    CalibrationWidget,
-    BackgroundWidget,
-    VRSettingsWidget,
-    OutputWidget
-)
-from ZebVR.workers import (
-    BackgroundSubWorker, 
-    CameraWorker, 
-    TrackerWorker, 
-    DummyTrackerWorker,
-    ImageSaverWorker, 
-    VideoSaverWorker,
-    TrackerGui, 
-    StimGUI,
-    TrackingDisplay,
-    Display,
-    Protocol
-)
 from tracker import (
     GridAssignment, 
     MultiFishTracker_CPU,
@@ -76,14 +46,48 @@ from tracker import (
 )
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
 from video_tools import BackroundImage, Polarity
-from ZebVR.stimulus import VisualStimWorker, GeneralStim
-
 from camera_tools import Camera, OpenCV_Webcam, OpenCV_Webcam_InitEveryFrame, MovieFileCam
 try:
     from camera_tools import XimeaCamera
     XIMEA_ENABLED = True
 except ImportError:
     XIMEA_ENABLED = False
+
+from ZebVR.calibration import (
+    check_pix_per_mm, 
+    check_registration, 
+    open_loop_coords, 
+    pix_per_mm, 
+    registration
+)
+from ZebVR.background import inpaint_background, static_background
+from ZebVR.workers import (
+    BackgroundSubWorker, 
+    CameraWorker, 
+    TrackerWorker, 
+    DummyTrackerWorker,
+    ImageSaverWorker, 
+    VideoSaverWorker,
+    TrackerGui, 
+    StimGUI,
+    TrackingDisplay,
+    Display,
+    Protocol,
+    QueueMonitor
+)
+from ZebVR.widgets import (
+    CameraWidget, 
+    ProjectorWidget, 
+    RegistrationWidget,
+    CalibrationWidget,
+    BackgroundWidget,
+    VRSettingsWidget,
+    OutputWidget,
+    SequencerWidget
+)
+from ZebVR.stimulus import VisualStimWorker, GeneralStim
+
+
 
 PROFILE = False
 
@@ -194,6 +198,22 @@ class MainGui(QMainWindow):
             codec = 'libx264',
             gpu = False,
             name = 'video_recorder',
+            logger = self.worker_logger, 
+            logger_queues = self.queue_logger,
+            receive_data_timeout = 1.0,
+            profile = PROFILE
+        )
+
+        self.queue_monitor_worker = QueueMonitor(
+            queues = [
+                self.queue_cam,
+                self.queue_save_image,
+                self.queue_display_image,
+                self.queue_background,
+                self.queue_tracking,
+                self.queue_overlay
+            ],
+            name = 'queue_monitor',
             logger = self.worker_logger, 
             logger_queues = self.queue_logger,
             receive_data_timeout = 1.0,
@@ -423,8 +443,8 @@ class MainGui(QMainWindow):
     def create_video_recording_dag(self):
 
         # clear workers and queues
-        self.create_workers()
         self.create_queues()
+        self.create_workers()
 
         self.dag = ProcessingDAG()
 
@@ -452,8 +472,8 @@ class MainGui(QMainWindow):
     def create_open_loop_dag(self):
 
         # clear workers and queues
-        self.create_workers()
         self.create_queues()
+        self.create_workers()
 
         self.dag = ProcessingDAG()
 
@@ -489,8 +509,8 @@ class MainGui(QMainWindow):
     def create_closed_loop_dag(self):
 
         # clear workers and queues
-        self.create_workers()
         self.create_queues()
+        self.create_workers()
 
         self.dag = ProcessingDAG()
 
