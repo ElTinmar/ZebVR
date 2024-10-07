@@ -6,6 +6,7 @@ from collections import defaultdict
 from typing import Dict, Optional, Deque, Tuple, DefaultDict
 from abc import ABC, abstractmethod
 from enum import IntEnum
+import time
 
 from PyQt5.QtWidgets import (
     QApplication,
