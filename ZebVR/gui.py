@@ -87,8 +87,6 @@ from ZebVR.widgets import (
 )
 from ZebVR.stimulus import VisualStimWorker, GeneralStim
 
-
-
 PROFILE = False
 
 class CameraAcquisition(QRunnable):
