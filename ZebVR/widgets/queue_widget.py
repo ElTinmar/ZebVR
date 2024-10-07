@@ -23,7 +23,8 @@ class QueueWidget(QWidget):
 
     def declare_components(self):
         self.progress_bar = QProgressBar()
-        self.progress_bar.setMaximum(self.queue_size)
+        if self.queue_size is not None:
+            self.progress_bar.setMaximum(self.queue_size)
 
     def layout_components(self):
         layout = QVBoxLayout(self)
