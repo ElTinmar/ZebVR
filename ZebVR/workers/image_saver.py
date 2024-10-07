@@ -85,7 +85,7 @@ class VideoSaverWorker(WorkerNode):
             raise ValueError(f'wrong codec type for GPU encoding, supported codecs are: {self.SUPPORTED_CODECS_GPU}') 
 
         if (not gpu) and (not codec in self.SUPPORTED_CODECS_CPU):
-           raise ValueError(f'wrong codec type for CPU encoding, supported codecs are: {self.SUPPORTED_CODECS_CPU}')
+            raise ValueError(f'wrong codec type for CPU encoding, supported codecs are: {self.SUPPORTED_CODECS_CPU}')
     
         self.codec = codec
         self.gpu = gpu
