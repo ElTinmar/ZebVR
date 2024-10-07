@@ -36,13 +36,12 @@ class QueueMonitor(WorkerNode):
 
         self.window.show()
 
-    def process_data(self, data) -> NDArray:
+    def process_data(self, data) -> None:
 
         self.app.processEvents()
         self.app.sendPostedEvents()
 
         for queue, widget in zip(self.queues.keys(), self.widgets):
-            print(queue.qsize(), queue.get_num_items())
             widget.set_state(queue.qsize(), queue.get_num_items())
 
         time.sleep(self.refresh_interval_seconds)
