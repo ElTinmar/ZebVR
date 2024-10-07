@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
     QProgressBar
 )
 
-# add dropped frames
+#TODO add dropped frames
 
 class QueueWidget(QWidget):
 
@@ -43,8 +43,6 @@ class QueueMonitorWidget(QWidget):
 
         super().__init__(*args, **kwargs)
         self.layout = QVBoxLayout(self)
-        self.queue_widgets = []
 
     def add_progress_bar(self, queue_widget: QueueWidget):
-        self.queue_widgets.append(queue_widget)
         self.layout.addWidget(queue_widget)

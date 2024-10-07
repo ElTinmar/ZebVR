@@ -1,10 +1,10 @@
 from .background import *
 from .camera import *
-from .tracker import *
+from .display import *
 from .image_saver import *
 from .protocol import *
-
-from .tracking_display import *
-from .display import *
-from .tracker_gui import *
+from .queue_monitor import *
 from .stim_gui import *
+from .tracker_gui import *
+from .tracker import *
+from .tracking_display import *
