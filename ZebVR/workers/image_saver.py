@@ -64,8 +64,8 @@ class VideoSaverWorker(WorkerNode):
 
     def __init__(
             self, 
-            height: int,
-            width: int,
+            height: int, # final height of the recorded video: images will be rescaled to that size
+            width: int, # final width of the recorded video: images will be rescaled to that size
             filename: str, 
             fps: int = 30,
             codec: str = 'libx264', 
