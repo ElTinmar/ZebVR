@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, 
 )
 
+# TODO maybe this belongs somewhere else ? wait until refactoring of stim  shuffle 
 class Stim(IntEnum):
     DARK = 0
     BRIGHT = 1
