@@ -467,6 +467,8 @@ class MainGui(QMainWindow):
             name = 'display'
         )
 
+        self.dag.add_node(self.queue_monitor_worker)
+
     def create_open_loop_dag(self):
 
         # clear workers and queues
@@ -502,8 +504,9 @@ class MainGui(QMainWindow):
                 queue = QueueMP(), 
                 name = 'visual_stim_control'
             )
-            
 
+        self.dag.add_node(self.queue_monitor_worker)
+            
     def create_closed_loop_dag(self):
 
         # clear workers and queues
@@ -583,6 +586,10 @@ class MainGui(QMainWindow):
                 queue = QueueMP(), 
                 name = f'tracker_control_{i}'
             )
+
+        # isolated nodes
+
+        self.dag.add_node(self.queue_monitor_worker)
 
     def create_components(self):
 
