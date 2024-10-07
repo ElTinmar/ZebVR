@@ -104,6 +104,7 @@ class TrackerWorker(WorkerNode):
         res = {}    
         res['stimulus'] = msg
         res['overlay'] = msg
+
         return res
         
     def process_metadata(self, metadata) -> Any:

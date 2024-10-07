@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
 )
 from typing import Optional
 
-#TODO add dropped frames and names
+#TODO add dropped frames and fps
 
 class QueueWidget(QWidget):
 
