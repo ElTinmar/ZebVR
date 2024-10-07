@@ -9,3 +9,4 @@ from .calibration_widget import *
 from .background_widget import *
 from .vr_settings_widget import *
 from .output_widget import *
+from .queue_widget import *
