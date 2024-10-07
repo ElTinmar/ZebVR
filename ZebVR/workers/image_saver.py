@@ -5,6 +5,7 @@ from typing import Any
 import cv2
 import os
 import time
+from video_tools import FFMPEG_VideoWriter_CPU, FFMPEG_VideoWriter_GPU 
 
 #TODO: check zarr, maybe try cv2.imwrite
 #TODO: add option to save as video with h264/hevc on CPU/GPU  
@@ -57,13 +58,16 @@ class ImageSaverWorker(WorkerNode):
         pass
 
 class VideoSaverWorker(WorkerNode):
+    
+    SUPPORTED_CODECS = ['libx264', 'h264_nvenc', 'hevc', 'hevc_nvenc']
 
     def __init__(
             self, 
+            height: int,
+            width: int,
             filename: str, 
-            fps: int = 10,
-            resize: float = 0.25,
-            codec: str = 'h264',
+            fps: int = 30,
+            codec: str = 'libx264', 
             gpu: bool = False,
             *args, 
             **kwargs
@@ -73,30 +77,54 @@ class VideoSaverWorker(WorkerNode):
         
         self.filename = filename
         self.fps = fps
-        self.resize = resize
+        self.height = 2*(height//2) # some codecs require images with even size
+        self.width = 2*(width//2)
+        
+        if not codec in self.SUPPORTED_CODECS:
+           raise ValueError(f'wrong codec type, supported codecs are: {self.SUPPORTED_CODECS}') 
+    
         self.codec = codec
-        self.prev_time = 0
+        self.gpu = gpu
+        self.writer = None
 
     def initialize(self) -> None:
+
         super().initialize()
-        # TODO create video writer ?
+        
+        if self.gpu:
+            self.writer = FFMPEG_VideoWriter_GPU(
+                height = self.height, 
+                width = self.width, 
+                fps = self.fps, 
+                q = 23,
+                filename = self.filename,
+                codec = self.codec,
+                profile = 'baseline',
+                preset = 'p2'
+            )
+
+        else:
+            self.writer = FFMPEG_VideoWriter_CPU(
+                height = self.height, 
+                width = self.width, 
+                fps = self.fps, 
+                q = 23,
+                filename = self.filename,
+                codec = self.codec,
+                profile = 'baseline',
+                preset = 'veryfast'
+            )
+
+    def cleanup(self) -> None:
+
+        super().cleanup()
+        self.writer.close()
 
     def process_data(self, data: NDArray) -> None:
 
         if data is not None:
-
-            if time.monotonic() - self.prev_time > 1/self.fps:
-                
-                image_resized = cv2.resize(data['image'],None,None,self.resize,self.resize,cv2.INTER_NEAREST)
-                metadata = data[['index','timestamp']]
-                filename = os.path.join(self.folder, f"{data['index']:0{self.zero_padding}}")
-                
-                if self.compress:
-                    np.savez_compressed(filename, image=image_resized, metadata=metadata)
-                else:
-                    np.savez(filename, image=image_resized, metadata=metadata)
-
-                self.prev_time = time.monotonic()
+            image_resized = cv2.resize(data['image'], (self.width, self.height), interpolation = cv2.INTER_NEAREST)
+            self.writer.write_frame(image_resized)
 
     def process_metadata(self, metadata) -> Any:
         pass
