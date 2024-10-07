@@ -50,6 +50,7 @@ class QueueMonitorWidget(QWidget):
 
         super().__init__(*args, **kwargs)
         self.layout = QVBoxLayout(self)
+        self.setWindowTitle('Queue Monitor')
 
     def add_progress_bar(self, queue_widget: QueueWidget):
         self.layout.addWidget(queue_widget)
