@@ -419,7 +419,7 @@ class TrackerWidget(QWidget):
 
         self.n_tail_points = LabeledSpinBox()
         self.n_tail_points.setText('#tail points')
-        self.n_tail_points.setRange(2,100)
+        self.n_tail_points.setRange(3,100)
         self.n_tail_points.setSingleStep(1)
         self.n_tail_points.setValue(6)
         self.n_tail_points.valueChanged.connect(self.on_change)
