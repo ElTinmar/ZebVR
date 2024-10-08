@@ -45,8 +45,8 @@ class TrackingDisplay(WorkerNode):
             # restrict update freq to save resources
             if time.monotonic() - self.prev_time > 1/self.fps:
 
-                if data['tracking']['animals']['identities'] is None:
-                    return
+                #if data['tracking']['animals']['identities'] is None:
+                #    return
             
                 button_pressed = self.window.get_state()
                 image_to_display = None
