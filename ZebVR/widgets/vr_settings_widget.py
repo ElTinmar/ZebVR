@@ -152,6 +152,7 @@ class VRSettingsWidget(QWidget):
         closedloop_layout.addWidget(self.n_tracker_workers)
         closedloop_layout.addWidget(self.n_tail_pts_interp)
         closedloop_layout.addWidget(self.display_fps)
+        closedloop_layout.addWidget(self.tracking_settings)
         self.closedloop_group.setLayout(closedloop_layout)
 
         main_layout = QVBoxLayout(self)
