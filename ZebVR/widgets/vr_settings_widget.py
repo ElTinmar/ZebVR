@@ -16,7 +16,7 @@ import numpy as np
 import os
 import json
 
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEditButton
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEditButton, FileOpenLabeledEditButton
 
 class VRSettingsWidget(QWidget):
 
@@ -103,7 +103,7 @@ class VRSettingsWidget(QWidget):
         self.n_tail_pts_interp.setValue(40)
         self.n_tail_pts_interp.valueChanged.connect(self.state_changed)
 
-        self.tracking_settings = FileSaveLabeledEditButton()
+        self.tracking_settings = FileOpenLabeledEditButton()
         self.tracking_settings.setLabel('tracker settings file:')
         self.tracking_settings.setDefault(self.DEFAULT_TRACKING_FILE)
         self.tracking_settings.textChanged.connect(self.state_changed)
