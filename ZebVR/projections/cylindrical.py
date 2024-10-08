@@ -2,7 +2,6 @@ import sympy
 import numpy as np
 
 # declare symbols ------------------------------------
-
 x_o, y_o, z_o = sympy.symbols('x_o y_o z_o')
 x_f, y_f, z_f = sympy.symbols('x_f y_f z_f')
 x_s, y_s, z_s = sympy.symbols('x_s y_s z_s')
@@ -113,12 +112,7 @@ solutions = sympy.solve(
     dict=True
 )
 
-# TODO: additional constraints: 
-# F has to be inside the cylinder
-# F and O cannot be in the same location 
-
 def solution_1(x_f, y_f, z_f, x_o, y_o, z_o, d0, d1, d2, d3, r):
-
   x_sp0 = -r
   x_sp2 = r
   y_sp1 = r
@@ -187,3 +181,9 @@ def valid_solution(x_f, y_f, z_f, x_o, y_o, z_o, d0, d1, d2, d3, r):
   ) 
 
 valid_solution(10, -10, 0, -20, 10, 0, 100, 100 , 100, 100, 30)
+
+# TODO check quadrant for (x_s, y_s) and only display on correct screens? 
+# Projector 0: x_s < 0
+# Projector 1: y_s > 0
+# Projector 2: x_s > 0
+# Projector 3: y_s < 0
