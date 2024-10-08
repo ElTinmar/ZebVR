@@ -73,3 +73,9 @@ if error 57 device already open, or if program is slower than usual
 ```
 sudo killall python
 ```
+
+error 11 unable to open XIMEA cameras: add user to the plugdev group
+
+```
+sudo usermod -a -G plugdev <user>
+```
