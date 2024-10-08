@@ -5,20 +5,21 @@ from typing import Dict, Optional
 from PyQt5.QtWidgets import QApplication
 from ZebVR.widgets import TrackerWidget
 from pathlib import Path
+from typing import Union
 
 class TrackerGui(WorkerNode):
 
     def __init__(
             self,
             n_tracker_workers: int,
-            settings_file: Path = Path('tracking.json'),
+            settings_file: Union[Path, str] = Path('tracking.json'),
             *args,
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
         self.n_tracker_workers = n_tracker_workers 
-        self.settings_file = settings_file
+        self.settings_file = Path(settings_file)
 
     def initialize(self) -> None:
         super().initialize()
