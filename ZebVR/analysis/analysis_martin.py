@@ -176,10 +176,10 @@ def significance_bridge(ax,x,y,p_value,fontsize,prct_offset=0.05):
     Mx = np.nanmax(x) + 1.5 * offset
     My = np.nanmax(y) + 1.5 * offset
     Mxy = np.nanmax((Mx,My)) + offset
-    plt.plot([0, 0, 1, 1], [Mx, Mxy, Mxy, My], color='#555555', lw=1.5)
+    ax.plot([0, 0, 1, 1], [Mx, Mxy, Mxy, My], color='#555555', lw=1.5)
 
     significance = asterisk(p_value)
-    plt.text(
+    ax.text(
         0.5, Mxy + offset, 
         f'{significance}', 
         horizontalalignment='center', 
@@ -189,6 +189,7 @@ def significance_bridge(ax,x,y,p_value,fontsize,prct_offset=0.05):
     ax.set_ylim(bottom, Mxy + 3*offset)
 
 def ranksum_plot(
+        ax,
         x, 
         y, 
         cat_names: Iterable, 
@@ -204,14 +205,14 @@ def ranksum_plot(
     df = pd.DataFrame({cat_names[0]: x, cat_names[1]: y})
     df_melted = df.melt(var_name='cat', value_name='val')
 
-    fig = plt.figure()
-    fig.suptitle(title)
+    ax.set_title(title)
 
-    ax = sns.stripplot(
+    sns.stripplot(ax = ax,
         data=df_melted, x='cat', y='val', hue='cat',
         alpha=.5, legend=False, palette=sns.color_palette(col)
     )
     sns.pointplot(
+        ax = ax,
         data=df_melted, x='cat', y="val", hue='cat',
         linestyle="none", errorbar=None,
         marker="_", markersize=20, markeredgewidth=3,
@@ -223,10 +224,6 @@ def ranksum_plot(
     ax.set_box_aspect(1)
 
     significance_bridge(ax,x,y,p_value,fontsize)
-
-    fig.tight_layout()
-
-    plt.show(block=False)
 
 def parse_filename(filename: str, loc: str = 'de_DE.utf8') -> Tuple:
 
@@ -442,10 +439,13 @@ def plot_helper(
         end_idx: int = -1
     ):
 
+    fig, axs = plt.subplots(2, 4, figsize=(30,15))
+
+    count = 0
+
     for dpf, data_dpf in data.groupby('dpf'):
             
-        fig = plt.figure()
-        fig.suptitle(f'{dpf} dpf')
+        axs[0, count].set_title(f'{dpf} dpf')
 
         summary = {}
         for i, k in enumerate(keys):
@@ -453,13 +453,13 @@ def plot_helper(
             average_val = data_dpf[data_dpf[cat] == k].pivot(columns='fish_id',values=val).mean(axis=1,skipna=False)
             std_val = data_dpf[data_dpf[cat] == k].pivot(columns='fish_id',values=val).std(axis=1,skipna=False)
             average_time = data_dpf[data_dpf[cat] == k].pivot(columns='fish_id',values='time').mean(axis=1,skipna=False)
-            plt.plot(
+            axs[0, count].plot(
                 average_val if vertical_time_axis else average_time, 
                 average_time if vertical_time_axis else average_val, 
                 color=col[i],
                 linewidth = 2
             )
-            plt_fun =  plt.fill_betweenx if vertical_time_axis else plt.fill_between
+            plt_fun = axs[0, count].fill_betweenx if vertical_time_axis else axs[0, count].fill_between
             plt_fun(
                 average_time,
                 average_val - std_val,
@@ -472,7 +472,7 @@ def plot_helper(
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
             for cat_value, data_cat in data_fish.groupby(cat):
                 if cat_value in keys:
-                    plt.plot(
+                    axs[0, count].plot(
                         data_cat[val] if vertical_time_axis else  data_cat['time'], 
                         data_cat['time'] if vertical_time_axis else data_cat[val], 
                         color=col[0] if cat_value==keys[0] else col[1] if cat_value==keys[1] else 'k',
@@ -481,17 +481,15 @@ def plot_helper(
                         alpha=0.15
                     )
                     if vertical_time_axis:
-                        plt.xlabel(xlabel) 
-                        plt.ylabel('time (s)')
+                        axs[0, count].set_xlabel(xlabel) 
+                        axs[0, count].set_ylabel('time (s)')
                     else:
-                        plt.xlabel('time (s)') 
-                        plt.ylabel(xlabel)
+                        axs[0, count].set_xlabel('time (s)') 
+                        axs[0, count].set_ylabel(xlabel)
                     summary[cat_value].append(data_cat[val].iloc[end_idx])
 
-        plt.savefig(f'{prefix}_{dpf}dpf_trajectories.svg')
-        plt.savefig(f'{prefix}_{dpf}dpf_trajectories.png')
-        
         ranksum_plot(
+            axs[1, count],
             x = summary[keys[0]], 
             y = summary[keys[1]],
             cat_names=key_names,
@@ -499,9 +497,13 @@ def plot_helper(
             title=f'{dpf} dpf',
             col=col
         )
-        plt.gca()
-        plt.savefig(f'{prefix}_{dpf}dpf_ranksum.svg')
-        plt.savefig(f'{prefix}_{dpf}dpf_ranksum.png')
+
+        count += 1
+    
+    fig.tight_layout()
+    plt.show(block=False)
+    plt.savefig(f'{prefix}.svg')
+    plt.savefig(f'{prefix}.png')
 
 def plot_dark_vs_bright(data):
 
