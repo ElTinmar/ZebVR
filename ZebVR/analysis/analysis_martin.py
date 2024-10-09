@@ -61,8 +61,9 @@ ARENA_DIAMETER_MM = 50
 ARENA_DIAMETER_PX = PIX_PER_MM * ARENA_DIAMETER_MM
 DATA_FOLDER = 'output/data'
 DATA_FOLDER = '/media/martin/DATA/Cichlids'
+RESULT_FOLDER = 'output/results'
 
-# # experiment computer has locale set to german -_-
+## experiment computer has locale set to german -_-
 import locale
 import contextlib
 @contextlib.contextmanager
@@ -437,6 +438,7 @@ def plot_helper(
         col: Iterable, 
         xlabel:str, 
         vertical_time_axis: bool,
+        prefix: str,
         end_idx: int = -1
     ):
 
@@ -486,8 +488,9 @@ def plot_helper(
                         plt.ylabel(xlabel)
                     summary[cat_value].append(data_cat[val].iloc[end_idx])
 
-        plt.show(block=False)
-
+        plt.savefig(f'{prefix}_{dpf}dpf_trajectories.svg')
+        plt.savefig(f'{prefix}_{dpf}dpf_trajectories.png')
+        
         ranksum_plot(
             x = summary[keys[0]], 
             y = summary[keys[1]],
@@ -496,6 +499,9 @@ def plot_helper(
             title=f'{dpf} dpf',
             col=col
         )
+        plt.gca()
+        plt.savefig(f'{prefix}_{dpf}dpf_ranksum.svg')
+        plt.savefig(f'{prefix}_{dpf}dpf_ranksum.png')
 
 def plot_dark_vs_bright(data):
 
@@ -507,7 +513,8 @@ def plot_dark_vs_bright(data):
         keys = (StimType.BRIGHT, StimType.DARK),
         key_names = ('bright', 'dark'),
         col=COLORS,
-        vertical_time_axis=False
+        vertical_time_axis=False,
+        prefix=os.path.join(RESULT_FOLDER, 'dark_vs_bright')
     )
         
 def plot_omr_left_vs_right(data):
@@ -520,7 +527,8 @@ def plot_omr_left_vs_right(data):
         keys = (90,-90),
         key_names = ('rightwards', 'leftwards'),
         col=COLORS,
-        vertical_time_axis=True
+        vertical_time_axis=True,
+        prefix=os.path.join(RESULT_FOLDER, 'omr_left_vs_right')
     )
 
 def plot_omr_back_vs_front(data):
@@ -533,7 +541,8 @@ def plot_omr_back_vs_front(data):
         keys = (0,180),
         key_names = ('backwards', 'forwards'),
         col=COLORS,
-        vertical_time_axis=False
+        vertical_time_axis=False,
+        prefix=os.path.join(RESULT_FOLDER, 'omr_backwards_vs_forwards')
     )
 
 def plot_okr_turns(data):
@@ -546,7 +555,8 @@ def plot_okr_turns(data):
         keys = (36,-36),
         key_names = ('counterclockwise', 'clockwise'),
         col=COLORS,
-        vertical_time_axis=True
+        vertical_time_axis=True,
+        prefix=os.path.join(RESULT_FOLDER, 'okr_turns')
     )
 
 
@@ -560,7 +570,8 @@ def plot_phototaxis(data):
         keys = (-1,1),
         key_names = ('dark-left', 'dark-right'),
         col=COLORS,
-        vertical_time_axis=True
+        vertical_time_axis=True,
+        prefix=os.path.join(RESULT_FOLDER, 'phototaxis')
     )
 
 def plot_heading_angle(data):
@@ -725,8 +736,8 @@ plot_dark_vs_bright(bright_vs_dark)
 plot_phototaxis(phototaxis)
 plot_omr_left_vs_right(omr)
 plot_omr_back_vs_front(omr)
-plot_okr_eyes(okr)
 plot_okr_turns(okr) # TODO: compare the slope of the average (almost linear) to the angular speed of the stimulus (linear regression on the average time series)
 plot_loomings(looming) # TODO: make a kind of rasterplot ?
+plot_okr_eyes(okr)
 
 
