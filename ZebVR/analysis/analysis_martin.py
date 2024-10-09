@@ -41,6 +41,11 @@ matplotlib.rcParams['font.size'] = 12
 # only for phototaxis though, the ohers are 
 # fine)
 
+## NOTE --------------------
+# Top projection / Bottom recording: 
+#   + angles = fish turns to its left 
+#   - angles = fish turns to its right
+
 class StimType(IntEnum):
     DARK = 0
     BRIGHT = 1
@@ -709,7 +714,7 @@ omr.to_csv('omr.csv')
 okr.to_csv('okr.csv')
 looming.to_csv('looming.csv')
 
-## 
+## load
 phototaxis = pd.read_csv('phototaxis.csv')
 bright_vs_dark = pd.read_csv('bright_vs_dark.csv')
 omr = pd.read_csv('omr.csv')
