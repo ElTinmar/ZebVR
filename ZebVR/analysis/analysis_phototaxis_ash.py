@@ -7,7 +7,7 @@ import numpy as np
 
 ## Visualization of the results --------------------------------------------------------------------
 
-FILENAME = 'darkleft_Thu_04_Jul_2024_18h00min54sec.csv'
+FILENAME = '/media/martin/DATA/Cichlids/08_10dpf_Mi_28_Aug_2024_10h18min41sec.csv'
 
 data = pd.read_csv(FILENAME)
 data_filtered = data.groupby('image_index').first()
@@ -51,7 +51,7 @@ plt.show()
 ## angle
 # positive angles: fish turning right
 # negative angles: fish turning left
-angle = np.arctan2(data_filtered['pc2_y'],data_filtered['pc2_x'])
+angle = np.arctan2(data_filtered['pc1_y'],data_filtered['pc1_x'])
 angle_unwrapped = np.unwrap(angle) 
 plt.plot(time,angle_unwrapped)
 plt.show()
