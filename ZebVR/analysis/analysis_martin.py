@@ -55,6 +55,7 @@ ARENA_CENTER = (1049,1049)
 ARENA_DIAMETER_MM = 50
 ARENA_DIAMETER_PX = PIX_PER_MM * ARENA_DIAMETER_MM
 DATA_FOLDER = 'output/data'
+DATA_FOLDER = '/media/martin/DATA/Cichlids'
 
 # # experiment computer has locale set to german -_-
 import locale
@@ -498,7 +499,7 @@ def plot_dark_vs_bright(data):
         cat='light_condition', 
         val='cum_distance', 
         xlabel='cum. distance (mm)',
-        keys = (StimType.BRIGHT,StimType.DARK),
+        keys = (StimType.BRIGHT, StimType.DARK),
         key_names = ('bright', 'dark'),
         col=COLORS,
         vertical_time_axis=False
@@ -512,7 +513,7 @@ def plot_omr_left_vs_right(data):
         val='angle_unwrapped', 
         xlabel='cum. angle (rad)',
         keys = (90,-90),
-        key_names = ('leftwards', 'rightwards'),
+        key_names = ('rightwards', 'leftwards'),
         col=COLORS,
         vertical_time_axis=True
     )
@@ -702,7 +703,6 @@ for file in DATAFILES:
 
 
 ## save 
-
 phototaxis.to_csv('phototaxis.csv')
 bright_vs_dark.to_csv('bright_vs_dark.csv')
 omr.to_csv('omr.csv')
