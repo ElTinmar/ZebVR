@@ -1,12 +1,12 @@
 from typing import Dict
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QFileDialog
-from qt_widgets import LabeledDoubleSpinBox, LabeledSliderDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
+from PyQt5.QtCore import pyqtSignal, QRunnable
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
 from numpy.typing import NDArray
-from PyQt5.QtCore import pyqtSignal
 import numpy as np
 import cv2
-from image_tools import im2gray
 import os
+from camera_tools import Camera
 
 class CameraWidget(QWidget):
 
@@ -189,6 +189,29 @@ class CameraWidget(QWidget):
             print('Wrong state provided to camera widget')
             raise
 
+class CameraAcquisition(QRunnable):
+
+    def __init__(self, camera: Camera, widget: CameraWidget, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.camera = camera
+        self.widget = widget
+        self.keepgoing = True
+        
+    def stop(self):
+        self.keepgoing = False
+    
+    def run(self):
+        self.camera.start_acquisition()
+        while self.keepgoing:
+            try:
+                frame = self.camera.get_frame()
+                if frame['image'] is not None:
+                    self.widget.set_image(frame['image'])
+            except:
+                pass
+        self.camera.stop_acquisition()
+        
+
 if __name__ == "__main__":
 
     from PyQt5.QtWidgets import QApplication, QMainWindow
@@ -200,28 +223,6 @@ if __name__ == "__main__":
         XIMEA_ENABLED = True
     except ImportError:
         XIMEA_ENABLED = False
-
-    class CameraAcquisition(QRunnable):
-
-        def __init__(self, camera: Camera, widget: CameraWidget, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.camera = camera
-            self.widget = widget
-            self.keepgoing = True
-            
-        def stop(self):
-            self.keepgoing = False
-        
-        def run(self):
-            self.camera.start_acquisition()
-            while self.keepgoing:
-                try:
-                    frame = self.camera.get_frame()
-                    if frame['image'] is not None:
-                        self.widget.set_image(im2gray(frame['image']))
-                except:
-                    pass
-            self.camera.stop_acquisition()
 
     class Window(QMainWindow):
         def __init__(self,*args,**kwargs):

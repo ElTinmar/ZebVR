@@ -17,7 +17,7 @@ from PyQt5.QtWidgets import (
     QFileDialog
 )
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import  QRunnable, QThreadPool
+from PyQt5.QtCore import QThreadPool
 
 from multiprocessing_logger import Logger
 from dagline import ProcessingDAG, receive_strategy, send_strategy
@@ -76,7 +76,7 @@ from ZebVR.workers import (
     QueueMonitor
 )
 from ZebVR.widgets import (
-    CameraWidget, 
+    CameraWidget, CameraAcquisition,
     ProjectorWidget, 
     RegistrationWidget,
     CalibrationWidget,
@@ -88,28 +88,6 @@ from ZebVR.widgets import (
 from ZebVR.stimulus import VisualStimWorker, GeneralStim
 
 PROFILE = False
-
-class CameraAcquisition(QRunnable):
-
-    def __init__(self, camera: Camera, widget: CameraWidget, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.camera = camera
-        self.widget = widget
-        self.keepgoing = True
-        
-    def stop(self):
-        self.keepgoing = False
-    
-    def run(self):
-        self.camera.start_acquisition()
-        while self.keepgoing:
-            try:
-                frame = self.camera.get_frame()
-                if frame['image'] is not None:
-                    self.widget.set_image(frame['image'])
-            except:
-                pass
-        self.camera.stop_acquisition()
         
 class MainGui(QMainWindow):
     
