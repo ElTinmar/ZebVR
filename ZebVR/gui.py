@@ -428,19 +428,21 @@ class MainGui(QMainWindow):
 
         self.dag = ProcessingDAG()
 
-        # self.dag.connect_data(
-        #     sender = self.camera_worker, 
-        #     receiver = self.image_saver_worker, 
-        #     queue = self.queue_save_image, 
-        #     name = 'image_saver'
-        # )
+        if self.settings['output']['video_method'] == 'image sequence':
+            self.dag.connect_data(
+                sender = self.camera_worker, 
+                receiver = self.image_saver_worker, 
+                queue = self.queue_save_image, 
+                name = 'image_saver'
+            )
         
-        self.dag.connect_data(
-            sender = self.camera_worker, 
-            receiver = self.video_recorder_worker, 
-            queue = self.queue_save_image, 
-            name = 'image_saver'
-        )
+        else:
+            self.dag.connect_data(
+                sender = self.camera_worker, 
+                receiver = self.video_recorder_worker, 
+                queue = self.queue_save_image, 
+                name = 'image_saver'
+            )
 
         self.dag.connect_data(
             sender = self.video_recorder_worker, 
@@ -509,12 +511,22 @@ class MainGui(QMainWindow):
         # NOTE: the order in which you declare connections matter: background_subtraction will
         # be served before image_saver
         if self.settings['output']['video_recording']:
-            self.dag.connect_data(
-                sender = self.camera_worker, 
-                receiver = self.image_saver_worker, 
-                queue = self.queue_save_image, 
-                name = 'image_saver'
-            )
+
+            if self.settings['output']['video_method'] == 'image sequence':
+                self.dag.connect_data(
+                    sender = self.camera_worker, 
+                    receiver = self.image_saver_worker, 
+                    queue = self.queue_save_image, 
+                    name = 'image_saver'
+                )
+            
+            else:
+                self.dag.connect_data(
+                    sender = self.camera_worker, 
+                    receiver = self.video_recorder_worker, 
+                    queue = self.queue_save_image, 
+                    name = 'image_saver'
+                )
 
         for i in range(self.settings['vr_settings']['n_background_workers']):
             for j in range(self.settings['vr_settings']['n_tracker_workers']):
