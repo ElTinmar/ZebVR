@@ -106,6 +106,23 @@ class OutputWidget(QWidget):
         self.codec_combobox.addItem('hevc')
         self.codec_combobox.currentIndexChanged.connect(self.state_changed)        
 
+        self.video_preset = LabeledComboBox()
+        self.video_preset.setText('video preset:')
+        self.video_preset.addItem('p1')
+        self.video_preset.addItem('p2')
+        self.video_preset.addItem('p3')
+        self.video_preset.addItem('p4')
+        self.video_preset.addItem('p5')
+        self.video_preset.addItem('p6')
+        self.video_preset.addItem('p7')
+        self.video_preset.currentIndexChanged.connect(self.state_changed)        
+
+        self.video_quality = LabeledSpinBox()
+        self.video_quality.setText('Video quality (crf):')
+        self.video_quality.setRange(0, 51)
+        self.video_quality.setValue(23)
+        self.video_quality.valueChanged.connect(self.state_changed)
+
         # stack
         self.video_stack = QStackedWidget(self)
         self.video_stack.addWidget(self.image_series)
@@ -140,6 +157,8 @@ class OutputWidget(QWidget):
         single_video_layout.addWidget(self.video_file)
         single_video_layout.addWidget(self.use_gpu)
         single_video_layout.addWidget(self.codec_combobox)
+        single_video_layout.addWidget(self.video_preset)
+        single_video_layout.addWidget(self.video_quality)
         single_video_layout.addStretch()
 
         video_layout = QVBoxLayout()
@@ -208,6 +227,8 @@ class OutputWidget(QWidget):
         state['video_filename'] = self.video_file.text()
         state['video_codec'] = self.codec_combobox.currentText()
         state['video_gpu'] = self.use_gpu.isChecked()
+        state['video_preset'] = self.video_preset.currentText()
+        state['video_quality'] = self.video_quality.value()
         state['worker_logfile'] = self.worker_logfile.text()
         state['queue_logfile'] = self.queue_logfile.text()
         return state
@@ -225,6 +246,8 @@ class OutputWidget(QWidget):
             self.video_file.setText(state['video_filename'])
             self.codec_combobox.setCurrentText(state['video_codec'])
             self.use_gpu.setChecked(state['video_gpu'])
+            self.video_preset.setCurrentText(state['video_preset'])
+            self.video_quality.setValue(state['video_quality'])
             self.worker_logfile.setText(state['worker_logfile'])
             self.queue_logfile.setText(state['queue_logfile'])
 

@@ -66,7 +66,10 @@ class VideoSaverWorker(WorkerNode):
             filename: str, 
             decimation: int = 1,
             fps: int = 30,
+            quality: int = 23,
             codec: str = 'libx264', 
+            profile: str = 'main',
+            preset: str = 'p2',
             gpu: bool = False,
             *args, 
             **kwargs
@@ -79,6 +82,9 @@ class VideoSaverWorker(WorkerNode):
         self.height = 2*(height//2) # some codecs require images with even size
         self.width = 2*(width//2)
         self.decimation = decimation
+        self.profile = profile
+        self.preset = preset
+        self.quality = quality
         
         if gpu and (not codec in self.SUPPORTED_CODECS_GPU):
             raise ValueError(f'wrong codec type for GPU encoding, supported codecs are: {self.SUPPORTED_CODECS_GPU}') 
@@ -99,11 +105,11 @@ class VideoSaverWorker(WorkerNode):
                 height = self.height, 
                 width = self.width, 
                 fps = self.fps, 
-                q = 23,
+                q = self.quality,
                 filename = self.filename,
                 codec = self.codec,
-                profile = 'baseline',
-                preset = 'p2'
+                profile = self.profile,
+                preset = self.preset
             )
 
         else:
@@ -111,11 +117,11 @@ class VideoSaverWorker(WorkerNode):
                 height = self.height, 
                 width = self.width, 
                 fps = self.fps, 
-                q = 23,
+                q = self.quality,
                 filename = self.filename,
                 codec = self.codec,
-                profile = 'baseline',
-                preset = 'veryfast'
+                profile = self.profile,
+                preset = self.preset
             )
 
     def cleanup(self) -> None:
