@@ -60,7 +60,7 @@ ARENA_CENTER = (1049,1049)
 ARENA_DIAMETER_MM = 50
 ARENA_DIAMETER_PX = PIX_PER_MM * ARENA_DIAMETER_MM
 DATA_FOLDER = 'output/data'
-DATA_FOLDER = '/media/martin/DATA/Cichlids'
+#DATA_FOLDER = '/media/martin/DATA/Cichlids'
 RESULT_FOLDER = 'output/results'
 
 ## experiment computer has locale set to german -_-
@@ -450,9 +450,17 @@ def plot_helper(
         summary = {}
         for i, k in enumerate(keys):
             summary[k] = []
-            average_val = data_dpf[data_dpf[cat] == k].pivot(columns='fish_id',values=val).mean(axis=1,skipna=False)
-            std_val = data_dpf[data_dpf[cat] == k].pivot(columns='fish_id',values=val).std(axis=1,skipna=False)
-            average_time = data_dpf[data_dpf[cat] == k].pivot(columns='fish_id',values='time').mean(axis=1,skipna=False)
+
+            df = data_dpf[data_dpf[cat] == k]
+            df.loc[:, 'time'] = pd.to_datetime(df['time'], unit='s')
+            df = df.set_index('time')
+            df = df.sort_index()
+            df = df.pivot(columns='fish_id', values=val)
+            df = df.resample('1s').mean()
+            average_val = df.mean(axis=1)
+            std_val = df.std(axis=1)
+            average_time = df.index.astype('int64')/1e9
+
             axs[0, count].plot(
                 average_val if vertical_time_axis else average_time, 
                 average_time if vertical_time_axis else average_val, 
