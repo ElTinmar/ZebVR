@@ -56,8 +56,8 @@ class ImageSaverWorker(WorkerNode):
 
 class VideoSaverWorker(WorkerNode):
     
-    SUPPORTED_CODECS_CPU = ['libx264', 'hevc']
-    SUPPORTED_CODECS_GPU = ['h264_nvenc', 'hevc_nvenc']
+    SUPPORTED_video_codecS_CPU = ['h264', 'hevc']
+    SUPPORTED_video_codecS_GPU = ['h264_nvenc', 'hevc_nvenc']
 
     def __init__(
             self, 
@@ -66,10 +66,10 @@ class VideoSaverWorker(WorkerNode):
             filename: str, 
             decimation: int = 1,
             fps: int = 30,
-            quality: int = 23,
-            codec: str = 'libx264', 
-            profile: str = 'main',
-            preset: str = 'p2',
+            video_quality: int = 23,
+            video_codec: str = 'h264', 
+            video_profile: str = 'main',
+            video_preset: str = 'p2',
             gpu: bool = False,
             *args, 
             **kwargs
@@ -79,20 +79,20 @@ class VideoSaverWorker(WorkerNode):
         
         self.filename = filename
         self.fps = fps
-        self.height = 2*(height//2) # some codecs require images with even size
+        self.height = 2*(height//2) # some video_codecs require images with even size
         self.width = 2*(width//2)
         self.decimation = decimation
-        self.profile = profile
-        self.preset = preset
-        self.quality = quality
+        self.video_profile = video_profile
+        self.video_preset = video_preset
+        self.video_quality = video_quality
         
-        if gpu and (not codec in self.SUPPORTED_CODECS_GPU):
-            raise ValueError(f'wrong codec type for GPU encoding, supported codecs are: {self.SUPPORTED_CODECS_GPU}') 
+        if gpu and (not video_codec in self.SUPPORTED_video_codecS_GPU):
+            raise ValueError(f'wrong video_codec type for GPU encoding, supported video_codecs are: {self.SUPPORTED_video_codecS_GPU}') 
 
-        if (not gpu) and (not codec in self.SUPPORTED_CODECS_CPU):
-            raise ValueError(f'wrong codec type for CPU encoding, supported codecs are: {self.SUPPORTED_CODECS_CPU}')
+        if (not gpu) and (not video_codec in self.SUPPORTED_video_codecS_CPU):
+            raise ValueError(f'wrong video_codec type for CPU encoding, supported video_codecs are: {self.SUPPORTED_video_codecS_CPU}')
     
-        self.codec = codec
+        self.video_codec = video_codec
         self.gpu = gpu
         self.writer = None
 
@@ -105,11 +105,11 @@ class VideoSaverWorker(WorkerNode):
                 height = self.height, 
                 width = self.width, 
                 fps = self.fps, 
-                q = self.quality,
+                q = self.video_quality,
                 filename = self.filename,
-                codec = self.codec,
-                profile = self.profile,
-                preset = self.preset
+                codec = self.video_codec,
+                profile = self.video_profile,
+                preset = self.video_preset
             )
 
         else:
@@ -117,11 +117,11 @@ class VideoSaverWorker(WorkerNode):
                 height = self.height, 
                 width = self.width, 
                 fps = self.fps, 
-                q = self.quality,
+                q = self.video_quality,
                 filename = self.filename,
-                codec = self.codec,
-                profile = self.profile,
-                preset = self.preset
+                codec = self.video_codec,
+                profile = self.video_profile,
+                preset = self.video_preset
             )
 
     def cleanup(self) -> None:
