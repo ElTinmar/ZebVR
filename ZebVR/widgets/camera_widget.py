@@ -184,7 +184,6 @@ class CameraWidget(QWidget):
                 spinbox.setSingleStep(state[control + '_step'])
                 spinbox.setValue(state[control + '_value'])
                 spinbox.setEnabled(state[control + '_enabled'])
-
         except KeyError:
             print('Wrong state provided to camera widget')
             raise
