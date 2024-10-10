@@ -177,7 +177,7 @@ class MainGui(QMainWindow):
         # video recording ------------------------------------------
         self.image_saver_worker = ImageSaverWorker(
             folder = self.settings['output']['video_recording_dir'], 
-            fps = self.settings['output']['video_recording_fps'],
+            decimation = self.settings['output']['video_decimation'],
             compress = self.settings['output']['video_recording_compression'],
             resize = self.settings['output']['video_recording_resize'],
             name = 'image_saver',  
@@ -187,14 +187,14 @@ class MainGui(QMainWindow):
             profile = PROFILE
         )
 
-        # TODO add widgets to the GUI to set those values
         self.video_recorder_worker = VideoSaverWorker(
             height = self.settings['camera']['height_value'],
             width = self.settings['camera']['width_value'],
-            filename = 'output.avi',
-            fps = self.settings['output']['video_recording_fps'],
-            codec = 'libx264',
-            gpu = False,
+            filename = self.settings['output']['video_filename'],
+            decimation = self.settings['output']['video_decimation'],
+            fps = self.settings['camera']['framerate_value']/self.settings['output']['video_decimation'],
+            codec = self.settings['output']['video_codec'],
+            gpu = self.settings['output']['video_gpu'],
             name = 'video_recorder',
             logger = self.worker_logger, 
             logger_queues = self.queue_logger,

@@ -4,7 +4,6 @@ from numpy.typing import NDArray
 from typing import Any
 import cv2
 import os
-import time
 from video_tools import FFMPEG_VideoWriter_CPU, FFMPEG_VideoWriter_GPU 
 
 #TODO: check zarr, maybe try cv2.imwrite
@@ -14,7 +13,7 @@ class ImageSaverWorker(WorkerNode):
     def __init__(
             self, 
             folder: str, 
-            fps: int = 10,
+            decimation: int = 1,
             zero_padding: int = 8, 
             resize: float = 0.25,
             compress: bool = False, 
@@ -25,11 +24,10 @@ class ImageSaverWorker(WorkerNode):
         super().__init__(*args, **kwargs)
         
         self.folder = folder
-        self.fps = fps
+        self.decimation = decimation
         self.resize = resize
         self.zero_padding = zero_padding
         self.compress = compress
-        self.prev_time = 0
 
     def initialize(self) -> None:
         super().initialize()
@@ -40,7 +38,7 @@ class ImageSaverWorker(WorkerNode):
 
         if data is not None:
 
-            if time.monotonic() - self.prev_time > 1/self.fps:
+            if data['index'] % self.decimation == 0:
                 
                 image_resized = cv2.resize(data['image'],None,None,self.resize,self.resize,cv2.INTER_NEAREST)
                 metadata = data[['index','timestamp']]
@@ -50,8 +48,6 @@ class ImageSaverWorker(WorkerNode):
                     np.savez_compressed(filename, image=image_resized, metadata=metadata)
                 else:
                     np.savez(filename, image=image_resized, metadata=metadata)
-
-                self.prev_time = time.monotonic()
                 
                 return data
 
@@ -68,6 +64,7 @@ class VideoSaverWorker(WorkerNode):
             height: int, # final height of the recorded video: images will be rescaled to that size
             width: int, # final width of the recorded video: images will be rescaled to that size
             filename: str, 
+            decimation: int = 1,
             fps: int = 30,
             codec: str = 'libx264', 
             gpu: bool = False,
@@ -81,6 +78,7 @@ class VideoSaverWorker(WorkerNode):
         self.fps = fps
         self.height = 2*(height//2) # some codecs require images with even size
         self.width = 2*(width//2)
+        self.decimation = decimation
         
         if gpu and (not codec in self.SUPPORTED_CODECS_GPU):
             raise ValueError(f'wrong codec type for GPU encoding, supported codecs are: {self.SUPPORTED_CODECS_GPU}') 
@@ -128,9 +126,10 @@ class VideoSaverWorker(WorkerNode):
     def process_data(self, data: NDArray) -> None:
 
         if data is not None:
-            image_resized = cv2.resize(data['image'], (self.width, self.height), interpolation = cv2.INTER_NEAREST)
-            self.writer.write_frame(image_resized)
-            return data
+            if data['index'] % self.decimation == 0:
+                image_resized = cv2.resize(data['image'], (self.width, self.height), interpolation = cv2.INTER_NEAREST)
+                self.writer.write_frame(image_resized)
+                return data
 
     def process_metadata(self, metadata) -> Any:
         pass
