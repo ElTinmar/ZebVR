@@ -710,7 +710,8 @@ class MainGui(QMainWindow):
         state['framerate_enabled'] = framerate_enabled
         state['framerate_min'], state['framerate_max'] = self.camera.get_framerate_range() if framerate_enabled else (0,0)
         state['framerate_step'] = self.camera.get_framerate_increment() if framerate_enabled else 0
-        state['framerate_value'] = self.camera.get_framerate() if framerate_enabled else 0
+        state['framerate_value'] = self.camera.get_framerate() # bending the rule a little bit
+        #state['framerate_value'] = self.camera.get_framerate() if framerate_enabled else 0
 
         gain_enabled = self.camera.gain_available()
         state['gain_enabled'] = gain_enabled

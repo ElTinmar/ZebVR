@@ -180,10 +180,10 @@ class CameraWidget(QWidget):
             self.camera_choice.setCurrentText(state['camera_choice'])
             for control in self.controls:
                 spinbox = getattr(self, control + '_spinbox')
-                spinbox.setEnabled(state[control + '_enabled'])
                 spinbox.setRange(state[control + '_min'], state[control + '_max'])
                 spinbox.setSingleStep(state[control + '_step'])
                 spinbox.setValue(state[control + '_value'])
+                spinbox.setEnabled(state[control + '_enabled'])
 
         except KeyError:
             print('Wrong state provided to camera widget')
