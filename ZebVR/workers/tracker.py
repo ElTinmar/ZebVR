@@ -1,5 +1,5 @@
 from tracker import (
-    GridAssignment, 
+    GridAssignment, LinearSumAssignment,
     MultiFishTracker, 
     MultiFishTracker_CPU,
     MultiFishTrackerParamTracking,
@@ -118,9 +118,23 @@ class TrackerWorker(WorkerNode):
 
             if control is None:
                 return 
+            
+            if control['assignment'] == 'ROI':
+                assignment = GridAssignment(
+                    LUT=np.zeros((self.cam_height, self.cam_width), dtype=np.int_), # TODO fix that
+                    num_animals = control['animal_tracking']['num_animals']
+                )
+            elif control['assignment'] == 'Hungarian':
+                assignment = LinearSumAssignment(
+                    distance_threshold = 20, # TODO fix that
+                    num_animals = control['animal_tracking']['num_animals']
+                )
+            else:
+                return
+
 
             animal = AnimalTracker_CPU(
-                assignment=GridAssignment(LUT=np.zeros((self.cam_height, self.cam_width), dtype=np.int_)), 
+                assignment=assignment, 
                 tracking_param=AnimalTrackerParamTracking( 
                     source_image_shape = (self.cam_height,self.cam_width), 
                     **control['animal_tracking']

@@ -7,9 +7,11 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QPushButton
 )
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledComboBox
 import json
 from pathlib import Path
+
+# TODO add assignment widget
 
 class TrackerWidget(QWidget):
 
@@ -30,6 +32,12 @@ class TrackerWidget(QWidget):
             self.load_from_file(settings_file)
 
     def declare_components(self):
+
+        self.assignment_choice = LabeledComboBox()
+        self.assignment_choice.setText('Assignment:')
+        self.assignment_choice.addItem('ROI')
+        self.assignment_choice.addItem('Hungarian')
+        self.assignment_choice.currentIndexChanged.connect(self.on_change)      
 
         self.animal_num_animals = LabeledSpinBox()
         self.animal_num_animals.setText('#animals')
@@ -597,6 +605,7 @@ class TrackerWidget(QWidget):
         groups.addWidget(self.group_tail)
         
         final = QVBoxLayout(self)
+        final.addWidget(self.assignment_choice)
         final.addLayout(groups)
         final.addLayout(io_layout)
 
@@ -642,6 +651,9 @@ class TrackerWidget(QWidget):
 
     def get_state(self) -> Dict:
         state = {}
+            
+        state['assignment'] = self.assignment_choice.currentText()
+
         state['body'] = self.group_body.isChecked()
         state['eyes'] = self.group_eyes.isChecked()
         state['tail'] = self.group_tail.isChecked() 
@@ -721,6 +733,9 @@ class TrackerWidget(QWidget):
         return state
 
     def set_state(self, state:Dict) -> None:
+
+        self.assignment_choice.setCurrentText(state['assignment'])
+        
         self.group_body.setChecked(state['body'])
         self.group_eyes.setChecked(state['eyes'])
         self.group_tail.setChecked(state['tail'])  
