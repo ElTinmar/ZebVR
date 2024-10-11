@@ -132,7 +132,6 @@ class TrackerWorker(WorkerNode):
             else:
                 return
 
-
             animal = AnimalTracker_CPU(
                 assignment=assignment, 
                 tracking_param=AnimalTrackerParamTracking( 

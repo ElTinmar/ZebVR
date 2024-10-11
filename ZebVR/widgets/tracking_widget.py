@@ -38,6 +38,7 @@ class TrackerWidget(QWidget):
         self.assignment_choice.addItem('ROI')
         self.assignment_choice.addItem('Hungarian')
         self.assignment_choice.currentIndexChanged.connect(self.on_change)      
+        self.assignment_choice.setEnabled(False)
 
         self.animal_num_animals = LabeledSpinBox()
         self.animal_num_animals.setText('#animals')
@@ -735,7 +736,7 @@ class TrackerWidget(QWidget):
     def set_state(self, state:Dict) -> None:
 
         self.assignment_choice.setCurrentText(state['assignment'])
-        
+
         self.group_body.setChecked(state['body'])
         self.group_eyes.setChecked(state['eyes'])
         self.group_tail.setChecked(state['tail'])  
