@@ -10,6 +10,7 @@ from enum import IntEnum
 import seaborn as sns
 from scipy.stats import ranksums
 import os
+from pathlib import Path
 
 PIX_PER_MM = 38.773681409813456
 CAM_WIDTH = 2048
@@ -59,9 +60,10 @@ COLORS = ('#FF6900', '#002BFF')
 ARENA_CENTER = (1049,1049)
 ARENA_DIAMETER_MM = 50
 ARENA_DIAMETER_PX = PIX_PER_MM * ARENA_DIAMETER_MM
-DATA_FOLDER = 'output/data'
+BASE_FOLDER = Path('output')
+DATA_FOLDER = BASE_FOLDER / 'data'
 #DATA_FOLDER = '/media/martin/DATA/Cichlids'
-RESULT_FOLDER = 'output/results'
+RESULT_FOLDER = BASE_FOLDER / 'results'
 
 ## experiment computer has locale set to german -_-
 import locale
@@ -74,9 +76,39 @@ def setlocale(*args, **kw):
 
 
 ## Visualization of the results --------------------------------------------------------------------
+
+# Excluded because of potentially bad resgistration
+#'01_09dpf_Sa_31_Aug_2024_09h34min08sec.csv',
+#'02_09dpf_Sa_31_Aug_2024_11h06min41sec.csv',
+#'03_09dpf_Sa_31_Aug_2024_12h40min20sec.csv',
+#'04_09dpf_Sa_31_Aug_2024_14h14min07sec.csv',
+#'05_09dpf_Sa_31_Aug_2024_15h57min07sec.csv',
+#'06_09dpf_Sa_31_Aug_2024_17h28min16sec.csv',
+#'07_09dpf_Sa_31_Aug_2024_19h00min21sec.csv',
+#'01_10dpf_So_01_Sep_2024_09h18min10sec.csv',
+
+# exclude because of bad tracking
+# '08_07dpf_Di_17_Sep_2024_16h43min16sec.csv',
+# '08_09dpf_Di_27_Aug_2024_14h50min47sec.csv', 
+# '09_09dpf_Di_27_Aug_2024_16h03min14sec.csv',
+
+# exclude from phototaxis because I changed duration
+# other assays are still usable
+EXCLUDE_PHOTOTAXIS = [
+    '08_09dpf_Di_27_Aug_2024_14h50min47sec.csv', # 
+    '09_09dpf_Di_27_Aug_2024_16h03min14sec.csv', # exclude shorter trial
+    '10_09dpf_Di_27_Aug_2024_17h17min12sec.csv', # exclude shorter trial
+    '11_09dpf_Di_27_Aug_2024_18h47min44sec.csv', # exclude shorter trial
+    '12_09dpf_Di_27_Aug_2024_20h27min13sec.csv', # exclude shorter trial
+    '08_10dpf_Mi_28_Aug_2024_10h18min41sec.csv', # exclude shorter trial
+    '09_10dpf_Mi_28_Aug_2024_11h44min03sec.csv', # exclude shorter trial
+    '10_10dpf_Mi_28_Aug_2024_13h16min25sec.csv', # exclude shorter trial
+    '11_10dpf_Mi_28_Aug_2024_14h30min41sec.csv', # exclude shorter trial
+    '12_10dpf_Mi_28_Aug_2024_16h21min17sec.csv', # exclude shorter trial
+    '13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv', # exclude shorter trial
+]
+
 DATAFILES = [
-    '08_09dpf_Di_27_Aug_2024_14h50min47sec.csv', 
-    '09_09dpf_Di_27_Aug_2024_16h03min14sec.csv',
     '10_09dpf_Di_27_Aug_2024_17h17min12sec.csv',
     '11_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
     '12_09dpf_Di_27_Aug_2024_20h27min13sec.csv',
@@ -100,14 +132,6 @@ DATAFILES = [
     '05_08dpf_Fr_30_Aug_2024_15h47min53sec.csv',
     '06_08dpf_Fr_30_Aug_2024_17h17min41sec.csv',
     '07_08dpf_Fr_30_Aug_2024_18h48min39sec.csv',
-    #'01_09dpf_Sa_31_Aug_2024_09h34min08sec.csv',
-    #'02_09dpf_Sa_31_Aug_2024_11h06min41sec.csv',
-    #'03_09dpf_Sa_31_Aug_2024_12h40min20sec.csv',
-    #'04_09dpf_Sa_31_Aug_2024_14h14min07sec.csv',
-    #'05_09dpf_Sa_31_Aug_2024_15h57min07sec.csv',
-    #'06_09dpf_Sa_31_Aug_2024_17h28min16sec.csv',
-    #'07_09dpf_Sa_31_Aug_2024_19h00min21sec.csv',
-    #'01_10dpf_So_01_Sep_2024_09h18min10sec.csv',
     '02_10dpf_So_01_Sep_2024_11h51min15sec.csv',
     '03_10dpf_So_01_Sep_2024_14h42min31sec.csv',
     '04_10dpf_So_01_Sep_2024_16h12min08sec.csv',
@@ -118,7 +142,6 @@ DATAFILES = [
     '15_10dpf_Mo_09_Sep_2024_13h49min54sec.csv',
     '16_10dpf_Mo_09_Sep_2024_15h24min48sec.csv',
     '17_10dpf_Mo_09_Sep_2024_18h07min58sec.csv',
-    '08_07dpf_Di_17_Sep_2024_16h43min16sec.csv',
     '09_07dpf_Di_17_Sep_2024_18h15min51sec.csv',
     '10_07dpf_Di_17_Sep_2024_19h46min28sec.csv',
     '11_07dpf_Di_17_Sep_2024_21h16min13sec.csv',
@@ -630,7 +653,13 @@ def plot_okr_eyes(data):
         
 def plot_loomings(data):
 
+    DISTANCE_THRESHOLD = 0.20
+
     for dpf, data_dpf in data.groupby('dpf'):
+
+        fig_raster = plt.figure()
+        count = -1
+
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
 
             fig = plt.figure()
@@ -646,13 +675,31 @@ def plot_loomings(data):
                 where=data_fish['looming_on'],
                 alpha=0.2
             )
-            plt.show()
+            plt.xlabel('time (s)')
+            plt.ylabel('distance (mm)')
+            plt.show(block=False)
+            plt.savefig(RESULT_FOLDER / f'looming_distance_{dpf}dpf_fish{fish_id}.svg')
+            plt.savefig(RESULT_FOLDER / f'looming_distance_{dpf}dpf_fish{fish_id}.png')
+            plt.close(fig)
 
-            boundaries = get_boundaries(data_fish['looming_on'].to_list())
+            looming_boundaries = get_looming_boundaries(data_fish['looming_on'].to_list())
+            
+            # plot rasterplot of distances
+            plt.figure(fig_raster)
+            for looming_start, looming_stop in looming_boundaries:
+                count += 1
+                rel_time = data_fish['time'] - data_fish['time'].iloc[looming_start]
+                kept_time = (rel_time > -10) & (rel_time < 20)  
 
+                distance_ewm = data_fish[kept_time]['distance'].ewm(alpha=0.05).mean()
+                bouts = 1*(distance_ewm > DISTANCE_THRESHOLD)
+                start = np.where(bouts.diff()>0)[0]
+
+                plt.scatter(rel_time[kept_time].iloc[start], count*np.ones((len(start),1)), marker='.', c='black')
+ 
             fig = plt.figure()
             fig.suptitle(f'{dpf} dpf, fish ID: {fish_id}')
-            for start, stop in boundaries:
+            for start, stop in looming_boundaries:
                 trajectory = np.array([
                     [data_fish.iloc[start:stop]['centroid_x'] - data_fish.iloc[start]['centroid_x']],
                     [data_fish.iloc[start:stop]['centroid_y'] - data_fish.iloc[start]['centroid_y']]
@@ -669,22 +716,35 @@ def plot_loomings(data):
                 )
                 plt.scatter(looming_start_pos[0],looming_start_pos[1], s=20)
                 plt.axis('square')
+            plt.savefig(RESULT_FOLDER / f'looming_trajectories_{dpf}dpf_fish{fish_id}.svg')
+            plt.savefig(RESULT_FOLDER / f'looming_trajectories_{dpf}dpf_fish{fish_id}.png')
+            plt.close(fig)
 
-            plt.show()
+            plt.show(block=False)
 
+        plt.figure(fig_raster)
+        plt.title(f'{dpf} dpf')
+        plt.axvline(x = 0, color = 'r')
+        plt.axvline(x = 2.121, color = 'b')
+        plt.axvline(x = 10, color = 'r')
+        plt.show(block=False)
+        plt.xlabel('time to looming onset (s)')
+        plt.ylabel('trial')
+        plt.savefig(RESULT_FOLDER / f'looming_raster_{dpf}dpf.svg')
+        plt.savefig(RESULT_FOLDER / f'looming_raster_{dpf}dpf.png')
 
-def get_boundaries(bool_vec: Iterable):
+def get_looming_boundaries(bool_vec: Iterable):
     in_region = False
-    boundaries = []
+    looming_boundaries = []
     for i in range(len(bool_vec)):
         if bool_vec[i] and not in_region:
             start = i
             in_region = True
         elif not bool_vec[i] and in_region:
             end = i
-            boundaries.append((start, end))
+            looming_boundaries.append((start, end))
             in_region = False
-    return boundaries
+    return looming_boundaries
 
 phototaxis = pd.DataFrame()
 omr = pd.DataFrame()
@@ -707,10 +767,11 @@ for file in DATAFILES:
         analyse_dark_vs_bright(data_filtered, fish_id, dpf)
     ))
 
-    phototaxis = pd.concat((
-        phototaxis, 
-        analyse_phototaxis(data_filtered, fish_id, dpf)
-    ))
+    if file not in EXCLUDE_PHOTOTAXIS:
+        phototaxis = pd.concat((
+            phototaxis, 
+            analyse_phototaxis(data_filtered, fish_id, dpf)
+        ))
 
     omr = pd.concat((
         omr, 
@@ -729,18 +790,18 @@ for file in DATAFILES:
 
 
 ## save 
-phototaxis.to_csv('phototaxis.csv')
-bright_vs_dark.to_csv('bright_vs_dark.csv')
-omr.to_csv('omr.csv')
-okr.to_csv('okr.csv')
-looming.to_csv('looming.csv')
+phototaxis.to_csv(BASE_FOLDER / 'phototaxis.csv')
+bright_vs_dark.to_csv(BASE_FOLDER / 'bright_vs_dark.csv')
+omr.to_csv(BASE_FOLDER / 'omr.csv')
+okr.to_csv(BASE_FOLDER / 'okr.csv')
+looming.to_csv(BASE_FOLDER / 'looming.csv')
 
 ## load
-phototaxis = pd.read_csv('phototaxis.csv')
-bright_vs_dark = pd.read_csv('bright_vs_dark.csv')
-omr = pd.read_csv('omr.csv')
-okr = pd.read_csv('okr.csv')
-looming = pd.read_csv('looming.csv')
+phototaxis = pd.read_csv(BASE_FOLDER / 'phototaxis.csv')
+bright_vs_dark = pd.read_csv(BASE_FOLDER / 'bright_vs_dark.csv')
+omr = pd.read_csv(BASE_FOLDER / 'omr.csv')
+okr = pd.read_csv(BASE_FOLDER / 'okr.csv')
+looming = pd.read_csv(BASE_FOLDER / 'looming.csv')
 
 plot_dark_vs_bright(bright_vs_dark)
 plot_phototaxis(phototaxis)
