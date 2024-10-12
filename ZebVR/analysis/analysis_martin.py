@@ -636,21 +636,24 @@ def plot_okr_eyes(data):
 
     for dpf, data_dpf in data.groupby('dpf'):
         for fish_id, data_fish in data_dpf.groupby('fish_id'):
-            fig, ax = plt.subplots(2)
+            fig, ax = plt.subplots(2,  figsize=(15, 5))
             for okr_angle, data_okr in data_fish.groupby('okr_angle'):
                 ax_id = 0 if okr_angle == 36 else 1
                 ax[ax_id].plot(
                     data_okr['time'], 
-                    data_okr['left_eye_angle'], 
+                    data_okr['left_eye_angle'].ewm(alpha=0.5).mean(), 
                     color=COLORS[0]
                 )
                 ax[ax_id].plot(
                     data_okr['time'], 
-                    data_okr['right_eye_angle'], 
+                    data_okr['right_eye_angle'].ewm(alpha=0.5).mean(), 
                     color=COLORS[1]
                 )
-        plt.show(block=False)
-        
+            plt.show(block=False)
+            plt.savefig(RESULT_FOLDER / f'okr_eyes_{dpf}dpf_fish{fish_id}.svg')
+            plt.savefig(RESULT_FOLDER / f'okr_eyes_{dpf}dpf_fish{fish_id}.png')
+            plt.close(fig)
+     
 def plot_loomings(data):
 
     DISTANCE_THRESHOLD = 0.20
@@ -797,11 +800,11 @@ okr.to_csv(BASE_FOLDER / 'okr.csv')
 looming.to_csv(BASE_FOLDER / 'looming.csv')
 
 ## load
-phototaxis = pd.read_csv(BASE_FOLDER / 'phototaxis.csv')
-bright_vs_dark = pd.read_csv(BASE_FOLDER / 'bright_vs_dark.csv')
-omr = pd.read_csv(BASE_FOLDER / 'omr.csv')
-okr = pd.read_csv(BASE_FOLDER / 'okr.csv')
-looming = pd.read_csv(BASE_FOLDER / 'looming.csv')
+# phototaxis = pd.read_csv(BASE_FOLDER / 'phototaxis.csv')
+# bright_vs_dark = pd.read_csv(BASE_FOLDER / 'bright_vs_dark.csv')
+# omr = pd.read_csv(BASE_FOLDER / 'omr.csv')
+# okr = pd.read_csv(BASE_FOLDER / 'okr.csv')
+# looming = pd.read_csv(BASE_FOLDER / 'looming.csv')
 
 plot_dark_vs_bright(bright_vs_dark)
 plot_phototaxis(phototaxis)
