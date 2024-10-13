@@ -147,18 +147,7 @@ DATAFILES = [
     '11_07dpf_Di_17_Sep_2024_21h16min13sec.csv',
     '08_08dpf_Mi_18_Sep_2024_10h07min56sec.csv',
     '09_08dpf_Mi_18_Sep_2024_11h43min18sec.csv',
-    '10_08dpf_Mi_18_Sep_2024_13h13min31sec.csv',
-    '11_08dpf_Mi_18_Sep_2024_14h42min48sec.csv',
-    '12_08dpf_Mi_18_Sep_2024_16h14min00sec.csv',
-    '13_08dpf_Mi_18_Sep_2024_17h44min33sec.csv',
-    '14_08dpf_Mi_18_Sep_2024_19h13min51sec.csv',
-    '00_09dpf_Do_19_Sep_2024_10h05min11sec.csv',
-    '01_09dpf_Do_19_Sep_2024_11h38min50sec.csv',
-    '02_09dpf_Do_19_Sep_2024_13h07min20sec.csv',
-    '03_09dpf_Do_19_Sep_2024_14h36min33sec.csv',
-    '04_09dpf_Do_19_Sep_2024_16h08min06sec.csv',
-    '05_09dpf_Do_19_Sep_2024_17h37min36sec.csv',
-    '06_09dpf_Do_19_Sep_2024_19h06min10sec.csv',
+    '10_08dpf_Mi_18_Sep_2024_13h13min31sec.csv',('#FF6900', '#002BFF')
     '07_09dpf_Do_19_Sep_2024_20h36min09sec.csv',
     '18_10dpf_Fr_20_Sep_2024_10h39min51sec.csv',
     '19_10dpf_Fr_20_Sep_2024_12h14min45sec.csv',
@@ -232,13 +221,14 @@ def ranksum_plot(
 
     sns.stripplot(ax = ax,
         data=df_melted, x='cat', y='val', hue='cat',
-        alpha=.5, legend=False, palette=sns.color_palette(col)
+        alpha=.5, legend=False, palette=sns.color_palette(col),
+        s=7.5
     )
     sns.pointplot(
         ax = ax,
         data=df_melted, x='cat', y="val", hue='cat',
         linestyle="none", errorbar=None,
-        marker="_", markersize=20, markeredgewidth=3,
+        marker="_", markersize=30, markeredgewidth=3,
         palette=sns.color_palette(col)
     )
     ax.set_xlim(-0.5, 1.5)
@@ -462,7 +452,7 @@ def plot_helper(
         end_idx: int = -1
     ):
 
-    fig, axs = plt.subplots(2, 4, figsize=(30,15))
+    fig, axs = plt.subplots(2, 4, figsize=(15,7.5))
 
     count = 0
 
@@ -641,14 +631,17 @@ def plot_okr_eyes(data):
                 ax_id = 0 if okr_angle == 36 else 1
                 ax[ax_id].plot(
                     data_okr['time'], 
-                    data_okr['left_eye_angle'].ewm(alpha=0.5).mean(), 
-                    color=COLORS[0]
+                    data_okr['left_eye_angle'], #data_okr['left_eye_angle'].ewm(alpha=0.5).mean(), 
+                    color='#158966'
                 )
                 ax[ax_id].plot(
                     data_okr['time'], 
-                    data_okr['right_eye_angle'].ewm(alpha=0.5).mean(), 
-                    color=COLORS[1]
+                    data_okr['right_eye_angle'], 
+                    color='#741aaf'
                 )
+                ax[ax_id].set_xlabel('time (s)')
+                ax[ax_id].set_ylabel('eye angle (rad)')
+                ax[ax_id].legend(('left eye','right eye'))
             plt.show(block=False)
             plt.savefig(RESULT_FOLDER / f'okr_eyes_{dpf}dpf_fish{fish_id}.svg')
             plt.savefig(RESULT_FOLDER / f'okr_eyes_{dpf}dpf_fish{fish_id}.png')
@@ -800,11 +793,11 @@ okr.to_csv(BASE_FOLDER / 'okr.csv')
 looming.to_csv(BASE_FOLDER / 'looming.csv')
 
 ## load
-# phototaxis = pd.read_csv(BASE_FOLDER / 'phototaxis.csv')
-# bright_vs_dark = pd.read_csv(BASE_FOLDER / 'bright_vs_dark.csv')
-# omr = pd.read_csv(BASE_FOLDER / 'omr.csv')
-# okr = pd.read_csv(BASE_FOLDER / 'okr.csv')
-# looming = pd.read_csv(BASE_FOLDER / 'looming.csv')
+phototaxis = pd.read_csv(BASE_FOLDER / 'phototaxis.csv')
+bright_vs_dark = pd.read_csv(BASE_FOLDER / 'bright_vs_dark.csv')
+omr = pd.read_csv(BASE_FOLDER / 'omr.csv')
+okr = pd.read_csv(BASE_FOLDER / 'okr.csv')
+looming = pd.read_csv(BASE_FOLDER / 'looming.csv')
 
 plot_dark_vs_bright(bright_vs_dark)
 plot_phototaxis(phototaxis)
