@@ -11,6 +11,7 @@ dependencies:
 - pip
 - snakeviz
 - conda-build
+- cupy
 - pip:
   - git+https://github.com/ElTinmar/tracker.git@structured_array_output
   - git+https://github.com/ElTinmar/Lightcrafter.git@main  
