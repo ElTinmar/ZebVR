@@ -32,7 +32,6 @@ class CameraWidget(QWidget):
         self.updated = False
         self.declare_components()
         self.layout_components()
-        self.camera_changed()
         self.setWindowTitle('Camera controls')
 
     def declare_components(self):
@@ -117,7 +116,6 @@ class CameraWidget(QWidget):
 
         self.state_changed.emit()
 
-
     def layout_components(self):
 
         layout_buttons = QHBoxLayout()
@@ -191,9 +189,10 @@ class CameraWidget(QWidget):
 
 class CameraAcquisition(QRunnable):
 
-    def __init__(self, camera: Camera, widget: CameraWidget, *args, **kwargs):
+    def __init__(self, camera_constructor: Camera, widget: CameraWidget, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.camera = camera
+        self.camera_constructor = camera_constructor
+        self.camera = None
         self.widget = widget
         self.keepgoing = True
         
@@ -201,6 +200,7 @@ class CameraAcquisition(QRunnable):
         self.keepgoing = False
     
     def run(self):
+        self.camera = self.camera_constructor()
         self.camera.start_acquisition()
         while self.keepgoing:
             try:

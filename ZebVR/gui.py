@@ -95,7 +95,6 @@ class MainGui(QMainWindow):
 
         super().__init__(*args, **kwargs)
 
-        self.camera = None
         self.camera_constructor = None
         self.thread_pool = QThreadPool()
         self.acq = None
@@ -591,6 +590,7 @@ class MainGui(QMainWindow):
         self.camera_widget.state_changed.connect(self.update_camera_settings)
         self.camera_widget.camera_source.connect(self.update_camera_source)
         self.camera_widget.preview.connect(self.camera_preview)
+        self.camera_widget.camera_changed()
 
         self.projector_widget = ProjectorWidget()
         self.projector_widget.state_changed.connect(self.update_projector_settings)
@@ -712,7 +712,7 @@ class MainGui(QMainWindow):
         elif cam_source=='XIMEA' and XIMEA_ENABLED:
             self.camera_constructor = partial(XimeaCamera, dev_id=cam_ind)
 
-        self.camera = self.camera_constructor()
+        camera = self.camera_constructor()
 
         # read camera properties and set widget state accordingly
         state = {}
@@ -721,48 +721,48 @@ class MainGui(QMainWindow):
         state['camera_index'] = cam_ind
         state['movie_file'] = filename
 
-        framerate_enabled = self.camera.framerate_available()
+        framerate_enabled = camera.framerate_available()
         state['framerate_enabled'] = framerate_enabled
-        state['framerate_min'], state['framerate_max'] = self.camera.get_framerate_range() if framerate_enabled else (0,10_000)
-        state['framerate_step'] = self.camera.get_framerate_increment() if framerate_enabled else 0
-        state['framerate_value'] = self.camera.get_framerate() # bending the rule a little bit
-        #state['framerate_value'] = self.camera.get_framerate() if framerate_enabled else 0
+        state['framerate_min'], state['framerate_max'] = camera.get_framerate_range() if framerate_enabled else (0,10_000)
+        state['framerate_step'] = camera.get_framerate_increment() if framerate_enabled else 0
+        state['framerate_value'] = camera.get_framerate() # bending the rule a little bit
+        #state['framerate_value'] = camera.get_framerate() if framerate_enabled else 0
 
-        gain_enabled = self.camera.gain_available()
+        gain_enabled = camera.gain_available()
         state['gain_enabled'] = gain_enabled
-        state['gain_min'], state['gain_max'] = self.camera.get_gain_range() if gain_enabled else (0,0)
-        state['gain_step'] = self.camera.get_gain_increment() if gain_enabled else 0
-        state['gain_value'] = self.camera.get_gain() if gain_enabled else 0
+        state['gain_min'], state['gain_max'] = camera.get_gain_range() if gain_enabled else (0,0)
+        state['gain_step'] = camera.get_gain_increment() if gain_enabled else 0
+        state['gain_value'] = camera.get_gain() if gain_enabled else 0
 
-        exposure_enabled = self.camera.exposure_available()
+        exposure_enabled = camera.exposure_available()
         state['exposure_enabled'] = exposure_enabled
-        state['exposure_min'], state['exposure_max'] = self.camera.get_exposure_range() if exposure_enabled else (0,0)
-        state['exposure_step'] = self.camera.get_exposure_increment() if exposure_enabled else 0
-        state['exposure_value'] = self.camera.get_exposure() if exposure_enabled else 0
+        state['exposure_min'], state['exposure_max'] = camera.get_exposure_range() if exposure_enabled else (0,0)
+        state['exposure_step'] = camera.get_exposure_increment() if exposure_enabled else 0
+        state['exposure_value'] = camera.get_exposure() if exposure_enabled else 0
 
-        offsetX_enabled = self.camera.offsetX_available()
+        offsetX_enabled = camera.offsetX_available()
         state['offsetX_enabled'] = offsetX_enabled
-        state['offsetX_min'], state['offsetX_max'] = self.camera.get_offsetX_range() if offsetX_enabled else (0,0)
-        state['offsetX_step'] = self.camera.get_offsetX_increment() if offsetX_enabled else 0
-        state['offsetX_value'] = self.camera.get_offsetX() if offsetX_enabled else 0
+        state['offsetX_min'], state['offsetX_max'] = camera.get_offsetX_range() if offsetX_enabled else (0,0)
+        state['offsetX_step'] = camera.get_offsetX_increment() if offsetX_enabled else 0
+        state['offsetX_value'] = camera.get_offsetX() if offsetX_enabled else 0
 
-        offsetY_enabled = self.camera.offsetY_available()
+        offsetY_enabled = camera.offsetY_available()
         state['offsetY_enabled'] = offsetY_enabled
-        state['offsetY_min'], state['offsetY_max'] = self.camera.get_offsetY_range() if offsetY_enabled else (0,0)
-        state['offsetY_step'] = self.camera.get_offsetY_increment() if offsetY_enabled else 0
-        state['offsetY_value'] = self.camera.get_offsetY() if offsetY_enabled else 0
+        state['offsetY_min'], state['offsetY_max'] = camera.get_offsetY_range() if offsetY_enabled else (0,0)
+        state['offsetY_step'] = camera.get_offsetY_increment() if offsetY_enabled else 0
+        state['offsetY_value'] = camera.get_offsetY() if offsetY_enabled else 0
 
-        height_enabled = self.camera.height_available()
+        height_enabled = camera.height_available()
         state['height_enabled'] = height_enabled
-        state['height_min'], state['height_max'] = self.camera.get_height_range() if height_enabled else (0,0)
-        state['height_step'] = self.camera.get_height_increment() if height_enabled else 0
-        state['height_value'] = self.camera.get_height() if height_enabled else 0
+        state['height_min'], state['height_max'] = camera.get_height_range() if height_enabled else (0,0)
+        state['height_step'] = camera.get_height_increment() if height_enabled else 0
+        state['height_value'] = camera.get_height() if height_enabled else 0
 
-        width_enabled = self.camera.width_available()
+        width_enabled = camera.width_available()
         state['width_enabled'] = width_enabled
-        state['width_min'], state['width_max'] = self.camera.get_width_range() if width_enabled else (0,0)
-        state['width_step'] = self.camera.get_width_increment() if width_enabled else 0
-        state['width_value'] = self.camera.get_width() if width_enabled else 0
+        state['width_min'], state['width_max'] = camera.get_width_range() if width_enabled else (0,0)
+        state['width_step'] = camera.get_width_increment() if width_enabled else 0
+        state['width_value'] = camera.get_width() if width_enabled else 0
         
         self.camera_widget.set_state(state)
 
@@ -770,7 +770,7 @@ class MainGui(QMainWindow):
         if enable:
             if not self.camera_preview_started:
                 self.camera_preview_started = True
-                self.acq = CameraAcquisition(self.camera, self.camera_widget)
+                self.acq = CameraAcquisition(self.camera_constructor, self.camera_widget)
                 self.thread_pool.start(self.acq)
         else:
             if self.camera_preview_started:
