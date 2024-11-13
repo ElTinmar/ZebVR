@@ -32,6 +32,7 @@ class CameraWidget(QWidget):
         self.updated = False
         self.declare_components()
         self.layout_components()
+        self.camera_changed()
         self.setWindowTitle('Camera controls')
 
     def declare_components(self):
