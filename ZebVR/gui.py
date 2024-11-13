@@ -468,6 +468,24 @@ class MainGui(QMainWindow):
                 name = 'stimulus'
             )
 
+        if self.settings['output']['video_recording']:
+
+            if self.settings['output']['video_method'] == 'image sequence':
+                self.dag.connect_data(
+                    sender = self.camera_worker, 
+                    receiver = self.image_saver_worker, 
+                    queue = self.queue_save_image, 
+                    name = 'image_saver'
+                )
+            
+            else:
+                self.dag.connect_data(
+                    sender = self.camera_worker, 
+                    receiver = self.video_recorder_worker, 
+                    queue = self.queue_save_image, 
+                    name = 'image_saver'
+                )
+
         if self.record_flag:
 
             protocol = self.sequencer_widget.get_protocol()
