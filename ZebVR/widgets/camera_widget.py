@@ -192,7 +192,6 @@ class CameraAcquisition(QRunnable):
     def __init__(self, camera_constructor: Camera, widget: CameraWidget, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.camera_constructor = camera_constructor
-        self.camera = None
         self.widget = widget
         self.keepgoing = True
         
@@ -200,16 +199,16 @@ class CameraAcquisition(QRunnable):
         self.keepgoing = False
     
     def run(self):
-        self.camera = self.camera_constructor()
-        self.camera.start_acquisition()
+        camera = self.camera_constructor()
+        camera.start_acquisition()
         while self.keepgoing:
             try:
-                frame = self.camera.get_frame()
+                frame = camera.get_frame()
                 if frame['image'] is not None:
                     self.widget.set_image(frame['image'])
             except:
                 pass
-        self.camera.stop_acquisition()
+        camera.stop_acquisition()
         
 
 if __name__ == "__main__":
