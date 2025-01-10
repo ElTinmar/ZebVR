@@ -57,7 +57,7 @@ class CameraWorker(WorkerNode):
 
             img = im2gray(frame['image'])
             img_res = np.array(
-                (frame['index'], time.perf_counter_ns(), img),
+                (frame['index'], time.perf_counter_ns(), img), # not using the timestamp from the camera
                 dtype=np.dtype([
                     ('index', int),
                     ('timestamp', np.float64),
