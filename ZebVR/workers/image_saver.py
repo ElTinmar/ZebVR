@@ -6,7 +6,8 @@ import cv2
 import os
 from video_tools import FFMPEG_VideoWriter_CPU, FFMPEG_VideoWriter_GPU 
 
-#TODO: check zarr, maybe try cv2.imwrite
+# TODO: check zarr, maybe try cv2.imwrite
+# TODO add mjpeg with mp4. Maybe add a box to choose container between AVI/MP4, and make mjpeg+mp4 default?
 
 class ImageSaverWorker(WorkerNode):
 
