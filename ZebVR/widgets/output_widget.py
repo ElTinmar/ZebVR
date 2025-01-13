@@ -15,7 +15,6 @@ import os
 
 from qt_widgets import LabeledSpinBox, LabeledDoubleSpinBox, LabeledEditLine, LabeledComboBox, FileSaveLabeledEditButton
 
-
 class OutputWidget(QWidget):
 
     state_changed = pyqtSignal()
