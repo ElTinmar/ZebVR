@@ -57,8 +57,8 @@ class ImageSaverWorker(WorkerNode):
 
 class VideoSaverWorker(WorkerNode):
     
-    SUPPORTED_video_codecS_CPU = ['h264', 'hevc']
-    SUPPORTED_video_codecS_GPU = ['h264_nvenc', 'hevc_nvenc']
+    SUPPORTED_VIDEO_CODECS_CPU = ['h264', 'hevc', 'mjpeg']
+    SUPPORTED_VIDEO_CODECS_GPU = ['h264_nvenc', 'hevc_nvenc']
 
     def __init__(
             self, 
@@ -87,11 +87,11 @@ class VideoSaverWorker(WorkerNode):
         self.video_preset = video_preset
         self.video_quality = video_quality
         
-        if gpu and (not video_codec in self.SUPPORTED_video_codecS_GPU):
-            raise ValueError(f'wrong video_codec type for GPU encoding, supported video_codecs are: {self.SUPPORTED_video_codecS_GPU}') 
+        if gpu and (not video_codec in self.SUPPORTED_VIDEO_CODECS_GPU):
+            raise ValueError(f'wrong video_codec type for GPU encoding, supported video_codecs are: {self.SUPPORTED_VIDEO_CODECS_GPU}') 
 
-        if (not gpu) and (not video_codec in self.SUPPORTED_video_codecS_CPU):
-            raise ValueError(f'wrong video_codec type for CPU encoding, supported video_codecs are: {self.SUPPORTED_video_codecS_CPU}')
+        if (not gpu) and (not video_codec in self.SUPPORTED_VIDEO_CODECS_CPU):
+            raise ValueError(f'wrong video_codec type for CPU encoding, supported video_codecs are: {self.SUPPORTED_VIDEO_CODECS_CPU}')
     
         self.video_codec = video_codec
         self.gpu = gpu
