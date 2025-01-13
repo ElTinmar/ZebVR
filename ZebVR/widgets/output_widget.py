@@ -15,6 +15,7 @@ import os
 
 from qt_widgets import LabeledSpinBox, LabeledDoubleSpinBox, LabeledEditLine, LabeledComboBox, FileSaveLabeledEditButton
 
+
 class OutputWidget(QWidget):
 
     state_changed = pyqtSignal()
@@ -105,7 +106,7 @@ class OutputWidget(QWidget):
         self.codec_combobox.addItem('h264')
         self.codec_combobox.addItem('mjpeg')
         self.codec_combobox.addItem('hevc')
-        self.codec_combobox.currentIndexChanged.connect(self.state_changed)        
+        self.codec_combobox.currentIndexChanged.connect(self.codec_changed)        
 
         self.video_preset = LabeledComboBox()
         self.video_preset.setText('video preset:')
@@ -188,6 +189,35 @@ class OutputWidget(QWidget):
         main_layout.addSpacing(20) 
         main_layout.addWidget(self.log_group)
         main_layout.addStretch()
+
+    def codec_changed(self):
+        
+        if self.codec_combobox.currentText() == 'h264':
+            self.video_quality.setRange(-12, 51)
+            self.video_quality.setValue(23)
+            self.video_preset.setEnabled(True)
+        
+        elif self.codec_combobox.currentText() == 'hevc':
+            self.video_quality.setRange(0, 51)
+            self.video_quality.setValue(28)
+            self.video_preset.setEnabled(True)
+        
+        elif self.codec_combobox.currentText() == 'mjpeg':
+            self.video_quality.setRange(2, 31)
+            self.video_quality.setValue(2)
+            self.video_preset.setEnabled(False)
+
+        elif self.codec_combobox.currentText() == 'h264_nvenc':
+            self.video_quality.setRange(0, 51)
+            self.video_quality.setValue(0)
+            self.video_preset.setEnabled(True)
+
+        elif self.codec_combobox.currentText() == 'hevc_nvenc':
+            self.video_quality.setRange(0, 51)
+            self.video_quality.setValue(0)
+            self.video_preset.setEnabled(True)
+
+        self.state_changed.emit()
 
     def gpu_toggled(self):
 
