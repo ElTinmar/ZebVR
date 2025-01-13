@@ -19,7 +19,7 @@ class OutputWidget(QWidget):
 
     state_changed = pyqtSignal()
     CSV_FOLDER: str = 'output/data'
-    DEFAULT_VIDEOFILE: str = 'default.avi'
+    DEFAULT_VIDEOFILE: str = 'default.mp4'
 
     def __init__(self, *args, **kwargs):
 
@@ -103,7 +103,8 @@ class OutputWidget(QWidget):
         self.codec_combobox = LabeledComboBox()
         self.codec_combobox.setText('video codec:')
         self.codec_combobox.addItem('h264')
-        #self.codec_combobox.addItem('hevc')
+        self.codec_combobox.addItem('mjpeg')
+        self.codec_combobox.addItem('hevc')
         self.codec_combobox.currentIndexChanged.connect(self.state_changed)        
 
         self.video_preset = LabeledComboBox()
@@ -193,7 +194,7 @@ class OutputWidget(QWidget):
         if self.use_gpu.isChecked():
             self.codec_combobox.clear()
             self.codec_combobox.addItem('h264_nvenc')
-            #self.codec_combobox.addItem('hevc_nvenc')
+            self.codec_combobox.addItem('hevc_nvenc')
 
             self.video_preset.clear()
             self.video_preset.addItem('p1')
@@ -207,7 +208,8 @@ class OutputWidget(QWidget):
         else:
             self.codec_combobox.clear()
             self.codec_combobox.addItem('h264')
-            #self.codec_combobox.addItem('hevc')
+            self.codec_combobox.addItem('mjpeg')
+            self.codec_combobox.addItem('hevc')
 
             self.video_preset.clear()
             self.video_preset.addItem('ultrafast')
