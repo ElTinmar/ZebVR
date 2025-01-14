@@ -4,9 +4,15 @@ from typing import Any, Callable
 import numpy as np
 import cv2
 
-def resize_to_closest_multiple_of_two(image: NDArray) -> NDArray:
+def rgb_to_yuv420p(image_rgb: NDArray) -> NDArray:
+    return cv2.cvtColor(image_rgb, cv2.COLOR_RGB2YUV_I420)
+
+def gray_to_yuv420p(image_gray: NDArray) -> NDArray:
+    image_rgb = np.dstack((image_gray, image_gray, image_gray))
+    return rgb_to_yuv420p(image_rgb)
+
+def resize_to_closest_multiple_of_two(image: NDArray, height: int, width: int) -> NDArray:
     # some video_codecs require images with even size
-    height, width = image.shape
     new_height = 2*(height//2) 
     new_width = 2*(width//2)
     image_resized = cv2.resize(
