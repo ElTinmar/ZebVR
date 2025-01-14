@@ -73,7 +73,9 @@ from ZebVR.workers import (
     TrackingDisplay,
     Display,
     Protocol,
-    QueueMonitor
+    QueueMonitor,
+    ImageFilterWorker, 
+    rgb_to_yuv420p
 )
 from ZebVR.widgets import (
     CameraWidget, CameraAcquisition,
@@ -183,14 +185,25 @@ class MainGui(QMainWindow):
             profile = PROFILE
         )
 
+        self.yuv420p_converter = ImageFilterWorker(
+            image_function=rgb_to_yuv420p,
+            name = 'yuv420p_converter',
+            logger = self.worker_logger, 
+            logger_queues = self.queue_logger,
+            receive_data_timeout = 1.0,
+            profile = PROFILE 
+        )
+
         self.queue_monitor_worker = QueueMonitor(
             queues = {
                 self.queue_cam: 'camera to background',
-                self.queue_save_image: 'video recording',
                 self.queue_display_image: 'display',
                 self.queue_background: 'background to trackers',
                 self.queue_tracking: 'tracking to stim',
-                self.queue_overlay: 'tracking to overlay'
+                self.queue_overlay: 'tracking to overlay',
+                self.queue_save_image: 'video recording',
+                self.queue_camera_to_converter: 'conversion yuv420p',
+                self.queue_converter_to_saver: 'yuv420p recording',
             },
             name = 'queue_monitor',
             logger = self.worker_logger, 
@@ -374,6 +387,24 @@ class MainGui(QMainWindow):
             )
         )
 
+        self.queue_camera_to_converter = MonitoredQueue(
+            ModifiableRingBuffer(
+                num_bytes = 500*1024**2,
+                logger = self.queue_logger,
+                name = 'camera_to_converter',
+                t_refresh = 1e-6 * self.settings['vr_settings']['queue_refresh_time_microsec']
+            )
+        )
+
+        self.queue_converter_to_saver = MonitoredQueue(
+            ModifiableRingBuffer(
+                num_bytes = 500*1024**2,
+                logger = self.queue_logger,
+                name = 'converter_to_saver',
+                t_refresh = 1e-6 * self.settings['vr_settings']['queue_refresh_time_microsec']
+            )
+        )
+
         self.queue_save_image = MonitoredQueue(
             ModifiableRingBuffer(
                 num_bytes = 500*1024**2,
@@ -437,6 +468,7 @@ class MainGui(QMainWindow):
             )
         
         else:
+            # TODO check if video source is rgb or grayscale 
             self.dag.connect_data(
                 sender = self.camera_worker, 
                 receiver = self.video_recorder_worker, 

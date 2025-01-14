@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QLabel
 )
-
+from PyQt5.QtGui import QImage
 from qt_widgets import NDarray_to_QPixmap
 
 class TrackerType(IntEnum):
@@ -70,13 +70,13 @@ class DisplayWidget(QWidget):
         layout.addLayout(layout_image)
         layout.addLayout(layout_status)
 
-    def set_state(self, index, timestamp, image) -> None:
+    def set_state(self, index, timestamp, image_rgb) -> None:
 
         # TODO make that an argument or controlled by a widget?    
-        width = int(image.shape[1] * self.display_height/image.shape[0])
-        image_resized = cv2.resize(image, (width, self.display_height), interpolation=cv2.INTER_NEAREST)
+        width = int(image_rgb.shape[1] * self.display_height/image_rgb.shape[0])
+        image_resized = cv2.resize(image_rgb, (width, self.display_height), interpolation=cv2.INTER_NEAREST)
 
-        pixmap = NDarray_to_QPixmap(image_resized)
+        pixmap = NDarray_to_QPixmap(image_resized, format = QImage.Format_RGB888)
         self.lbl_image.setPixmap(pixmap)
         self.lbl_index.setText(f'{index}')
         self.lbl_timestamp.setText(f'{timestamp:.03f}')

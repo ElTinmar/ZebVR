@@ -43,7 +43,7 @@ class Display(WorkerNode):
                 self.window.set_state(
                     index = data['index'],
                     timestamp = round((data['timestamp'] - self.first_timestamp)*1e-9,3),
-                    image = data['image']
+                    image_rgb = data['image']
                 )
 
                 self.prev_time = time.monotonic()

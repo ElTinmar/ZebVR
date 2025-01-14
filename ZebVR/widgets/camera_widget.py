@@ -1,6 +1,7 @@
 from typing import Dict
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QFileDialog
 from PyQt5.QtCore import pyqtSignal, QRunnable
+from PyQt5.QtGui import QImage
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
 from numpy.typing import NDArray
 import numpy as np
@@ -93,12 +94,13 @@ class CameraWidget(QWidget):
     def stop(self):
         self.preview.emit(False)
 
-    def set_image(self, image: NDArray):
+    def set_image(self, image_rgb: NDArray):
         # TODO maybe check that image is uint8
-        h, w = image.shape[:2]
+        h, w = image_rgb.shape[:2]
         preview_width = int(w * self.PREVIEW_HEIGHT/h)
-        image_resized = cv2.resize(image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
-        self.image.setPixmap(NDarray_to_QPixmap(image_resized))
+        image_resized = cv2.resize(image_rgb,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
+        pixmap = NDarray_to_QPixmap(image_resized, format = QImage.Format_RGB888)
+        self.image.setPixmap(pixmap)
 
     def camera_changed(self):
         name = self.camera_choice.currentText()

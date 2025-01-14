@@ -10,7 +10,7 @@ class CameraWorker(WorkerNode):
 
     def __init__(
             self, 
-            camera_constructor: Callable[[Camera], None], 
+            camera_constructor: Callable[[], Camera], 
             exposure: float,
             gain: float,
             framerate: float,
@@ -55,7 +55,7 @@ class CameraWorker(WorkerNode):
         
         if frame:
 
-            img = im2gray(frame['image'])
+            img = frame['image']
             img_res = np.array(
                 (frame['index'], time.perf_counter_ns(), img), # not using the timestamp from the camera
                 dtype=np.dtype([
