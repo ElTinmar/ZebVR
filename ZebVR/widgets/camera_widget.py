@@ -9,6 +9,8 @@ import cv2
 import os
 from camera_tools import Camera
 
+#TODO add num_channel to GUI and state
+
 class CameraWidget(QWidget):
 
     state_changed = pyqtSignal()
