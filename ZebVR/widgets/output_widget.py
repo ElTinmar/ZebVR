@@ -63,8 +63,8 @@ class OutputWidget(QWidget):
 
         self.video_combobox = LabeledComboBox()
         self.video_combobox.setText('recording format')
-        self.video_combobox.addItem('image sequence')
         self.video_combobox.addItem('video file')
+        self.video_combobox.addItem('image sequence')
         self.video_combobox.currentIndexChanged.connect(self.video_output_changed)
 
         # image series
@@ -96,11 +96,11 @@ class OutputWidget(QWidget):
         self.video_file.setDefault(self.DEFAULT_VIDEOFILE)
         self.video_file.textChanged.connect(self.state_changed)
 
-        self.use_gpu = QCheckBox('Use gpu:')
+        self.use_gpu = QCheckBox('GPU')
         self.use_gpu.setChecked(False)
         self.use_gpu.stateChanged.connect(self.gpu_toggled)
 
-        self.grayscale = QCheckBox('Grayscale:')
+        self.grayscale = QCheckBox('Grayscale')
         self.grayscale.setChecked(False)
         self.grayscale.stateChanged.connect(self.grayscale_toggled)
 
@@ -132,8 +132,8 @@ class OutputWidget(QWidget):
 
         # stack
         self.video_stack = QStackedWidget(self)
-        self.video_stack.addWidget(self.image_series)
         self.video_stack.addWidget(self.single_video)
+        self.video_stack.addWidget(self.image_series)
 
         ## logs ------------------------------------------------------
         self.log_group = QGroupBox('Logs')
@@ -226,6 +226,9 @@ class OutputWidget(QWidget):
     def gpu_toggled(self):
 
         if self.use_gpu.isChecked():
+
+            self.grayscale.setChecked(False)
+
             self.codec_combobox.clear()
             self.codec_combobox.addItem('h264_nvenc')
             self.codec_combobox.addItem('hevc_nvenc')
