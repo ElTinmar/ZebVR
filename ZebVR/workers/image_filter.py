@@ -2,6 +2,19 @@ from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Any, Callable
 import numpy as np
+import cv2
+
+def resize_to_closest_power_of_two(image: NDArray) -> NDArray:
+    # some video_codecs require images with even size
+    height, width = image.shape
+    new_height = 2*(height//2) 
+    new_width = 2*(width//2)
+    image_resized = cv2.resize(
+        image, 
+        (new_width, new_height), 
+        interpolation = cv2.INTER_NEAREST
+    )
+    return image_resized
 
 class ImageFilterWorker(WorkerNode):
 
