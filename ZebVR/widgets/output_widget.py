@@ -163,6 +163,7 @@ class OutputWidget(QWidget):
         single_video_layout = QVBoxLayout(self.single_video)
         single_video_layout.addWidget(self.video_file)
         single_video_layout.addWidget(self.use_gpu)
+        single_video_layout.addWidget(self.grayscale)
         single_video_layout.addWidget(self.codec_combobox)
         single_video_layout.addWidget(self.video_preset)
         single_video_layout.addWidget(self.video_quality)
