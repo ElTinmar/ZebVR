@@ -151,8 +151,15 @@ class VideoSaverWorker(WorkerNode):
 
         if data is not None:
             if data['index'] % self.decimation == 0:
-                image_resized = cv2.resize(data['image'], (self.width, self.height), interpolation = cv2.INTER_NEAREST)
-                self.writer.write_frame(image_resized)
+                
+                # TODO: write a resize node to put in between 
+
+                #image_resized = cv2.resize(data['image'], (self.width, self.height), interpolation = cv2.INTER_NEAREST)
+                #self.writer.write_frame(image_resized)
+
+                # TODO write a node to convert images to yuv420p and write video writer that can handle direct yuv420p input 
+
+                self.writer.write_frame(data['image'])
                 return data
 
     def process_metadata(self, metadata) -> Any:
