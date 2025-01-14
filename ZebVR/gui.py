@@ -46,7 +46,7 @@ from tracker import (
 )
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
 from video_tools import BackroundImage, Polarity
-from camera_tools import Camera, OpenCV_Webcam, OpenCV_Webcam_InitEveryFrame, MovieFileCam
+from camera_tools import Camera, OpenCV_Webcam, OpenCV_Webcam_InitEveryFrame, MovieFileCam, ZeroCam
 try:
     from camera_tools import XimeaCamera
     XIMEA_ENABLED = True
@@ -719,7 +719,10 @@ class MainGui(QMainWindow):
 
     def update_camera_source(self, cam_source: str, cam_ind: int, filename: str):
 
-        if cam_source=='Webcam':
+        if cam_source=='None':
+            self.camera_constructor = partial(ZeroCam, shape=(2048,2048), dtype=np.uint8)
+
+        elif cam_source=='Webcam':
             self.camera_constructor = partial(OpenCV_Webcam, cam_id=cam_ind)
         
         elif cam_source=='Webcam (Registration Mode)':

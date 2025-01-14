@@ -37,7 +37,7 @@ class CameraWidget(QWidget):
     def declare_components(self):
 
         self.camera_choice = QComboBox()
-        self.camera_choice.addItems(["XIMEA", "Webcam", "Webcam (Registration Mode)", "Movie"])
+        self.camera_choice.addItems(["None", "XIMEA", "Webcam", "Webcam (Registration Mode)", "Movie"])
         self.camera_choice.currentTextChanged.connect(self.camera_changed)
 
         self.camera_id = LabeledSpinBox()
