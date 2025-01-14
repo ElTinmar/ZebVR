@@ -100,6 +100,10 @@ class OutputWidget(QWidget):
         self.use_gpu.setChecked(False)
         self.use_gpu.stateChanged.connect(self.gpu_toggled)
 
+        self.grayscale = QCheckBox('Grayscale:')
+        self.grayscale.setChecked(False)
+        self.grayscale.stateChanged.connect(self.grayscale_toggled)
+
         self.codec_combobox = LabeledComboBox()
         self.codec_combobox.setText('video codec:')
         self.codec_combobox.addItem('h264')
@@ -250,6 +254,47 @@ class OutputWidget(QWidget):
             self.video_preset.addItem('slow')
             self.video_preset.addItem('slower')
             self.video_preset.addItem('veryslow')
+        
+        self.state_changed.emit()
+
+    def grayscale_toggled(self):
+
+        if self.grayscale.isChecked():
+
+            self.use_gpu.setChecked(False)
+
+            self.codec_combobox.clear()
+            self.codec_combobox.addItem('h264')
+
+            self.video_preset.clear()
+            self.video_preset.addItem('ultrafast')
+            self.video_preset.addItem('superfast')
+            self.video_preset.addItem('veryfast')
+            self.video_preset.addItem('faster')
+            self.video_preset.addItem('fast')
+            self.video_preset.addItem('medium')
+            self.video_preset.addItem('slow')
+            self.video_preset.addItem('slower')
+            self.video_preset.addItem('veryslow')
+
+        else:
+            self.codec_combobox.clear()
+            self.codec_combobox.addItem('h264')
+            self.codec_combobox.addItem('mjpeg')
+            self.codec_combobox.addItem('hevc')
+
+            self.video_preset.clear()
+            self.video_preset.addItem('ultrafast')
+            self.video_preset.addItem('superfast')
+            self.video_preset.addItem('veryfast')
+            self.video_preset.addItem('faster')
+            self.video_preset.addItem('fast')
+            self.video_preset.addItem('medium')
+            self.video_preset.addItem('slow')
+            self.video_preset.addItem('slower')
+            self.video_preset.addItem('veryslow')
+        
+        self.state_changed.emit()
 
     def video_output_changed(self, index: int):
         self.video_stack.setCurrentIndex(index)
@@ -281,6 +326,7 @@ class OutputWidget(QWidget):
         state['video_filename'] = self.video_file.text()
         state['video_codec'] = self.codec_combobox.currentText()
         state['video_gpu'] = self.use_gpu.isChecked()
+        state['video_grayscale'] = self.grayscale.isChecked()
         state['video_preset'] = self.video_preset.currentText()
         state['video_quality'] = self.video_quality.value()
         state['worker_logfile'] = self.worker_logfile.text()
@@ -301,6 +347,7 @@ class OutputWidget(QWidget):
             self.video_file.setText(state['video_filename'])
             self.codec_combobox.setCurrentText(state['video_codec'])
             self.use_gpu.setChecked(state['video_gpu'])
+            self.grayscale.setChecked(state['video_grayscale'])
             self.video_preset.setCurrentText(state['video_preset'])
             self.video_quality.setValue(state['video_quality'])
             self.worker_logfile.setText(state['worker_logfile'])

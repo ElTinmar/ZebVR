@@ -172,6 +172,7 @@ class MainGui(QMainWindow):
             fps = self.settings['camera']['framerate_value']/self.settings['output']['video_decimation'],
             video_codec = self.settings['output']['video_codec'],
             gpu = self.settings['output']['video_gpu'],
+            grayscale = self.settings['output']['video_grayscale'],
             video_profile = 'main',
             video_preset = self.settings['output']['video_preset'],
             video_quality = self.settings['output']['video_quality'],

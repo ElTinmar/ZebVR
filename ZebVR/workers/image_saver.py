@@ -4,7 +4,7 @@ from numpy.typing import NDArray
 from typing import Any
 import cv2
 import os
-from video_tools import FFMPEG_VideoWriter_CPU, FFMPEG_VideoWriter_GPU 
+from video_tools import FFMPEG_VideoWriter_CPU, FFMPEG_VideoWriter_GPU, FFMPEG_VideoWriter_CPU_Grayscale
 
 # TODO: check zarr, maybe try cv2.imwrite
 
@@ -56,6 +56,7 @@ class ImageSaverWorker(WorkerNode):
 
 class VideoSaverWorker(WorkerNode):
     
+    SUPPORTED_VIDEO_CODECS_GRAYSCALE = ['h264']
     SUPPORTED_VIDEO_CODECS_CPU = ['h264', 'hevc', 'mjpeg']
     SUPPORTED_VIDEO_CODECS_GPU = ['h264_nvenc', 'hevc_nvenc']
 
@@ -71,6 +72,7 @@ class VideoSaverWorker(WorkerNode):
             video_profile: str = 'main',
             video_preset: str = 'p2',
             gpu: bool = False,
+            grayscale: bool = False,
             *args, 
             **kwargs
         ):
@@ -85,6 +87,10 @@ class VideoSaverWorker(WorkerNode):
         self.video_profile = video_profile
         self.video_preset = video_preset
         self.video_quality = video_quality
+        self.grayscale = grayscale
+
+        if grayscale and (not video_codec in self.SUPPORTED_VIDEO_CODECS_GRAYSCALE):
+            raise ValueError(f'wrong video_codec type for grayscale CPU encoding, supported video_codecs are: {self.SUPPORTED_VIDEO_CODECS_GRAYSCALE}') 
         
         if gpu and (not video_codec in self.SUPPORTED_VIDEO_CODECS_GPU):
             raise ValueError(f'wrong video_codec type for GPU encoding, supported video_codecs are: {self.SUPPORTED_VIDEO_CODECS_GPU}') 
@@ -102,6 +108,18 @@ class VideoSaverWorker(WorkerNode):
         
         if self.gpu:
             self.writer = FFMPEG_VideoWriter_GPU(
+                height = self.height, 
+                width = self.width, 
+                fps = self.fps, 
+                q = self.video_quality,
+                filename = self.filename,
+                codec = self.video_codec,
+                profile = self.video_profile,
+                preset = self.video_preset
+            )
+
+        elif self.grayscale:
+            self.writer = FFMPEG_VideoWriter_CPU_Grayscale(
                 height = self.height, 
                 width = self.width, 
                 fps = self.fps, 
