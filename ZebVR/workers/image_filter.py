@@ -4,7 +4,7 @@ from typing import Any, Callable
 import numpy as np
 import cv2
 
-def resize_to_closest_power_of_two(image: NDArray) -> NDArray:
+def resize_to_closest_multiple_of_two(image: NDArray) -> NDArray:
     # some video_codecs require images with even size
     height, width = image.shape
     new_height = 2*(height//2) 
