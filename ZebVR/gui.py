@@ -173,7 +173,7 @@ class MainGui(QMainWindow):
             video_codec = self.settings['output']['video_codec'],
             gpu = self.settings['output']['video_gpu'],
             grayscale = self.settings['output']['video_grayscale'],
-            video_profile = 'main',
+            video_profile = 'main' if not self.settings['output']['video_grayscale'] else 'high',
             video_preset = self.settings['output']['video_preset'],
             video_quality = self.settings['output']['video_quality'],
             name = 'video_recorder',
