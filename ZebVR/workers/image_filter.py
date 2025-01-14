@@ -7,7 +7,7 @@ class ImageFilterWorker(WorkerNode):
 
     def __init__(
         self, 
-        image_function: Callable,
+        image_function: Callable[[NDArray], NDArray],
         *args, 
         **kwargs
         ):
