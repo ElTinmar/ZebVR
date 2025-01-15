@@ -210,8 +210,18 @@ class CameraController:
         self.view = view
 
         # connect view signals to controller methods
+        self.view.state_changed.connect(self.on_camera_source_changed)
+        self.view.preview.connect(self.on_state_changed)
+        self.view.camera_source.connect(self.on_preview)
     
-         
+    def on_camera_source_changed(self):
+        pass
+
+    def on_state_changed(self):
+        pass
+
+    def on_preview(self):
+        pass
 
 class CameraAcquisition(QRunnable):
 
