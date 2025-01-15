@@ -817,6 +817,8 @@ class MainGui(QMainWindow):
         state['width_min'], state['width_max'] = camera.get_width_range() if width_enabled else (0,0)
         state['width_step'] = camera.get_width_increment() if width_enabled else 0
         state['width_value'] = camera.get_width() if width_enabled else 0
+
+        state['num_channels'] = camera.get_num_channels()
         
         self.camera_widget.set_state(state)
 

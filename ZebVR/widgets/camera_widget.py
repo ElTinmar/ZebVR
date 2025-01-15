@@ -70,6 +70,11 @@ class CameraWidget(QWidget):
             spinbox.setEnabled(False)
             spinbox.valueChanged.connect(self.on_change)
 
+        self.num_channels_label = QLabel()
+        self.num_channels_label.setText('Num channels:')
+        self.num_channels = QLabel()
+        self.num_channels.setText('0')
+
         # image
         self.preview_start = QPushButton('start preview')
         self.preview_start.clicked.connect(self.start)
@@ -134,6 +139,10 @@ class CameraWidget(QWidget):
         layout_cam.addWidget(self.camera_id)
         layout_cam.addLayout(layout_moviecam)
 
+        layout_channels = QHBoxLayout()
+        layout_channels.addWidget(self.num_channels_label)
+        layout_channels.addWidget(self.num_channels)
+
         layout_controls = QVBoxLayout(self)
         layout_controls.addWidget(self.camera_choice)
         layout_controls.addLayout(layout_cam)
@@ -142,6 +151,7 @@ class CameraWidget(QWidget):
             spinbox = getattr(self, control + '_spinbox')
             layout_controls.addWidget(spinbox)
 
+        layout_controls.addLayout(layout_channels)
         layout_controls.addLayout(layout_buttons)
         layout_controls.addWidget(self.image)
         layout_controls.addStretch()
@@ -173,6 +183,7 @@ class CameraWidget(QWidget):
             state[control + '_max'] = spinbox.maximum()
             state[control + '_step'] = spinbox.singleStep()
             state[control + '_value'] = spinbox.value()
+        state['num_channels'] = int(self.num_channels.text())
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -187,6 +198,7 @@ class CameraWidget(QWidget):
                 spinbox.setSingleStep(state[control + '_step'])
                 spinbox.setValue(state[control + '_value'])
                 spinbox.setEnabled(state[control + '_enabled'])
+            self.num_channels.setText(str(state['num_channels']))
         except KeyError:
             print('Wrong state provided to camera widget')
             raise
@@ -294,6 +306,8 @@ if __name__ == "__main__":
             state['width_min'], state['width_max'] = self.camera.get_width_range() if width_enabled else (0,0)
             state['width_step'] = self.camera.get_width_increment() if width_enabled else 0
             state['width_value'] = self.camera.get_width() if width_enabled else 0
+
+            state['num_channels'] = self.camera.get_num_channels()
             
             self.camera_widget.set_state(state)
 
