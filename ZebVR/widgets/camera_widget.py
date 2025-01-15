@@ -216,6 +216,14 @@ class CameraAcquisition(QRunnable):
     
     def run(self):
         camera = self.camera_constructor()
+        state = self.widget.get_state()
+        camera.set_exposure(state['exposure_value'])
+        camera.set_framerate(state['framerate_value'])
+        camera.set_gain(state['gain_value'])
+        camera.set_height(state['height_value'])
+        camera.set_width(state['width_value'])
+        camera.set_offsetX(state['offsetX_value'])
+        camera.set_offsetY(state['offsetY_value'])
         camera.start_acquisition()
         while self.keepgoing:
             try:
