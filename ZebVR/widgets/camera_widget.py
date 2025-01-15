@@ -9,7 +9,6 @@ import cv2
 import os
 from camera_tools import Camera
 
-#TODO add num_channel to GUI and state
 
 class CameraWidget(QWidget):
 
@@ -202,6 +201,17 @@ class CameraWidget(QWidget):
         except KeyError:
             print('Wrong state provided to camera widget')
             raise
+
+#TODO add camera controller (MVC) as a bridge between Camera and CameraWidget
+class CameraController:
+
+    def __init__(self, model: Camera, view: CameraWidget):
+        self.model = model
+        self.view = view
+
+        # connect view signals to controller methods
+    
+         
 
 class CameraAcquisition(QRunnable):
 
