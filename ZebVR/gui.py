@@ -794,6 +794,7 @@ class MainGui(QMainWindow):
         state['exposure_step'] = camera.get_exposure_increment() if exposure_enabled else 0
         state['exposure_value'] = camera.get_exposure() if exposure_enabled else 0
 
+        # NOTE offset range changes as a function of set (height, width)
         offsetX_enabled = camera.offsetX_available()
         state['offsetX_enabled'] = offsetX_enabled
         state['offsetX_min'], state['offsetX_max'] = camera.get_offsetX_range() if offsetX_enabled else (0,0)
