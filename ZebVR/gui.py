@@ -836,6 +836,12 @@ class MainGui(QMainWindow):
     def update_camera_settings(self):
         self.settings['camera'] = self.camera_widget.get_state()
 
+        # on setting change, restart preview if it was running
+        camera_was_previewing = self.camera_preview_started
+        self.camera_preview(False)
+        if camera_was_previewing:
+            self.camera_preview(True)
+
     def update_projector_settings(self):
         self.settings['projector'] = self.projector_widget.get_state()
 
