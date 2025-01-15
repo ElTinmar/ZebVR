@@ -832,6 +832,7 @@ class MainGui(QMainWindow):
             if self.camera_preview_started:
                 self.camera_preview_started = False
                 self.acq.stop()
+                self.thread_pool.waitForDone(-1)
 
     def update_camera_settings(self):
         self.settings['camera'] = self.camera_widget.get_state()
