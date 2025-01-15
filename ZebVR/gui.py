@@ -1,6 +1,5 @@
 from multiprocessing import Process
 import time
-from functools import partial
 import json
 import os
 
@@ -46,12 +45,6 @@ from tracker import (
 )
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
 from video_tools import BackroundImage, Polarity
-from camera_tools import Camera, OpenCV_Webcam, OpenCV_Webcam_InitEveryFrame, MovieFileCam, ZeroCam
-try:
-    from camera_tools import XimeaCamera
-    XIMEA_ENABLED = True
-except ImportError:
-    XIMEA_ENABLED = False
 
 from ZebVR.calibration import (
     check_pix_per_mm, 
@@ -78,7 +71,7 @@ from ZebVR.workers import (
     rgb_to_yuv420p
 )
 from ZebVR.widgets import (
-    CameraWidget, CameraAcquisition,
+    CameraWidget, CameraController, CameraAcquisition,
     ProjectorWidget, 
     RegistrationWidget,
     CalibrationWidget,
@@ -97,10 +90,6 @@ class MainGui(QMainWindow):
 
         super().__init__(*args, **kwargs)
 
-        self.camera_constructor = None
-        self.thread_pool = QThreadPool()
-        self.acq = None
-        self.camera_preview_started = False
         self.record_flag = False
 
         self.settings = {}
@@ -136,7 +125,7 @@ class MainGui(QMainWindow):
 
         # camera --------------------------------------------------
         self.camera_worker = CameraWorker(
-            camera_constructor = self.camera_constructor, 
+            camera_constructor = self.camera_controller.get_constructor(), 
             exposure = self.settings['camera']['exposure_value'],
             gain = self.settings['camera']['gain_value'],
             framerate = self.settings['camera']['framerate_value'],
@@ -638,10 +627,7 @@ class MainGui(QMainWindow):
     def create_components(self):
 
         self.camera_widget = CameraWidget()
-        self.camera_widget.state_changed.connect(self.update_camera_settings)
-        self.camera_widget.camera_source.connect(self.update_camera_source)
-        self.camera_widget.preview.connect(self.camera_preview)
-        self.camera_widget.camera_changed()
+        self.camera_controller = CameraController(self.camera_widget)
 
         self.projector_widget = ProjectorWidget()
         self.projector_widget.state_changed.connect(self.update_projector_settings)
@@ -749,96 +735,6 @@ class MainGui(QMainWindow):
         self.refresh_settings()
         return self.settings
 
-    def update_camera_source(self, cam_source: str, cam_ind: int, filename: str):
-
-        if cam_source=='None':
-            self.camera_constructor = partial(ZeroCam, shape=(2048,2048), dtype=np.uint8)
-
-        elif cam_source=='Webcam':
-            self.camera_constructor = partial(OpenCV_Webcam, cam_id=cam_ind)
-        
-        elif cam_source=='Webcam (Registration Mode)':
-            self.camera_constructor = partial(OpenCV_Webcam_InitEveryFrame, cam_id=cam_ind)
-
-        elif cam_source=='Movie' and os.path.exists(filename):
-            self.camera_constructor = partial(MovieFileCam, filename=filename)
-
-        elif cam_source=='XIMEA' and XIMEA_ENABLED:
-            self.camera_constructor = partial(XimeaCamera, dev_id=cam_ind)
-
-        camera = self.camera_constructor()
-
-        # read camera properties and set widget state accordingly
-        state = {}
-        
-        state['camera_choice'] = cam_source
-        state['camera_index'] = cam_ind
-        state['movie_file'] = filename
-
-        framerate_enabled = camera.framerate_available()
-        state['framerate_enabled'] = framerate_enabled
-        state['framerate_min'], state['framerate_max'] = camera.get_framerate_range() if framerate_enabled else (0,10_000)
-        state['framerate_step'] = camera.get_framerate_increment() if framerate_enabled else 0
-        state['framerate_value'] = camera.get_framerate() # bending the rule a little bit
-        #state['framerate_value'] = camera.get_framerate() if framerate_enabled else 0
-
-        gain_enabled = camera.gain_available()
-        state['gain_enabled'] = gain_enabled
-        state['gain_min'], state['gain_max'] = camera.get_gain_range() if gain_enabled else (0,0)
-        state['gain_step'] = camera.get_gain_increment() if gain_enabled else 0
-        state['gain_value'] = camera.get_gain() if gain_enabled else 0
-
-        exposure_enabled = camera.exposure_available()
-        state['exposure_enabled'] = exposure_enabled
-        state['exposure_min'], state['exposure_max'] = camera.get_exposure_range() if exposure_enabled else (0,0)
-        state['exposure_step'] = camera.get_exposure_increment() if exposure_enabled else 0
-        state['exposure_value'] = camera.get_exposure() if exposure_enabled else 0
-
-        # NOTE offset range changes as a function of set (height, width)
-        offsetX_enabled = camera.offsetX_available()
-        state['offsetX_enabled'] = offsetX_enabled
-        state['offsetX_min'], state['offsetX_max'] = camera.get_offsetX_range() if offsetX_enabled else (0,0)
-        state['offsetX_step'] = camera.get_offsetX_increment() if offsetX_enabled else 0
-        state['offsetX_value'] = camera.get_offsetX() if offsetX_enabled else 0
-
-        offsetY_enabled = camera.offsetY_available()
-        state['offsetY_enabled'] = offsetY_enabled
-        state['offsetY_min'], state['offsetY_max'] = camera.get_offsetY_range() if offsetY_enabled else (0,0)
-        state['offsetY_step'] = camera.get_offsetY_increment() if offsetY_enabled else 0
-        state['offsetY_value'] = camera.get_offsetY() if offsetY_enabled else 0
-
-        height_enabled = camera.height_available()
-        state['height_enabled'] = height_enabled
-        state['height_min'], state['height_max'] = camera.get_height_range() if height_enabled else (0,0)
-        state['height_step'] = camera.get_height_increment() if height_enabled else 0
-        state['height_value'] = camera.get_height() if height_enabled else 0
-
-        width_enabled = camera.width_available()
-        state['width_enabled'] = width_enabled
-        state['width_min'], state['width_max'] = camera.get_width_range() if width_enabled else (0,0)
-        state['width_step'] = camera.get_width_increment() if width_enabled else 0
-        state['width_value'] = camera.get_width() if width_enabled else 0
-
-        state['num_channels'] = camera.get_num_channels()
-        
-        self.camera_widget.set_state(state)
-
-    def camera_preview(self, enable: bool):
-        if enable:
-            if not self.camera_preview_started:
-                self.camera_preview_started = True
-                self.acq = CameraAcquisition(self.camera_constructor, self.camera_widget)
-                self.thread_pool.start(self.acq)
-        else:
-            if self.camera_preview_started:
-                self.camera_preview_started = False
-                self.acq.stop()
-                self.thread_pool.waitForDone(-1)
-
-    def update_camera_settings(self):
-        state = self.camera_widget.get_state()
-        self.settings['camera'] = state
-
     def update_projector_settings(self):
         self.settings['projector'] = self.projector_widget.get_state()
 
@@ -872,7 +768,7 @@ class MainGui(QMainWindow):
         p = Process(
             target = registration,
             kwargs = {
-                "camera_constructor": self.camera_constructor,
+                "camera_constructor": self.camera_controller.get_constructor(),
                 "cam_height": self.settings['camera']['height_value'],
                 "cam_width": self.settings['camera']['width_value'],
                 "cam_offset_x": self.settings['camera']['offsetX_value'],
@@ -913,7 +809,7 @@ class MainGui(QMainWindow):
         p = Process(
             target = check_registration,
             kwargs = {
-                "camera_constructor": self.camera_constructor,
+                "camera_constructor": self.camera_controller.get_constructor(),
                 "cam_height": self.settings['camera']['height_value'],
                 "cam_width": self.settings['camera']['width_value'],
                 "cam_offset_x": self.settings['camera']['offsetX_value'],
@@ -940,7 +836,7 @@ class MainGui(QMainWindow):
             p = Process(
                 target = inpaint_background,
                 kwargs = {
-                    "camera_constructor": self.camera_constructor,
+                    "camera_constructor": self.camera_controller.get_constructor(),
                     "exposure_microsec": self.settings['camera']['exposure_value'],
                     "cam_gain": self.settings['camera']['gain_value'],
                     "cam_fps": self.settings['camera']['framerate_value'],
@@ -960,7 +856,7 @@ class MainGui(QMainWindow):
             p = Process(
                 target = static_background,
                 kwargs = {
-                    "camera_constructor": self.camera_constructor,
+                    "camera_constructor": self.camera_controller.get_constructor(),
                     "exposure_microsec": self.settings['camera']['exposure_value'],
                     "cam_gain": self.settings['camera']['gain_value'],
                     "cam_fps": self.settings['camera']['framerate_value'],
@@ -986,7 +882,7 @@ class MainGui(QMainWindow):
         p = Process(
             target = pix_per_mm,
             kwargs = {
-                "camera_constructor": self.camera_constructor,
+                "camera_constructor": self.camera_controller.get_constructor(),
                 "cam_height": self.settings['camera']['height_value'],
                 "cam_width": self.settings['camera']['width_value'],
                 "cam_offset_x": self.settings['camera']['offsetX_value'],
@@ -1035,7 +931,7 @@ class MainGui(QMainWindow):
         p = Process(
             target = open_loop_coords,
             kwargs = {
-                "camera_constructor": self.camera_constructor,
+                "camera_constructor": self.camera_controller.get_constructor(),
                 "exposure_microsec": self.settings['camera']['exposure_value'],
                 "cam_gain": self.settings['camera']['gain_value'],
                 "cam_fps": self.settings['camera']['framerate_value'],

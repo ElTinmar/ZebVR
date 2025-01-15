@@ -1,20 +1,40 @@
-from typing import Dict
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QFileDialog
-from PyQt5.QtCore import pyqtSignal, QRunnable
+from PyQt5.QtWidgets import (
+    QWidget, 
+    QVBoxLayout, 
+    QHBoxLayout, 
+    QLabel, 
+    QPushButton, 
+    QComboBox, 
+    QFileDialog,
+    QApplication
+)
+from PyQt5.QtCore import pyqtSignal, QRunnable, QThreadPool
 from PyQt5.QtGui import QImage
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
-from numpy.typing import NDArray
 import numpy as np
 import cv2
 import os
-from camera_tools import Camera
+from functools import partial
+from typing import Dict, Callable
+from numpy.typing import NDArray
 
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
+from camera_tools import (
+    Camera, 
+    OpenCV_Webcam, 
+    OpenCV_Webcam_InitEveryFrame, 
+    MovieFileCam, 
+    ZeroCam
+)
+try:
+    from camera_tools import XimeaCamera
+    XIMEA_ENABLED = True
+except ImportError:
+    XIMEA_ENABLED = False
 
 class CameraWidget(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed = pyqtSignal(str, int, str)
     preview = pyqtSignal(bool)
-    camera_source = pyqtSignal(str, int, str)
     PREVIEW_HEIGHT: int = 512
 
     def __init__(self,*args,**kwargs):
@@ -31,7 +51,6 @@ class CameraWidget(QWidget):
             'width'
         ]
 
-        self.updated = False
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Camera controls')
@@ -40,12 +59,12 @@ class CameraWidget(QWidget):
 
         self.camera_choice = QComboBox()
         self.camera_choice.addItems(["None", "XIMEA", "Webcam", "Webcam (Registration Mode)", "Movie"])
-        self.camera_choice.currentTextChanged.connect(self.camera_changed)
+        self.camera_choice.currentTextChanged.connect(self.on_change)
 
         self.camera_id = LabeledSpinBox()
         self.camera_id.setText('Camera ID:')
         self.camera_id.setEnabled(True)
-        self.camera_id.valueChanged.connect(self.camera_changed)
+        self.camera_id.valueChanged.connect(self.on_change)
         
         self.movie_load = QPushButton('Load file')
         self.movie_load.setEnabled(False)
@@ -108,22 +127,6 @@ class CameraWidget(QWidget):
         pixmap = NDarray_to_QPixmap(image_resized, format = QImage.Format_RGB888)
         self.image.setPixmap(pixmap)
 
-    def camera_changed(self):
-        name = self.camera_choice.currentText()
-        id = self.camera_id.value() 
-        filename = self.filename.text()
-
-        self.camera_source.emit(name, id, filename)
-
-        if name == 'Movie':
-            self.camera_id.setEnabled(False)
-            self.movie_load.setEnabled(True)
-        else:
-            self.camera_id.setEnabled(True)
-            self.movie_load.setEnabled(False)
-
-        self.state_changed.emit()
-
     def layout_components(self):
 
         layout_buttons = QHBoxLayout()
@@ -156,18 +159,22 @@ class CameraWidget(QWidget):
         layout_controls.addStretch()
 
     def on_change(self):
-        self.updated = True
-        self.state_changed.emit()
+        name = self.camera_choice.currentText()
+        id = self.camera_id.value() 
+        filename = self.filename.text()
+
+        if name == 'Movie':
+            self.camera_id.setEnabled(False)
+            self.movie_load.setEnabled(True)
+        else:
+            self.camera_id.setEnabled(True)
+            self.movie_load.setEnabled(False)
+
+        self.state_changed.emit(name, id, filename)
 
     def block_signals(self, block):
         for widget in self.findChildren(QWidget):
             widget.blockSignals(block)
-
-    def is_updated(self) -> bool:
-        return self.updated
-    
-    def set_updated(self, updated:bool) -> None:
-        self.updated = updated
 
     def get_state(self) -> Dict:
 
@@ -202,27 +209,6 @@ class CameraWidget(QWidget):
             print('Wrong state provided to camera widget')
             raise
 
-#TODO add camera controller (MVC) as a bridge between Camera and CameraWidget
-class CameraController:
-
-    def __init__(self, model: Camera, view: CameraWidget):
-        self.model = model
-        self.view = view
-
-        # connect view signals to controller methods
-        self.view.state_changed.connect(self.on_camera_source_changed)
-        self.view.preview.connect(self.on_state_changed)
-        self.view.camera_source.connect(self.on_preview)
-    
-    def on_camera_source_changed(self):
-        pass
-
-    def on_state_changed(self):
-        pass
-
-    def on_preview(self):
-        pass
-
 class CameraAcquisition(QRunnable):
 
     def __init__(self, camera_constructor: Camera, widget: CameraWidget, *args, **kwargs):
@@ -253,114 +239,114 @@ class CameraAcquisition(QRunnable):
             except:
                 pass
         camera.stop_acquisition()
-        
 
+class CameraController:
+
+    def __init__(self, view: CameraWidget):
+        self.view = view
+
+        self.camera_constructor = None
+        self.thread_pool = QThreadPool()
+        self.acq = None
+        self.camera_preview_started = False
+
+        # connect view signals to controller methods
+        self.view.state_changed.connect(self.on_state_changed)
+        self.view.preview.connect(self.on_preview)
+
+    def get_constructor(self) -> Callable[[], Camera]:
+        return self.camera_constructor
+
+    def on_state_changed(self, cam_source: str, cam_ind: int, filename: str):
+
+        if cam_source=='None':
+            self.camera_constructor = partial(ZeroCam, shape=(2048,2048), dtype=np.uint8)
+
+        elif cam_source=='Webcam':
+            self.camera_constructor = partial(OpenCV_Webcam, cam_id=cam_ind)
+        
+        elif cam_source=='Webcam (Registration Mode)':
+            self.camera_constructor = partial(OpenCV_Webcam_InitEveryFrame, cam_id=cam_ind)
+
+        elif cam_source=='Movie' and os.path.exists(filename):
+            self.camera_constructor = partial(MovieFileCam, filename=filename)
+
+        elif cam_source=='XIMEA' and XIMEA_ENABLED:
+            self.camera_constructor = partial(XimeaCamera, dev_id=cam_ind)
+
+        camera = self.camera_constructor()
+
+        # read camera properties and set widget state accordingly
+        state = {}
+        
+        state['camera_choice'] = cam_source
+        state['camera_index'] = cam_ind
+        state['movie_file'] = filename
+
+        framerate_enabled = camera.framerate_available()
+        state['framerate_enabled'] = framerate_enabled
+        state['framerate_min'], state['framerate_max'] = camera.get_framerate_range() if framerate_enabled else (0,10_000)
+        state['framerate_step'] = camera.get_framerate_increment() if framerate_enabled else 0
+        state['framerate_value'] = camera.get_framerate() # bending the rule a little bit
+        #state['framerate_value'] = camera.get_framerate() if framerate_enabled else 0
+
+        gain_enabled = camera.gain_available()
+        state['gain_enabled'] = gain_enabled
+        state['gain_min'], state['gain_max'] = camera.get_gain_range() if gain_enabled else (0,0)
+        state['gain_step'] = camera.get_gain_increment() if gain_enabled else 0
+        state['gain_value'] = camera.get_gain() if gain_enabled else 0
+
+        exposure_enabled = camera.exposure_available()
+        state['exposure_enabled'] = exposure_enabled
+        state['exposure_min'], state['exposure_max'] = camera.get_exposure_range() if exposure_enabled else (0,0)
+        state['exposure_step'] = camera.get_exposure_increment() if exposure_enabled else 0
+        state['exposure_value'] = camera.get_exposure() if exposure_enabled else 0
+
+        # NOTE offset range changes as a function of set (height, width)
+        offsetX_enabled = camera.offsetX_available()
+        state['offsetX_enabled'] = offsetX_enabled
+        state['offsetX_min'], state['offsetX_max'] = camera.get_offsetX_range() if offsetX_enabled else (0,0)
+        state['offsetX_step'] = camera.get_offsetX_increment() if offsetX_enabled else 0
+        state['offsetX_value'] = camera.get_offsetX() if offsetX_enabled else 0
+
+        offsetY_enabled = camera.offsetY_available()
+        state['offsetY_enabled'] = offsetY_enabled
+        state['offsetY_min'], state['offsetY_max'] = camera.get_offsetY_range() if offsetY_enabled else (0,0)
+        state['offsetY_step'] = camera.get_offsetY_increment() if offsetY_enabled else 0
+        state['offsetY_value'] = camera.get_offsetY() if offsetY_enabled else 0
+
+        height_enabled = camera.height_available()
+        state['height_enabled'] = height_enabled
+        state['height_min'], state['height_max'] = camera.get_height_range() if height_enabled else (0,0)
+        state['height_step'] = camera.get_height_increment() if height_enabled else 0
+        state['height_value'] = camera.get_height() if height_enabled else 0
+
+        width_enabled = camera.width_available()
+        state['width_enabled'] = width_enabled
+        state['width_min'], state['width_max'] = camera.get_width_range() if width_enabled else (0,0)
+        state['width_step'] = camera.get_width_increment() if width_enabled else 0
+        state['width_value'] = camera.get_width() if width_enabled else 0
+
+        state['num_channels'] = camera.get_num_channels()
+        
+        self.view.set_state(state)
+
+    def on_preview(self, enable: bool):
+        if enable:
+            if not self.camera_preview_started:
+                self.camera_preview_started = True
+                self.acq = CameraAcquisition(self.camera_constructor, self.view)
+                self.thread_pool.start(self.acq)
+        else:
+            if self.camera_preview_started:
+                self.camera_preview_started = False
+                self.acq.stop()
+                self.thread_pool.waitForDone(-1)
+        
 if __name__ == "__main__":
 
-    from PyQt5.QtWidgets import QApplication, QMainWindow
-    from PyQt5.QtCore import  QRunnable, QThreadPool
-    from camera_tools import Camera, OpenCV_Webcam, MovieFileCam
-
-    try:
-        from camera_tools import XimeaCamera
-        XIMEA_ENABLED = True
-    except ImportError:
-        XIMEA_ENABLED = False
-
-    class Window(QMainWindow):
-        def __init__(self,*args,**kwargs):
-
-            super().__init__(*args, **kwargs)
-            self.camera = None
-            self.preview_started = False # maybe move that out of here and to the code that handles the camera
-            self.camera_widget = CameraWidget()
-            self.camera_widget.camera_source.connect(self.set_camera)
-            self.camera_widget.preview.connect(self.preview)
-            self.camera_widget.state_changed.connect(self.update_camera_settings)
-            self.thread_pool = QThreadPool()
-            self.acq = None
-            self.setCentralWidget(self.camera_widget)
-        
-        def set_camera(self, name: str, id: int, filename: str):
-            
-            if name=='Webcam':
-                self.camera = OpenCV_Webcam(cam_id=id)
-            elif name=='Movie' and os.path.exists(filename):
-                self.camera = MovieFileCam(filename)
-            elif name=='XIMEA' and XIMEA_ENABLED:
-                self.camera = XimeaCamera(dev_id=id)
-
-            # read camera properties and set widget state accordingly
-            state = {}
-            
-            framerate_enabled = self.camera.framerate_available()
-            state['framerate_enabled'] = framerate_enabled
-            state['framerate_min'], state['framerate_max'] = self.camera.get_framerate_range() if framerate_enabled else (0,0)
-            state['framerate_step'] = self.camera.get_framerate_increment() if framerate_enabled else 0
-            state['framerate_value'] = self.camera.get_framerate() if framerate_enabled else 0
-
-            gain_enabled = self.camera.gain_available()
-            state['gain_enabled'] = gain_enabled
-            state['gain_min'], state['gain_max'] = self.camera.get_gain_range() if gain_enabled else (0,0)
-            state['gain_step'] = self.camera.get_gain_increment() if gain_enabled else 0
-            state['gain_value'] = self.camera.get_gain() if gain_enabled else 0
-
-            exposure_enabled = self.camera.exposure_available()
-            state['exposure_enabled'] = exposure_enabled
-            state['exposure_min'], state['exposure_max'] = self.camera.get_exposure_range() if exposure_enabled else (0,0)
-            state['exposure_step'] = self.camera.get_exposure_increment() if exposure_enabled else 0
-            state['exposure_value'] = self.camera.get_exposure() if exposure_enabled else 0
-
-            offsetX_enabled = self.camera.offsetX_available()
-            state['offsetX_enabled'] = offsetX_enabled
-            state['offsetX_min'], state['offsetX_max'] = self.camera.get_offsetX_range() if offsetX_enabled else (0,0)
-            state['offsetX_step'] = self.camera.get_offsetX_increment() if offsetX_enabled else 0
-            state['offsetX_value'] = self.camera.get_offsetX() if offsetX_enabled else 0
-
-            offsetY_enabled = self.camera.offsetY_available()
-            state['offsetY_enabled'] = offsetY_enabled
-            state['offsetY_min'], state['offsetY_max'] = self.camera.get_offsetY_range() if offsetY_enabled else (0,0)
-            state['offsetY_step'] = self.camera.get_offsetY_increment() if offsetY_enabled else 0
-            state['offsetY_value'] = self.camera.get_offsetY() if offsetY_enabled else 0
-
-            height_enabled = self.camera.height_available()
-            state['height_enabled'] = height_enabled
-            state['height_min'], state['height_max'] = self.camera.get_height_range() if height_enabled else (0,0)
-            state['height_step'] = self.camera.get_height_increment() if height_enabled else 0
-            state['height_value'] = self.camera.get_height() if height_enabled else 0
-
-            width_enabled = self.camera.width_available()
-            state['width_enabled'] = width_enabled
-            state['width_min'], state['width_max'] = self.camera.get_width_range() if width_enabled else (0,0)
-            state['width_step'] = self.camera.get_width_increment() if width_enabled else 0
-            state['width_value'] = self.camera.get_width() if width_enabled else 0
-
-            state['num_channels'] = self.camera.get_num_channels()
-            
-            self.camera_widget.set_state(state)
-
-        def update_camera_settings(self):
-            state = self.camera_widget.get_state()
-            # update camera
-
-        def get_camera_properties(self):
-            # TODO I was here
-            state = {}
-            state['framerate_value'] = self.camera.get_framerate()
-            return state
-
-        def preview(self, enable: bool):
-            if enable:
-                if not self.preview_started:
-                    self.preview_started = True
-                    self.acq = CameraAcquisition(self.camera, self.camera_widget)
-                    self.thread_pool.start(self.acq)
-            else:
-                if self.preview_started:
-                    self.preview_started = False
-                    self.acq.stop()
-
     app = QApplication([])
-    window = Window()
+    window = CameraWidget()
+    controller = CameraController(window)
     window.show()
     app.exec()
