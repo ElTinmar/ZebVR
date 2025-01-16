@@ -467,7 +467,7 @@ class MainGui(QMainWindow):
             sender = self.video_recorder_worker, 
             receiver = self.display_worker, 
             queue = self.queue_display_image, 
-            name = 'display'
+            name = 'display_recording'
         )
 
         self.dag.add_node(self.queue_monitor_worker)
@@ -505,6 +505,13 @@ class MainGui(QMainWindow):
                     queue = self.queue_save_image, 
                     name = 'image_saver'
                 )
+
+            self.dag.connect_data(
+                sender = self.video_recorder_worker, 
+                receiver = self.display_worker, 
+                queue = self.queue_display_image, 
+                name = 'display_recording'
+            )
 
         if self.record_flag:
 
@@ -564,6 +571,13 @@ class MainGui(QMainWindow):
                     queue = self.queue_save_image, 
                     name = 'image_saver'
                 )
+
+            self.dag.connect_data(
+                sender = self.video_recorder_worker, 
+                receiver = self.display_worker, 
+                queue = self.queue_display_image, 
+                name = 'display_recording'
+            )
 
         for i in range(self.settings['vr_settings']['n_background_workers']):
             for j in range(self.settings['vr_settings']['n_tracker_workers']):
