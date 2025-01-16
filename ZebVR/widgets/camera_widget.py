@@ -212,6 +212,8 @@ class CameraWidget(QWidget):
             raise
     
     def closeEvent(self, event):
+        # If widget is a children of some other widget, it needs
+        # to be explicitly closed for this to happen
         self.stop()
 
 class CameraAcquisition(QRunnable):
