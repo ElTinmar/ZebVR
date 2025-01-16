@@ -294,7 +294,7 @@ class CameraController(QObject):
         self.view.set_state(self.get_camera_state(camera))
         self.view.block_signals(False)
 
-    def get_camera_state(self, camera) -> Optional[Dict]: 
+    def get_camera_state(self, camera: Camera) -> Optional[Dict]: 
 
         # read camera properties and set widget state accordingly
         state = {}
@@ -362,8 +362,6 @@ class CameraController(QObject):
         # set value
         camera = self.camera_constructor()
         state = self.view.get_state()
-
-        print(state)
 
         camera.set_exposure(state['exposure_value'])
         camera.set_framerate(state['framerate_value'])
