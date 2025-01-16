@@ -297,6 +297,8 @@ class CameraController(QObject):
         self.view.set_state(self.get_camera_state(camera))
         self.view.block_signals(False)
 
+        self.state_changed.emit()
+
     def get_camera_state(self, camera: Camera) -> Optional[Dict]: 
 
         # read camera properties and set widget state accordingly
