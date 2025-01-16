@@ -212,7 +212,7 @@ class CameraWidget(QWidget):
             raise
     
     def closeEvent(self, event):
-        self.stop() # I don not get the signal
+        self.stop()
 
 class CameraAcquisition(QRunnable):
 

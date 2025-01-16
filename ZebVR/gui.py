@@ -1007,3 +1007,15 @@ class MainGui(QMainWindow):
         self.start() #TODO initialization takes ~5secs. It would be nice to take account of this for sleep duration
         time.sleep(self.sequencer_widget.get_protocol_duration()) 
         self.stop()
+
+    def closeEvent(self, event):
+        # close all widgets. Ensures that cleanup logic defined in closeEvent 
+        # is executed
+        self.camera_widget.close()
+        self.projector_widget.close()
+        self.registration_widget.close()
+        self.calibration_widget.close()
+        self.background_widget.close()
+        self.sequencer_widget.close()
+        self.vr_settings_widget.close()
+        self.output_widget.close()
