@@ -767,7 +767,7 @@ class MainGui(QMainWindow):
         self.update_output_settings()
     
     def registration_callback(self):
-        self.camera_preview(False)
+        self.camera_controller.set_preview(False)
 
         p = Process(
             target = registration,
@@ -808,7 +808,7 @@ class MainGui(QMainWindow):
             self.registration_widget.set_state(state)
         
     def check_registration_callback(self):
-        self.camera_preview(False)
+        self.camera_controller.set_preview(False)
 
         p = Process(
             target = check_registration,
@@ -834,7 +834,7 @@ class MainGui(QMainWindow):
         p.join()
         
     def background_callback(self):
-        self.camera_preview(False)
+        self.camera_controller.set_preview(False)
 
         if self.settings['background']['bckgsub_method'] == 'inpaint':
             p = Process(
@@ -881,7 +881,7 @@ class MainGui(QMainWindow):
         self.background_widget.set_image(image)
     
     def get_pix_per_mm_callback(self):
-        self.camera_preview(False)
+        self.camera_controller.set_preview(False)
 
         p = Process(
             target = pix_per_mm,
@@ -958,7 +958,7 @@ class MainGui(QMainWindow):
             self.vr_settings_widget.set_state(state)
 
     def start(self):
-        self.camera_preview(False)
+        self.camera_controller.set_preview(False)
 
         print(self.settings)
 
@@ -1003,7 +1003,7 @@ class MainGui(QMainWindow):
         # maybe launch record in QThread to prevent window from hanging
         # TODO make sleep interruptible by stop ? 
 
-        self.camera_preview(False)
+        self.camera_controller.set_preview(False)
 
         self.record_flag = True
         self.start() #TODO initialization takes ~5secs. It would be nice to take account of this for sleep duration

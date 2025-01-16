@@ -263,7 +263,7 @@ class CameraController(QObject):
         # connect view signals to controller methods
         self.view.source_changed.connect(self.on_source_changed)
         self.view.state_changed.connect(self.on_state_changed)
-        self.view.preview.connect(self.on_preview)
+        self.view.preview.connect(self.set_preview)
 
     def get_constructor(self) -> Callable[[], Camera]:
         return self.camera_constructor
@@ -289,7 +289,9 @@ class CameraController(QObject):
         elif cam_source=='XIMEA' and XIMEA_ENABLED:
             self.camera_constructor = partial(XimeaCamera, dev_id=cam_ind)
 
+        self.view.block_signals(True)
         self.view.set_state(self.get_camera_state())
+        self.view.block_signals(False)
 
     def get_camera_state(self) -> Optional[Dict]: 
 
@@ -354,17 +356,17 @@ class CameraController(QObject):
         return state
 
     def on_state_changed(self):
-        # maybe do this for each property separately with specialized signals?\
+        # maybe do this for each property separately with specialized signals
         
         # stop preview
         preview_state = self.camera_preview_started
         if preview_state:
-            self.on_preview(False)
+            self.set_preview(False)
 
+        # set value
         camera = self.camera_constructor()
         state = self.view.get_state()
 
-        # set value
         camera.set_exposure(state['exposure_value'])
         camera.set_framerate(state['framerate_value'])
         camera.set_gain(state['gain_value'])
@@ -372,23 +374,27 @@ class CameraController(QObject):
         camera.set_width(state['width_value'])
         camera.set_offsetY(state['offsetY_value'])
         camera.set_offsetX(state['offsetX_value'])
+        
+        del(camera)
 
         # check values
         state_validated = self.get_camera_state()
 
         # report to the GUI to make sure hardware and GUI have the same info
+        self.view.block_signals(True)
         self.view.set_state(state_validated)
+        self.view.block_signals(False)
 
         # restart preview
         if preview_state:
-            self.on_preview(True)
+            self.set_preview(True)
 
         self.state_changed.emit()
 
     def get_state(self):
         return self.view.get_state()
 
-    def on_preview(self, enable: bool):
+    def set_preview(self, enable: bool):
         if enable:
             if not self.camera_preview_started:
                 self.camera_preview_started = True
