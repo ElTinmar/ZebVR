@@ -14,7 +14,7 @@ import numpy as np
 import cv2
 import os
 from functools import partial
-from typing import Dict, Callable
+from typing import Dict, Callable, Optional
 from numpy.typing import NDArray
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
@@ -33,7 +33,8 @@ except ImportError:
 
 class CameraWidget(QWidget):
 
-    state_changed = pyqtSignal(str, int, str)
+    source_changed = pyqtSignal(str, int, str)
+    state_changed = pyqtSignal()
     preview = pyqtSignal(bool)
     PREVIEW_HEIGHT: int = 512
 
@@ -59,12 +60,12 @@ class CameraWidget(QWidget):
 
         self.camera_choice = QComboBox()
         self.camera_choice.addItems(["None", "XIMEA", "Webcam", "Webcam (Registration Mode)", "Movie"])
-        self.camera_choice.currentTextChanged.connect(self.on_change)
+        self.camera_choice.currentTextChanged.connect(self.on_source_change)
 
         self.camera_id = LabeledSpinBox()
         self.camera_id.setText('Camera ID:')
         self.camera_id.setEnabled(True)
-        self.camera_id.valueChanged.connect(self.on_change)
+        self.camera_id.valueChanged.connect(self.on_source_change)
         
         self.movie_load = QPushButton('Load file')
         self.movie_load.setEnabled(False)
@@ -86,7 +87,7 @@ class CameraWidget(QWidget):
             spinbox.setSingleStep(0)
             spinbox.setValue(0)
             spinbox.setEnabled(False)
-            spinbox.valueChanged.connect(self.on_change)
+            spinbox.valueChanged.connect(self.state_changed)
 
         self.num_channels_label = QLabel()
         self.num_channels_label.setText('Num channels:')
@@ -111,7 +112,7 @@ class CameraWidget(QWidget):
             "Movie file (*.avi)"
         )
         self.filename.setText(filename)
-        self.camera_changed()
+        self.on_source_change()
 
     def start(self):
         self.preview.emit(True)
@@ -158,7 +159,7 @@ class CameraWidget(QWidget):
         layout_controls.addWidget(self.image)
         layout_controls.addStretch()
 
-    def on_change(self):
+    def on_source_change(self):
         name = self.camera_choice.currentText()
         id = self.camera_id.value() 
         filename = self.filename.text()
@@ -170,7 +171,7 @@ class CameraWidget(QWidget):
             self.camera_id.setEnabled(True)
             self.movie_load.setEnabled(False)
 
-        self.state_changed.emit(name, id, filename)
+        self.source_changed.emit(name, id, filename)
 
     def block_signals(self, block):
         for widget in self.findChildren(QWidget):
@@ -200,10 +201,11 @@ class CameraWidget(QWidget):
             self.camera_choice.setCurrentText(state['camera_choice'])
             for control in self.controls:
                 spinbox = getattr(self, control + '_spinbox')
-                spinbox.setRange(state[control + '_min'], state[control + '_max'])
-                spinbox.setSingleStep(state[control + '_step'])
-                spinbox.setValue(state[control + '_value'])
                 spinbox.setEnabled(state[control + '_enabled'])
+                if state[control + '_enabled']:
+                    spinbox.setRange(state[control + '_min'], state[control + '_max'])
+                    spinbox.setSingleStep(state[control + '_step'])
+                    spinbox.setValue(state[control + '_value'])
             self.num_channels.setText(str(state['num_channels']))
         except KeyError:
             print('Wrong state provided to camera widget')
@@ -249,15 +251,24 @@ class CameraController:
         self.thread_pool = QThreadPool()
         self.acq = None
         self.camera_preview_started = False
+        
+        self.camera_source = None
+        self.camera_index = None
+        self.filename = None
 
         # connect view signals to controller methods
+        self.view.source_changed.connect(self.on_source_changed)
         self.view.state_changed.connect(self.on_state_changed)
         self.view.preview.connect(self.on_preview)
 
     def get_constructor(self) -> Callable[[], Camera]:
         return self.camera_constructor
 
-    def on_state_changed(self, cam_source: str, cam_ind: int, filename: str):
+    def on_source_changed(self, cam_source: str, cam_ind: int, filename: str):
+
+        self.camera_source = cam_source
+        self.camera_index = cam_ind
+        self.filename = filename
 
         if cam_source=='None':
             self.camera_constructor = partial(ZeroCam, shape=(2048,2048), dtype=np.uint8)
@@ -274,14 +285,21 @@ class CameraController:
         elif cam_source=='XIMEA' and XIMEA_ENABLED:
             self.camera_constructor = partial(XimeaCamera, dev_id=cam_ind)
 
+        self.view.set_state(self.get_camera_state())
+
+    def get_camera_state(self) -> Optional[Dict]: 
+
+        if self.camera_constructor is None:
+            return 
+
         camera = self.camera_constructor()
 
         # read camera properties and set widget state accordingly
         state = {}
         
-        state['camera_choice'] = cam_source
-        state['camera_index'] = cam_ind
-        state['movie_file'] = filename
+        state['camera_choice'] = self.camera_source
+        state['camera_index'] = self.camera_index
+        state['movie_file'] = self.filename
 
         framerate_enabled = camera.framerate_available()
         state['framerate_enabled'] = framerate_enabled
@@ -329,7 +347,31 @@ class CameraController:
 
         state['num_channels'] = camera.get_num_channels()
         
-        self.view.set_state(state)
+        return state
+
+    def on_state_changed(self):
+        # maybe do this for each property separately with specialized signals?
+
+        camera = self.camera_constructor()
+        state = self.view.get_state()
+
+        # set value
+        camera.set_exposure(state['exposure_value'])
+        camera.set_framerate(state['framerate_value'])
+        camera.set_gain(state['gain_value'])
+        camera.set_height(state['height_value'])
+        camera.set_width(state['width_value'])
+        camera.set_offsetY(state['offsetY_value'])
+        camera.set_offsetX(state['offsetX_value'])
+
+        # check values
+        state_validated = self.get_camera_state()
+
+        # report to the GUI to make sure hardware and GUI have the same info
+        self.view.set_state(state_validated)
+
+    def get_state(self):
+        return self.view.get_state()
 
     def on_preview(self, enable: bool):
         if enable:
