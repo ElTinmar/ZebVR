@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QApplication
 )
-from PyQt5.QtCore import pyqtSignal, QRunnable, QThreadPool
+from PyQt5.QtCore import pyqtSignal, QRunnable, QThreadPool, QObject
 from PyQt5.QtGui import QImage
 import numpy as np
 import cv2
@@ -242,7 +242,9 @@ class CameraAcquisition(QRunnable):
                 pass
         camera.stop_acquisition()
 
-class CameraController:
+class CameraController(QObject):
+
+    state_changed = pyqtSignal()
 
     def __init__(self, view: CameraWidget):
         self.view = view
@@ -378,6 +380,8 @@ class CameraController:
         # restart preview
         if preview_state:
             self.on_preview(True)
+
+        self.state_changed.emit()
 
     def get_state(self):
         return self.view.get_state()

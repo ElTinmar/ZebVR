@@ -628,6 +628,7 @@ class MainGui(QMainWindow):
 
         self.camera_widget = CameraWidget()
         self.camera_controller = CameraController(self.camera_widget)
+        self.camera_controller.state_changed.connect(self.update_camera_settings)
 
         self.projector_widget = ProjectorWidget()
         self.projector_widget.state_changed.connect(self.update_projector_settings)
@@ -734,6 +735,9 @@ class MainGui(QMainWindow):
     def get_state(self) -> dict:
         self.refresh_settings()
         return self.settings
+
+    def update_camera_settings(self):
+        self.settings['camera'] = self.camera_controller.get_state()
 
     def update_projector_settings(self):
         self.settings['projector'] = self.projector_widget.get_state()
