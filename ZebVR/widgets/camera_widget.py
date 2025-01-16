@@ -246,7 +246,9 @@ class CameraController(QObject):
 
     state_changed = pyqtSignal()
 
-    def __init__(self, view: CameraWidget):
+    def __init__(self, view: CameraWidget, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
         self.view = view
 
         self.camera_constructor = None
