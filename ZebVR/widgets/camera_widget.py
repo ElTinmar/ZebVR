@@ -102,7 +102,7 @@ class CameraWidget(QWidget):
         self.preview_stop.clicked.connect(self.stop)
 
         self.image = QLabel()
-        self.set_image(np.zeros((512,512), dtype=np.uint8))
+        self.set_image(np.zeros((self.PREVIEW_HEIGHT,self.PREVIEW_HEIGHT), dtype=np.uint8))
 
     def load_file(self):
         filename, _ = QFileDialog.getOpenFileName(
@@ -289,16 +289,12 @@ class CameraController(QObject):
         elif cam_source=='XIMEA' and XIMEA_ENABLED:
             self.camera_constructor = partial(XimeaCamera, dev_id=cam_ind)
 
+        camera = self.camera_constructor()
         self.view.block_signals(True)
-        self.view.set_state(self.get_camera_state())
+        self.view.set_state(self.get_camera_state(camera))
         self.view.block_signals(False)
 
-    def get_camera_state(self) -> Optional[Dict]: 
-
-        if self.camera_constructor is None:
-            return 
-
-        camera = self.camera_constructor()
+    def get_camera_state(self, camera) -> Optional[Dict]: 
 
         # read camera properties and set widget state accordingly
         state = {}
@@ -367,6 +363,8 @@ class CameraController(QObject):
         camera = self.camera_constructor()
         state = self.view.get_state()
 
+        print(state)
+
         camera.set_exposure(state['exposure_value'])
         camera.set_framerate(state['framerate_value'])
         camera.set_gain(state['gain_value'])
@@ -375,10 +373,8 @@ class CameraController(QObject):
         camera.set_offsetY(state['offsetY_value'])
         camera.set_offsetX(state['offsetX_value'])
         
-        del(camera)
-
         # check values
-        state_validated = self.get_camera_state()
+        state_validated = self.get_camera_state(camera)
 
         # report to the GUI to make sure hardware and GUI have the same info
         self.view.block_signals(True)
