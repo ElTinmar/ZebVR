@@ -1,7 +1,6 @@
 from multiprocessing import Process
 import time
 import json
-import os
 
 import cv2
 import numpy as np
@@ -16,7 +15,6 @@ from PyQt5.QtWidgets import (
     QFileDialog
 )
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QThreadPool
 
 from multiprocessing_logger import Logger
 from dagline import ProcessingDAG, receive_strategy, send_strategy
@@ -71,7 +69,7 @@ from ZebVR.workers import (
     rgb_to_yuv420p
 )
 from ZebVR.widgets import (
-    CameraWidget, CameraController, CameraAcquisition,
+    CameraWidget, CameraController,
     ProjectorWidget, 
     RegistrationWidget,
     CalibrationWidget,
