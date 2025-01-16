@@ -318,8 +318,7 @@ class CameraController(QObject):
         state['framerate_enabled'] = framerate_enabled
         state['framerate_min'], state['framerate_max'] = camera.get_framerate_range() if framerate_enabled else (0,10_000)
         state['framerate_step'] = camera.get_framerate_increment() if framerate_enabled else 0
-        state['framerate_value'] = camera.get_framerate() # bending the rule a little bit
-        #state['framerate_value'] = camera.get_framerate() if framerate_enabled else 0
+        state['framerate_value'] = camera.get_framerate() if framerate_enabled else 0
 
         gain_enabled = camera.gain_available()
         state['gain_enabled'] = gain_enabled
