@@ -271,6 +271,9 @@ class CameraController(QObject):
         self.view.state_changed.connect(self.on_state_changed)
         self.view.preview.connect(self.set_preview)
 
+        # initialize view
+        self.view.on_source_change()
+
     def get_constructor(self) -> Callable[[], Camera]:
         return self.camera_constructor
 
