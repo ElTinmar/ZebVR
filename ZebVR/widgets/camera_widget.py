@@ -21,6 +21,7 @@ from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
 from camera_tools import (
     Camera, 
     OpenCV_Webcam, 
+    OpenCV_Webcam_Gray,
     OpenCV_Webcam_InitEveryFrame, 
     MovieFileCam, 
     ZeroCam
@@ -59,7 +60,7 @@ class CameraWidget(QWidget):
     def declare_components(self):
 
         self.camera_choice = QComboBox()
-        self.camera_choice.addItems(["None", "XIMEA", "Webcam", "Webcam (Registration Mode)", "Movie"])
+        self.camera_choice.addItems(["None", "XIMEA", "Webcam", "Webcam Grayscale", "Webcam (Registration Mode)", "Movie"])
         self.camera_choice.currentTextChanged.connect(self.on_source_change)
 
         self.camera_id = LabeledSpinBox()
@@ -284,6 +285,9 @@ class CameraController(QObject):
 
         elif cam_source=='Webcam':
             self.camera_constructor = partial(OpenCV_Webcam, cam_id=cam_ind)
+
+        elif cam_source=='Webcam Grayscale':
+            self.camera_constructor = partial(OpenCV_Webcam_Gray, cam_id=cam_ind)
         
         elif cam_source=='Webcam (Registration Mode)':
             self.camera_constructor = partial(OpenCV_Webcam_InitEveryFrame, cam_id=cam_ind)
