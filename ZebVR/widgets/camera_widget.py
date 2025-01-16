@@ -210,6 +210,9 @@ class CameraWidget(QWidget):
         except KeyError:
             print('Wrong state provided to camera widget')
             raise
+    
+    def closeEvent(self, event):
+        self.stop() # I don not get the signal
 
 class CameraAcquisition(QRunnable):
 
