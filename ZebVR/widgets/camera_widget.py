@@ -350,7 +350,12 @@ class CameraController:
         return state
 
     def on_state_changed(self):
-        # maybe do this for each property separately with specialized signals?
+        # maybe do this for each property separately with specialized signals?\
+        
+        # stop preview
+        preview_state = self.camera_preview_started
+        if preview_state:
+            self.on_preview(False)
 
         camera = self.camera_constructor()
         state = self.view.get_state()
@@ -369,6 +374,10 @@ class CameraController:
 
         # report to the GUI to make sure hardware and GUI have the same info
         self.view.set_state(state_validated)
+
+        # restart preview
+        if preview_state:
+            self.on_preview(True)
 
     def get_state(self):
         return self.view.get_state()
