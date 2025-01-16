@@ -374,6 +374,8 @@ class CameraController(QObject):
         # check values
         state_validated = self.get_camera_state(camera)
 
+        del(camera)
+
         # report to the GUI to make sure hardware and GUI have the same info
         self.view.block_signals(True)
         self.view.set_state(state_validated)
