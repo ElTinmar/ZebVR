@@ -3,6 +3,7 @@ from numpy.typing import NDArray
 from typing import Any, Callable
 import numpy as np
 import cv2
+from image_tools import rgb2gray, im2gray
 
 def rgb_to_yuv420p(image_rgb: NDArray) -> NDArray:
     return cv2.cvtColor(image_rgb, cv2.COLOR_RGB2YUV_I420)
@@ -10,6 +11,9 @@ def rgb_to_yuv420p(image_rgb: NDArray) -> NDArray:
 def gray_to_yuv420p(image_gray: NDArray) -> NDArray:
     image_rgb = np.dstack((image_gray, image_gray, image_gray))
     return rgb_to_yuv420p(image_rgb)
+
+def rgb_to_gray(image_rgb: NDArray) -> NDArray:
+    return im2gray(image_rgb)
 
 def resize_to_closest_multiple_of_two(image: NDArray, height: int, width: int) -> NDArray:
     # some video_codecs require images with even size

@@ -66,7 +66,8 @@ from ZebVR.workers import (
     Protocol,
     QueueMonitor,
     ImageFilterWorker, 
-    rgb_to_yuv420p
+    rgb_to_yuv420p,
+    rgb_to_gray
 )
 from ZebVR.widgets import (
     CameraWidget, CameraController,
@@ -181,6 +182,15 @@ class MainGui(QMainWindow):
             profile = PROFILE 
         )
 
+        self.rgb_to_gray_converter = ImageFilterWorker(
+            image_function=rgb_to_gray,
+            name = 'rgb_to_gray_converter',
+            logger = self.worker_logger, 
+            logger_queues = self.queue_logger,
+            receive_data_timeout = 1.0,
+            profile = PROFILE 
+        )
+
         self.queue_monitor_worker = QueueMonitor(
             queues = {
                 self.queue_cam: 'camera to background',
@@ -188,9 +198,9 @@ class MainGui(QMainWindow):
                 self.queue_background: 'background to trackers',
                 self.queue_tracking: 'tracking to stim',
                 self.queue_overlay: 'tracking to overlay',
-                self.queue_save_image: 'video recording',
-                self.queue_camera_to_converter: 'conversion yuv420p',
-                self.queue_converter_to_saver: 'yuv420p recording',
+                self.queue_save_image: 'direct video recording',
+                self.queue_camera_to_converter: 'pixel format conversion',
+                self.queue_converter_to_saver: 'converted video recording',
             },
             name = 'queue_monitor',
             logger = self.worker_logger, 
@@ -455,23 +465,40 @@ class MainGui(QMainWindow):
             )
         
         else:
-            # TODO check if video source is rgb or grayscale 
             if self.settings['camera']['num_channels'] == 3:
-                self.dag.connect_data(
-                    sender = self.camera_worker, 
-                    receiver = self.yuv420p_converter, 
-                    queue = self.queue_camera_to_converter, 
-                    name = 'cam_output2'
-                )
 
-                self.dag.connect_data(
-                    sender = self.yuv420p_converter, 
-                    receiver = self.video_recorder_worker, 
-                    queue = self.queue_converter_to_saver, 
-                    name = 'yuv420p_compression'
-                )
+                if self.settings['output']['video_grayscale']:
+                    self.dag.connect_data(
+                        sender = self.camera_worker, 
+                        receiver = self.rgb_to_gray_converter, 
+                        queue = self.queue_camera_to_converter, 
+                        name = 'cam_output2'
+                    )
+
+                    self.dag.connect_data(
+                        sender = self.rgb_to_gray_converter, 
+                        receiver = self.video_recorder_worker, 
+                        queue = self.queue_converter_to_saver, 
+                        name = 'gray_compression'
+                    )
+
+                else:
+                    self.dag.connect_data(
+                        sender = self.camera_worker, 
+                        receiver = self.yuv420p_converter, 
+                        queue = self.queue_camera_to_converter, 
+                        name = 'cam_output2'
+                    )
+
+                    self.dag.connect_data(
+                        sender = self.yuv420p_converter, 
+                        receiver = self.video_recorder_worker, 
+                        queue = self.queue_converter_to_saver, 
+                        name = 'yuv420p_compression'
+                    )
 
             else:
+
                 self.dag.connect_data(
                     sender = self.camera_worker, 
                     receiver = self.video_recorder_worker, 

@@ -60,7 +60,7 @@ class CameraWidget(QWidget):
     def declare_components(self):
 
         self.camera_choice = QComboBox()
-        self.camera_choice.addItems(["None", "XIMEA", "Webcam", "Webcam Grayscale", "Webcam (Registration Mode)", "Movie"])
+        self.camera_choice.addItems(["None Grayscale", "None RGB", "XIMEA", "Webcam", "Webcam Grayscale", "Webcam (Registration Mode)", "Movie"])
         self.camera_choice.currentTextChanged.connect(self.on_source_change)
 
         self.camera_id = LabeledSpinBox()
@@ -283,8 +283,11 @@ class CameraController(QObject):
         self.camera_index = cam_ind
         self.filename = filename
 
-        if cam_source=='None':
+        if cam_source=='None Grayscale':
             self.camera_constructor = partial(ZeroCam, shape=(2048,2048), dtype=np.uint8)
+        
+        elif cam_source=='None RGB':
+            self.camera_constructor = partial(ZeroCam, shape=(2048,2048,3), dtype=np.uint8)
 
         elif cam_source=='Webcam':
             self.camera_constructor = partial(OpenCV_Webcam, cam_id=cam_ind)
