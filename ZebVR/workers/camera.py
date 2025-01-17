@@ -66,8 +66,8 @@ class CameraWorker(WorkerNode):
             )
             
             res = {}
-            res['background_subtraction'] = img_res
-            res['image_saver'] = img_res
+            res['cam_output1'] = img_res
+            res['cam_output2'] = img_res
             return res
         
     def process_metadata(self, metadata) -> Any:

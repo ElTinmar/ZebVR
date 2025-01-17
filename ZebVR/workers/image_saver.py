@@ -4,7 +4,13 @@ from numpy.typing import NDArray
 from typing import Any
 import cv2
 import os
-from video_tools import FFMPEG_VideoWriter_CPU, FFMPEG_VideoWriter_GPU, FFMPEG_VideoWriter_CPU_Grayscale
+from video_tools import (
+    FFMPEG_VideoWriter_CPU, 
+    FFMPEG_VideoWriter_CPU_YUV420P, 
+    FFMPEG_VideoWriter_GPU, 
+    FFMPEG_VideoWriter_GPU_YUV420P,
+    FFMPEG_VideoWriter_CPU_Grayscale
+)
 
 # TODO: check zarr, maybe try cv2.imwrite
 
@@ -107,7 +113,7 @@ class VideoSaverWorker(WorkerNode):
         super().initialize()
         
         if self.gpu:
-            self.writer = FFMPEG_VideoWriter_GPU(
+            self.writer = FFMPEG_VideoWriter_GPU_YUV420P(
                 height = self.height, 
                 width = self.width, 
                 fps = self.fps, 
@@ -131,7 +137,7 @@ class VideoSaverWorker(WorkerNode):
             )
 
         else:
-            self.writer = FFMPEG_VideoWriter_CPU(
+            self.writer = FFMPEG_VideoWriter_CPU_YUV420P(
                 height = self.height, 
                 width = self.width, 
                 fps = self.fps, 

@@ -146,7 +146,7 @@ class MainGui(QMainWindow):
             decimation = self.settings['output']['video_decimation'],
             compress = self.settings['output']['video_recording_compression'],
             resize = self.settings['output']['video_recording_resize'],
-            name = 'image_saver',  
+            name = 'cam_output2',  
             logger = self.worker_logger, 
             logger_queues = self.queue_logger,
             receive_data_timeout = 1.0,
@@ -451,17 +451,33 @@ class MainGui(QMainWindow):
                 sender = self.camera_worker, 
                 receiver = self.image_saver_worker, 
                 queue = self.queue_save_image, 
-                name = 'image_saver'
+                name = 'cam_output2'
             )
         
         else:
             # TODO check if video source is rgb or grayscale 
-            self.dag.connect_data(
-                sender = self.camera_worker, 
-                receiver = self.video_recorder_worker, 
-                queue = self.queue_save_image, 
-                name = 'image_saver'
-            )
+            if self.settings['camera']['num_channels'] == 3:
+                self.dag.connect_data(
+                    sender = self.camera_worker, 
+                    receiver = self.yuv420p_converter, 
+                    queue = self.queue_camera_to_converter, 
+                    name = 'cam_output2'
+                )
+
+                self.dag.connect_data(
+                    sender = self.yuv420p_converter, 
+                    receiver = self.video_recorder_worker, 
+                    queue = self.queue_converter_to_saver, 
+                    name = 'yuv420p_compression'
+                )
+
+            else:
+                self.dag.connect_data(
+                    sender = self.camera_worker, 
+                    receiver = self.video_recorder_worker, 
+                    queue = self.queue_save_image, 
+                    name = 'cam_output2'
+                )
 
         self.dag.connect_data(
             sender = self.video_recorder_worker, 
@@ -485,7 +501,7 @@ class MainGui(QMainWindow):
                 sender = self.tracker_worker_list[i], 
                 receiver = self.stim_worker, 
                 queue = self.queue_tracking, 
-                name = 'stimulus'
+                name = 'tracker_output1'
             )
 
         if self.settings['output']['video_recording']:
@@ -495,7 +511,7 @@ class MainGui(QMainWindow):
                     sender = self.camera_worker, 
                     receiver = self.image_saver_worker, 
                     queue = self.queue_save_image, 
-                    name = 'image_saver'
+                    name = 'cam_output2'
                 )
             
             else:
@@ -503,7 +519,7 @@ class MainGui(QMainWindow):
                     sender = self.camera_worker, 
                     receiver = self.video_recorder_worker, 
                     queue = self.queue_save_image, 
-                    name = 'image_saver'
+                    name = 'cam_output2'
                 )
 
             self.dag.connect_data(
@@ -549,7 +565,7 @@ class MainGui(QMainWindow):
                 sender = self.camera_worker, 
                 receiver = self.background_worker_list[i], 
                 queue = self.queue_cam, 
-                name='background_subtraction'
+                name = 'cam_output1'
             )
         
         # NOTE: the order in which you declare connections matter: background_subtraction will
@@ -561,7 +577,7 @@ class MainGui(QMainWindow):
                     sender = self.camera_worker, 
                     receiver = self.image_saver_worker, 
                     queue = self.queue_save_image, 
-                    name = 'image_saver'
+                    name = 'cam_output2'
                 )
             
             else:
@@ -569,7 +585,7 @@ class MainGui(QMainWindow):
                     sender = self.camera_worker, 
                     receiver = self.video_recorder_worker, 
                     queue = self.queue_save_image, 
-                    name = 'image_saver'
+                    name = 'cam_output2'
                 )
 
             self.dag.connect_data(
@@ -594,7 +610,7 @@ class MainGui(QMainWindow):
                 sender = self.tracker_worker_list[i], 
                 receiver = self.tracking_display_worker, 
                 queue = self.queue_overlay, 
-                name = 'overlay'
+                name = 'tracker_output2'
             )
 
         for i in range(self.settings['vr_settings']['n_tracker_workers']):
@@ -602,7 +618,7 @@ class MainGui(QMainWindow):
                 sender = self.tracker_worker_list[i], 
                 receiver = self.stim_worker, 
                 queue = self.queue_tracking, 
-                name = 'stimulus'
+                name = 'tracker_output1'
             )
 
         # metadata
@@ -996,6 +1012,8 @@ class MainGui(QMainWindow):
             if self.settings['output']['video_recording']:
                 print('cam to image saver', self.queue_save_image.get_average_freq(), self.queue_save_image.queue.num_lost_item.value)
                 print('image saver to display', self.queue_display_image.get_average_freq(), self.queue_display_image.queue.num_lost_item.value)
+                print('cam_to_yuv420p', self.queue_camera_to_converter.get_average_freq(), self.queue_camera_to_converter.queue.num_lost_item.value)
+                print('yuv420p_to_saver', self.queue_converter_to_saver.get_average_freq(), self.queue_converter_to_saver.queue.num_lost_item.value)
             print('background to trackers', self.queue_background.get_average_freq(), self.queue_background.queue.num_lost_item.value)
             print('trackers to visual stim', self.queue_tracking.get_average_freq(), self.queue_tracking.queue.num_lost_item.value)
             print('trackers to display', self.queue_overlay.get_average_freq(), self.queue_overlay.queue.num_lost_item.value)
