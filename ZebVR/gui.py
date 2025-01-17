@@ -542,12 +542,46 @@ class MainGui(QMainWindow):
                 )
             
             else:
-                self.dag.connect_data(
-                    sender = self.camera_worker, 
-                    receiver = self.video_recorder_worker, 
-                    queue = self.queue_save_image, 
-                    name = 'cam_output2'
-                )
+                if self.settings['camera']['num_channels'] == 3:
+
+                    if self.settings['output']['video_grayscale']:
+                        self.dag.connect_data(
+                            sender = self.camera_worker, 
+                            receiver = self.rgb_to_gray_converter, 
+                            queue = self.queue_camera_to_converter, 
+                            name = 'cam_output2'
+                        )
+
+                        self.dag.connect_data(
+                            sender = self.rgb_to_gray_converter, 
+                            receiver = self.video_recorder_worker, 
+                            queue = self.queue_converter_to_saver, 
+                            name = 'gray_compression'
+                        )
+
+                    else:
+                        self.dag.connect_data(
+                            sender = self.camera_worker, 
+                            receiver = self.yuv420p_converter, 
+                            queue = self.queue_camera_to_converter, 
+                            name = 'cam_output2'
+                        )
+
+                        self.dag.connect_data(
+                            sender = self.yuv420p_converter, 
+                            receiver = self.video_recorder_worker, 
+                            queue = self.queue_converter_to_saver, 
+                            name = 'yuv420p_compression'
+                        )
+
+                else:
+
+                    self.dag.connect_data(
+                        sender = self.camera_worker, 
+                        receiver = self.video_recorder_worker, 
+                        queue = self.queue_save_image, 
+                        name = 'cam_output2'
+                    )
 
             self.dag.connect_data(
                 sender = self.video_recorder_worker, 
@@ -608,12 +642,46 @@ class MainGui(QMainWindow):
                 )
             
             else:
-                self.dag.connect_data(
-                    sender = self.camera_worker, 
-                    receiver = self.video_recorder_worker, 
-                    queue = self.queue_save_image, 
-                    name = 'cam_output2'
-                )
+                if self.settings['camera']['num_channels'] == 3:
+
+                    if self.settings['output']['video_grayscale']:
+                        self.dag.connect_data(
+                            sender = self.camera_worker, 
+                            receiver = self.rgb_to_gray_converter, 
+                            queue = self.queue_camera_to_converter, 
+                            name = 'cam_output2'
+                        )
+
+                        self.dag.connect_data(
+                            sender = self.rgb_to_gray_converter, 
+                            receiver = self.video_recorder_worker, 
+                            queue = self.queue_converter_to_saver, 
+                            name = 'gray_compression'
+                        )
+
+                    else:
+                        self.dag.connect_data(
+                            sender = self.camera_worker, 
+                            receiver = self.yuv420p_converter, 
+                            queue = self.queue_camera_to_converter, 
+                            name = 'cam_output2'
+                        )
+
+                        self.dag.connect_data(
+                            sender = self.yuv420p_converter, 
+                            receiver = self.video_recorder_worker, 
+                            queue = self.queue_converter_to_saver, 
+                            name = 'yuv420p_compression'
+                        )
+
+                else:
+
+                    self.dag.connect_data(
+                        sender = self.camera_worker, 
+                        receiver = self.video_recorder_worker, 
+                        queue = self.queue_save_image, 
+                        name = 'cam_output2'
+                    )
 
             self.dag.connect_data(
                 sender = self.video_recorder_worker, 
