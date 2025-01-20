@@ -15,6 +15,9 @@ def gray_to_yuv420p(image_gray: NDArray) -> NDArray:
 def rgb_to_gray(image_rgb: NDArray) -> NDArray:
     return im2gray(image_rgb)
 
+def decimate(image: NDArray, k:int) -> NDArray:
+    return image[::k,::k]
+
 def resize_to_closest_multiple_of_two(image: NDArray, height: int, width: int) -> NDArray:
     # some video_codecs require images with even size
     new_height = 2*(height//2) 
