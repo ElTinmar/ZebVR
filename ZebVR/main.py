@@ -1,6 +1,6 @@
 from multiprocessing import set_start_method
 import os
-os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1" # is this still necessary?
 from PyQt5.QtWidgets import QApplication
 from ZebVR.gui import MainGui
 
