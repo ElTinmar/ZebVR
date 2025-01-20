@@ -423,7 +423,7 @@ class MainGui(QMainWindow):
         self.queue_background = MonitoredQueue(
             ModifiableRingBuffer(
                 num_bytes = 500*1024**2,
-                copy=False, # you probably don't need to copy if processing is fast enough
+                #copy=False, # you probably don't need to copy if processing is fast enough
                 logger = self.queue_logger,
                 name = 'background_to_trackers',
                 t_refresh = 1e-6 * self.settings['vr_settings']['queue_refresh_time_microsec']
