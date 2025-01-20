@@ -233,7 +233,7 @@ class GeneralStim(VisualStim):
         self.looming_expansion_speed_mm_per_sec = Value('d', self.default_looming_expansion_speed_mm_per_sec)
 
         self.index = Value('L', 0)
-        self.timestamp = Value('f', 0)
+        self.timestamp = Value('d', 0)
         self.fish_mediolateral_axis = Array('d', [0, 0])
         self.fish_caudorostral_axis = Array('d', [0, 0])
         self.fish_centroid = Array('d', [0, 0])
