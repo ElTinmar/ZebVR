@@ -20,7 +20,7 @@ class BackgroundSubWorker(WorkerNode):
                 (data['index'], data['timestamp'], background_sub),
                 dtype=([
                     ('index', int),
-                    ('timestamp', np.float32),
+                    ('timestamp', np.float64),
                     ('image', background_sub.dtype, background_sub.shape)
                 ])
             )            
