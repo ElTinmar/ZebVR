@@ -6,7 +6,7 @@ from camera_tools import OpenCV_Webcam
 import numpy as np
 from numpy.typing import NDArray
 import time
-from typing import Any
+from typing import Any, Tuple
 from PyQt5.QtWidgets import QApplication
 from ZebVR.widgets import DisplayWidget
 
@@ -53,24 +53,34 @@ class Flash(WorkerNode):
 
     def __init__(
             self, 
+            pos: Tuple[int,int] = (0,0),
+            resolution: Tuple[int,int] = (512,512),
             *args, 
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
-        self.white = 255*np.ones((1024,1024), dtype=np.uint8)
-        self.black = np.zeros((1024,1024), dtype=np.uint8)
+        self.pos = pos
+        self.resolution = resolution 
+        self.white = 255*np.ones(resolution, dtype=np.uint8)
+        self.black = np.zeros(resolution, dtype=np.uint8)
 
     def initialize(self) -> None:
 
         super().initialize()
         
         self.app = QApplication([])
-        self.window = DisplayWidget()
+        self.window = DisplayWidget(display_height=self.resolution[0])
         self.window.set_state(
             index = -1,
             timestamp = -1,
             image_rgb = self.black
+        )
+        self.window.setGeometry(
+            self.pos[0],
+            self.pos[1],
+            self.resolution[0],
+            self.resolution[1]
         )
         self.window.show()
 
@@ -120,6 +130,8 @@ thresholder = Thresholder(
 )
 
 flash = Flash(
+    pos = (0,0),
+    resolution = (1024,1024),
     name = 'flash', 
     logger = worker_logger, 
     logger_queues = queue_logger,
