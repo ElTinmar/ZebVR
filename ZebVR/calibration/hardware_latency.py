@@ -2,13 +2,18 @@ from dagline import ProcessingDAG, receive_strategy, send_strategy, WorkerNode
 from ipc_tools import ModifiableRingBuffer
 from multiprocessing_logger import Logger
 from ZebVR.workers import Display, CameraWorker
-from camera_tools import OpenCV_Webcam
 import numpy as np
 from numpy.typing import NDArray
 import time
 from typing import Any, Tuple
 from PyQt5.QtWidgets import QApplication
 from ZebVR.widgets import DisplayWidget
+from camera_tools import OpenCV_Webcam
+try:
+    from camera_tools import XimeaCamera
+    XIMEA_ENABLED = True
+except ImportError:
+    XIMEA_ENABLED = False
 
 worker_logger = Logger('worker.log', Logger.INFO)
 queue_logger = Logger('queue.log', Logger.INFO)
@@ -105,12 +110,12 @@ class Flash(WorkerNode):
         pass
         
 camera = CameraWorker(
-    camera_constructor = OpenCV_Webcam, 
-    exposure = 0,
+    camera_constructor = XimeaCamera, 
+    exposure = 1000,
     gain = 0,
     framerate = 30,
-    height = 480,
-    width = 640,
+    height = 2048,
+    width = 2048,
     offsetx = 0,
     offsety = 0,
     name = 'camera', 
@@ -123,15 +128,15 @@ camera = CameraWorker(
 )
 
 thresholder = Thresholder(
-    threshold = 200,
+    threshold = 5,
     name = 'thresholder', 
     logger = worker_logger, 
     logger_queues = queue_logger,
 )
 
 flash = Flash(
-    pos = (0,0),
-    resolution = (1024,1024),
+    pos = (1920,0),
+    resolution = (1080,1920),
     name = 'flash', 
     logger = worker_logger, 
     logger_queues = queue_logger,
