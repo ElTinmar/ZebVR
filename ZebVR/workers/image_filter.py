@@ -18,6 +18,14 @@ def rgb_to_gray(image_rgb: NDArray) -> NDArray:
 def decimate(image: NDArray, k:int) -> NDArray:
     return image[::k,::k]
 
+def bin(image: NDArray, k:int) -> NDArray:
+    h, w = image.shape[:2]
+    new_h, new_w = h // k, w // k  
+    binned = image[:new_h * k, :new_w * k].reshape(new_h, k, new_w, k, -1).mean(axis=(1, 3))
+    if binned.shape[-1] == 1:
+        binned = binned.squeeze(-1)
+    return binned
+
 def resize_to_closest_multiple_of_two(image: NDArray, height: int, width: int) -> NDArray:
     # some video_codecs require images with even size
     new_height = 2*(height//2) 
