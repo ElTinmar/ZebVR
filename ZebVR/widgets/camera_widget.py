@@ -379,13 +379,13 @@ class CameraController(QObject):
         camera = self.camera_constructor()
         state = self.view.get_state()
 
+        camera.set_width(state['width_value'])
+        camera.set_height(state['height_value'])
+        camera.set_offsetY(state['offsetY_value'])
+        camera.set_offsetX(state['offsetX_value'])
         camera.set_exposure(state['exposure_value'])
         camera.set_framerate(state['framerate_value'])
         camera.set_gain(state['gain_value'])
-        camera.set_height(state['height_value'])
-        camera.set_width(state['width_value'])
-        camera.set_offsetY(state['offsetY_value'])
-        camera.set_offsetX(state['offsetX_value'])
         
         # check values
         state_validated = self.get_camera_state(camera)
