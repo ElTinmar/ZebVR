@@ -1,6 +1,7 @@
 from multiprocessing import Process
 import time
 import json
+import pprint
 
 import cv2
 import numpy as np
@@ -1083,7 +1084,7 @@ class MainGui(QMainWindow):
     def start(self):
         self.camera_controller.set_preview(False)
 
-        print(self.settings)
+        pprint.pprint(self.settings)
 
         if self.settings['vr_settings']['openloop']:
             self.create_open_loop_dag()
