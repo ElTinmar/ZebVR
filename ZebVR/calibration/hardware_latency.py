@@ -1,5 +1,5 @@
 from dagline import ProcessingDAG, receive_strategy, send_strategy, WorkerNode
-from ipc_tools import ModifiableRingBuffer
+from ipc_tools import ModifiableRingBuffer, MonitoredQueue
 from multiprocessing_logger import Logger
 from ZebVR.workers import CameraWorker
 from ZebVR.stimulus import VisualStim, VisualStimWorker
@@ -38,7 +38,9 @@ class Thresholder(WorkerNode):
     
         img = data['image']
         detected = False
-        if np.mean(img) >= self.threshold:
+        avg = np.mean(img)
+        print(avg)
+        if avg >= self.threshold:
             detected = True
 
         res = np.array(
@@ -127,7 +129,7 @@ camera = CameraWorker(
     camera_constructor = XimeaCamera, 
     exposure = 1000,
     gain = 0,
-    framerate = 30,
+    framerate = 170,
     height = 2048,
     width = 2048,
     offsetx = 0,
@@ -142,7 +144,7 @@ camera = CameraWorker(
 )
 
 thresholder = Thresholder(
-    threshold = 5,
+    threshold = 2.7,
     name = 'thresholder', 
     logger = worker_logger, 
     logger_queues = queue_logger,
@@ -161,15 +163,19 @@ flash_worker = VisualStimWorker(
 )
 
 
-queue1 = ModifiableRingBuffer(
+queue1 = MonitoredQueue(
+    ModifiableRingBuffer(
     num_bytes = 500*1024**2,
     logger = queue_logger,
     name = 'camera_to_thresholder'
 )
-queue2 = ModifiableRingBuffer(
+)
+queue2 = MonitoredQueue(
+    ModifiableRingBuffer(
     num_bytes = 500*1024**2,
     logger = queue_logger,
     name = 'thresholder_to_display'
+)
 )
 
 dag = ProcessingDAG()
@@ -189,5 +195,8 @@ dag.connect_data(
 )
 
 dag.start()
-time.sleep(20)
+time.sleep(10)
 dag.stop()
+
+print('cam to thresh', queue1.get_average_freq(), queue1.queue.num_lost_item.value)
+print('thresh to flash', queue2.get_average_freq(), queue2.queue.num_lost_item.value)
