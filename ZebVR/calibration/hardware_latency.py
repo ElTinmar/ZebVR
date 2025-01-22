@@ -1,13 +1,14 @@
 from dagline import ProcessingDAG, receive_strategy, send_strategy, WorkerNode
 from ipc_tools import ModifiableRingBuffer
 from multiprocessing_logger import Logger
-from ZebVR.workers import Display, CameraWorker
+from ZebVR.workers import CameraWorker
+from ZebVR.stimulus import VisualStim, VisualStimWorker
+from vispy import gloo
+from multiprocessing import Value
 import numpy as np
 from numpy.typing import NDArray
 import time
 from typing import Any, Tuple
-from PyQt5.QtWidgets import QApplication
-from ZebVR.widgets import DisplayWidget
 from camera_tools import OpenCV_Webcam
 try:
     from camera_tools import XimeaCamera
@@ -54,59 +55,72 @@ class Thresholder(WorkerNode):
     def process_metadata(self, metadata) -> Any:
         pass
 
-class Flash(WorkerNode):
+
+VERT_SHADER = """
+attribute vec2 a_position;
+uniform mat3 u_transformation_matrix;
+uniform float u_pix_per_mm; 
+
+void main()
+{
+    gl_Position = vec4(a_position, 0.0, 1.0);
+}
+"""
+
+FRAG_SHADER = """
+uniform float on;
+uniform vec2 u_pixel_scaling; 
+uniform float u_time;
+
+void main()
+{
+    gl_FragColor = vec4(0,0,0,1);
+
+    if (on == 1) {
+        gl_FragColor = vec4(1,1,1,1);
+    }
+}
+"""
+
+class Flash2(VisualStim):
 
     def __init__(
-            self, 
-            pos: Tuple[int,int] = (0,0),
-            resolution: Tuple[int,int] = (512,512),
-            *args, 
-            **kwargs
-        ):
+            self,  
+            window_size: Tuple[int, int], 
+            window_position: Tuple[int, int], 
+            window_decoration: bool = True,
+            transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
+            pixel_scaling: Tuple[float, float] = (1.0,1.0),
+            pix_per_mm: float = 30,
+            vsync: bool = True,
+        ) -> None:
 
-        super().__init__(*args, **kwargs)
-        self.pos = pos
-        self.resolution = resolution 
-        self.white = 255*np.ones(resolution, dtype=np.uint8)
-        self.black = np.zeros(resolution, dtype=np.uint8)
-
-    def initialize(self) -> None:
-
-        super().initialize()
-        
-        self.app = QApplication([])
-        self.window = DisplayWidget(display_height=self.resolution[0])
-        self.window.set_state(
-            index = -1,
-            timestamp = -1,
-            image_rgb = self.black
+        super().__init__(
+            vertex_shader=VERT_SHADER, 
+            fragment_shader=FRAG_SHADER, 
+            window_size=window_size,
+            window_position=window_position, 
+            pix_per_mm=pix_per_mm, 
+            window_decoration=window_decoration, 
+            transformation_matrix=transformation_matrix, 
+            pixel_scaling=pixel_scaling, 
+            vsync=vsync
         )
-        self.window.setGeometry(
-            self.pos[0],
-            self.pos[1],
-            self.resolution[0],
-            self.resolution[1]
-        )
-        self.window.show()
 
-    def process_data(self, data) -> NDArray:
+        self.on = Value('d',0)
 
-        self.app.processEvents()
-        self.app.sendPostedEvents()
-        
-        if data is None:
-            time.sleep(0.001)
-            return
+    def on_draw(self, event):
+        super().on_draw(event)
+        self.program['on'] = self.on.value
+        gloo.clear('black')
+        self.program.draw('triangle_strip')
 
-        if data['detected']:
-            self.window.set_state(
-                index = data['index'],
-                timestamp = data['timestamp'],
-                image_rgb = self.white
-            )
+    def process_data(self, data) -> None:
+        if data is not None:
+            self.on.value = data['detected']
             print(f"latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
 
-    def process_metadata(self, metadata) -> Any:
+    def process_metadata(self, metadata) -> None:
         pass
         
 camera = CameraWorker(
@@ -134,13 +148,18 @@ thresholder = Thresholder(
     logger_queues = queue_logger,
 )
 
-flash = Flash(
-    pos = (1920,0),
-    resolution = (1080,1920),
+flash_stim = Flash2(
+    window_position = (1920,0),
+    window_size = (1080,1920),
+)
+
+flash_worker = VisualStimWorker(
+    stim = flash_stim, 
     name = 'flash', 
     logger = worker_logger, 
-    logger_queues = queue_logger,
+    logger_queues = queue_logger
 )
+
 
 queue1 = ModifiableRingBuffer(
     num_bytes = 500*1024**2,
@@ -164,7 +183,7 @@ dag.connect_data(
 
 dag.connect_data(
     sender = thresholder, 
-    receiver = flash, 
+    receiver = flash_worker, 
     queue = queue2, 
     name = 'threshold_out0'
 )
