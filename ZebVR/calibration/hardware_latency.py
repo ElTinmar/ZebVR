@@ -3,7 +3,7 @@ from ipc_tools import ModifiableRingBuffer, MonitoredQueue
 from multiprocessing_logger import Logger
 from ZebVR.workers import CameraWorker
 from ZebVR.stimulus import VisualStim, VisualStimWorker
-from vispy import gloo
+from vispy import app, gloo
 from multiprocessing import Value
 import numpy as np
 from numpy.typing import NDArray
@@ -13,8 +13,10 @@ from camera_tools import OpenCV_Webcam
 try:
     from camera_tools import XimeaCamera
     XIMEA_ENABLED = True
+    constructor = XimeaCamera
 except ImportError:
     XIMEA_ENABLED = False
+    constructor = OpenCV_Webcam
 
 worker_logger = Logger('worker.log', Logger.INFO)
 queue_logger = Logger('queue.log', Logger.INFO)
@@ -76,10 +78,10 @@ uniform float u_time;
 
 void main()
 {
-    gl_FragColor = vec4(0,0,0,1);
+    gl_FragColor = vec4(0.0,0.0,0.0,1.0);
 
     if (on == 1) {
-        gl_FragColor = vec4(1,1,1,1);
+        gl_FragColor = vec4(1.0,1.0,1.0,1.0);
     }
 }
 """
@@ -90,10 +92,11 @@ class Flash2(VisualStim):
             self,  
             window_size: Tuple[int, int], 
             window_position: Tuple[int, int], 
-            window_decoration: bool = True,
+            window_decoration: bool = False,
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             pix_per_mm: float = 30,
+            refresh_rate: int = 240,
             vsync: bool = True,
         ) -> None:
 
@@ -110,28 +113,39 @@ class Flash2(VisualStim):
         )
 
         self.on = Value('d',0)
+        self.refresh_rate = refresh_rate
+
+    def initialize(self):
+        super().initialize()
+        self.program['on'] = 0.0
+        self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
+        self.timer.start()
+        self.show()
+
+    def on_timer(self, event):
+        self.program['on'] = self.on.value
+        self.update()
 
     def on_draw(self, event):
         super().on_draw(event)
-        self.program['on'] = self.on.value
         gloo.clear('black')
         self.program.draw('triangle_strip')
 
     def process_data(self, data) -> None:
         if data is not None:
             self.on.value = data['detected']
-            print(f"latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
+            print(f"latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}, detected: {self.on.value}")
 
     def process_metadata(self, metadata) -> None:
         pass
         
 camera = CameraWorker(
-    camera_constructor = XimeaCamera, 
-    exposure = 1000,
+    camera_constructor = constructor, 
+    exposure = 30,
     gain = 0,
-    framerate = 170,
-    height = 2048,
-    width = 2048,
+    framerate = 30,
+    height = 480,
+    width = 640,
     offsetx = 0,
     offsety = 0,
     name = 'camera', 
@@ -144,7 +158,7 @@ camera = CameraWorker(
 )
 
 thresholder = Thresholder(
-    threshold = 2.7,
+    threshold = 140,
     name = 'thresholder', 
     logger = worker_logger, 
     logger_queues = queue_logger,
@@ -153,6 +167,7 @@ thresholder = Thresholder(
 flash_stim = Flash2(
     window_position = (1920,0),
     window_size = (1080,1920),
+    refresh_rate = 240
 )
 
 flash_worker = VisualStimWorker(
