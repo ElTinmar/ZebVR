@@ -133,7 +133,9 @@ class Flash2(VisualStim):
 
     def process_data(self, data) -> None:
         if data is not None:
-            self.on.value = data['detected']
+            #self.on.value = data['detected']
+            if data['detected']:
+                self.on.value = 1
             print(f"latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}, detected: {self.on.value}")
 
     def process_metadata(self, metadata) -> None:
@@ -141,11 +143,11 @@ class Flash2(VisualStim):
         
 camera = CameraWorker(
     camera_constructor = constructor, 
-    exposure = 30,
+    exposure = 1000,
     gain = 0,
-    framerate = 30,
-    height = 480,
-    width = 640,
+    framerate = 100,
+    height = 2048,
+    width = 2048,
     offsetx = 0,
     offsety = 0,
     name = 'camera', 
@@ -153,12 +155,10 @@ camera = CameraWorker(
     logger_queues = queue_logger,
     receive_data_strategy = receive_strategy.COLLECT, 
     send_data_strategy = send_strategy.BROADCAST, 
-    receive_data_timeout = 1.0,
-    profile = False
 )
 
 thresholder = Thresholder(
-    threshold = 140,
+    threshold = 2.6,
     name = 'thresholder', 
     logger = worker_logger, 
     logger_queues = queue_logger,
@@ -166,7 +166,7 @@ thresholder = Thresholder(
 
 flash_stim = Flash2(
     window_position = (1920,0),
-    window_size = (1080,1920),
+    window_size = (1920,1080),
     refresh_rate = 240
 )
 
@@ -177,20 +177,19 @@ flash_worker = VisualStimWorker(
     logger_queues = queue_logger
 )
 
-
 queue1 = MonitoredQueue(
     ModifiableRingBuffer(
-    num_bytes = 500*1024**2,
-    logger = queue_logger,
-    name = 'camera_to_thresholder'
-)
+        num_bytes = 500*1024**2,
+        logger = queue_logger,
+        name = 'camera_to_thresholder'
+    )
 )
 queue2 = MonitoredQueue(
     ModifiableRingBuffer(
-    num_bytes = 500*1024**2,
-    logger = queue_logger,
-    name = 'thresholder_to_display'
-)
+        num_bytes = 500*1024**2,
+        logger = queue_logger,
+        name = 'thresholder_to_display'
+    )
 )
 
 dag = ProcessingDAG()
