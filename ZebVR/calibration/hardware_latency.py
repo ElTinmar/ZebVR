@@ -33,7 +33,7 @@ class Thresholder(WorkerNode):
         super().__init__(*args, **kwargs)
         self.threshold = threshold
 
-    def process_data(self, data: None): 
+    def process_data(self, data: Any): 
 
         if data is None:
             return None
