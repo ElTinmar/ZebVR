@@ -46,6 +46,8 @@ class VisualStim(app.Canvas):
             position=self.window_position, 
             keys='interactive', 
             vsync=self.vsync,
+            fullscreen=True,
+            always_on_top=True,
             config=dict(double_buffer=self.double_buffering)
         )
 
