@@ -230,7 +230,7 @@ dag.connect_data(
 )
 
 dag.start()
-time.sleep(10)
+time.sleep(60)
 dag.stop()
 
 print('cam to thresh', queue1.get_average_freq(), queue1.queue.num_lost_item.value)
