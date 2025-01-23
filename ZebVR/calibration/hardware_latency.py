@@ -117,7 +117,6 @@ class Flash2(VisualStim):
             pix_per_mm: float = 30,
             refresh_rate: int = 240,
             vsync: bool = False,
-            double_buffering: bool = True,
         ) -> None:
 
         super().__init__(
@@ -130,7 +129,6 @@ class Flash2(VisualStim):
             transformation_matrix=transformation_matrix, 
             pixel_scaling=pixel_scaling, 
             vsync=vsync,
-            double_buffering=double_buffering
         )
 
         self.on = Value('d',0)
