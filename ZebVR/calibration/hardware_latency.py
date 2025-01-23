@@ -111,7 +111,8 @@ class Flash2(VisualStim):
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             pix_per_mm: float = 30,
             refresh_rate: int = 240,
-            vsync: bool = True,
+            vsync: bool = False,
+            double_buffering: bool = False,
         ) -> None:
 
         super().__init__(
@@ -123,7 +124,8 @@ class Flash2(VisualStim):
             window_decoration=window_decoration, 
             transformation_matrix=transformation_matrix, 
             pixel_scaling=pixel_scaling, 
-            vsync=vsync
+            vsync=vsync,
+            double_buffering=double_buffering
         )
 
         self.on = Value('d',0)
@@ -181,7 +183,6 @@ thresholder = Thresholder(
 flash_stim = Flash2(
     window_position = (1920,0),
     window_size = (1920,1080),
-    refresh_rate = 240
 )
 
 flash_worker = VisualStimWorker(
