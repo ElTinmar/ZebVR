@@ -372,12 +372,11 @@ class GeneralStim(VisualStim):
         if self.tstart == 0:
             self.tstart = time.perf_counter_ns()
 
+        self.update_shader_variables(t_local)
+        self.update()
+
         t_display = time.perf_counter_ns()
         t_local = 1e-9*(t_display - self.tstart)
-
-        self.update_shader_variables(t_local)
-
-        self.update()
 
         row = (
             f'{self.index.value}',
