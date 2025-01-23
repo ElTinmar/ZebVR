@@ -55,7 +55,7 @@ class Thresholder(WorkerNode):
         img = data['image']
         detected = False
         avg = np.mean(img)
-        print(avg)
+        #print(avg)
         if avg >= self.threshold:
             detected = True
 
@@ -129,6 +129,7 @@ class Flash2(VisualStim):
         )
 
         self.on = Value('d',0)
+        self.timestamp = Value('d',0)
         self.refresh_rate = refresh_rate
 
     def initialize(self):
@@ -141,6 +142,9 @@ class Flash2(VisualStim):
     def on_timer(self, event):
         self.program['on'] = self.on.value
         self.update()
+        gloo.wrappers.finish()
+        if self.on.value:
+            print(f"latency {1e-6*(time.perf_counter_ns() - self.timestamp.value)}, detected: {self.on.value}")
 
     def on_draw(self, event):
         super().on_draw(event)
@@ -149,10 +153,8 @@ class Flash2(VisualStim):
 
     def process_data(self, data) -> None:
         if data is not None:
-            #self.on.value = data['detected']
-            if data['detected']:
-                self.on.value = 1
-            print(f"latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}, detected: {self.on.value}")
+            self.on.value = data['detected']
+            self.timestamp.value = data['timestamp']
 
     def process_metadata(self, metadata) -> None:
         pass
