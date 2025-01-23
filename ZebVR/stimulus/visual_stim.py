@@ -21,8 +21,6 @@ class VisualStim(app.Canvas):
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             vsync: bool = False,
             double_buffering: bool = False,
-            fullscreen: bool = True,
-            always_on_top: bool = True,
         ) -> None:
             
 
@@ -35,8 +33,6 @@ class VisualStim(app.Canvas):
             self.pixel_scaling = pixel_scaling
             self.vsync = vsync
             self.double_buffering = double_buffering
-            self.fullscreen = fullscreen
-            self.always_on_top = always_on_top
             self.pix_per_mm = pix_per_mm
             self.initialized = Event()
 
@@ -50,8 +46,8 @@ class VisualStim(app.Canvas):
             position = self.window_position, 
             keys = 'interactive', 
             vsync = self.vsync,
-            fullscreen = self.fullscreen,
-            always_on_top = self.always_on_top,
+            fullscreen = True,
+            always_on_top = True,
             config=dict(double_buffer=self.double_buffering)
         )
 
