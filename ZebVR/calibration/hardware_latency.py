@@ -117,7 +117,7 @@ class Flash2(VisualStim):
             pix_per_mm: float = 30,
             refresh_rate: int = 240,
             vsync: bool = False,
-            double_buffering: bool = False,
+            double_buffering: bool = True,
         ) -> None:
 
         super().__init__(
@@ -230,7 +230,7 @@ dag.connect_data(
 )
 
 dag.start()
-time.sleep(60)
+time.sleep(120)
 dag.stop()
 
 print('cam to thresh', queue1.get_average_freq(), queue1.queue.num_lost_item.value)

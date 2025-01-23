@@ -20,7 +20,7 @@ class VisualStim(app.Canvas):
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             vsync: bool = False,
-            double_buffering: bool = False,
+            double_buffering: bool = True,
         ) -> None:
             
 
@@ -48,7 +48,6 @@ class VisualStim(app.Canvas):
             vsync = self.vsync,
             fullscreen = True,
             always_on_top = True,
-            config=dict(double_buffer=self.double_buffering)
         )
 
         self.program = gloo.Program(self.vertex_shader, self.fragment_shader)
