@@ -27,9 +27,6 @@ queue_logger = Logger('queue.log', Logger.INFO)
 #       2048x2048, 1ms exposure time, PCIe Gen2X2 limited at 727MBps: 
 #       ~5.7ms readout + 1ms exposure = ~6.7ms total 
 #
-#   Processing:
-#       ~3ms
-#
 #   Compositor:
 #       Double-buffering @240Hz: 4.2ms
 #   
@@ -37,7 +34,7 @@ queue_logger = Logger('queue.log', Logger.INFO)
 #       1920x1080 @ 240Hz, 4.2ms input lag over HDMI 2.0 (18 Gbps). 
 #       Data transmission assuming RGB ~2.7ms + 4.2ms to display = 6.9ms total
 #
-# Total: 5.7 + 3 + 4.2 + 6.9 = ~20ms 
+# Total: 5.7 + 4.2 + 6.9 = ~18ms 
 
 
 class Thresholder(WorkerNode):
