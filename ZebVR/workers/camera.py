@@ -55,7 +55,6 @@ class CameraWorker(WorkerNode):
         #timestamp = time.perf_counter_ns()
         frame = self.cam.get_frame()
         timestamp = time.perf_counter_ns()
-
         
         if frame:
             img = frame['image']
