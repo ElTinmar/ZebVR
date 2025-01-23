@@ -51,13 +51,14 @@ class CameraWorker(WorkerNode):
         self.cam.stop_acquisition()
     
     def process_data(self, data: None): 
+
+        timestamp = time.perf_counter_ns()
         frame = self.cam.get_frame()
         
         if frame:
-
             img = frame['image']
             img_res = np.array(
-                (frame['index'], time.perf_counter_ns(), img), # not using the timestamp from the camera
+                (frame['index'], timestamp, img), # not using the timestamp from the camera
                 dtype=np.dtype([
                     ('index', int),
                     ('timestamp', np.float64),
