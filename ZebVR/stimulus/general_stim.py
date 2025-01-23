@@ -371,18 +371,18 @@ class GeneralStim(VisualStim):
 
         if self.tstart == 0:
             self.tstart = time.perf_counter_ns()
+        
+        t_display = time.perf_counter_ns()
+        t_local = 1e-9*(t_display - self.tstart)
 
         self.update_shader_variables(t_local)
         self.update()
-
-        t_display = time.perf_counter_ns()
-        t_local = 1e-9*(t_display - self.tstart)
 
         row = (
             f'{self.index.value}',
             f'{t_display}',
             f'{t_local}',
-            f'{1e-6*(t_display - self.timestamp.value)}',
+            f'{1e-6*(time.perf_counter_ns() - self.timestamp.value)}',
             f'{self.fish_centroid[0]}',
             f'{self.fish_centroid[1]}',
             f'{self.fish_caudorostral_axis[0]}',
