@@ -19,8 +19,10 @@ class VisualStim(app.Canvas):
             window_decoration: bool = False,
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
-            vsync: bool = True,
-            double_buffering: bool = True
+            vsync: bool = False,
+            double_buffering: bool = False,
+            fullscreen: bool = True,
+            always_on_top: bool = True,
         ) -> None:
             
 
@@ -33,6 +35,8 @@ class VisualStim(app.Canvas):
             self.pixel_scaling = pixel_scaling
             self.vsync = vsync
             self.double_buffering = double_buffering
+            self.fullscreen = fullscreen
+            self.always_on_top = always_on_top
             self.pix_per_mm = pix_per_mm
             self.initialized = Event()
 
@@ -41,13 +45,13 @@ class VisualStim(app.Canvas):
 
         app.Canvas.__init__(
             self, 
-            size=self.window_size, 
-            decorate=self.window_decoration, 
-            position=self.window_position, 
-            keys='interactive', 
-            vsync=self.vsync,
-            fullscreen=True,
-            always_on_top=True,
+            size = self.window_size, 
+            decorate = self.window_decoration, 
+            position = self.window_position, 
+            keys = 'interactive', 
+            vsync = self.vsync,
+            fullscreen = self.fullscreen,
+            always_on_top = self.always_on_top,
             config=dict(double_buffer=self.double_buffering)
         )
 
