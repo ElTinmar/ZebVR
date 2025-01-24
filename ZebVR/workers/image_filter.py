@@ -3,7 +3,10 @@ from numpy.typing import NDArray
 from typing import Any, Callable
 import numpy as np
 import cv2
-from image_tools import rgb2gray, im2gray
+from image_tools import rgb2gray, im2gray, im2single
+
+def to_single_grascale(image: NDArray) -> NDArray:
+    return im2single(im2gray(image))
 
 def rgb_to_yuv420p(image_rgb: NDArray) -> NDArray:
     return cv2.cvtColor(image_rgb, cv2.COLOR_RGB2YUV_I420)
