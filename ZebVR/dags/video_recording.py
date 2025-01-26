@@ -1,5 +1,5 @@
 from dagline import ProcessingDAG, receive_strategy, send_strategy
-from typing import Dict, Optional
+from typing import Dict, Tuple, Optional
 from ZebVR.workers import (
     CameraWorker, 
     ImageSaverWorker, 
@@ -13,7 +13,7 @@ from ZebVR.workers import (
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer
 
-def video_recording(settings: Dict, dag: Optional[ProcessingDAG]) -> ProcessingDAG:
+def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     
     # create DAG
     if dag is None:
@@ -214,4 +214,4 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG]) -> ProcessingD
 
     dag.add_node(queue_monitor_worker)
 
-    return dag
+    return (dag, worker_logger, queue_logger)

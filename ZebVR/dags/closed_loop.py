@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 import numpy as np
 
 from multiprocessing_logger import Logger
@@ -32,7 +32,6 @@ from ZebVR.workers import (
     BackgroundSubWorker, 
     CameraWorker, 
     TrackerWorker, 
-    DummyTrackerWorker,
     ImageSaverWorker, 
     VideoSaverWorker,
     TrackerGui, 
@@ -47,7 +46,7 @@ from ZebVR.workers import (
 )
 from ZebVR.stimulus import VisualStimWorker, GeneralStim
 
-def closed_loop(settings: Dict, dag: Optional[ProcessingDAG]) -> ProcessingDAG:
+def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     
     # create DAG
     if dag is None:
@@ -478,4 +477,4 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG]) -> ProcessingDAG:
     # isolated nodes
     dag.add_node(queue_monitor_worker)
 
-    return dag
+    return (dag, worker_logger, queue_logger)

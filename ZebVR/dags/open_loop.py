@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 import numpy as np
 
 from multiprocessing_logger import Logger
@@ -35,7 +35,7 @@ from ZebVR.workers import (
 )
 from ZebVR.stimulus import VisualStimWorker, GeneralStim
 
-def open_loop(settings: Dict, dag: Optional[ProcessingDAG]) -> ProcessingDAG:
+def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     
     # create DAG
     if dag is None:
@@ -403,4 +403,4 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG]) -> ProcessingDAG:
 
     dag.add_node(queue_monitor_worker)
 
-    return dag
+    return (dag, worker_logger, queue_logger)
