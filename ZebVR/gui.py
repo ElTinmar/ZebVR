@@ -855,6 +855,7 @@ class MainGui(QMainWindow):
         self.background_widget.set_state(state['background'])
         self.vr_settings_widget.set_state(state['vr_settings'])
         self.output_widget.set_state(state['output'])
+        self.sequencer_widget.set_protocol(state['protocol'])
 
     def get_state(self) -> dict:
         self.refresh_settings()
