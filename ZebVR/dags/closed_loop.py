@@ -47,9 +47,6 @@ from ZebVR.workers import (
 )
 from ZebVR.stimulus import VisualStimWorker, GeneralStim
 
-# record_flag
-# sequencer_widget.get_protocol()
-
 def video_recording(settings: Dict, dag: Optional[ProcessingDAG]) -> ProcessingDAG:
     
     # create DAG
@@ -472,8 +469,8 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG]) -> ProcessingD
         )
 
     # metadata
-    if record_flag:
-        protocol = sequencer_widget.get_protocol()
+    if settings['main']['record']:
+        protocol = settings['protocol']
         protocol_worker.set_protocol(protocol)
         dag.connect_metadata(
             sender = protocol_worker, 

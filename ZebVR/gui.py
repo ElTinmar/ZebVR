@@ -90,9 +90,8 @@ class MainGui(QMainWindow):
 
         super().__init__(*args, **kwargs)
 
-        self.record_flag = False
-
         self.settings = {}
+        self.settings['main'] = {}
         self.dag = None
 
         self.worker_logger = None
@@ -591,9 +590,9 @@ class MainGui(QMainWindow):
                 name = 'display_recording'
             )
 
-        if self.record_flag:
+        if self.settings['main']['record']:
 
-            protocol = self.sequencer_widget.get_protocol()
+            protocol = self.settings['protocol']
             self.protocol_worker.set_protocol(protocol)
             self.dag.connect_metadata(
                 sender = self.protocol_worker, 
@@ -719,8 +718,8 @@ class MainGui(QMainWindow):
 
         # metadata
 
-        if self.record_flag:
-            protocol = self.sequencer_widget.get_protocol()
+        if self.settings['main']['record']:
+            protocol = self.settings['protocol']
             self.protocol_worker.set_protocol(protocol)
             self.dag.connect_metadata(
                 sender = self.protocol_worker, 
@@ -772,6 +771,7 @@ class MainGui(QMainWindow):
         self.background_widget.background_signal.connect(self.background_callback)
 
         self.sequencer_widget = SequencerWidget()
+        self.sequencer_widget.state_changed.connect(self.update_protocol_settings)
 
         self.vr_settings_widget = VRSettingsWidget()
         self.vr_settings_widget.state_changed.connect(self.update_vr_settings_settings)
@@ -881,6 +881,9 @@ class MainGui(QMainWindow):
     def update_output_settings(self):
         self.settings['output'] = self.output_widget.get_state()
 
+    def update_protocol_settings(self):
+        self.settings['protocol'] = self.sequencer_widget.get_protocol()
+
     def refresh_settings(self):
         self.update_camera_settings()
         self.update_projector_settings()
@@ -889,6 +892,7 @@ class MainGui(QMainWindow):
         self.update_background_settings()
         self.update_vr_settings_settings()
         self.update_output_settings()
+        self.update_protocol_settings()
     
     def registration_callback(self):
         self.camera_controller.set_preview(False)
@@ -1122,7 +1126,7 @@ class MainGui(QMainWindow):
     def preview(self):
         # maybe launch preview in QThread to prevent window from hanging
 
-        self.record_flag = False
+        self.settings['main']['record'] = False
         self.start()
         
     def record(self):
@@ -1131,7 +1135,7 @@ class MainGui(QMainWindow):
 
         self.camera_controller.set_preview(False)
 
-        self.record_flag = True
+        self.settings['main']['record'] = True
         self.start() #TODO initialization takes ~5secs. It would be nice to take account of this for sleep duration
         time.sleep(self.sequencer_widget.get_protocol_duration()) 
         self.stop()
