@@ -1,6 +1,7 @@
 from multiprocessing import Process
 import time
 import json
+import pickle
 import pprint
 
 import cv2
@@ -836,16 +837,16 @@ class MainGui(QMainWindow):
 
     def load_settings(self):
         # TODO restore all settings for camera (camera choice dropmenu), for protocol 
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'JSON (*.json)')
-        with open(filename, 'r') as fp:
-            state = json.load(fp)
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr)')
+        with open(filename, 'rb') as fp:
+            state = pickle.load(fp)
         self.set_state(state)
 
     def save_settings(self):
         state = self.get_state()
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', 'JSON (*.json)')
-        with open(filename, 'w') as fp:
-            state = json.dump(state, fp)
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', 'VR Settings (*.vr)')
+        with open(filename, 'wb') as fp:
+            state = pickle.dump(state, fp)
 
     def set_state(self, state: dict) -> None:
         self.camera_widget.set_state(state['camera'])
