@@ -1,6 +1,7 @@
 from typing import Dict, Tuple
 from qt_widgets import LabeledDoubleSpinBox
 
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QWidget, 
     QCheckBox, 
@@ -14,6 +15,8 @@ from PyQt5.QtWidgets import (
 
 
 class StimWidget(QWidget):
+
+    state_changed = pyqtSignal()
 
     def __init__(
             self, 
@@ -260,6 +263,7 @@ class StimWidget(QWidget):
 
     def on_change(self):
         self.updated = True
+        self.state_changed.emit()
 
     def is_updated(self) -> bool:
         return self.updated

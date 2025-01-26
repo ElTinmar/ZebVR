@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from enum import IntEnum
 import time
 
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QApplication,
     QWidget, 
@@ -387,6 +388,8 @@ class SequencerItem(QWidget):
         pass
 
 class PauseSequencerItem(SequencerItem):
+    
+    state_changed = pyqtSignal()
 
     def __init__(self,*args,**kwargs):
         
@@ -397,6 +400,7 @@ class PauseSequencerItem(SequencerItem):
         self.pause_sec.setRange(0,100_000)
         self.pause_sec.setSingleStep(0.5)
         self.pause_sec.setValue(0)
+        self.pause_sec.editingFinished.connect(self.state_changed.emit)
 
         layout = QHBoxLayout(self)
         layout.addWidget(self.pause_sec)
@@ -410,7 +414,7 @@ class PauseSequencerItem(SequencerItem):
         ) 
         return protocol
     
-class StimSequencerItem(SequencerItem, StimWidget):
+class StimSequencerItem(StimWidget, SequencerItem):
     
     def set_protocol_item(self, item: ProtocolItem):   
 
@@ -571,6 +575,8 @@ class TriggerSequencerItem(SequencerItem):
 
 class SequencerWidget(QWidget):
 
+    state_changed = pyqtSignal()
+
     def __init__(
             self,
             *args,
@@ -634,17 +640,21 @@ class SequencerWidget(QWidget):
 
     def stim_pressed(self):
         stim = StimSequencerItem()
+        stim.state_changed.connect(self.state_changed.emit)
         item = QListWidgetItem()
         item.setSizeHint(stim.sizeHint())
         self.list.addItem(item)
         self.list.setItemWidget(item, stim)
+        self.state_changed.emit()
 
     def pause_pressed(self):
         pause = PauseSequencerItem()
+        pause.state_changed.connect(self.state_changed.emit)
         item = QListWidgetItem()
         item.setSizeHint(pause.sizeHint())
         self.list.addItem(item)
         self.list.setItemWidget(item, pause)
+        self.state_changed.emit()
 
     def trigger_pressed(self):
         trigger = TriggerSequencerItem()
