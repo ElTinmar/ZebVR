@@ -125,7 +125,7 @@ class MainGui(QMainWindow):
 
         # camera --------------------------------------------------
         self.camera_worker = CameraWorker(
-            camera_constructor = self.camera_controller.get_constructor(), 
+            camera_constructor = self.settings['camera']['camera_constructor'], 
             exposure = self.settings['camera']['exposure_value'],
             gain = self.settings['camera']['gain_value'],
             framerate = self.settings['camera']['framerate_value'],
@@ -896,7 +896,7 @@ class MainGui(QMainWindow):
         p = Process(
             target = registration,
             kwargs = {
-                "camera_constructor": self.camera_controller.get_constructor(),
+                "camera_constructor": self.settings['camera']['camera_constructor'],
                 "cam_height": self.settings['camera']['height_value'],
                 "cam_width": self.settings['camera']['width_value'],
                 "cam_offset_x": self.settings['camera']['offsetX_value'],
@@ -937,7 +937,7 @@ class MainGui(QMainWindow):
         p = Process(
             target = check_registration,
             kwargs = {
-                "camera_constructor": self.camera_controller.get_constructor(),
+                "camera_constructor": self.settings['camera']['camera_constructor'],
                 "cam_height": self.settings['camera']['height_value'],
                 "cam_width": self.settings['camera']['width_value'],
                 "cam_offset_x": self.settings['camera']['offsetX_value'],
@@ -964,7 +964,7 @@ class MainGui(QMainWindow):
             p = Process(
                 target = inpaint_background,
                 kwargs = {
-                    "camera_constructor": self.camera_controller.get_constructor(),
+                    "camera_constructor": self.settings['camera']['camera_constructor'],
                     "exposure_microsec": self.settings['camera']['exposure_value'],
                     "cam_gain": self.settings['camera']['gain_value'],
                     "cam_fps": self.settings['camera']['framerate_value'],
@@ -984,7 +984,7 @@ class MainGui(QMainWindow):
             p = Process(
                 target = static_background,
                 kwargs = {
-                    "camera_constructor": self.camera_controller.get_constructor(),
+                    "camera_constructor": self.settings['camera']['camera_constructor'],
                     "exposure_microsec": self.settings['camera']['exposure_value'],
                     "cam_gain": self.settings['camera']['gain_value'],
                     "cam_fps": self.settings['camera']['framerate_value'],
@@ -1010,7 +1010,7 @@ class MainGui(QMainWindow):
         p = Process(
             target = pix_per_mm,
             kwargs = {
-                "camera_constructor": self.camera_controller.get_constructor(),
+                "camera_constructor": self.settings['camera']['camera_constructor'],
                 "cam_height": self.settings['camera']['height_value'],
                 "cam_width": self.settings['camera']['width_value'],
                 "cam_offset_x": self.settings['camera']['offsetX_value'],
@@ -1059,7 +1059,7 @@ class MainGui(QMainWindow):
         p = Process(
             target = open_loop_coords,
             kwargs = {
-                "camera_constructor": self.camera_controller.get_constructor(),
+                "camera_constructor": self.settings['camera']['camera_constructor'],
                 "exposure_microsec": self.settings['camera']['exposure_value'],
                 "cam_gain": self.settings['camera']['gain_value'],
                 "cam_fps": self.settings['camera']['framerate_value'],
