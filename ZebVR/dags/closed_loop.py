@@ -47,7 +47,7 @@ from ZebVR.workers import (
 )
 from ZebVR.stimulus import VisualStimWorker, GeneralStim
 
-def video_recording(settings: Dict, dag: Optional[ProcessingDAG]) -> ProcessingDAG:
+def closed_loop(settings: Dict, dag: Optional[ProcessingDAG]) -> ProcessingDAG:
     
     # create DAG
     if dag is None:
@@ -258,38 +258,19 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG]) -> ProcessingD
 
     tracker_worker_list = []
     for i in range(settings['vr_settings']['n_tracker_workers']):
-
-        if settings['vr_settings']['openloop']:
-            tracker_worker_list.append(
-                DummyTrackerWorker(
-                    tracker,
-                    centroid = np.array([
-                        settings['vr_settings']['centroid_x'],
-                        settings['vr_settings']['centroid_y']
-                    ]),
-                    heading = np.array(settings['vr_settings']['heading']), # TODO check transposition is warranted (PC on col vs rows)
-                    name = f'tracker{i}', 
-                    logger = worker_logger, 
-                    logger_queues = queue_logger,
-                    send_data_strategy = send_strategy.BROADCAST, 
-                    receive_data_timeout = 1.0, 
-                            )
-            )
-
-        else:
-            tracker_worker_list.append(
-                TrackerWorker(
-                    tracker, 
-                    cam_width = settings['camera']['width_value'],
-                    cam_height = settings['camera']['height_value'],
-                    n_tracker_workers = settings['vr_settings']['n_tracker_workers'],
-                    name = f'tracker{i}', 
-                    logger = worker_logger, 
-                    logger_queues = queue_logger,
-                    send_data_strategy = send_strategy.BROADCAST, 
-                    receive_data_timeout = 1.0, 
-                            )
-            )
+        tracker_worker_list.append(
+            TrackerWorker(
+                tracker, 
+                cam_width = settings['camera']['width_value'],
+                cam_height = settings['camera']['height_value'],
+                n_tracker_workers = settings['vr_settings']['n_tracker_workers'],
+                name = f'tracker{i}', 
+                logger = worker_logger, 
+                logger_queues = queue_logger,
+                send_data_strategy = send_strategy.BROADCAST, 
+                receive_data_timeout = 1.0, 
+                        )
+        )
     
     tracker_control_worker = TrackerGui(
         n_tracker_workers = settings['vr_settings']['n_tracker_workers'],
