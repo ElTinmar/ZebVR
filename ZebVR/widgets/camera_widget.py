@@ -274,9 +274,6 @@ class CameraController(QObject):
         # initialize view
         self.view.on_source_change()
 
-    def get_constructor(self) -> Callable[[], Camera]:
-        return self.camera_constructor
-
     def on_source_changed(self, cam_source: str, cam_ind: int, filename: str):
 
         self.camera_source = cam_source
@@ -316,6 +313,7 @@ class CameraController(QObject):
         # read camera properties and set widget state accordingly
         state = {}
         
+        state['camera_constructor'] = self.camera_constructor
         state['camera_choice'] = self.camera_source
         state['camera_index'] = self.camera_index
         state['movie_file'] = self.filename
