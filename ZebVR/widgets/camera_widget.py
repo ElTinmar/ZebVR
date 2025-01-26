@@ -313,7 +313,6 @@ class CameraController(QObject):
         # read camera properties and set widget state accordingly
         state = {}
         
-        state['camera_constructor'] = self.camera_constructor
         state['camera_choice'] = self.camera_source
         state['camera_index'] = self.camera_index
         state['movie_file'] = self.filename
@@ -402,7 +401,9 @@ class CameraController(QObject):
         self.state_changed.emit()
 
     def get_state(self):
-        return self.view.get_state()
+        state = self.view.get_state()
+        state['camera_constructor'] = self.camera_constructor 
+        return state
 
     def set_preview(self, enable: bool):
         if enable:
