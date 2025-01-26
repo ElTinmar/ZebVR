@@ -71,7 +71,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG]) -> ProcessingD
 
     # create workers -----------------------------------------------------------------------
     camera_worker = CameraWorker(
-        camera_constructor = camera_controller.get_constructor(), 
+        camera_constructor = settings['camera']['camera_constructor'], 
         exposure = settings['camera']['exposure_value'],
         gain = settings['camera']['gain_value'],
         framerate = settings['camera']['framerate_value'],
