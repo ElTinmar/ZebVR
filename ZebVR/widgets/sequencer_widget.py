@@ -679,7 +679,12 @@ class SequencerWidget(QWidget):
         return state
     
     def set_protocol(self, protocol: Deque[ProtocolItem]) -> None:
-        for stim in protocol:
+        for protocol_item in protocol:
+            if isinstance(protocol_item, ProtocolItemPause):
+                stim = PauseSequencerItem()
+            else:
+                stim = StimSequencerItem()
+            stim.set_protocol_item(protocol_item)
             item = QListWidgetItem()
             item.setSizeHint(stim.sizeHint())
             self.list.addItem(item)
