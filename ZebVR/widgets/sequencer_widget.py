@@ -678,6 +678,13 @@ class SequencerWidget(QWidget):
             state.append(widget.get_protocol_item())
         return state
     
+    def set_protocol(self, protocol: Deque[ProtocolItem]) -> None:
+        for stim in protocol:
+            item = QListWidgetItem()
+            item.setSizeHint(stim.sizeHint())
+            self.list.addItem(item)
+            self.list.setItemWidget(item, stim)
+
     def get_protocol_duration(self):
         pause_duration = 0
         num_items = self.list.count()
