@@ -5,6 +5,12 @@ import numpy as np
 import cv2
 from image_tools import rgb2gray, im2gray, im2single
 
+def unpack_raw(pixeldata: NDArray, height: int, width: int) -> NDArray:
+    # TODO unpack raw image from camera
+    image = np.frombuffer(pixeldata, dtype=np.uint8)
+    image.reshape((height, width)) 
+    pass
+
 def to_single_grascale(image: NDArray) -> NDArray:
     return im2single(im2gray(image))
 
