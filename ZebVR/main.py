@@ -1,6 +1,6 @@
 from multiprocessing import set_start_method
 import os
-os.environ["OMP_NUM_THREADS"] = "1" # is this still necessary?
+os.environ["OMP_NUM_THREADS"] = "1" 
 from PyQt5.QtWidgets import QApplication
 from ZebVR.gui import MainGui
 
@@ -19,7 +19,7 @@ def set_realtime_priority(priority):
 
 if __name__ == "__main__":
 
-    set_realtime_priority(99)
+    #set_realtime_priority(99)
     set_start_method('spawn')
 
     app = QApplication([])
