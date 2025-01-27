@@ -19,7 +19,7 @@ def set_realtime_priority(priority):
 
 if __name__ == "__main__":
 
-    #set_realtime_priority(99)
+    set_realtime_priority(99)
     set_start_method('spawn')
 
     app = QApplication([])
