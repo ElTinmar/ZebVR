@@ -27,8 +27,11 @@ queue_logger = Logger('queue.log', Logger.INFO)
 #       2048x2048, 1ms exposure time, PCIe Gen2X2 limited at 727MBps: 
 #       ~5.7ms readout + 1ms exposure = ~6.7ms total 
 #
-#   Compositor:
+#   Rendering:
 #       Double-buffering @240Hz: 4.2ms
+#       
+#   Compositor:
+#       Probably bypassed in fullscreen mode
 #   
 #   ViewSonic X2-4K projector: 
 #       1920x1080 @ 240Hz, 4.2ms input lag over HDMI 2.0 (18 Gbps). 
