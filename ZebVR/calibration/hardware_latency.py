@@ -26,7 +26,7 @@ queue_logger = Logger('queue.log', Logger.INFO)
 #   XIMEA camera readout: 
 #       2048x2048, 1ms exposure time, PCIe Gen2X2 limited at 727MBps: 
 #       ~5.7ms readout + 1ms exposure = ~6.7ms total 
-#       image processing: supposedly disabled
+#       image processing: supposedly disabled for XimeaCamera_Transport
 #
 #   Rendering:
 #       Double-buffering @240Hz: 4.2ms
