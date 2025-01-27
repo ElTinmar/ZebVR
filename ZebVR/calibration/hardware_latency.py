@@ -11,9 +11,9 @@ import time
 from typing import Any, Tuple
 from camera_tools import OpenCV_Webcam
 try:
-    from camera_tools import XimeaCamera
+    from camera_tools import XimeaCamera, XimeaCamera_Transport
     XIMEA_ENABLED = True
-    constructor = XimeaCamera
+    constructor = XimeaCamera_Transport
 except ImportError:
     XIMEA_ENABLED = False
     constructor = OpenCV_Webcam
@@ -26,6 +26,7 @@ queue_logger = Logger('queue.log', Logger.INFO)
 #   XIMEA camera readout: 
 #       2048x2048, 1ms exposure time, PCIe Gen2X2 limited at 727MBps: 
 #       ~5.7ms readout + 1ms exposure = ~6.7ms total 
+#       image processing: supposedly disabled
 #
 #   Rendering:
 #       Double-buffering @240Hz: 4.2ms
@@ -37,7 +38,7 @@ queue_logger = Logger('queue.log', Logger.INFO)
 #       1920x1080 @ 240Hz, 4.2ms input lag over HDMI 2.0 (18 Gbps). 
 #       Data transmission assuming RGB ~2.7ms + 4.2ms to display = 6.9ms total
 #
-# Total: 5.7 + 4.2 + 6.9 = ~18ms 
+# Total: 6.7 + 4.2 + 6.9 = ~18ms 
 
 
 class Thresholder(WorkerNode):
