@@ -40,6 +40,12 @@ If conda complains that conda develop does not exist:
 conda install conda-build
 ```
 
+### Allow the python interpreter to set scheduler
+
+```
+sudo setcap cap_sys_nice=eip /home/martinprivat/miniconda3/envs/ZebVR2/bin/python3.8
+```
+
 ### CUDA
 
 This seems necessary for now
