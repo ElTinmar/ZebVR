@@ -6,6 +6,7 @@ from ZebVR.stimulus import VisualStim, VisualStimWorker
 from vispy import app, gloo
 from multiprocessing import Value
 import numpy as np
+import os
 from numpy.typing import NDArray
 import time
 from typing import Any, Tuple
@@ -17,9 +18,6 @@ try:
 except ImportError:
     XIMEA_ENABLED = False
     constructor = OpenCV_Webcam
-
-worker_logger = Logger('worker.log', Logger.INFO)
-queue_logger = Logger('queue.log', Logger.INFO)
 
 # Estimation of hardware timings
 # ------------------------------ 
@@ -40,6 +38,19 @@ queue_logger = Logger('queue.log', Logger.INFO)
 #
 # Total: 6.7 + 4.2 + 6.9 = ~18ms 
 
+
+def set_realtime_priority(priority):
+    try:
+        # Get the current process ID
+        pid = os.getpid()
+        
+        # Set real-time scheduling policy and priority
+        os.sched_setscheduler(pid, os.SCHED_RR, os.sched_param(sched_priority=priority))
+        print(f"Real-time priority set to {priority}.")
+    except PermissionError:
+        print("Permission denied. Run as root or grant CAP_SYS_NICE to the Python executable.")
+    except Exception as e:
+        print(f"Failed to set real-time priority: {e}")
 
 class Thresholder(WorkerNode):
 
@@ -161,7 +172,13 @@ class Flash2(VisualStim):
 
     def process_metadata(self, metadata) -> None:
         pass
-        
+
+
+set_realtime_priority(99)
+
+worker_logger = Logger('worker.log', Logger.INFO)
+queue_logger = Logger('queue.log', Logger.INFO)
+
 camera = CameraWorker(
     camera_constructor = constructor, 
     exposure = 1000,
