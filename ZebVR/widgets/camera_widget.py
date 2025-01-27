@@ -14,7 +14,7 @@ import numpy as np
 import cv2
 import os
 from functools import partial
-from typing import Dict, Callable, Optional
+from typing import Dict, Optional
 from numpy.typing import NDArray
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
@@ -27,7 +27,7 @@ from camera_tools import (
     ZeroCam
 )
 try:
-    from camera_tools import XimeaCamera
+    from camera_tools import XimeaCamera, XimeaCamera_Transport
     XIMEA_ENABLED = True
 except ImportError:
     XIMEA_ENABLED = False
@@ -299,7 +299,7 @@ class CameraController(QObject):
             self.camera_constructor = partial(MovieFileCam, filename=filename)
 
         elif cam_source=='XIMEA' and XIMEA_ENABLED:
-            self.camera_constructor = partial(XimeaCamera, dev_id=cam_ind)
+            self.camera_constructor = partial(XimeaCamera_Transport, dev_id=cam_ind)
 
         camera = self.camera_constructor()
         self.view.block_signals(True)
