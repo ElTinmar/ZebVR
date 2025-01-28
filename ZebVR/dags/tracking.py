@@ -208,7 +208,11 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
 
     tracking_saver_worker = TrackingSaver(
         filename = settings['output']['csv_filename'],
-        num_tail_points_interp = settings['vr_settings']['n_tail_pts_interp']
+        num_tail_points_interp = settings['vr_settings']['n_tail_pts_interp'],
+        name = 'tracking_saver',
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        receive_data_timeout = 1.0,
     )
 
     # connect DAG -----------------------------------------------------------------------

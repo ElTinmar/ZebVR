@@ -62,11 +62,11 @@ class TrackingSaver(WorkerNode):
 
         if data is not None:
 
-            fish_centroid = np.zeros((2,1), dtype=float)
-            fish_caudorostral_axis = np.zeros((2,1), dtype=float)
-            fish_mediolateral_axis = np.zeros((2,1), dtype=float)
-            left_eye_centroid = np.zeros((2,1), dtype=float)
-            right_eye_centroid = np.zeros((2,1), dtype=float)
+            fish_centroid = np.zeros((2,), dtype=float)
+            fish_caudorostral_axis = np.zeros((2,), dtype=float)
+            fish_mediolateral_axis = np.zeros((2,), dtype=float)
+            left_eye_centroid = np.zeros((2,), dtype=float)
+            right_eye_centroid = np.zeros((2,), dtype=float)
             skeleton_interp = np.zeros((self.num_tail_points_interp,2), dtype=float)
             left_eye_angle = 0
             right_eye_angle = 0
@@ -99,34 +99,34 @@ class TrackingSaver(WorkerNode):
                 if data['tracking']['tail'][k] is not None:
                     skeleton_interp = data['tracking']['tail'][k]['skeleton_interp']  
 
-                row = (
-                    f"{data['index']}",
-                    f"{data['timestamp']}",
-                    f"{fish_centroid[0]}",
-                    f"{fish_centroid[1]}",
-                    f"{fish_caudorostral_axis[0]}",
-                    f"{fish_caudorostral_axis[1]}",
-                    f"{fish_mediolateral_axis[0]}",
-                    f"{fish_mediolateral_axis[1]}",
-                    f"{left_eye_centroid[0]}",
-                    f"{left_eye_centroid[1]}",
-                    f"{left_eye_angle}",
-                    f"{right_eye_centroid[0]}",
-                    f"{right_eye_centroid[1]}",
-                    f"{right_eye_angle}",
-                ) \
-                + tuple(f"{skeleton_interp[i,0]}" for i in range(self.num_tail_points_interp)) \
-                + tuple(f"{skeleton_interp[i,1]}" for i in range(self.num_tail_points_interp)) 
-                self.fd.write(','.join(row) + '\n')
-
             except KeyError:
-                return None 
+                pass 
             
             except TypeError:
-                return None
+                pass
             
             except ValueError:
-                return None
+                pass
+
+            row = (
+                f"{data['index']}",
+                f"{data['timestamp']}",
+                f"{fish_centroid[0]}",
+                f"{fish_centroid[1]}",
+                f"{fish_caudorostral_axis[0]}",
+                f"{fish_caudorostral_axis[1]}",
+                f"{fish_mediolateral_axis[0]}",
+                f"{fish_mediolateral_axis[1]}",
+                f"{left_eye_centroid[0]}",
+                f"{left_eye_centroid[1]}",
+                f"{left_eye_angle}",
+                f"{right_eye_centroid[0]}",
+                f"{right_eye_centroid[1]}",
+                f"{right_eye_angle}",
+            ) \
+            + tuple(f"{skeleton_interp[i,0]}" for i in range(self.num_tail_points_interp)) \
+            + tuple(f"{skeleton_interp[i,1]}" for i in range(self.num_tail_points_interp)) 
+            self.fd.write(','.join(row) + '\n')
             
     def process_metadata(self, metadata) -> None:
         pass

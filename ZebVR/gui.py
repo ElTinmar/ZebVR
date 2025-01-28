@@ -35,7 +35,7 @@ from ZebVR.widgets import (
     OutputWidget,
     SequencerWidget
 )
-from ZebVR.dags import closed_loop, open_loop, video_recording
+from ZebVR.dags import closed_loop, open_loop, video_recording, tracking
 
 PROFILE = False
         
@@ -417,6 +417,8 @@ class MainGui(QMainWindow):
             self.dag, self.worker_logger, self.queue_logger = open_loop(self.settings)
         elif self.settings['vr_settings']['videorecording']:
             self.dag, self.worker_logger, self.queue_logger = video_recording(self.settings)
+        elif self.settings['vr_settings']['tracking']:
+            self.dag, self.worker_logger, self.queue_logger = tracking(self.settings)
         else:
             self.dag, self.worker_logger, self.queue_logger = closed_loop(self.settings)
 
