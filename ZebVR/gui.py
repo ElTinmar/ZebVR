@@ -462,7 +462,7 @@ class MainGui(QMainWindow):
         self.camera_controller.set_preview(False)
 
         self.settings['main']['record'] = True
-        self.start() #TODO initialization takes ~5secs. It would be nice to take account of this for sleep duration
+        self.start() 
         time.sleep(self.sequencer_widget.get_protocol_duration()) 
         self.stop()
 
