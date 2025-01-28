@@ -35,14 +35,14 @@ class Display(WorkerNode):
         if data is not None:
 
             if self.first_timestamp == 0:
-                self.first_timestamp = data['timestamp']
+                self.first_timestamp = data['timestamp'].copy()
 
             # restrict update freq to save resources
             if time.monotonic() - self.prev_time > 1/self.fps:
 
                 self.window.set_state(
                     index = data['index'],
-                    timestamp = round((data['timestamp'] - self.first_timestamp)*1e-9,3),
+                    timestamp = (data['timestamp'] - self.first_timestamp)*1e-9,
                     image_rgb = data['image']
                 )
 
