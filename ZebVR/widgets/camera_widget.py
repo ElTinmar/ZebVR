@@ -44,13 +44,13 @@ class CameraWidget(QWidget):
         super().__init__(*args, **kwargs)
         
         self.controls = [
-            'framerate', 
-            'exposure', 
-            'gain', 
+            'width',
+            'height',
             'offsetX', 
             'offsetY', 
-            'height',
-            'width'
+            'framerate', 
+            'exposure', 
+            'gain'
         ]
 
         self.declare_components()
