@@ -50,8 +50,8 @@ class TrackingSaver(WorkerNode):
             'right_eye_y',
             'right_eye_angle',
         ) \
-        + tuple(f'tail_point_{n:03d}_x' for n in range(self.num_tail_points_interp)) \
-        + tuple(f'tail_point_{n:03d}_y' for n in range(self.num_tail_points_interp))
+        + tuple(f"tail_point_{n:03d}_x" for n in range(self.num_tail_points_interp)) \
+        + tuple(f"tail_point_{n:03d}_y" for n in range(self.num_tail_points_interp))
         self.fd.write(','.join(headers) + '\n')
 
     def cleanup(self):
@@ -100,23 +100,23 @@ class TrackingSaver(WorkerNode):
                     skeleton_interp = data['tracking']['tail'][k]['skeleton_interp']  
 
                 row = (
-                    f'{data['index']}',
-                    f'{data['timestamp']}',
-                    f'{fish_centroid[0]}',
-                    f'{fish_centroid[1]}',
-                    f'{fish_caudorostral_axis[0]}',
-                    f'{fish_caudorostral_axis[1]}',
-                    f'{fish_mediolateral_axis[0]}',
-                    f'{fish_mediolateral_axis[1]}',
-                    f'{left_eye_centroid[0]}',
-                    f'{left_eye_centroid[1]}',
-                    f'{left_eye_angle}',
-                    f'{right_eye_centroid[0]}',
-                    f'{right_eye_centroid[1]}',
-                    f'{right_eye_angle}',
+                    f"{data['index']}",
+                    f"{data['timestamp']}",
+                    f"{fish_centroid[0]}",
+                    f"{fish_centroid[1]}",
+                    f"{fish_caudorostral_axis[0]}",
+                    f"{fish_caudorostral_axis[1]}",
+                    f"{fish_mediolateral_axis[0]}",
+                    f"{fish_mediolateral_axis[1]}",
+                    f"{left_eye_centroid[0]}",
+                    f"{left_eye_centroid[1]}",
+                    f"{left_eye_angle}",
+                    f"{right_eye_centroid[0]}",
+                    f"{right_eye_centroid[1]}",
+                    f"{right_eye_angle}",
                 ) \
-                + tuple(f'{skeleton_interp[i,0]}' for i in range(self.num_tail_points_interp)) \
-                + tuple(f'{skeleton_interp[i,1]}' for i in range(self.num_tail_points_interp)) 
+                + tuple(f"{skeleton_interp[i,0]}" for i in range(self.num_tail_points_interp)) \
+                + tuple(f"{skeleton_interp[i,1]}" for i in range(self.num_tail_points_interp)) 
                 self.fd.write(','.join(row) + '\n')
 
             except KeyError:
