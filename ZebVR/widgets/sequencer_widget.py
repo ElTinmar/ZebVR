@@ -689,6 +689,7 @@ class SequencerWidget(QWidget):
             item.setSizeHint(stim.sizeHint())
             self.list.addItem(item)
             self.list.setItemWidget(item, stim)
+        self.state_changed.emit()
 
     def get_protocol_duration(self):
         pause_duration = 0
