@@ -1,6 +1,8 @@
 toy_data/
 output/
 
+*.vr
+
 # numpy arrays
 *.npy
 *.npz
