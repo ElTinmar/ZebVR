@@ -12,7 +12,6 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal, Qt
 from typing import Dict
-import numpy as np
 import os
 import json
 
@@ -119,10 +118,13 @@ class VRSettingsWidget(QWidget):
         self.display_fps.setValue(30)
         self.display_fps.valueChanged.connect(self.state_changed)
         
-        #TODO when this is active toggle output widget video_group 
         self.videorecording_checkbox = QCheckBox('video recording only')
         self.videorecording_checkbox.setChecked(False)
         self.videorecording_checkbox.toggled.connect(self.toggle_videorecording)
+
+        self.tracking_checkbox = QCheckBox('tracking')
+        self.tracking_checkbox.setChecked(False)
+        self.tracking_checkbox.toggled.connect(self.toggle_tracking)
 
         if os.path.exists(self.DEFAULT_OPENLOOP_COORD_FILE):
             with open(self.DEFAULT_OPENLOOP_COORD_FILE, 'r') as f:
@@ -159,6 +161,7 @@ class VRSettingsWidget(QWidget):
         main_layout.addWidget(self.closedloop_group)
         main_layout.addWidget(self.openloop_group)
         main_layout.addWidget(self.videorecording_checkbox)
+        main_layout.addWidget(self.tracking_checkbox)
         main_layout.addWidget(self.queue_refresh_time_microsec)
         main_layout.addStretch()
 
@@ -180,20 +183,30 @@ class VRSettingsWidget(QWidget):
         if isChecked:
             self.closedloop_group.setChecked(False)
             self.videorecording_checkbox.setChecked(False)
+            self.tracking_checkbox.setChecked(False)
         self.state_changed.emit()
 
     def toggle_closedloop(self, isChecked: bool):
         if isChecked:
             self.openloop_group.setChecked(False)
             self.videorecording_checkbox.setChecked(False)
+            self.tracking_checkbox.setChecked(False)
         self.state_changed.emit()
 
     def toggle_videorecording(self, isChecked: bool):
         if isChecked:
             self.openloop_group.setChecked(False)
             self.closedloop_group.setChecked(False)
+            self.tracking_checkbox.setChecked(False)
         self.state_changed.emit()
         self.video_recording_signal.emit(isChecked)
+
+    def toggle_tracking(self, isChecked: bool):
+        if isChecked:
+            self.openloop_group.setChecked(False)
+            self.closedloop_group.setChecked(False)
+            self.videorecording_checkbox.setChecked(False)
+        self.state_changed.emit()
 
     def get_state(self) -> Dict:
 
@@ -201,6 +214,7 @@ class VRSettingsWidget(QWidget):
         state['openloop'] = self.openloop_group.isChecked()
         state['closedloop'] = self.closedloop_group.isChecked()
         state['videorecording'] = self.videorecording_checkbox.isChecked()
+        state['tracking'] = self.tracking_checkbox.isChecked()
         state['openloop_coords_file'] = self.openloop_coords_file.text()
         state['tracking_file'] = self.tracking_settings.text()
         state['centroid_x'] = self.centroid_x.value()
@@ -220,6 +234,7 @@ class VRSettingsWidget(QWidget):
             self.openloop_group.setChecked(state['openloop'])
             self.closedloop_group.setChecked(state['closedloop'])
             self.videorecording_checkbox.setChecked(state['videorecording'])
+            self.tracking_checkbox.setChecked(state['tracking'])
             self.openloop_coords_file.setText(state['openloop_coords_file'])
             self.tracking_settings.setText(state['tracking_file'])
             self.centroid_x.setValue(state['centroid_x'])
