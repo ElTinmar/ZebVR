@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QFileDialog, QCheckBox
-from PyQt5.QtCore import pyqtSignal
-from typing import Dict
+from PyQt5.QtCore import pyqtSignal, QObject
+from typing import Dict, Optional
+from viewsonic_serial import ViewSonicProjector
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
 
@@ -106,6 +107,10 @@ class ProjectorWidget(QWidget):
         main_layout.addWidget(self.temperature)
         main_layout.addStretch()
 
+    def block_signals(self, block):
+        for widget in self.findChildren(QWidget):
+            widget.blockSignals(block)
+
     def get_state(self) -> Dict:
         state = {}
         state['resolution'] = (self.proj_width.value(), self.proj_height.value())
@@ -127,6 +132,48 @@ class ProjectorWidget(QWidget):
         except KeyError:
             print('Wrong state keys provided to projector widget')
             raise
+
+class ProjectorController(QObject):
+
+    state_changed = pyqtSignal()
+
+    def __init__(self, view: ProjectorWidget, *args, **kwargs):
+        
+        super().__init__(*args, **kwargs)
+
+        self.view = view
+        self.projector_constructor = ViewSonicProjector # TODO make a widget selection for this
+        self.view.state_changed.connect(self.on_state_changed)
+
+    def get_projector_state(self, proj: ViewSonicProjector) -> Optional[Dict]: # TODO write a Projector protocol
+
+        state = {}
+        return state
+    
+    def on_state_changed(self):
+
+        # set value
+        projector = self.projector_constructor()
+        state = self.view.get_state()
+
+        projector.set_source_input(state['source_input'])
+
+        # check values
+        state_validated = self.get_camera_state(projector)
+
+        del(projector)
+
+        # report to the GUI to make sure hardware and GUI have the same info
+        self.view.block_signals(True)
+        self.view.set_state(state_validated)
+        self.view.block_signals(False)
+
+        self.state_changed.emit()
+
+    def get_state(self):
+        state = self.view.get_state()
+        state['projector_constructor'] = self.projector_constructor 
+        return state
 
 if __name__ == "__main__":
 
