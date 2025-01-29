@@ -47,20 +47,10 @@ class MainGui(QMainWindow):
 
         self.settings = {}
         self.settings['main'] = {}
+        
         self.dag = None
-
         self.worker_logger = None
         self.queue_logger = None
-
-        self.camera_worker = None
-        self.image_saver_worker = None
-        self.background_worker_list = []
-        self.tracker_worker_list = []
-        self.tracker_control_worker = None
-        self.tracking_display_worker = None
-        self.protocol_worker = None
-        self.stim_worker = None
-        self.stim_control_worker = None
 
         self.create_components()
         self.layout_components()
