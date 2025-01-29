@@ -47,7 +47,7 @@ class MainGui(QMainWindow):
 
         self.settings = {}
         self.settings['main'] = {}
-        
+
         self.dag = None
         self.worker_logger = None
         self.queue_logger = None
@@ -171,7 +171,7 @@ class MainGui(QMainWindow):
         self.sequencer_widget.set_protocol(state['protocol'])
 
     def get_state(self) -> dict:
-        self.refresh_settings()
+        self.refresh_settings() # TODO that may not be necessary if all signals are correctly handled
         return self.settings
 
     def update_camera_settings(self):
