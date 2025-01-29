@@ -83,6 +83,11 @@ class ProtocolItemPause(ProtocolItem):
         return res
 
 # TODO: implement trigger
+# Example of trigger: 
+#       - fish coordinates in specific region
+#       - keypress
+#       - TTL signal on DAQ
+
 """
 class ProtocolItemTrigger(ProtocolItem):
 
