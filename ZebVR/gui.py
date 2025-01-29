@@ -210,6 +210,7 @@ class MainGui(QMainWindow):
     
     def registration_callback(self):
         self.camera_controller.set_preview(False)
+        #self.projector_controller.set_checker(False)
 
         p = Process(
             target = registration,
@@ -251,6 +252,7 @@ class MainGui(QMainWindow):
         
     def check_registration_callback(self):
         self.camera_controller.set_preview(False)
+        #self.projector_controller.set_checker(False)
 
         p = Process(
             target = check_registration,
@@ -277,6 +279,7 @@ class MainGui(QMainWindow):
         
     def background_callback(self):
         self.camera_controller.set_preview(False)
+        #self.projector_controller.set_checker(False)
 
         if self.settings['background']['bckgsub_method'] == 'inpaint':
             p = Process(
@@ -324,6 +327,7 @@ class MainGui(QMainWindow):
     
     def get_pix_per_mm_callback(self):
         self.camera_controller.set_preview(False)
+        #self.projector_controller.set_checker(False)
 
         p = Process(
             target = pix_per_mm,
@@ -401,6 +405,7 @@ class MainGui(QMainWindow):
 
     def start(self):
         self.camera_controller.set_preview(False)
+        #self.projector_controller.set_checker(False)
 
         pprint.pprint(self.settings)
 
@@ -417,7 +422,6 @@ class MainGui(QMainWindow):
         self.p_queue_logger = Process(target=self.queue_logger.run)
         self.p_worker_logger.start()
         self.p_queue_logger.start()
-        print('Starting DAG')
         self.dag.start()
 
     def stop(self):
@@ -428,7 +432,6 @@ class MainGui(QMainWindow):
             self.queue_logger.stop()
             self.p_worker_logger.join()
             self.p_queue_logger.join()
-            print('DAG stopped')
 
     def preview(self):
         # maybe launch preview in QThread to prevent window from hanging
@@ -439,8 +442,6 @@ class MainGui(QMainWindow):
     def record(self):
         # maybe launch record in QThread to prevent window from hanging
         # TODO make sleep interruptible by stop ? 
-
-        self.camera_controller.set_preview(False)
 
         self.settings['main']['record'] = True
         self.start() 
