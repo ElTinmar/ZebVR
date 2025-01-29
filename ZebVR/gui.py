@@ -434,18 +434,6 @@ class MainGui(QMainWindow):
 
         if self.dag is not None:
             self.dag.stop()
-
-            # TODO add that to dag.stop
-            #print('cam to background', self.queue_cam.get_average_freq(), self.queue_cam.queue.num_lost_item.value)
-            #if self.settings['output']['video_recording']:
-            #    print('cam to image saver', self.queue_save_image.get_average_freq(), self.queue_save_image.queue.num_lost_item.value)
-            #    print('image saver to display', self.queue_display_image.get_average_freq(), self.queue_display_image.queue.num_lost_item.value)
-            #    print('cam_to_yuv420p', self.queue_camera_to_converter.get_average_freq(), self.queue_camera_to_converter.queue.num_lost_item.value)
-            #    print('yuv420p_to_saver', self.queue_converter_to_saver.get_average_freq(), self.queue_converter_to_saver.queue.num_lost_item.value)
-            #print('background to trackers', self.queue_background.get_average_freq(), self.queue_background.queue.num_lost_item.value)
-            #print('trackers to visual stim', self.queue_tracking.get_average_freq(), self.queue_tracking.queue.num_lost_item.value)
-            #print('trackers to display', self.queue_overlay.get_average_freq(), self.queue_overlay.queue.num_lost_item.value)
-            
             self.worker_logger.stop()
             self.queue_logger.stop()
             self.p_worker_logger.join()
