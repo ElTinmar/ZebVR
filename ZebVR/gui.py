@@ -27,7 +27,7 @@ from ZebVR.calibration import (
 from ZebVR.background import inpaint_background, static_background
 from ZebVR.widgets import (
     CameraWidget, CameraController,
-    ProjectorWidget, 
+    ProjectorWidget, ProjectorController,
     RegistrationWidget,
     CalibrationWidget,
     BackgroundWidget,
@@ -76,7 +76,8 @@ class MainGui(QMainWindow):
         self.camera_controller.state_changed.connect(self.update_camera_settings)
 
         self.projector_widget = ProjectorWidget()
-        self.projector_widget.state_changed.connect(self.update_projector_settings)
+        self.projector_controller = ProjectorController(self.projector_widget)
+        self.projector_controller.state_changed.connect(self.update_projector_settings)
 
         self.registration_widget = RegistrationWidget()
         self.registration_widget.state_changed.connect(self.update_registration_settings)
