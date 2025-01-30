@@ -611,6 +611,11 @@ class TrackerWidget(QWidget):
         final.addLayout(io_layout)
 
     def on_change(self):
+        
+        if not self.group_body.isChecked():
+            self.group_eyes.setChecked(False)
+            self.group_tail.setChecked(False)
+
         self.updated = True
 
     def is_updated(self) -> bool:
