@@ -8,6 +8,7 @@ from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
 class ProjectorWidget(QWidget):
 
     state_changed = pyqtSignal()
+    active_signal = pyqtSignal(bool)
     projector_state_changed = pyqtSignal()
     power_on_signal = pyqtSignal()
     power_off_signal = pyqtSignal()
@@ -156,9 +157,15 @@ class ProjectorWidget(QWidget):
     def set_projector_state(self, state: Dict) -> None:
         self.video_source.setCurrentText(state['video_source'])
         self.fast_input_mode.setChecked(state['fast_input_mode'])
-        self.serial_number.setText(state['serial_number'])
-        self.power_status.setText(state['power_status'])
-        self.temperature.setText(state['temperature'])
+        self.serial_number.setText(f"S/N:{state['serial_number']}")
+        self.power_status.setText(f"Power:{state['power_status']}")
+        self.temperature.setText(f"Temperature:{state['temperature']}\N{DEGREE SIGN}C")
+
+    def closeEvent(self, event):
+        # If widget is a children of some other widget, it needs
+        # to be explicitly closed for this to happen
+        self.active_signal.emit(False)
+
 
 class ProjectorChecker(QRunnable):
 
@@ -180,6 +187,19 @@ class ProjectorChecker(QRunnable):
     def stop(self):
         self.keepgoing = False
 
+    def reset_state(self):
+        try:                
+            state = {}
+            state['video_source'] = 'None'
+            state['fast_input_mode'] = False
+            state['serial_number'] = ''
+            state['power_status'] = ''
+            state['temperature'] = ''
+
+            self.widget.set_projector_state(state)
+        except:
+            pass
+
     def run(self):
         try:
             projector = self.projector_constructor()
@@ -187,7 +207,6 @@ class ProjectorChecker(QRunnable):
             print('No projector was found')
             return
 
-        state = self.widget.get_state()
         while self.keepgoing:
             try:                
                 state = {}
@@ -197,11 +216,13 @@ class ProjectorChecker(QRunnable):
                 state['power_status'] = str(projector.get_power_status())
                 state['temperature'] = str(projector.get_operating_temperature())
 
-                self.widget.set_proj_state(state)
+                self.widget.set_projector_state(state)
             except:
                 pass
 
             time.sleep(1/self.refresh_rate)
+        
+        self.reset_state()
 
 
 class ProjectorController(QObject):
@@ -222,6 +243,7 @@ class ProjectorController(QObject):
         self.view.projector_state_changed.connect(self.on_state_changed)
         self.view.power_on_signal.connect(self.power_on)
         self.view.power_off_signal.connect(self.power_off)
+        self.view.active_signal.connect(self.set_checker)
 
         self.set_checker(True)
 
@@ -282,8 +304,8 @@ class ProjectorController(QObject):
         
         state = self.view.get_projector_state()
 
-        src = SourceInput[state['source_input']]
-        fast_input = Bool.ON if state['fast_input'] else Bool.OFF
+        src = SourceInput[state['video_source']]
+        fast_input = Bool.ON if state['fast_input_mode'] else Bool.OFF
         projector.set_source_input(src)
         projector.set_fast_input_mode(fast_input)
 
