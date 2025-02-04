@@ -147,7 +147,7 @@ DATAFILES = [
     '11_07dpf_Di_17_Sep_2024_21h16min13sec.csv',
     '08_08dpf_Mi_18_Sep_2024_10h07min56sec.csv',
     '09_08dpf_Mi_18_Sep_2024_11h43min18sec.csv',
-    '10_08dpf_Mi_18_Sep_2024_13h13min31sec.csv',('#FF6900', '#002BFF')
+    '10_08dpf_Mi_18_Sep_2024_13h13min31sec.csv',
     '07_09dpf_Do_19_Sep_2024_20h36min09sec.csv',
     '18_10dpf_Fr_20_Sep_2024_10h39min51sec.csv',
     '19_10dpf_Fr_20_Sep_2024_12h14min45sec.csv',
