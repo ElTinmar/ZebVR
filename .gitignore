@@ -1,6 +1,10 @@
 toy_data/
 output/
 
+tracking.json
+protocol.json
+registration.json
+
 *.vr
 
 # numpy arrays
