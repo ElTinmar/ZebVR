@@ -242,7 +242,7 @@ class ProjectorController(QObject):
         self.thread_pool = QThreadPool()
         self.checker = None
 
-        self.projector_constructor = ViewSonicProjector # TODO make a widget selection for this
+        self.projector_constructor = ViewSonicProjector # TODO make a widget selection for this. Add None and gray out panel
         self.view.state_changed.connect(self.state_changed.emit)
         self.view.projector_state_changed.connect(self.on_state_changed)
         self.view.power_on_signal.connect(self.power_on)
