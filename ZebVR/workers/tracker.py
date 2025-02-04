@@ -114,10 +114,10 @@ class TrackerWorker(WorkerNode):
             try:
                 control = metadata[f'tracker_control_{i}']
             except KeyError:
-                control = None
+                continue
 
             if control is None:
-                return 
+                continue
             
             if control['assignment'] == 'ROI':
                 assignment = GridAssignment(

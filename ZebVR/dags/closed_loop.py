@@ -267,8 +267,9 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
                 logger = worker_logger, 
                 logger_queues = queue_logger,
                 send_data_strategy = send_strategy.BROADCAST, 
+                #receive_metadata_strategy = receive_strategy.POLL,
                 receive_data_timeout = 1.0, 
-                        )
+            )
         )
     
     tracker_control_worker = TrackerGui(
@@ -348,6 +349,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0,
+        send_metadata_strategy = send_strategy.BROADCAST, 
         profile = False
     ) 
 

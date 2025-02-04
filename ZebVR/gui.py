@@ -27,7 +27,7 @@ from ZebVR.calibration import (
 from ZebVR.background import inpaint_background, static_background
 from ZebVR.widgets import (
     CameraWidget, CameraController,
-    ProjectorWidget, 
+    ProjectorWidget, ProjectorController,
     RegistrationWidget,
     CalibrationWidget,
     BackgroundWidget,
@@ -47,20 +47,10 @@ class MainGui(QMainWindow):
 
         self.settings = {}
         self.settings['main'] = {}
-        self.dag = None
 
+        self.dag = None
         self.worker_logger = None
         self.queue_logger = None
-
-        self.camera_worker = None
-        self.image_saver_worker = None
-        self.background_worker_list = []
-        self.tracker_worker_list = []
-        self.tracker_control_worker = None
-        self.tracking_display_worker = None
-        self.protocol_worker = None
-        self.stim_worker = None
-        self.stim_control_worker = None
 
         self.create_components()
         self.layout_components()
@@ -76,7 +66,8 @@ class MainGui(QMainWindow):
         self.camera_controller.state_changed.connect(self.update_camera_settings)
 
         self.projector_widget = ProjectorWidget()
-        self.projector_widget.state_changed.connect(self.update_projector_settings)
+        self.projector_controller = ProjectorController(self.projector_widget)
+        self.projector_controller.state_changed.connect(self.update_projector_settings)
 
         self.registration_widget = RegistrationWidget()
         self.registration_widget.state_changed.connect(self.update_registration_settings)
@@ -180,7 +171,7 @@ class MainGui(QMainWindow):
         self.sequencer_widget.set_protocol(state['protocol'])
 
     def get_state(self) -> dict:
-        self.refresh_settings()
+        self.refresh_settings() # TODO that may not be necessary if all signals are correctly handled
         return self.settings
 
     def update_camera_settings(self):
@@ -219,6 +210,7 @@ class MainGui(QMainWindow):
     
     def registration_callback(self):
         self.camera_controller.set_preview(False)
+        #self.projector_controller.set_checker(False)
 
         p = Process(
             target = registration,
@@ -260,6 +252,7 @@ class MainGui(QMainWindow):
         
     def check_registration_callback(self):
         self.camera_controller.set_preview(False)
+        #self.projector_controller.set_checker(False)
 
         p = Process(
             target = check_registration,
@@ -286,6 +279,7 @@ class MainGui(QMainWindow):
         
     def background_callback(self):
         self.camera_controller.set_preview(False)
+        #self.projector_controller.set_checker(False)
 
         if self.settings['background']['bckgsub_method'] == 'inpaint':
             p = Process(
@@ -333,6 +327,7 @@ class MainGui(QMainWindow):
     
     def get_pix_per_mm_callback(self):
         self.camera_controller.set_preview(False)
+        #self.projector_controller.set_checker(False)
 
         p = Process(
             target = pix_per_mm,
@@ -410,6 +405,7 @@ class MainGui(QMainWindow):
 
     def start(self):
         self.camera_controller.set_preview(False)
+        #self.projector_controller.set_checker(False)
 
         pprint.pprint(self.settings)
 
@@ -426,30 +422,16 @@ class MainGui(QMainWindow):
         self.p_queue_logger = Process(target=self.queue_logger.run)
         self.p_worker_logger.start()
         self.p_queue_logger.start()
-        print('Starting DAG')
         self.dag.start()
 
     def stop(self):
 
         if self.dag is not None:
             self.dag.stop()
-
-            # TODO add that to dag.stop
-            #print('cam to background', self.queue_cam.get_average_freq(), self.queue_cam.queue.num_lost_item.value)
-            #if self.settings['output']['video_recording']:
-            #    print('cam to image saver', self.queue_save_image.get_average_freq(), self.queue_save_image.queue.num_lost_item.value)
-            #    print('image saver to display', self.queue_display_image.get_average_freq(), self.queue_display_image.queue.num_lost_item.value)
-            #    print('cam_to_yuv420p', self.queue_camera_to_converter.get_average_freq(), self.queue_camera_to_converter.queue.num_lost_item.value)
-            #    print('yuv420p_to_saver', self.queue_converter_to_saver.get_average_freq(), self.queue_converter_to_saver.queue.num_lost_item.value)
-            #print('background to trackers', self.queue_background.get_average_freq(), self.queue_background.queue.num_lost_item.value)
-            #print('trackers to visual stim', self.queue_tracking.get_average_freq(), self.queue_tracking.queue.num_lost_item.value)
-            #print('trackers to display', self.queue_overlay.get_average_freq(), self.queue_overlay.queue.num_lost_item.value)
-            
             self.worker_logger.stop()
             self.queue_logger.stop()
             self.p_worker_logger.join()
             self.p_queue_logger.join()
-            print('DAG stopped')
 
     def preview(self):
         # maybe launch preview in QThread to prevent window from hanging
@@ -460,8 +442,6 @@ class MainGui(QMainWindow):
     def record(self):
         # maybe launch record in QThread to prevent window from hanging
         # TODO make sleep interruptible by stop ? 
-
-        self.camera_controller.set_preview(False)
 
         self.settings['main']['record'] = True
         self.start() 

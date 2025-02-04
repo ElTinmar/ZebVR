@@ -14,7 +14,7 @@ import numpy as np
 import cv2
 import os
 from functools import partial
-from typing import Dict, Optional
+from typing import Dict, Optional, Callable
 from numpy.typing import NDArray
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
@@ -219,7 +219,7 @@ class CameraWidget(QWidget):
 
 class CameraAcquisition(QRunnable):
 
-    def __init__(self, camera_constructor: Camera, widget: CameraWidget, *args, **kwargs):
+    def __init__(self, camera_constructor: Callable[[], Camera], widget: CameraWidget, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.camera_constructor = camera_constructor
         self.widget = widget
