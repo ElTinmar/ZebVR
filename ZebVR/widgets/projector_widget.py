@@ -196,7 +196,9 @@ class ProjectorChecker(QRunnable):
             state['power_status'] = ''
             state['temperature'] = ''
 
+            self.widget.block_signals(True)
             self.widget.set_projector_state(state)
+            self.widget.block_signals(False)
         except:
             pass
 
@@ -210,15 +212,17 @@ class ProjectorChecker(QRunnable):
         while self.keepgoing:
             try:                
                 state = {}
+                state['power_status'] = str(projector.get_power_status())
                 state['video_source'] = str(projector.get_source_input())
                 state['fast_input_mode'] = bool(projector.get_fast_input_mode())
                 state['serial_number'] = projector.get_serial_number()
-                state['power_status'] = str(projector.get_power_status())
                 state['temperature'] = str(projector.get_operating_temperature())
 
+                self.widget.block_signals(True)
                 self.widget.set_projector_state(state)
+                self.widget.block_signals(False)
             except:
-                pass
+                self.reset_state()
 
             time.sleep(1/self.refresh_rate)
         
@@ -272,10 +276,10 @@ class ProjectorController(QObject):
 
     def get_projector_state(self, projector: ViewSonicProjector) -> Optional[Dict]: # TODO write a Projector protocol
         state = {}
+        state['power_status'] = str(projector.get_power_status())
         state['video_source'] = str(projector.get_source_input())
         state['fast_input_mode'] = bool(projector.get_fast_input_mode())
         state['serial_number'] = projector.get_serial_number()
-        state['power_status'] = str(projector.get_power_status())
         state['temperature'] = str(projector.get_operating_temperature())
         return state
 
