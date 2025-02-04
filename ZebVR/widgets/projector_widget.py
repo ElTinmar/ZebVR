@@ -4,7 +4,7 @@ from typing import Dict, Optional, Callable
 from viewsonic_serial import ViewSonicProjector, ConnectionFailed, SourceInput, Bool
 import time
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
-
+from functools import partial
 class ProjectorWidget(QWidget):
 
     state_changed = pyqtSignal()
@@ -77,14 +77,15 @@ class ProjectorWidget(QWidget):
         self.video_source = QComboBox()
         for src in SourceInput:
             self.video_source.addItem(str(src))
-        self.video_source.currentTextChanged.connect(self.projector_state_changed)
+        self.video_source.currentTextChanged.connect(self.projector_state_changed.emit)
 
         self.fast_input_mode = QCheckBox('Fast input mode')
-        self.fast_input_mode.stateChanged.connect(self.projector_state_changed)
+        self.fast_input_mode.stateChanged.connect(self.projector_state_changed.emit)
 
         self.serial_number = QLabel('S/N:') 
         self.power_status = QLabel('Power:')
         self.temperature = QLabel(u'Temperature (\N{DEGREE SIGN}C)')
+        self.last_refresh_time = QLabel('Last refresh:')
 
     def layout_components(self):
 
@@ -116,6 +117,7 @@ class ProjectorWidget(QWidget):
         main_layout.addWidget(self.serial_number)
         main_layout.addWidget(self.power_status)
         main_layout.addWidget(self.temperature)
+        main_layout.addWidget(self.last_refresh_time)
         main_layout.addStretch()
 
     def block_signals(self, block):
@@ -152,6 +154,7 @@ class ProjectorWidget(QWidget):
         state['serial_number'] = self.serial_number.text()
         state['power_status'] = self.power_status.text()
         state['temperature'] = self.temperature.text()
+        state['last_refresh'] = self.last_refresh_time.text()
         return state
 
     def set_projector_state(self, state: Dict) -> None:
@@ -160,6 +163,7 @@ class ProjectorWidget(QWidget):
         self.serial_number.setText(f"S/N:{state['serial_number']}")
         self.power_status.setText(f"Power:{state['power_status']}")
         self.temperature.setText(f"Temperature:{state['temperature']}\N{DEGREE SIGN}C")
+        self.last_refresh_time.setText(f"Last refresh:{state['last_refresh']}")
 
     def closeEvent(self, event):
         # If widget is a children of some other widget, it needs
@@ -195,6 +199,7 @@ class ProjectorChecker(QRunnable):
             state['serial_number'] = ''
             state['power_status'] = ''
             state['temperature'] = ''
+            state['last_refresh'] = ''
 
             self.widget.block_signals(True)
             self.widget.set_projector_state(state)
@@ -217,6 +222,7 @@ class ProjectorChecker(QRunnable):
                 state['fast_input_mode'] = bool(projector.get_fast_input_mode())
                 state['serial_number'] = projector.get_serial_number()
                 state['temperature'] = str(projector.get_operating_temperature())
+                state['last_refresh'] = time.asctime()
 
                 self.widget.block_signals(True)
                 self.widget.set_projector_state(state)
@@ -226,8 +232,7 @@ class ProjectorChecker(QRunnable):
 
             time.sleep(1/self.refresh_rate)
         
-        self.reset_state()
-
+        #self.reset_state()
 
 class ProjectorController(QObject):
 
@@ -242,7 +247,7 @@ class ProjectorController(QObject):
         self.thread_pool = QThreadPool()
         self.checker = None
 
-        self.projector_constructor = ViewSonicProjector # TODO make a widget selection for this. Add None and gray out panel
+        self.projector_constructor = partial(ViewSonicProjector, verbose=False) # TODO make a widget selection for this. Add None and gray out panel
         self.view.state_changed.connect(self.state_changed.emit)
         self.view.projector_state_changed.connect(self.on_state_changed)
         self.view.power_on_signal.connect(self.power_on)
@@ -272,6 +277,7 @@ class ProjectorController(QObject):
             return
 
         projector.power_off()
+        self.on_state_changed()
         self.set_checker(True)
 
     def get_projector_state(self, projector: ViewSonicProjector) -> Optional[Dict]: # TODO write a Projector protocol
@@ -318,6 +324,7 @@ class ProjectorController(QObject):
 
         # check values
         state_validated = self.get_projector_state(projector)
+        state_validated['last_refresh'] = time.asctime()
 
         del(projector)
 
