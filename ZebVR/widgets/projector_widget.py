@@ -190,7 +190,7 @@ class ProjectorChecker(QRunnable):
     def reset_state(self):
         try:                
             state = {}
-            state['video_source'] = 'None'
+            state['video_source'] = 'NONE'
             state['fast_input_mode'] = False
             state['serial_number'] = ''
             state['power_status'] = ''
@@ -310,8 +310,11 @@ class ProjectorController(QObject):
 
         src = SourceInput[state['video_source']]
         fast_input = Bool.ON if state['fast_input_mode'] else Bool.OFF
-        projector.set_source_input(src)
-        projector.set_fast_input_mode(fast_input)
+        try:
+            projector.set_source_input(src)
+            projector.set_fast_input_mode(fast_input)
+        except:
+            pass
 
         # check values
         state_validated = self.get_projector_state(projector)
