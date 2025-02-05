@@ -53,15 +53,6 @@ class ProtocolItem(ABC):
     def to_dict(self) -> Dict:
         pass
 
-# TODO implement this. maybe use keyboard module
-'''
-class ProtocolItemWaitKeyPress(ProtocolItem):
-
-    def run(self) -> None:
-        input('press Enter:') # input does not work in child process
-        return None
-'''
-
 class ProtocolItemPause(ProtocolItem):
 
     def __init__(self, pause_sec: float) -> None:
@@ -109,6 +100,43 @@ class ProtocolItemTrigger(ProtocolItem):
    def run(self) -> None:
        self.daq.wait_trigger()
        return None
+"""
+
+# TODO implement sound
+"""
+class ProtocolItemSound(ProtocolItem):
+
+    STIM_SELECT: Optional[int] = None
+
+    def __init__(self, wavfile: str) -> None:
+       super().__init__()
+       self.wavfile = wavfile
+
+    def run(self) -> Optional[DefaultDict]:
+        command = defaultdict(float, {
+            'stim_select': self.SOUND,
+            'wavfile': self.wavfile,
+            'foreground_color': self.foreground_color,
+            'background_color': self.background_color,
+            'looming_center_mm': (0, 0)
+        })
+        return command 
+
+    def initialize(self):
+        '''Run init steps in target worker process'''
+        pass
+
+    def cleanup(self):
+        '''Run cleanup steps in target worker process'''
+        pass
+
+    @classmethod
+    def from_dict(cls, d: Dict) -> None:
+        pass
+    
+    def to_dict(self) -> Dict:
+        pass
+
 """
 
 class ProtocolItemPhototaxis(ProtocolItem):
