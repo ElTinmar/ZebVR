@@ -14,8 +14,8 @@ class TrackingTrigger(WorkerNode):
         ) -> None:
 
         '''
-        trigger mask is a 2D boolean array that contains 1 at position (x,y) if there should be 
-        a trigger 
+        trigger_mask is a 2D boolean array that contains 1 at position (x,y) if there should be 
+        a trigger.
         '''
 
         super().__init__(*args, **kwargs)
