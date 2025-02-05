@@ -60,6 +60,10 @@ conda activate ZebVR2
 python ZebVR/main.py
 ```
 
+```
+sudo cset shield --reset
+```
+
 ### CUDA
 
 This seems necessary for now
