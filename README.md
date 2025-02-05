@@ -46,6 +46,20 @@ conda install conda-build
 sudo setcap cap_sys_nice=eip /home/martinprivat/miniconda3/envs/ZebVR2/bin/python3.8
 ```
 
+### CPU shield and affinity
+
+```
+sudo apt install cpuset
+```
+
+```
+sudo cset shield --cpu 1-31 --kthread=on
+sudo cset shield --exec bash
+su username
+conda activate ZebVR2
+python ZebVR/main.py
+```
+
 ### CUDA
 
 This seems necessary for now
