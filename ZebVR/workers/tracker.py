@@ -102,8 +102,9 @@ class TrackerWorker(WorkerNode):
         )
 
         res = {}    
-        res['tracker_output1'] = msg
-        res['tracker_output2'] = msg
+        res['tracker_output1'] = msg # visual stimulus
+        res['tracker_output2'] = msg # overlay    
+        res['tracker_output3'] = msg # tracking triggers
 
         return res
         
