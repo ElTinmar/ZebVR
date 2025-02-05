@@ -13,6 +13,7 @@ dependencies:
 - conda-build
 - cupy
 - pip:
+  - psutil
   - git+https://github.com/ElTinmar/video_tools.git@main#egg=video_tools[gpu]
   - git+https://github.com/ElTinmar/tracker.git@structured_array_output
   - git+https://github.com/ElTinmar/Lightcrafter.git@main  
