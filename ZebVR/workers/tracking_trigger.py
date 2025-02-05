@@ -52,10 +52,10 @@ class TrackingTrigger(WorkerNode):
             except ValueError:
                 return
 
-            row, col = fish_centroid.astype(int)
-            if self.trigger_mask[row, col]:
+            x, y = fish_centroid.astype(int)
+            if self.trigger_mask[y, x] == 1:
                 self.triggered = True
-            
+                
     def process_metadata(self, metadata) -> None:
 
         # TODO relay a trigger to the protocol worker instead of hardcoding
@@ -66,6 +66,7 @@ class TrackingTrigger(WorkerNode):
                 'stim_select': Stim.BRIGHT,
                 'foreground_color': (1.0,0.0,0.0,1.0),
                 'background_color': (0.0,0.0,0.0,1.0),
+                'looming_center_mm': (0, 0)
             })
             
             res = {}

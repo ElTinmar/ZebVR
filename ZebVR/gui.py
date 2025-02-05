@@ -35,7 +35,7 @@ from ZebVR.widgets import (
     OutputWidget,
     SequencerWidget
 )
-from ZebVR.dags import closed_loop, open_loop, video_recording, tracking
+from ZebVR.dags import closed_loop, open_loop, video_recording, tracking, closed_loop_with_triggers
 
 PROFILE = False
         

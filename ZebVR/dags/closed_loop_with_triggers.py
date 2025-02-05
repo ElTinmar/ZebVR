@@ -284,9 +284,10 @@ def closed_loop_with_triggers(settings: Dict, dag: Optional[ProcessingDAG] = Non
     )
 
     h, w = (settings['camera']['height_value'], settings['camera']['width_value'])
-    trigger_mask = np.zeros(h,w)
-    x, y = np.mgrid[0:w, 0:h]
-    index = (x-w//2)**2 + (y-h//2)**2 <= 20**2
+    trigger_mask = np.zeros((h,w))
+    y, x = np.mgrid[0:h, 0:w]
+    #index = (x-w//2)**2 + (y-h//2)**2 <= 20**2
+    index = x>=w//2
     trigger_mask[index] = 1
     tracking_trigger_worker = TrackingTrigger(
         trigger_mask=trigger_mask,
@@ -494,7 +495,7 @@ def closed_loop_with_triggers(settings: Dict, dag: Optional[ProcessingDAG] = Non
             sender = tracking_trigger_worker, 
             receiver = stim_worker, 
             queue = queue_control, 
-            name = 'trigger_stim_control'
+            name = 'visual_stim_control'
         )
     
     for i in range(settings['vr_settings']['n_tracker_workers']):
