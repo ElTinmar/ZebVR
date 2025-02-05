@@ -57,7 +57,7 @@ sudo apt install nvidia-cuda-toolkit
 
 ### Install ximea package into environment
 ```
-conda activate ZebVR
+conda activate ZebVR2
 wget https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
 tar xzf XIMEA_Linux_SP.tgz
 cd package
