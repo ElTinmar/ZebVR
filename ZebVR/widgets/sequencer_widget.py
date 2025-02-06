@@ -14,8 +14,8 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout, 
 )
-from ZebVR.widgets import StimWidget
-from ZebVR.protocol import (
+from .stimulus_widget import StimWidget
+from ..protocol import (
     ProtocolItem,
     ProtocolItemPause,
     ProtocolItemPhototaxis,

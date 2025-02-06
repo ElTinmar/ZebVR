@@ -2,7 +2,7 @@ from dagline import WorkerNode
 import time
 from numpy.typing import NDArray
 from typing import Dict, Optional, Any, Deque
-from ZebVR.protocol import ProtocolItem
+from ..protocol import ProtocolItem
     
 class Protocol(WorkerNode):
 

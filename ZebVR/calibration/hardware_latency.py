@@ -1,8 +1,8 @@
 from dagline import ProcessingDAG, receive_strategy, send_strategy, WorkerNode
 from ipc_tools import ModifiableRingBuffer, MonitoredQueue
 from multiprocessing_logger import Logger
-from ZebVR.workers import CameraWorker
-from ZebVR.stimulus import VisualStim, VisualStimWorker
+from ..workers import CameraWorker
+from ..stimulus import VisualStim, VisualStimWorker
 from vispy import app, gloo
 from multiprocessing import Value
 import numpy as np

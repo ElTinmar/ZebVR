@@ -28,7 +28,7 @@ from tracker import (
     TailTrackerParamOverlay,
     TailTrackerParamTracking
 )
-from ZebVR.workers import (
+from ..workers import (
     BackgroundSubWorker, 
     CameraWorker, 
     TrackerWorker, 

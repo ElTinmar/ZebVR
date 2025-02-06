@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QApplication
 from tracker import MultiFishOverlay
 from image_tools import im2uint8
 from geometry import Affine2DTransform
-from ZebVR.widgets import TrackingDisplayWidget, TrackerType, DisplayType
+from ..widgets import TrackingDisplayWidget, TrackerType, DisplayType
 
 class TrackingDisplay(WorkerNode):
 

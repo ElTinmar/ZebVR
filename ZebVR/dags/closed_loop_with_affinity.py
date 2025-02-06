@@ -28,7 +28,7 @@ from tracker import (
     TailTrackerParamOverlay,
     TailTrackerParamTracking
 )
-from ZebVR.workers import (
+from ..workers import (
     BackgroundSubWorker, 
     CameraWorker, 
     TrackerWorker, 
@@ -44,7 +44,7 @@ from ZebVR.workers import (
     rgb_to_yuv420p,
     rgb_to_gray
 )
-from ZebVR.stimulus import VisualStimWorker, GeneralStim
+from ..stimulus import VisualStimWorker, GeneralStim
 
 def closed_loop_with_affinity(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     

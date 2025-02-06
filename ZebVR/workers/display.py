@@ -3,7 +3,7 @@ from numpy.typing import NDArray
 from typing import Dict, Optional
 import time
 from PyQt5.QtWidgets import QApplication
-from ZebVR.widgets import DisplayWidget
+from ..widgets import DisplayWidget
 
 class Display(WorkerNode):
 

@@ -2,7 +2,7 @@ from multiprocessing import set_start_method
 import os
 os.environ["OMP_NUM_THREADS"] = "1" # this may not be necessary when setting affinity
 from PyQt5.QtWidgets import QApplication
-from ZebVR.gui import MainGui
+from .gui import MainGui
 
 def set_realtime_priority(priority):
     try:

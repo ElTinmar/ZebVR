@@ -17,15 +17,15 @@ from PyQt5.QtWidgets import (
     QFileDialog
 )
 from PyQt5.QtGui import QIcon
-from ZebVR.calibration import (
+from .calibration import (
     check_pix_per_mm, 
     check_registration, 
     open_loop_coords, 
     pix_per_mm, 
     registration
 )
-from ZebVR.background import inpaint_background, static_background
-from ZebVR.widgets import (
+from .background import inpaint_background, static_background
+from .widgets import (
     CameraWidget, CameraController,
     ProjectorWidget, ProjectorController,
     RegistrationWidget,
@@ -35,7 +35,7 @@ from ZebVR.widgets import (
     OutputWidget,
     SequencerWidget
 )
-from ZebVR.dags import closed_loop, open_loop, video_recording, tracking, closed_loop_with_triggers
+from .dags import closed_loop, open_loop, video_recording, tracking, closed_loop_with_triggers
 
 PROFILE = False
         

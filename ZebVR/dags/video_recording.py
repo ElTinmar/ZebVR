@@ -1,6 +1,6 @@
 from dagline import ProcessingDAG, receive_strategy, send_strategy
 from typing import Dict, Tuple, Optional
-from ZebVR.workers import (
+from ..workers import (
     CameraWorker, 
     ImageSaverWorker, 
     VideoSaverWorker,
