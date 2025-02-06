@@ -3,7 +3,7 @@
 Virtual reality for zebrafish.
 
 ```
-python ZebVR/main.py
+python -m ZebVR
 ```
 
 ## Using .desktop
@@ -31,13 +31,6 @@ git clone https://github.com/ElTinmar/ZebVR.git
 cd ZebVR
 conda env create -f ZebVR.yml
 conda activate ZebVR
-conda develop . 
-```
-
-If conda complains that conda develop does not exist:
-
-```
-conda install conda-build
 ```
 
 ### Allow the python interpreter to set scheduler
@@ -57,7 +50,7 @@ sudo cset shield --cpu 1-31 --kthread=on
 sudo cset shield --exec bash
 su username
 conda activate ZebVR2
-python ZebVR/main.py
+python -m ZebVR
 ```
 
 ```
