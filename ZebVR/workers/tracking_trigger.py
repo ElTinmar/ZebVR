@@ -2,7 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 from dagline import WorkerNode
 from collections import defaultdict
-from ZebVR.widgets import Stim
+from ZebVR.protocol import Stim
 
 class TrackingTrigger(WorkerNode):
 

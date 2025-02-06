@@ -2,7 +2,7 @@ from .background import *
 from .camera import *
 from .display import *
 from .image_saver import *
-from .protocol import *
+from .protocol_worker import *
 from .queue_monitor import *
 from .stim_gui import *
 from .tracker_gui import *
