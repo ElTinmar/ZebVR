@@ -11,6 +11,8 @@ from .close_loop_widget import *
 from .open_loop_widget import *
 from .video_recording_widget import *
 from .tracking_widget import *
+from .log_output_widget import *
+from .tracking_output_widget import *
 
 from .stimulus_widget import *
 from .display_widget import *

@@ -33,7 +33,12 @@ from .widgets import (
     BackgroundWidget,
     VRSettingsWidget,
     OutputWidget,
-    SequencerWidget
+    SequencerWidget,
+    TrackingOutputWidget,
+    LogOutputWidget,
+    CloseLoopWidget,
+    OpenLoopWidget,
+    VideoOutputWidget
 )
 from .dags import closed_loop, open_loop, video_recording, tracking, closed_loop_with_triggers
 
