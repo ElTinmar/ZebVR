@@ -170,7 +170,7 @@ class MainGui(QMainWindow):
             self.tabs.setTabVisible(index, False)
 
     def top_tab_changed(self):
-        
+
         # show only relevant settings for the current mode
 
         if self.top_tabs.currentWidget() == self.close_loop_tab:
@@ -210,8 +210,7 @@ class MainGui(QMainWindow):
 
             widgets_to_show = [
                 self.camera_widget,
-                self.output_widget,
-                self.vr_settings_widget
+                self.output_widget, 
             ]
 
             widgets_to_hide = [
@@ -219,7 +218,8 @@ class MainGui(QMainWindow):
                 self.calibration_widget, 
                 self.background_widget, 
                 self.registration_widget,
-                self.sequencer_widget
+                self.sequencer_widget,
+                self.vr_settings_widget
             ]
 
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
