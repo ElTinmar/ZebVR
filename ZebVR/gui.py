@@ -94,6 +94,17 @@ class MainGui(QMainWindow):
         self.output_widget.state_changed.connect(self.update_output_settings)
         self.vr_settings_widget.video_recording_signal.connect(self.output_widget.enable_video_recording)
 
+        self.close_loop_tab = QWidget()
+        self.open_loop_tab = QWidget()
+        self.video_recording_tab = QWidget()
+        self.tracking_tab = QWidget()
+        self.top_tabs = QTabWidget()
+        self.top_tabs.addTab(self.close_loop_tab, "Close-loop")
+        self.top_tabs.addTab(self.open_loop_tab, "Open-loop")
+        self.top_tabs.addTab(self.video_recording_tab, "Record")
+        self.top_tabs.addTab(self.tracking_tab, "Track")
+        self.top_tabs.currentChanged.connect(self.top_tab_changed)
+
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.West)
         self.tabs.addTab(self.camera_widget, "Camera")
@@ -143,9 +154,96 @@ class MainGui(QMainWindow):
         controls.addWidget(self.record_button)
 
         layout = QVBoxLayout(self.main_widget)
+        layout.addWidget(self.top_tabs)
         layout.addWidget(self.tabs)
         layout.addLayout(controls)
         layout.addStretch()
+
+    def set_tab_visibililty(self, widgets_to_show, widgets_to_hide):
+
+        for w in widgets_to_show:
+                index = self.tabs.indexOf(w)
+                self.tabs.setTabVisible(index, True)
+            
+        for w in widgets_to_hide:
+            index = self.tabs.indexOf(w)
+            self.tabs.setTabVisible(index, False)
+
+    def top_tab_changed(self):
+        
+        # show only relevant settings for the current mode
+
+        if self.top_tabs.currentWidget() == self.close_loop_tab:
+
+            widgets_to_show = [
+                self.camera_widget,
+                self.output_widget,
+                self.vr_settings_widget,
+                self.projector_widget, 
+                self.calibration_widget, 
+                self.background_widget, 
+                self.registration_widget,
+                self.sequencer_widget
+            ]
+
+            widgets_to_hide = []
+
+            self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
+
+        elif self.top_tabs.currentWidget() == self.open_loop_tab:
+            widgets_to_show = [
+                self.camera_widget,
+                self.output_widget,
+                self.vr_settings_widget,
+                self.projector_widget, 
+                self.calibration_widget, 
+                self.background_widget, 
+                self.registration_widget,
+                self.sequencer_widget
+            ]
+
+            widgets_to_hide = []
+
+            self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
+
+        elif self.top_tabs.currentWidget() == self.video_recording_tab:
+
+            widgets_to_show = [
+                self.camera_widget,
+                self.output_widget,
+                self.vr_settings_widget
+            ]
+
+            widgets_to_hide = [
+                self.projector_widget, 
+                self.calibration_widget, 
+                self.background_widget, 
+                self.registration_widget,
+                self.sequencer_widget
+            ]
+
+            self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
+
+        elif self.top_tabs.currentWidget() == self.tracking_tab:
+            
+            widgets_to_show = [
+                self.camera_widget,
+                self.output_widget,
+                self.vr_settings_widget,
+                self.background_widget, 
+            ]
+
+            widgets_to_hide = [
+                self.registration_widget,
+                self.calibration_widget,
+                self.projector_widget, 
+                self.sequencer_widget
+            ]
+
+            self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
+
+        else:
+            raise RuntimeError       
 
     def load_settings(self):
         # TODO restore all settings for camera (camera choice dropmenu), for protocol 
