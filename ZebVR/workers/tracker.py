@@ -49,7 +49,7 @@ class DummyTrackerWorker(WorkerNode):
                 ('tracking', self.tracking.dtype)
             ])
         )
-        res['stimulus'] = msg
+        res['tracker_output1'] = msg
 
         time.sleep(0.010)
 

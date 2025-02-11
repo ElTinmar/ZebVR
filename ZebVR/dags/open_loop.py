@@ -258,7 +258,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
                 logger_queues = queue_logger,
                 send_data_strategy = send_strategy.BROADCAST, 
                 receive_data_timeout = 1.0, 
-                        )
+            )
         )
 
     display_worker = Display(
