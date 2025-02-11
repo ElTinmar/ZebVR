@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (
     QTabWidget,
     QMainWindow,
     QAction,
+    QButtonGroup,
     QFileDialog
 )
 from PyQt5.QtGui import QIcon
@@ -93,17 +94,22 @@ class MainGui(QMainWindow):
         self.output_widget = OutputWidget()
         self.output_widget.state_changed.connect(self.update_output_settings)
         self.vr_settings_widget.video_recording_signal.connect(self.output_widget.enable_video_recording)
-
-        self.close_loop_tab = QWidget()
-        self.open_loop_tab = QWidget()
-        self.video_recording_tab = QWidget()
-        self.tracking_tab = QWidget()
-        self.top_tabs = QTabWidget()
-        self.top_tabs.addTab(self.close_loop_tab, "Close-loop")
-        self.top_tabs.addTab(self.open_loop_tab, "Open-loop")
-        self.top_tabs.addTab(self.video_recording_tab, "Record")
-        self.top_tabs.addTab(self.tracking_tab, "Track")
-        self.top_tabs.currentChanged.connect(self.top_tab_changed)
+        
+        self.close_loop_button = QPushButton('Close-loop')
+        self.close_loop_button.setCheckable(True)
+        self.open_loop_button = QPushButton('Open-loop')
+        self.open_loop_button.setCheckable(True)
+        self.video_recording_button = QPushButton('Record Video')
+        self.video_recording_button.setCheckable(True)
+        self.tracking_button = QPushButton('Track')
+        self.tracking_button.setCheckable(True)
+        self.top_buttons = QButtonGroup()
+        self.top_buttons.addButton(self.close_loop_button)
+        self.top_buttons.addButton(self.open_loop_button)
+        self.top_buttons.addButton(self.video_recording_button)
+        self.top_buttons.addButton(self.tracking_button)
+        self.top_buttons.setExclusive(True)
+        self.top_buttons.buttonClicked.connect(self.top_button_changed)
 
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.West)
@@ -147,6 +153,12 @@ class MainGui(QMainWindow):
         file_menu.addAction(save_action)
 
     def layout_components(self):
+
+        top_buttons = QHBoxLayout()
+        top_buttons.addWidget(self.close_loop_button)
+        top_buttons.addWidget(self.open_loop_button)
+        top_buttons.addWidget(self.video_recording_button)
+        top_buttons.addWidget(self.tracking_button)
         
         controls = QHBoxLayout()
         controls.addWidget(self.start_button)
@@ -154,7 +166,7 @@ class MainGui(QMainWindow):
         controls.addWidget(self.record_button)
 
         layout = QVBoxLayout(self.main_widget)
-        layout.addWidget(self.top_tabs)
+        layout.addLayout(top_buttons)
         layout.addWidget(self.tabs)
         layout.addLayout(controls)
         layout.addStretch()
@@ -169,11 +181,10 @@ class MainGui(QMainWindow):
             index = self.tabs.indexOf(w)
             self.tabs.setTabVisible(index, False)
 
-    def top_tab_changed(self):
+    def top_button_changed(self):
 
         # show only relevant settings for the current mode
-
-        if self.top_tabs.currentWidget() == self.close_loop_tab:
+        if self.close_loop_button.isChecked():
 
             widgets_to_show = [
                 self.camera_widget,
@@ -190,7 +201,8 @@ class MainGui(QMainWindow):
 
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
 
-        elif self.top_tabs.currentWidget() == self.open_loop_tab:
+        elif self.open_loop_button.isChecked():
+
             widgets_to_show = [
                 self.camera_widget,
                 self.output_widget,
@@ -206,7 +218,7 @@ class MainGui(QMainWindow):
 
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
 
-        elif self.top_tabs.currentWidget() == self.video_recording_tab:
+        elif self.video_recording_button.isChecked():
 
             widgets_to_show = [
                 self.camera_widget,
@@ -224,7 +236,7 @@ class MainGui(QMainWindow):
 
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
 
-        elif self.top_tabs.currentWidget() == self.tracking_tab:
+        elif self.tracking_button.isChecked():
             
             widgets_to_show = [
                 self.camera_widget,
