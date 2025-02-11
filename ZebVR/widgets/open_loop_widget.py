@@ -96,7 +96,6 @@ class OpenLoopWidget(QWidget):
 
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.openloop_group)
-        main_layout.addStretch()
 
     def update_table(self):
         for i in range(2):
@@ -115,7 +114,6 @@ class OpenLoopWidget(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
-        state['openloop'] = self.openloop_group.isChecked()
         state['openloop_coords_file'] = self.openloop_coords_file.text()
         state['centroid_x'] = self.centroid_x.value()
         state['centroid_y'] = self.centroid_y.value()
@@ -125,7 +123,6 @@ class OpenLoopWidget(QWidget):
     def set_state(self, state: Dict) -> None:
 
         try:
-            self.openloop_group.setChecked(state['openloop'])
             self.openloop_coords_file.setText(state['openloop_coords_file'])
             self.centroid_x.setValue(state['centroid_x'])
             self.centroid_y.setValue(state['centroid_y'])

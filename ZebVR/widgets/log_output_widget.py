@@ -43,7 +43,6 @@ class LogOutputWidget(QWidget):
 
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.log_group)
-        main_layout.addStretch()
 
     def get_state(self) -> Dict:
         state = {}

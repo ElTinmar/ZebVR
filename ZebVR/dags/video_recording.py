@@ -20,8 +20,8 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
         dag = ProcessingDAG()
     
     # create loggers
-    worker_logger = Logger(settings['output']['worker_logfile'], Logger.INFO)
-    queue_logger = Logger(settings['output']['queue_logfile'], Logger.INFO)
+    worker_logger = Logger(settings['settings']['log']['worker_logfile'], Logger.INFO)
+    queue_logger = Logger(settings['settings']['log']['queue_logfile'], Logger.INFO)
     
     # create queues -----------------------------------------------------------------------
     queue_cam = MonitoredQueue(
@@ -29,7 +29,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
             num_bytes = 500*1024**2, 
             logger = queue_logger,
             name = 'camera_to_background',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -38,7 +38,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'image_saver_to_display',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -47,7 +47,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'camera_to_converter',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -56,7 +56,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'converter_to_saver',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -65,7 +65,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'camera_to_image_saver',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -88,10 +88,10 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
     )
 
     image_saver_worker = ImageSaverWorker(
-        folder = settings['output']['video_recording_dir'], 
-        decimation = settings['output']['video_decimation'],
-        compress = settings['output']['video_recording_compression'],
-        resize = settings['output']['video_recording_resize'],
+        folder = settings['settings']['videorecording']['video_recording_dir'], 
+        decimation = settings['settings']['videorecording']['video_decimation'],
+        compress = settings['settings']['videorecording']['video_recording_compression'],
+        resize = settings['settings']['videorecording']['video_recording_resize'],
         name = 'cam_output2',  
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -101,15 +101,15 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
     video_recorder_worker = VideoSaverWorker(
         height = settings['camera']['height_value'],
         width = settings['camera']['width_value'],
-        filename = settings['output']['video_filename'],
-        decimation = settings['output']['video_decimation'],
-        fps = settings['camera']['framerate_value']/settings['output']['video_decimation'],
-        video_codec = settings['output']['video_codec'],
-        gpu = settings['output']['video_gpu'],
-        grayscale = settings['output']['video_grayscale'],
-        video_profile = 'main' if not settings['output']['video_grayscale'] else 'high',
-        video_preset = settings['output']['video_preset'],
-        video_quality = settings['output']['video_quality'],
+        filename = settings['settings']['videorecording']['video_filename'],
+        decimation = settings['settings']['videorecording']['video_decimation'],
+        fps = settings['camera']['framerate_value']/settings['settings']['videorecording']['video_decimation'],
+        video_codec = settings['settings']['videorecording']['video_codec'],
+        gpu = settings['settings']['videorecording']['video_gpu'],
+        grayscale = settings['settings']['videorecording']['video_grayscale'],
+        video_profile = 'main' if not settings['settings']['videorecording']['video_grayscale'] else 'high',
+        video_preset = settings['settings']['videorecording']['video_preset'],
+        video_quality = settings['settings']['videorecording']['video_quality'],
         name = 'video_recorder',
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -133,7 +133,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
     )   
 
     display_worker = Display(
-        fps = settings['vr_settings']['display_fps'], 
+        fps = settings['settings']['videorecording']['display_fps'], 
         name = "display", 
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -155,7 +155,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
     )
 
     # connect DAG -----------------------------------------------------------------------
-    if settings['output']['video_method'] == 'image sequence':
+    if settings['settings']['videorecording']['video_method'] == 'image sequence':
         dag.connect_data(
             sender = camera_worker, 
             receiver = image_saver_worker, 
@@ -166,7 +166,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
     else:
         if settings['camera']['num_channels'] == 3:
 
-            if settings['output']['video_grayscale']:
+            if settings['settings']['videorecording']['video_grayscale']:
                 dag.connect_data(
                     sender = camera_worker, 
                     receiver = rgb_to_gray_converter, 

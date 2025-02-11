@@ -35,6 +35,11 @@ class VideoOutputWidget(QWidget):
         self.video_group.setChecked(False)
         self.video_group.toggled.connect(self.state_changed)
 
+        self.display_fps = LabeledSpinBox()
+        self.display_fps.setText('FPS display:')
+        self.display_fps.setValue(30)
+        self.display_fps.valueChanged.connect(self.state_changed)
+
         self.video_decimation = LabeledSpinBox()
         self.video_decimation.setText('Frame decimation:')
         self.video_decimation.setRange(1, 10)
@@ -115,6 +120,10 @@ class VideoOutputWidget(QWidget):
         self.video_stack.addWidget(self.single_video)
         self.video_stack.addWidget(self.image_series)
 
+    def force_checked(self, checked: bool):
+        self.video_group.setCheckable(not checked) 
+        self.video_group.setChecked(checked)
+
     def layout_components(self):
         
         select_video = QHBoxLayout()
@@ -138,13 +147,13 @@ class VideoOutputWidget(QWidget):
 
         video_layout = QVBoxLayout()
         video_layout.addWidget(self.video_decimation)
+        video_layout.addWidget(self.display_fps)
         video_layout.addWidget(self.video_combobox)
         video_layout.addWidget(self.video_stack)
         self.video_group.setLayout(video_layout)
 
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.video_group)
-        main_layout.addStretch()
 
     def codec_changed(self):
         
@@ -277,6 +286,7 @@ class VideoOutputWidget(QWidget):
         state['video_grayscale'] = self.grayscale.isChecked()
         state['video_preset'] = self.video_preset.currentText()
         state['video_quality'] = self.video_quality.value()
+        state['display_fps'] = self.display_fps.value()
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -293,6 +303,7 @@ class VideoOutputWidget(QWidget):
             self.grayscale.setChecked(state['video_grayscale'])
             self.video_preset.setCurrentText(state['video_preset'])
             self.video_quality.setValue(state['video_quality'])
+            self.display_fps.setValue(state['display_fps'])
 
         except KeyError:
             print('Wrong state keys provided to output widget')
