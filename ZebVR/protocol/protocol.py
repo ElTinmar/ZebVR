@@ -1,10 +1,9 @@
 from collections import defaultdict
-from typing import Dict, Optional, Tuple, DefaultDict
+from typing import Dict, Optional, Tuple, DefaultDict, Any
 from abc import ABC, abstractmethod
 from enum import IntEnum
 import time
 
-# TODO maybe this belongs somewhere else ? wait until refactoring of stim  shuffle 
 class Stim(IntEnum):
     DARK = 0
     BRIGHT = 1
@@ -17,8 +16,11 @@ class ProtocolItem(ABC):
 
     STIM_SELECT: Optional[int] = None
 
+    def start(self) -> None:
+        pass
+
     @abstractmethod
-    def run(self) -> Optional[DefaultDict]:
+    def done(self, metadata: Optional[Any]) -> Optional[Tuple[DefaultDict, bool]]:
         pass
 
     def initialize(self):
@@ -43,10 +45,16 @@ class ProtocolItemPause(ProtocolItem):
     def __init__(self, pause_sec: float) -> None:
         super().__init__()
         self.pause_sec = pause_sec
+        self.time_start = None
 
-    def run(self) -> None:
-        time.sleep(self.pause_sec)
-        return None
+    def start(self) -> None:
+        self.time_start = time.perf_counter()
+
+    def done(self, metadata: Optional[Any]) -> Tuple[Any, bool]:
+        if (time.perf_counter() - self.time_start) < self.pause_sec:
+            return None, False
+        else:
+            return None, True
 
     @classmethod
     def from_dict(cls, d: Dict):
@@ -64,8 +72,27 @@ class ProtocolItemPause(ProtocolItem):
 #       - keypress
 #       - TTL signal on DAQ
 
+class ProtocolItemSoftwareTrigger(ProtocolItem):
+
+    def done(self, metadata: Optional[Any]) -> Tuple[Any, bool]:
+        try:
+            if metadata['trigger']:
+                return None, True
+        except:
+            pass
+
+        return None, False
+
+    @classmethod
+    def from_dict(cls, d: Dict):
+        return cls()
+
+    def to_dict(self) -> Dict:
+        return {}
+
+# TODO 
 """
-class ProtocolItemTrigger(ProtocolItem):
+class ProtocolItemTTLTrigger(ProtocolItem):
 
    def __init__(self, port: int) -> None:
        '''give info necessary to create DAQ object'''
@@ -87,46 +114,9 @@ class ProtocolItemTrigger(ProtocolItem):
        return None
 """
 
-# TODO implement sound
+# TODO 
 """
 class ProtocolItemSound(ProtocolItem):
-
-    STIM_SELECT: Optional[int] = None
-
-    def __init__(self, wavfile: str) -> None:
-       super().__init__()
-       self.wavfile = wavfile
-
-    def run(self) -> Optional[DefaultDict]:
-        command = defaultdict(float, {
-            'stim_select': self.SOUND,
-            'wavfile': self.wavfile,
-            'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'looming_center_mm': (0, 0)
-        })
-        return command 
-
-    def initialize(self):
-        '''Run init steps in target worker process'''
-        pass
-
-    def cleanup(self):
-        '''Run cleanup steps in target worker process'''
-        pass
-
-    @classmethod
-    def from_dict(cls, d: Dict) -> None:
-        pass
-    
-    def to_dict(self) -> Dict:
-        pass
-
-"""
-
-# TODO implement protocol termination: can't rely on protocol duration with triggers
-"""
-class ProtocolItemEnd(ProtocolItem):
 
     STIM_SELECT: Optional[int] = None
 
@@ -177,7 +167,11 @@ class ProtocolItemPhototaxis(ProtocolItem):
         self.foreground_color = foreground_color
         self.background_color = background_color 
 
-    def run(self) -> DefaultDict:
+    def start(self) -> None:
+        pass
+
+    def done(self, metadata: Optional[Any]) -> Tuple[Any, bool]:
+
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
             'phototaxis_polarity': self.phototaxis_polarity,
@@ -185,7 +179,7 @@ class ProtocolItemPhototaxis(ProtocolItem):
             'background_color': self.background_color,
             'looming_center_mm': (0, 0)
         })
-        return command 
+        return command, True
     
     @classmethod
     def from_dict(cls, d: Dict) -> None:
@@ -221,7 +215,10 @@ class ProtocolItemOKR(ProtocolItem):
         self.foreground_color = foreground_color
         self.background_color = background_color 
 
-    def run(self) -> DefaultDict:
+    def start(self) -> None:
+        pass
+
+    def done(self, metadata: Optional[Any]) -> Tuple[Any, bool]:
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
             'okr_spatial_frequency_deg': self.okr_spatial_frequency_deg,
@@ -230,7 +227,7 @@ class ProtocolItemOKR(ProtocolItem):
             'background_color': self.background_color,
             'looming_center_mm': (0, 0)
         })
-        return command 
+        return command, True 
 
     @classmethod
     def from_dict(cls, d: Dict) -> None:
@@ -269,8 +266,11 @@ class ProtocolItemOMR(ProtocolItem):
         self.omr_speed_mm_per_sec = omr_speed_mm_per_sec
         self.foreground_color = foreground_color
         self.background_color = background_color 
+    
+    def start(self) -> None:
+        pass
 
-    def run(self) -> DefaultDict:
+    def done(self, metadata: Optional[Any]) -> Tuple[Any, bool]:
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
             'omr_spatial_period_mm': self.omr_spatial_period_mm,
@@ -280,7 +280,7 @@ class ProtocolItemOMR(ProtocolItem):
             'background_color': self.background_color,
             'looming_center_mm': (0, 0)
         })
-        return command 
+        return command, True 
 
     @classmethod
     def from_dict(cls, d: Dict) -> None:
@@ -316,14 +316,17 @@ class ProtocolItemDark(ProtocolItem):
         self.foreground_color = foreground_color
         self.background_color = background_color 
 
-    def run(self) -> DefaultDict:
+    def start(self) -> None:
+        pass
+
+    def done(self, metadata: Optional[Any]) -> Tuple[Any, bool]:
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
             'looming_center_mm': (0, 0)
         })
-        return command 
+        return command, True 
 
     @classmethod
     def from_dict(cls, d: Dict) -> None:
@@ -353,14 +356,17 @@ class ProtocolItemBright(ProtocolItem):
         self.foreground_color = foreground_color 
         self.background_color = background_color 
 
-    def run(self) -> DefaultDict:
+    def start(self) -> None:
+        pass
+
+    def done(self, metadata: Optional[Any]) -> Tuple[Any, bool]:
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
             'looming_center_mm': (0, 0)
         })
-        return command 
+        return command, True 
     
     @classmethod
     def from_dict(cls, d: Dict) -> None:
@@ -398,7 +404,10 @@ class ProtocolItemLooming(ProtocolItem):
         self.looming_expansion_time_sec = looming_expansion_time_sec
         self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
 
-    def run(self) -> DefaultDict:
+    def start(self) -> None:
+        pass
+
+    def done(self, metadata: Optional[Any]) -> Tuple[Any, bool]:
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
             'looming_center_mm': self.looming_center_mm,
@@ -408,7 +417,7 @@ class ProtocolItemLooming(ProtocolItem):
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
         })
-        return command 
+        return command, True 
 
     @classmethod
     def from_dict(cls, d: Dict) -> None:
