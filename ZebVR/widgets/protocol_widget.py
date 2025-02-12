@@ -1,5 +1,5 @@
 from typing import Dict, Tuple
-from qt_widgets import LabeledDoubleSpinBox
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -34,18 +34,50 @@ class TriggerWidget(QWidget):
         self.cmb_trigger_select = QComboBox()
         self.cmb_trigger_select.addItem('Software')
         self.cmb_trigger_select.addItem('Tracking')
-        self.cmb_trigger_select.currentIndexChanged.connect(self.stim_changed)
+        self.cmb_trigger_select.currentIndexChanged.connect(self.trigger_changed)
+
+        self.cmb_trigger_polarity = QComboBox()
+        self.cmb_trigger_polarity.addItem('Raising Edge')
+        self.cmb_trigger_polarity.addItem('Falling edge')
+
+        self.ROI_x = LabeledSpinBox()
+        self.ROI_x.setText('x')
+        self.ROI_x.setRange(0, 10_000) # TODO fix that
+        self.ROI_x.setValue(0)
+        self.ROI_x.valueChanged.connect(self.on_change)
+
+        self.ROI_y = LabeledSpinBox()
+        self.ROI_y.setText('y')
+        self.ROI_y.setRange(0, 10_000) # TODO fix that
+        self.ROI_y.setValue(0)
+        self.ROI_y.valueChanged.connect(self.on_change)
+
+        self.ROI_h = LabeledSpinBox()
+        self.ROI_h.setText('h')
+        self.ROI_h.setRange(0, 10_000) # TODO fix that
+        self.ROI_h.setValue(0)
+        self.ROI_h.valueChanged.connect(self.on_change)
+
+        self.ROI_w = LabeledSpinBox()
+        self.ROI_w.setText('w')
+        self.ROI_w.setRange(0, 10_000) # TODO fix that
+        self.ROI_w.setValue(0)
+        self.ROI_w.valueChanged.connect(self.on_change)
 
     def layout_components(self):
 
         software_trigger_layout = QVBoxLayout()
-        software_trigger_layout.addWidget(self.chb_phototaxis_polarity)
+        software_trigger_layout.addWidget(self.cmb_trigger_polarity)
         software_trigger_layout.addStretch()
         self.software_trigger_group = QGroupBox('Sotware Trigger parameters')
         self.software_trigger_group.setLayout(software_trigger_layout)
 
         tracking_trigger_layout = QVBoxLayout()
-        tracking_trigger_layout.addWidget(self.chb_phototaxis_polarity)
+        tracking_trigger_layout.addWidget(self.cmb_trigger_polarity)
+        tracking_trigger_layout.addWidget(self.ROI_x)
+        tracking_trigger_layout.addWidget(self.ROI_y)
+        tracking_trigger_layout.addWidget(self.ROI_h)
+        tracking_trigger_layout.addWidget(self.ROI_w)
         tracking_trigger_layout.addStretch()
         self.tracking_trigger_group = QGroupBox('Tracking Trigger parameters')
         self.tracking_trigger_group.setLayout(tracking_trigger_layout)
@@ -60,7 +92,7 @@ class TriggerWidget(QWidget):
         layout.addWidget(self.cmb_trigger_select)
         layout.addWidget(self.stack)
 
-    def stim_changed(self):
+    def trigger_changed(self):
         self.stack.setCurrentIndex(self.cmb_trigger_select.currentIndex())
         self.on_change()
 
@@ -76,8 +108,13 @@ class TriggerWidget(QWidget):
 
     def get_state(self) -> Dict:
         state = {}
+        state['trigger_select'] = self.cmb_trigger_select.currentIndex()
+        state['trigger_polarity'] = self.cmb_trigger_polarity.currentIndex()
+        state['ROI_x'] = self.ROI_x.value()
+        state['ROI_y'] = self.ROI_y.value()
+        state['ROI_h'] = self.ROI_h.value()
+        state['ROI_w'] = self.ROI_w.value()
         return state
-
 
 class StimWidget(QWidget):
 
