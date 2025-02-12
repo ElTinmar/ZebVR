@@ -109,7 +109,7 @@ class ProtocolItemTTLTrigger(ProtocolItem):
         super().cleanup()
         self.daq.close()
    
-   def run(self) -> None:
+   def done(self) -> None:
        self.daq.wait_trigger()
        return None
 """
@@ -124,7 +124,7 @@ class ProtocolItemSound(ProtocolItem):
        super().__init__()
        self.wavfile = wavfile
 
-    def run(self) -> Optional[DefaultDict]:
+    def done(self) -> Optional[DefaultDict]:
         command = defaultdict(float, {
             'stim_select': self.SOUND,
             'wavfile': self.wavfile,

@@ -6,7 +6,6 @@ from ..protocol import ProtocolItem
     
 
 class Protocol(WorkerNode):
-    # Implementing triggers
 
     def __init__(
             self, 
