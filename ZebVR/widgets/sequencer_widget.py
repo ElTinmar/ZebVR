@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout, 
 )
-from .stimulus_widget import StimWidget
+from .protocol_widget import StimWidget, TriggerWidget
 from ..protocol import (
     ProtocolItem,
     ProtocolItemPause,
@@ -23,7 +23,8 @@ from ..protocol import (
     ProtocolItemOMR,
     ProtocolItemDark,
     ProtocolItemBright,
-    ProtocolItemLooming
+    ProtocolItemLooming,
+    ProtocolItemSoftwareTrigger
 )
 
 class SequencerItem(QWidget):
@@ -61,6 +62,14 @@ class PauseSequencerItem(SequencerItem):
         ) 
         return protocol
     
+class TriggerSequencerItem(TriggerWidget, SequencerItem):
+    
+    def set_protocol_item(self, item: ProtocolItem):
+        pass 
+
+    def get_protocol_item(self) -> ProtocolItem:
+        return
+
 class StimSequencerItem(StimWidget, SequencerItem):
     
     def set_protocol_item(self, item: ProtocolItem):   
