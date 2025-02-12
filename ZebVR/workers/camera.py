@@ -1,6 +1,5 @@
 
 from camera_tools import Camera
-from image_tools import im2gray
 from dagline import WorkerNode
 import time
 from typing import Callable, Any
