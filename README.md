@@ -27,8 +27,8 @@ cp ZebVR.desktop ~/.local/share/applications/
 ```bash
 git clone https://github.com/ElTinmar/ZebVR.git
 cd ZebVR
-conda env create -f ZebVR.yml
-conda activate ZebVR
+conda env create -f ZebVR2.yml
+conda activate ZebVR2
 ```
 
 ### Allow the python interpreter to set scheduler
