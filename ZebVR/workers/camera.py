@@ -43,7 +43,6 @@ class CameraWorker(WorkerNode):
         self.cam.set_gain(self.gain)
         self.cam.set_framerate(self.framerate)
         self.cam.start_acquisition()
-        self.updated = True
 
     def cleanup(self) -> None:
         super().cleanup()
