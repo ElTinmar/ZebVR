@@ -88,7 +88,6 @@ class MainGui(QMainWindow):
 
         self.settings_widget = SettingsWidget()
         self.settings_widget.state_changed.connect(self.update_settings)
-        #self.vr_settings_widget.video_recording_signal.connect(self.output_widget.enable_video_recording)
         
         self.close_loop_button = QPushButton('Close-loop')
         self.close_loop_button.setCheckable(True)
