@@ -65,8 +65,12 @@ class PauseSequencerItem(SequencerItem):
 class TriggerSequencerItem(TriggerWidget, SequencerItem):
     
     def set_protocol_item(self, item: ProtocolItem):
-        pass 
 
+        self.cmb_trigger_polarity.setCurrentIndex(item.polarity)
+        
+        if isinstance(item, ProtocolItemSoftwareTrigger): 
+            self.cmb_trigger_select.setCurrentText('Software')
+            
     def get_protocol_item(self) -> ProtocolItem:
         return
 

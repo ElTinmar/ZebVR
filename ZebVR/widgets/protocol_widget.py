@@ -13,6 +13,8 @@ from PyQt5.QtWidgets import (
     QLabel
 )
 
+from ..protocol import Stim, TriggerPolarity
+
 class TriggerWidget(QWidget):
 
     state_changed = pyqtSignal()
@@ -37,8 +39,8 @@ class TriggerWidget(QWidget):
         self.cmb_trigger_select.currentIndexChanged.connect(self.trigger_changed)
 
         self.cmb_trigger_polarity = QComboBox()
-        self.cmb_trigger_polarity.addItem('Raising Edge')
-        self.cmb_trigger_polarity.addItem('Falling edge')
+        for pol in TriggerPolarity:
+            self.cmb_trigger_select.addItem(str(pol))
 
         self.ROI_x = LabeledSpinBox()
         self.ROI_x.setText('x')
@@ -161,12 +163,8 @@ class StimWidget(QWidget):
     def declare_components(self):
 
         self.cmb_stim_select = QComboBox()
-        self.cmb_stim_select.addItem('Dark')
-        self.cmb_stim_select.addItem('Bright')
-        self.cmb_stim_select.addItem('Phototaxis')
-        self.cmb_stim_select.addItem('OMR')
-        self.cmb_stim_select.addItem('OKR')
-        self.cmb_stim_select.addItem('Looming')
+        for stim in Stim:
+            self.cmb_stim_select.addItem(str(stim))
         self.cmb_stim_select.currentIndexChanged.connect(self.stim_changed)
 
         # Colors

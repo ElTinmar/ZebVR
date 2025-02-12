@@ -12,6 +12,16 @@ class Stim(IntEnum):
     OKR = 4
     LOOMING = 5
 
+    def __str__(self):
+        return self.name
+
+class TriggerPolarity(IntEnum):
+    RISING_EDGE = 0
+    FALLING_EDGE = 1
+
+    def __str__(self):
+        return self.name
+    
 class ProtocolItem(ABC):
 
     STIM_SELECT: Optional[int] = None
@@ -73,6 +83,14 @@ class ProtocolItemPause(ProtocolItem):
 #       - TTL signal on DAQ
 
 class ProtocolItemSoftwareTrigger(ProtocolItem):
+
+    def __init__(
+            self, 
+            polarity = TriggerPolarity.RISING_EDGE,
+        ) -> None:
+
+        super().__init__()
+        self.polarity = polarity
 
     def done(self, metadata: Optional[Any]) -> Tuple[Any, bool]:
         try:
