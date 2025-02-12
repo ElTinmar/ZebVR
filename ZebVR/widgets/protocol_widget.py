@@ -13,6 +13,71 @@ from PyQt5.QtWidgets import (
     QLabel
 )
 
+class TriggerWidget(QWidget):
+
+    state_changed = pyqtSignal()
+    
+    def __init__(
+            self, 
+            *args, 
+            **kwargs
+        ):
+        
+        super().__init__(*args, **kwargs)
+        
+        self.updated = False
+        self.declare_components()
+        self.layout_components()
+
+    def declare_components(self):
+
+        self.cmb_trigger_select = QComboBox()
+        self.cmb_trigger_select.addItem('Software')
+        self.cmb_trigger_select.addItem('Tracking')
+        self.cmb_trigger_select.currentIndexChanged.connect(self.stim_changed)
+
+    def layout_components(self):
+
+        software_trigger_layout = QVBoxLayout()
+        software_trigger_layout.addWidget(self.chb_phototaxis_polarity)
+        software_trigger_layout.addStretch()
+        self.software_trigger_group = QGroupBox('Sotware Trigger parameters')
+        self.software_trigger_group.setLayout(software_trigger_layout)
+
+        tracking_trigger_layout = QVBoxLayout()
+        tracking_trigger_layout.addWidget(self.chb_phototaxis_polarity)
+        tracking_trigger_layout.addStretch()
+        self.tracking_trigger_group = QGroupBox('Tracking Trigger parameters')
+        self.tracking_trigger_group.setLayout(tracking_trigger_layout)
+
+        self.stack = QStackedWidget()
+        self.stack.addWidget(QLabel())
+        self.stack.addWidget(QLabel())
+        self.stack.addWidget(self.software_trigger_group)
+        self.stack.addWidget(self.tracking_trigger_group)
+        
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.cmb_trigger_select)
+        layout.addWidget(self.stack)
+
+    def stim_changed(self):
+        self.stack.setCurrentIndex(self.cmb_trigger_select.currentIndex())
+        self.on_change()
+
+    def on_change(self):
+        self.updated = True
+        self.state_changed.emit()
+
+    def is_updated(self) -> bool:
+        return self.updated
+    
+    def set_updated(self, updated:bool) -> None:
+        self.updated = updated
+
+    def get_state(self) -> Dict:
+        state = {}
+        return state
+
 
 class StimWidget(QWidget):
 
@@ -21,8 +86,7 @@ class StimWidget(QWidget):
     def __init__(
             self, 
             phototaxis_polarity: int = 1,
-            omr_spatial_period_mm: float = 5,
-            omr_angle_deg: float = 0,
+            omr_spatial_pdeg: float = 0,
             omr_speed_mm_per_sec: float = 10,
             okr_spatial_frequency_deg: float = 20,
             okr_speed_deg_per_sec: float = 36,
