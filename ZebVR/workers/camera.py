@@ -30,7 +30,6 @@ class CameraWorker(WorkerNode):
         self.width = width
         self.offsetx = offsetx
         self.offsety = offsety
-        self.updated = False
     
     def initialize(self) -> None:
         super().initialize()
