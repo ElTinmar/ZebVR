@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QApplication
 from .gui import MainGui
 
 def set_realtime_priority(priority):
+    
     try:
         # Get the current process ID
         pid = os.getpid()
@@ -12,8 +13,10 @@ def set_realtime_priority(priority):
         # Set real-time scheduling policy and priority
         os.sched_setscheduler(pid, os.SCHED_RR, os.sched_param(sched_priority=priority))
         print(f"Real-time priority set to {priority}.")
+
     except PermissionError:
         print("Permission denied. Run as root or grant CAP_SYS_NICE to the Python executable.")
+
     except Exception as e:
         print(f"Failed to set real-time priority: {e}")
 
