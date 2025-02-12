@@ -86,7 +86,8 @@ class StimWidget(QWidget):
     def __init__(
             self, 
             phototaxis_polarity: int = 1,
-            omr_spatial_pdeg: float = 0,
+            omr_spatial_period_mm: float = 5,
+            omr_angle_deg: float = 0,
             omr_speed_mm_per_sec: float = 10,
             okr_spatial_frequency_deg: float = 20,
             okr_speed_deg_per_sec: float = 36,
