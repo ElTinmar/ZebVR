@@ -40,7 +40,7 @@ class TriggerWidget(QWidget):
 
         self.cmb_trigger_polarity = QComboBox()
         for pol in TriggerPolarity:
-            self.cmb_trigger_select.addItem(str(pol))
+            self.cmb_trigger_polarity.addItem(str(pol))
 
         self.ROI_x = LabeledSpinBox()
         self.ROI_x.setText('x')
@@ -69,13 +69,11 @@ class TriggerWidget(QWidget):
     def layout_components(self):
 
         software_trigger_layout = QVBoxLayout()
-        software_trigger_layout.addWidget(self.cmb_trigger_polarity)
         software_trigger_layout.addStretch()
         self.software_trigger_group = QGroupBox('Sotware Trigger parameters')
         self.software_trigger_group.setLayout(software_trigger_layout)
 
         tracking_trigger_layout = QVBoxLayout()
-        tracking_trigger_layout.addWidget(self.cmb_trigger_polarity)
         tracking_trigger_layout.addWidget(self.ROI_x)
         tracking_trigger_layout.addWidget(self.ROI_y)
         tracking_trigger_layout.addWidget(self.ROI_h)
@@ -85,13 +83,12 @@ class TriggerWidget(QWidget):
         self.tracking_trigger_group.setLayout(tracking_trigger_layout)
 
         self.stack = QStackedWidget()
-        self.stack.addWidget(QLabel())
-        self.stack.addWidget(QLabel())
         self.stack.addWidget(self.software_trigger_group)
         self.stack.addWidget(self.tracking_trigger_group)
         
         layout = QVBoxLayout(self)
         layout.addWidget(self.cmb_trigger_select)
+        layout.addWidget(self.cmb_trigger_polarity)
         layout.addWidget(self.stack)
 
     def trigger_changed(self):

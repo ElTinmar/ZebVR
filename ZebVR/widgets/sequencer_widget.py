@@ -16,6 +16,8 @@ from PyQt5.QtWidgets import (
 )
 from .protocol_widget import StimWidget, TriggerWidget
 from ..protocol import (
+    Stim,
+    TriggerPolarity,
     ProtocolItem,
     ProtocolItemPause,
     ProtocolItemPhototaxis,
@@ -66,7 +68,7 @@ class TriggerSequencerItem(TriggerWidget, SequencerItem):
     
     def set_protocol_item(self, item: ProtocolItem):
 
-        self.cmb_trigger_polarity.setCurrentIndex(item.polarity)
+        self.cmb_trigger_polarity.setCurrentText(str(item.polarity))
         
         if isinstance(item, ProtocolItemSoftwareTrigger): 
             self.cmb_trigger_select.setCurrentText('Software')
@@ -89,28 +91,28 @@ class StimSequencerItem(StimWidget, SequencerItem):
         self.sb_background_color_A.setValue(item.background_color[3])         
         
         if isinstance(item, ProtocolItemBright):
-            self.cmb_stim_select.setCurrentText('Bright')
+            self.cmb_stim_select.setCurrentText(str(Stim.BRIGHT))
 
         elif isinstance(item, ProtocolItemDark):
-            self.cmb_stim_select.setCurrentText('Dark')
+            self.cmb_stim_select.setCurrentText(str(Stim.DARK))
 
         elif isinstance(item, ProtocolItemPhototaxis):
-            self.cmb_stim_select.setCurrentText('Phototaxis')
+            self.cmb_stim_select.setCurrentText(str(Stim.PHOTOTAXIS))
             self.chb_phototaxis_polarity.setChecked(item.phototaxis_polarity == 1) 
 
         elif isinstance(item, ProtocolItemOMR):
-            self.cmb_stim_select.setCurrentText('OMR')
+            self.cmb_stim_select.setCurrentText(str(Stim.OMR))
             self.sb_omr_spatial_freq.setValue(item.omr_spatial_period_mm)
             self.sb_omr_angle.setValue(item.omr_angle_deg)
             self.sb_omr_speed.setValue(item.omr_speed_mm_per_sec)  
     
         elif isinstance(item, ProtocolItemOKR):
-            self.cmb_stim_select.setCurrentText('OKR')
+            self.cmb_stim_select.setCurrentText(str(Stim.OKR))
             self.sb_okr_spatial_freq.setValue(item.okr_spatial_frequency_deg)
             self.sb_okr_speed.setValue(item.okr_speed_deg_per_sec) 
     
         elif isinstance(item, ProtocolItemLooming):
-            self.cmb_stim_select.setCurrentText('Looming')
+            self.cmb_stim_select.setCurrentText(str(Stim.LOOMING))
             self.sb_looming_center_mm_x.setValue(item.looming_center_mm[0])
             self.sb_looming_center_mm_y.setValue(item.looming_center_mm[1])
             self.sb_looming_period_sec.setValue(item.looming_period_sec)
@@ -119,7 +121,7 @@ class StimSequencerItem(StimWidget, SequencerItem):
 
     def get_protocol_item(self) -> ProtocolItem:
 
-        if self.cmb_stim_select.currentText() == 'Dark':
+        if self.cmb_stim_select.currentText() == str(Stim.DARK):
             protocol = ProtocolItemDark(
                 foreground_color = (
                     self.sb_foreground_color_R.value(), 
@@ -135,7 +137,7 @@ class StimSequencerItem(StimWidget, SequencerItem):
                 )
             )
 
-        if self.cmb_stim_select.currentText() == 'Bright':
+        if self.cmb_stim_select.currentText() == str(Stim.BRIGHT):
             protocol = ProtocolItemBright(
                 foreground_color = (
                     self.sb_foreground_color_R.value(), 
@@ -151,7 +153,7 @@ class StimSequencerItem(StimWidget, SequencerItem):
                 )
             )
 
-        if self.cmb_stim_select.currentText() == 'Phototaxis':
+        if self.cmb_stim_select.currentText() == str(Stim.PHOTOTAXIS):
             protocol = ProtocolItemPhototaxis(
                 foreground_color = (
                     self.sb_foreground_color_R.value(), 
@@ -168,7 +170,7 @@ class StimSequencerItem(StimWidget, SequencerItem):
                 phototaxis_polarity=-1+2*self.chb_phototaxis_polarity.isChecked()
             )
 
-        if self.cmb_stim_select.currentText() == 'OMR':
+        if self.cmb_stim_select.currentText() == str(Stim.OMR):
             protocol = ProtocolItemOMR(
                 foreground_color = (
                     self.sb_foreground_color_R.value(), 
@@ -187,7 +189,7 @@ class StimSequencerItem(StimWidget, SequencerItem):
                 omr_speed_mm_per_sec = self.sb_omr_speed.value() 
             )
 
-        if self.cmb_stim_select.currentText() == 'OKR':
+        if self.cmb_stim_select.currentText() == str(Stim.OKR):
             protocol = ProtocolItemOKR(
                 foreground_color = (
                     self.sb_foreground_color_R.value(), 
@@ -205,7 +207,7 @@ class StimSequencerItem(StimWidget, SequencerItem):
                 okr_speed_deg_per_sec = self.sb_okr_speed.value()
             )
 
-        if self.cmb_stim_select.currentText() == 'Looming':
+        if self.cmb_stim_select.currentText() == str(Stim.LOOMING):
             protocol = ProtocolItemLooming(
                 foreground_color = (
                     self.sb_foreground_color_R.value(), 
@@ -229,9 +231,6 @@ class StimSequencerItem(StimWidget, SequencerItem):
             )
         
         return protocol
-
-class TriggerSequencerItem(SequencerItem):
-    pass
 
 class SequencerWidget(QWidget):
 
@@ -269,7 +268,7 @@ class SequencerWidget(QWidget):
         # add trigger button 
         self.btn_add_trigger = QPushButton('trigger')
         self.btn_add_trigger.clicked.connect(self.trigger_pressed)
-        self.btn_add_trigger.setEnabled(False)
+        #self.btn_add_trigger.setEnabled(False)
 
         # remove button
         self.btn_remove = QPushButton('remove')
