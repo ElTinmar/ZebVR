@@ -251,8 +251,6 @@ class SequencerWidget(QWidget):
 
         # QListWidget
         self.list = QListWidget()
-        self.list.setFixedWidth(460)
-        self.list.setFixedHeight(720)
         self.list.setAlternatingRowColors(True)
 
         #self.list.setSpacing(5)

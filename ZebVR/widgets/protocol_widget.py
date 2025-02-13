@@ -301,6 +301,7 @@ class StimWidget(QWidget):
         foreground_color_layout.addWidget(self.sb_foreground_color_G)
         foreground_color_layout.addWidget(self.sb_foreground_color_B)
         foreground_color_layout.addWidget(self.sb_foreground_color_A)
+        foreground_color_layout.addStretch()
 
         background_color_layout = QHBoxLayout()
         background_color_layout.addWidget(self.lbl_background_color)
@@ -308,6 +309,7 @@ class StimWidget(QWidget):
         background_color_layout.addWidget(self.sb_background_color_G)
         background_color_layout.addWidget(self.sb_background_color_B)
         background_color_layout.addWidget(self.sb_background_color_A)
+        background_color_layout.addStretch()
 
         phototaxis_layout = QVBoxLayout()
         phototaxis_layout.addWidget(self.chb_phototaxis_polarity)
