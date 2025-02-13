@@ -4,7 +4,7 @@ from .display import *
 from .image_saver import *
 from .protocol_worker import *
 from .queue_monitor import *
-from .stim_gui import *
+from .protocol_gui import *
 from .tracker_gui import *
 from .tracker import *
 from .tracking_display import *

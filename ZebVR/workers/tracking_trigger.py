@@ -53,26 +53,11 @@ class TrackingTrigger(WorkerNode):
                 return
 
             x, y = fish_centroid.astype(int)
-            if self.trigger_mask[y, x] == 1:
-                self.triggered = True
+            self.triggered = self.trigger_mask[y, x]
                 
     def process_metadata(self, metadata) -> None:
 
-        # TODO relay a trigger to the protocol worker instead of hardcoding
+        res = {}
+        res['trigger'] = self.triggered
         
-        if self.triggered:
-
-            command = defaultdict(float, {
-                'stim_select': Stim.BRIGHT,
-                'foreground_color': (1.0,0.0,0.0,1.0),
-                'background_color': (0.0,0.0,0.0,1.0),
-                'looming_center_mm': (0, 0)
-            })
-            
-            res = {}
-            res['visual_stim_control'] = command
-
-            # TODO maybe add filtering to avoid flicker
-            self.triggered = False
-            
-            return res
+        return res

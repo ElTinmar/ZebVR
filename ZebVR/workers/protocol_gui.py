@@ -2,8 +2,7 @@ from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional, Tuple
 import time
-from ..widgets import StimWidget # Should I do relative imports instead?
-
+from ..widgets import StimWidget
 from PyQt5.QtWidgets import QApplication
 
 class StimGUI(WorkerNode):

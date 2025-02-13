@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, Optional, Tuple, DefaultDict, Any
+from typing import Dict, Optional, Tuple, DefaultDict, Any,TypedDict
 from abc import ABC, abstractmethod
 from enum import IntEnum
 import time
@@ -82,6 +82,9 @@ class ProtocolItemPause(ProtocolItem):
 #       - keypress
 #       - TTL signal on DAQ
 
+class MetadataTrigger(TypedDict):
+    trigger: int # either 1 or 0
+
 class ProtocolItemSoftwareTrigger(ProtocolItem):
 
     def __init__(
@@ -91,15 +94,23 @@ class ProtocolItemSoftwareTrigger(ProtocolItem):
 
         super().__init__()
         self.polarity = polarity
+        self.current_value = 0
 
-    def done(self, metadata: Optional[Any]) -> Tuple[Any, bool]:
+    def done(self, metadata: Optional[MetadataTrigger]) -> Tuple[Any, bool]:
+
         try:
-            if metadata['trigger']:
-                return None, True
-        except:
-            pass
+            value = metadata['trigger'] 
+            delta = value - self.current_value
+            self.current_value = value
 
-        return None, False
+            if self.polarity == TriggerPolarity.RISING_EDGE:
+                return (None, True) if delta > 0 else (None, False)
+            
+            elif self.polarity == TriggerPolarity.FALLING_EDGE: 
+                return (None, True) if delta < 0 else (None, False)
+            
+        except (TypeError, KeyError): 
+            return None, False
 
     @classmethod
     def from_dict(cls, d: Dict):
