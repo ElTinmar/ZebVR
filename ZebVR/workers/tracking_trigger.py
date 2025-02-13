@@ -1,8 +1,6 @@
 import numpy as np 
 from numpy.typing import NDArray
 from dagline import WorkerNode
-from collections import defaultdict
-from ..protocol import Stim
 
 class TrackingTrigger(WorkerNode):
 
@@ -59,7 +57,5 @@ class TrackingTrigger(WorkerNode):
 
         res = {}
         res['trigger'] = self.triggered
-
-        print(res)
         
         return res
