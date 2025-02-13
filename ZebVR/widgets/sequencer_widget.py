@@ -3,6 +3,7 @@ from qt_widgets import LabeledDoubleSpinBox, QFileDialog
 from collections import deque
 import json
 from typing import Deque
+import numpy as np
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -27,7 +28,8 @@ from ..protocol import (
     ProtocolItemDark,
     ProtocolItemBright,
     ProtocolItemLooming,
-    ProtocolItemSoftwareTrigger
+    ProtocolItemSoftwareTrigger,
+    ProtocolItemTrackingTrigger
 )
 
 class SequencerItem(QWidget):
@@ -73,12 +75,27 @@ class TriggerSequencerItem(TriggerWidget, SequencerItem):
         
         if isinstance(item, ProtocolItemSoftwareTrigger): 
             self.cmb_trigger_select.setCurrentText(str(TriggerType.SOFTWARE))
+
+        elif isinstance(item, ProtocolItemTrackingTrigger): 
+            self.cmb_trigger_select.setCurrentText(str(TriggerType.TRACKING))
             
     def get_protocol_item(self) -> ProtocolItem:
 
         if self.cmb_trigger_select.currentText() == str(TriggerType.SOFTWARE):
             protocol = ProtocolItemSoftwareTrigger(
-                polarity = TriggerPolarity[self.cmb_trigger_polarity.currentText()]
+                polarity = TriggerPolarity[self.cmb_trigger_polarity.currentText()],
+                debouncer_length = self.debouncer.value()
+            )
+
+        elif self.cmb_trigger_select.currentText() == str(TriggerType.TRACKING):
+            
+            with open(self.trigger_mask.text(), 'rb') as f:
+                trigger_mask = np.load(f)
+
+            protocol = ProtocolItemTrackingTrigger(
+                polarity = TriggerPolarity[self.cmb_trigger_polarity.currentText()],
+                debouncer_length = self.debouncer.value(),
+                trigger_mask = trigger_mask
             )
 
         return protocol

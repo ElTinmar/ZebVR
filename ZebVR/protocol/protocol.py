@@ -3,7 +3,10 @@ from typing import Dict, Optional, Tuple, DefaultDict, Any,TypedDict
 from abc import ABC, abstractmethod
 from enum import IntEnum
 import time
+import numpy as np
+from numpy.typing import NDArray
 
+# TODO maybe split into different files
 class Stim(IntEnum):
     DARK = 0
     BRIGHT = 1
@@ -18,6 +21,7 @@ class Stim(IntEnum):
 class TriggerType(IntEnum):
     SOFTWARE = 0
     TTL = 1
+    TRACKING = 2
 
     def __str__(self):
         return self.name
@@ -125,12 +129,12 @@ class ProtocolItemSoftwareTrigger(ProtocolItem):
     def __init__(
             self, 
             polarity = TriggerPolarity.RISING_EDGE,
-            debouncer_lenght: int = 3 
+            debouncer_length: int = 3 
         ) -> None:
 
         super().__init__()
         self.polarity = polarity
-        self.debouncer = Debouncer(debouncer_lenght)
+        self.debouncer = Debouncer(debouncer_length)
         self.current_state = self.debouncer.get_state()
 
     def done(self, metadata: Optional[MetadataTrigger]) -> Tuple[Any, bool]:
@@ -148,8 +152,74 @@ class ProtocolItemSoftwareTrigger(ProtocolItem):
         
         self.debouncer.update(value)
         new_state = self.debouncer.get_state()
+
+        if (self.current_state == self.debouncer.State.OFF) and (new_state == self.debouncer.State.ON):
+            self.current_state = new_state
+            return (None, True) if TriggerPolarity.RISING_EDGE else (None, False)
+
+        elif (self.current_state == self.debouncer.State.ON) and (new_state == self.debouncer.State.OFF):
+            self.current_state = new_state
+            return (None, True) if TriggerPolarity.FALLING_EDGE else (None, False)
+
+        else:
+            self.current_state = new_state
+            return (None, False)
+
+    @classmethod
+    def from_dict(cls, d: Dict):
+        return cls()
+
+    def to_dict(self) -> Dict:
+        return {}
+
+class ProtocolItemTrackingTrigger(ProtocolItem):
+
+    def __init__(
+            self, 
+            trigger_mask: NDArray,
+            polarity = TriggerPolarity.RISING_EDGE,
+            debouncer_length: int = 3
+        ) -> None:
+
+        super().__init__()
         
-        print(self.current_state, new_state)
+        self.trigger_mask = trigger_mask
+        self.polarity = polarity
+        self.debouncer = Debouncer(debouncer_length)
+        self.current_state = self.debouncer.get_state()
+
+    def done(self, metadata: Optional[MetadataTrigger]) -> Tuple[Any, bool]:
+        
+        if metadata is None:
+            return (None, False)
+        
+        fish_centroid = np.zeros((2,), dtype=float)
+        
+        try:
+            tracking = metadata['tracker_metadata']['tracking']
+
+            # TODO choose animal
+            k = tracking['animals']['identities'][0]
+
+            if tracking['body'][k] is not None:
+                fish_centroid[:] = tracking['body'][k]['centroid_original_space']
+            else:
+                fish_centroid[:] = tracking['animals']['centroids'][k,:]
+
+        except KeyError:
+            return (None, False)
+        
+        except TypeError:
+            return (None, False)
+        
+        except ValueError:
+            return (None, False)
+        
+        x, y = fish_centroid.astype(int)
+        triggered = self.trigger_mask[y, x]
+        print(triggered)
+        self.debouncer.update(triggered)
+        new_state = self.debouncer.get_state()
 
         if (self.current_state == self.debouncer.State.OFF) and (new_state == self.debouncer.State.ON):
             self.current_state = new_state

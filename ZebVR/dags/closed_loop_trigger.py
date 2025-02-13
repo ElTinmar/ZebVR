@@ -122,16 +122,14 @@ def closed_loop_trigger(settings: Dict, dag: Optional[ProcessingDAG] = None) -> 
         )
     )
 
-    queue_trigger = MonitoredQueue(
+    queue_trigger_metadata = MonitoredQueue(
         ModifiableRingBuffer(
             num_bytes = 500*1024**2,
             logger = queue_logger,
-            name = 'tracker_to_trigger',
+            name = 'tracker_to_protocol',
             t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
-
-    queue_trigger_metadata = MonitoredQueue(QueueMP())
 
     queue_overlay = MonitoredQueue(
         ModifiableRingBuffer(
@@ -216,8 +214,7 @@ def closed_loop_trigger(settings: Dict, dag: Optional[ProcessingDAG] = None) -> 
             queue_save_image: 'direct video recording',
             queue_camera_to_converter: 'pixel format conversion',
             queue_converter_to_saver: 'converted video recording',
-            queue_trigger: 'tracking to triggers',
-            queue_trigger_metadata: 'trigger to protocol',
+            queue_trigger_metadata: 'tracker to protocol',
         },
         name = 'queue_monitor',
         logger = worker_logger, 
@@ -293,20 +290,6 @@ def closed_loop_trigger(settings: Dict, dag: Optional[ProcessingDAG] = None) -> 
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0, # TODO add widget for that ?
-        profile = False
-    )
-
-    h, w = settings['camera']['height_value'], settings['camera']['width_value']
-    trigger_mask = np.zeros((h,w))
-    y,x = np.mgrid[0:h, 0:w]
-    trigger_mask[x>=w//2] = 1
-
-    tracking_trigger_worker = TrackingTrigger(
-        trigger_mask = trigger_mask, 
-        name = "display", 
-        logger = worker_logger, 
-        logger_queues = queue_logger,
-        receive_data_timeout = 1.0,
         profile = False
     )
 
@@ -477,14 +460,6 @@ def closed_loop_trigger(settings: Dict, dag: Optional[ProcessingDAG] = None) -> 
             name = 'tracker_output2'
         )
 
-    for i in range(settings['settings']['tracking']['n_tracker_workers']):
-        dag.connect_data(
-            sender = tracker_worker_list[i], 
-            receiver = tracking_trigger_worker, 
-            queue = queue_trigger, 
-            name = 'tracker_output3'
-        )
-
     # metadata
     if settings['main']['record']:
         protocol = settings['protocol']
@@ -495,12 +470,13 @@ def closed_loop_trigger(settings: Dict, dag: Optional[ProcessingDAG] = None) -> 
             queue = QueueMP(), 
             name = 'visual_stim_control'
         )
-        dag.connect_metadata(
-            sender = tracking_trigger_worker, 
-            receiver = protocol_worker, 
-            queue = QueueMP(), 
-            name = f'trigger'
-        )
+        for i in range(settings['settings']['tracking']['n_tracker_workers']):
+            dag.connect_metadata(
+                sender = tracker_worker_list[i], 
+                receiver = protocol_worker, 
+                queue = queue_trigger_metadata, 
+                name = 'tracker_metadata'
+            )
     else:
         dag.connect_metadata(
             sender = stim_control_worker, 
