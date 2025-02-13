@@ -115,13 +115,18 @@ class BackgroundWidget(QWidget):
         static_layout.addWidget(self.static_pause_duration)
         static_layout.addStretch()
 
+        image_layout = QHBoxLayout()
+        image_layout.addStretch()
+        image_layout.addWidget(self.image)
+        image_layout.addStretch() 
+
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.bckgsub_method_combobox)
         main_layout.addWidget(self.bckgsub_parameter_stack)
         main_layout.addWidget(self.bckgsub_polarity_combobox)
         main_layout.addWidget(self.background_file)
         main_layout.addWidget(self.background)
-        main_layout.addWidget(self.image)
+        main_layout.addLayout(image_layout)
     
     def set_image(self, image: NDArray):
         # TODO maybe check that image is uint8

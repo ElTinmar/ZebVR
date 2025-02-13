@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
 from .protocol_widget import StimWidget, TriggerWidget
 from ..protocol import (
     Stim,
+    TriggerType,
     TriggerPolarity,
     ProtocolItem,
     ProtocolItemPause,
@@ -71,11 +72,17 @@ class TriggerSequencerItem(TriggerWidget, SequencerItem):
         self.cmb_trigger_polarity.setCurrentText(str(item.polarity))
         
         if isinstance(item, ProtocolItemSoftwareTrigger): 
-            self.cmb_trigger_select.setCurrentText('Software')
+            self.cmb_trigger_select.setCurrentText(str(TriggerType.SOFTWARE))
             
     def get_protocol_item(self) -> ProtocolItem:
-        return
 
+        if self.cmb_trigger_select.currentText() == str(TriggerType.SOFTWARE):
+            protocol = ProtocolItemSoftwareTrigger(
+                polarity = TriggerPolarity[self.cmb_trigger_polarity.currentText()]
+            )
+
+        return protocol
+    
 class StimSequencerItem(StimWidget, SequencerItem):
     
     def set_protocol_item(self, item: ProtocolItem):   

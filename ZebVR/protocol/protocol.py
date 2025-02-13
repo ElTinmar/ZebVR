@@ -15,6 +15,13 @@ class Stim(IntEnum):
     def __str__(self):
         return self.name
 
+class TriggerType(IntEnum):
+    SOFTWARE = 0
+    TTL = 1
+
+    def __str__(self):
+        return self.name
+
 class TriggerPolarity(IntEnum):
     RISING_EDGE = 0
     FALLING_EDGE = 1
@@ -119,28 +126,34 @@ class ProtocolItemSoftwareTrigger(ProtocolItem):
     def to_dict(self) -> Dict:
         return {}
 
-# TODO 
 """
 class ProtocolItemTTLTrigger(ProtocolItem):
 
-   def __init__(self, port: int) -> None:
-       '''give info necessary to create DAQ object'''
-       super().__init__()
-       self.port = port
+    def __init__(self, port: int) -> None:
+        '''give info necessary to create DAQ object'''
+        super().__init__()
+        self.port = port
 
-   def initialize(self):
+    def initialize(self):
         '''create DAQ object'''
         super().initialize()
         self.daq.open(port=self.port)
-   
-   def cleanup(self):
+
+    def cleanup(self):
         '''create DAQ object'''
         super().cleanup()
         self.daq.close()
-   
-   def done(self) -> None:
-       self.daq.wait_trigger()
-       return None
+
+    def done(self) -> None:
+        self.daq.wait_trigger()
+        return None
+
+    @classmethod
+    def from_dict(cls, d: Dict):
+        return cls()
+
+    def to_dict(self) -> Dict:
+        return {}
 """
 
 # TODO 

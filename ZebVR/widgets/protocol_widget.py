@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
     QLabel
 )
 
-from ..protocol import Stim, TriggerPolarity
+from ..protocol import Stim, TriggerPolarity, TriggerType
 
 class TriggerWidget(QWidget):
 
@@ -34,8 +34,8 @@ class TriggerWidget(QWidget):
     def declare_components(self):
 
         self.cmb_trigger_select = QComboBox()
-        self.cmb_trigger_select.addItem('Software')
-        self.cmb_trigger_select.addItem('Tracking')
+        for trigger in TriggerType:
+            self.cmb_trigger_select.addItem(str(trigger))
         self.cmb_trigger_select.currentIndexChanged.connect(self.trigger_changed)
 
         self.cmb_trigger_polarity = QComboBox()

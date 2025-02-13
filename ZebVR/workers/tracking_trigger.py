@@ -59,5 +59,7 @@ class TrackingTrigger(WorkerNode):
 
         res = {}
         res['trigger'] = self.triggered
+
+        print(res)
         
         return res
