@@ -131,6 +131,8 @@ def closed_loop_trigger(settings: Dict, dag: Optional[ProcessingDAG] = None) -> 
         )
     )
 
+    queue_trigger_metadata = MonitoredQueue(QueueMP())
+
     queue_overlay = MonitoredQueue(
         ModifiableRingBuffer(
             num_bytes = 500*1024**2,
@@ -214,7 +216,8 @@ def closed_loop_trigger(settings: Dict, dag: Optional[ProcessingDAG] = None) -> 
             queue_save_image: 'direct video recording',
             queue_camera_to_converter: 'pixel format conversion',
             queue_converter_to_saver: 'converted video recording',
-            queue_trigger: 'tracking triggers',
+            queue_trigger: 'tracking to triggers',
+            queue_trigger_metadata: 'trigger to protocol',
         },
         name = 'queue_monitor',
         logger = worker_logger, 

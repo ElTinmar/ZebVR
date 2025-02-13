@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 from typing import Dict, Optional, Tuple, DefaultDict, Any,TypedDict
 from abc import ABC, abstractmethod
 from enum import IntEnum
@@ -92,32 +92,76 @@ class ProtocolItemPause(ProtocolItem):
 class MetadataTrigger(TypedDict):
     trigger: int # either 1 or 0
 
+class Debouncer:
+
+    class State(IntEnum):
+        IDLE = -1
+        ON = 1
+        OFF = 0
+
+    def __init__(self, buffer_length = 3):
+
+        self.buffer_length = buffer_length
+        self.buffer = deque(maxlen=buffer_length)
+        self.state = self.State.IDLE
+
+    def update(self, input: int):
+
+        self.buffer.append(input)
+
+        if sum(self.buffer) == self.buffer_length:
+            self.state = self.State.ON
+
+        elif sum(self.buffer) == 0:
+            self.state = self.State.OFF
+    
+    def get_state(self):
+        return self.state
+
+
+# TODO implement debouncer
 class ProtocolItemSoftwareTrigger(ProtocolItem):
 
     def __init__(
             self, 
             polarity = TriggerPolarity.RISING_EDGE,
+            debouncer_lenght: int = 3 
         ) -> None:
 
         super().__init__()
         self.polarity = polarity
-        self.current_value = 0
+        self.debouncer = Debouncer(debouncer_lenght)
+        self.current_state = self.debouncer.get_state()
 
     def done(self, metadata: Optional[MetadataTrigger]) -> Tuple[Any, bool]:
 
+        if metadata is None:
+            return (None, False)
+        
         try:
-            value = metadata['trigger'] 
-            delta = value - self.current_value
-            self.current_value = value
+            value = metadata['trigger']
+        except KeyError: 
+            return (None, False)
+        
+        if value is None:
+            return (None, False)
+        
+        self.debouncer.update(value)
+        new_state = self.debouncer.get_state()
+        
+        print(self.current_state, new_state)
 
-            if self.polarity == TriggerPolarity.RISING_EDGE:
-                return (None, True) if delta > 0 else (None, False)
-            
-            elif self.polarity == TriggerPolarity.FALLING_EDGE: 
-                return (None, True) if delta < 0 else (None, False)
-            
-        except (TypeError, KeyError): 
-            return None, False
+        if (self.current_state == self.debouncer.State.OFF) and (new_state == self.debouncer.State.ON):
+            self.current_state = new_state
+            return (None, True) if TriggerPolarity.RISING_EDGE else (None, False)
+
+        elif (self.current_state == self.debouncer.State.ON) and (new_state == self.debouncer.State.OFF):
+            self.current_state = new_state
+            return (None, True) if TriggerPolarity.FALLING_EDGE else (None, False)
+
+        else:
+            self.current_state = new_state
+            return (None, False)
 
     @classmethod
     def from_dict(cls, d: Dict):
