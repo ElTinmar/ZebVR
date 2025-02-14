@@ -2,6 +2,7 @@ from typing import Deque
 from qt_widgets import LabeledSpinBox
 from collections import deque
 from typing import Deque
+import random
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -12,6 +13,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QHBoxLayout,
     QVBoxLayout, 
+    QSizePolicy
 )
 from .protocol_widget import StimWidget
 from ..protocol import ProtocolItem
@@ -46,7 +48,6 @@ class SequencerWidget(QWidget):
 
         self.btn_shuffle = QPushButton('shuffle')
         self.btn_shuffle.clicked.connect(self.shuffle)
-        self.btn_shuffle.setEnabled(False)
 
         self.spb_loop = LabeledSpinBox()
         self.spb_loop.setText('loop')
@@ -78,7 +79,15 @@ class SequencerWidget(QWidget):
             item.setSizeHint(stim.sizeHint())
         
     def shuffle(self):
-        pass
+        # TODO This segfaults. Recreate brand new items and widgets 
+
+        items = [self.list.item(i) for i in range(self.list.count())]
+        widgets = [self.list.itemWidget(item) for item in items]
+
+        random.shuffle(widgets)
+
+        for item, widget in zip(items, widgets):
+            self.list.setItemWidget(item, widget)
 
     def stim_pressed(self):
         stim = StimWidget()
@@ -94,7 +103,8 @@ class SequencerWidget(QWidget):
         selected_items = self.list.selectedItems()
         for item in selected_items:
             row = self.list.row(item)
-            self.list.takeItem(row)
+            item = self.list.takeItem(row)
+            del item
 
     def get_protocol(self) -> Deque[ProtocolItem]:
         state = deque()
