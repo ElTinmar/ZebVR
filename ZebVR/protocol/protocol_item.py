@@ -32,7 +32,7 @@ class ProtocolItem(ABC):
         self.stop_condition = stop_condition
 
     def start(self) -> Optional[DefaultDict]:
-        pass
+        self.stop_condition.initialize()
 
     def done(self, metadata: Optional[Any]) -> bool:
         return self.stop_condition.done(metadata)
@@ -68,6 +68,8 @@ class Phototaxis(ProtocolItem):
 
     def start(self) -> DefaultDict:
 
+        super().start()
+
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
             'phototaxis_polarity': self.phototaxis_polarity,
@@ -98,6 +100,8 @@ class OKR(ProtocolItem):
         self.background_color = background_color 
 
     def start(self) -> DefaultDict:
+
+        super().start()
 
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
@@ -133,6 +137,8 @@ class OMR(ProtocolItem):
     
     def start(self) -> DefaultDict:
 
+        super().start()
+
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
             'omr_spatial_period_mm': self.omr_spatial_period_mm,
@@ -161,6 +167,8 @@ class Dark(ProtocolItem):
         self.background_color = background_color 
 
     def start(self) -> DefaultDict:
+
+        super().start()
         
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
@@ -187,6 +195,8 @@ class Bright(ProtocolItem):
         self.background_color = background_color 
 
     def start(self) -> DefaultDict:
+
+        super().start()
         
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
@@ -221,6 +231,8 @@ class Looming(ProtocolItem):
         self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
 
     def start(self) -> DefaultDict:
+
+        super().start()
         
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
