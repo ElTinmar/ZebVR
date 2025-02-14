@@ -4,17 +4,26 @@ from abc import ABC
 from enum import IntEnum
 from .stop_condition import StopCondition, Pause
 
-class Stim(IntEnum):
-    DARK = 0
-    BRIGHT = 1
-    PHOTOTAXIS = 2
-    OMR = 3
-    OKR = 4
-    LOOMING = 5
+class Stim:
+    class Visual(IntEnum):
+        DARK = 0
+        BRIGHT = 1
+        PHOTOTAXIS = 2
+        OMR = 3
+        OKR = 4
+        LOOMING = 5
+        PREY_CAPTURE = 6
 
-    def __str__(self):
-        return self.name
+        def __str__(self):
+            return self.name
     
+    class Acoustic(IntEnum):
+        PURE_TONE = 0
+        WHITE_NOISE = 1
+
+        def __str__(self):
+            return self.name
+        
 class ProtocolItem(ABC):
 
     STIM_SELECT: Optional[int] = None
@@ -41,7 +50,7 @@ class ProtocolItem(ABC):
 
 class Phototaxis(ProtocolItem):
 
-    STIM_SELECT = Stim.PHOTOTAXIS
+    STIM_SELECT = Stim.Visual.PHOTOTAXIS
 
     def __init__(
             self, 
@@ -68,7 +77,7 @@ class Phototaxis(ProtocolItem):
     
 class OKR(ProtocolItem):
 
-    STIM_SELECT = Stim.OKR
+    STIM_SELECT = Stim.Visual.OKR
 
     def __init__(
             self, 
@@ -98,7 +107,7 @@ class OKR(ProtocolItem):
 
 class OMR(ProtocolItem):
     
-    STIM_SELECT = Stim.OMR
+    STIM_SELECT = Stim.Visual.OMR
     
     def __init__(
             self, 
@@ -131,7 +140,7 @@ class OMR(ProtocolItem):
 
 class Dark(ProtocolItem):
 
-    STIM_SELECT = Stim.DARK
+    STIM_SELECT = Stim.Visual.DARK
 
     def __init__(
             self,
@@ -155,7 +164,7 @@ class Dark(ProtocolItem):
 
 class Bright(ProtocolItem):
 
-    STIM_SELECT = Stim.BRIGHT
+    STIM_SELECT = Stim.Visual.BRIGHT
 
     def __init__(
             self, 
@@ -179,7 +188,7 @@ class Bright(ProtocolItem):
 
 class Looming(ProtocolItem):
 
-    STIM_SELECT = Stim.LOOMING
+    STIM_SELECT = Stim.Visual.LOOMING
 
     def __init__(
             self, 
@@ -211,3 +220,9 @@ class Looming(ProtocolItem):
             'background_color': self.background_color,
         })
         return command 
+
+class PureTone(ProtocolItem):
+    pass
+
+class WhiteNoise(ProtocolItem):
+    pass
