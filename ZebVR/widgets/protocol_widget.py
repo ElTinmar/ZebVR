@@ -150,7 +150,7 @@ class StopWidget(QWidget):
         state['trigger_polarity'] = self.cmb_trigger_polarity.currentIndex()
         state['debouncer'] = self.debouncer.value()
         state['trigger_mask'] = self.trigger_mask.text()
-        state['pause_sec'] = self.trigger_mask.text()
+        state['pause_sec'] = self.pause_sec.value()
         return state
 
 # TODO check if this can be simplified (maybe set_state/get_state)
