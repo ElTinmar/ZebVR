@@ -27,12 +27,14 @@ class Debouncer:
             raise ValueError("Input must be 0 or 1")
 
         self.buffer.append(input)
-
+        
+        new_state = None
         if sum(self.buffer) == self.buffer_length:
             new_state = self.State.ON
-
         elif sum(self.buffer) == 0:
             new_state = self.State.OFF
+        else:
+            return self.Transition.NONE
 
         transition = self.Transition.NONE
         if self.current_state == self.State.OFF and new_state == self.State.ON:
