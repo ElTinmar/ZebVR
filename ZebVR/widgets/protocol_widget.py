@@ -34,6 +34,7 @@ from ..protocol import (
 class StopWidget(QWidget):
 
     state_changed = pyqtSignal()
+    size_changed = pyqtSignal()
     
     def __init__(
             self, 
@@ -46,6 +47,9 @@ class StopWidget(QWidget):
         self.updated = False
         self.declare_components()
         self.layout_components()
+
+        self.trigger_changed()
+        self.policy_changed()
 
     def declare_components(self):
 
@@ -127,10 +131,23 @@ class StopWidget(QWidget):
 
     def policy_changed(self):
         self.policy_stack.setCurrentIndex(self.cmb_policy_select.currentIndex())
+        current_widget = self.policy_stack.currentWidget()
+        if current_widget:
+            new_height = current_widget.sizeHint().height()  
+            self.policy_stack.setFixedHeight(new_height) 
+            self.adjustSize() 
+            self.size_changed.emit()
         self.on_change()
 
     def trigger_changed(self):
         self.trigger_stack.setCurrentIndex(self.cmb_trigger_select.currentIndex())
+        current_widget = self.trigger_stack.currentWidget()
+        if current_widget:
+            new_height = current_widget.sizeHint().height()  
+            self.trigger_stack.setFixedHeight(new_height) 
+            self.adjustSize() 
+            self.policy_changed()
+            self.size_changed.emit()
         self.on_change()
 
     def on_change(self):
@@ -157,6 +174,7 @@ class StopWidget(QWidget):
 class StimWidget(QWidget):
 
     state_changed = pyqtSignal()
+    size_changed = pyqtSignal()
 
     def __init__(
             self, 
@@ -195,6 +213,8 @@ class StimWidget(QWidget):
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Visual stim controls')
+
+        self.stim_changed()
 
     def declare_components(self):
         
@@ -336,6 +356,7 @@ class StimWidget(QWidget):
 
         # Stop condition
         self.stop_condition = StopWidget()
+        self.stop_condition.size_changed.connect(self.on_size_changed)
 
     def layout_components(self):
 
@@ -404,8 +425,18 @@ class StimWidget(QWidget):
         layout.addWidget(self.stop_condition)
         layout.addStretch()
 
+    def on_size_changed(self):
+        self.adjustSize() 
+        self.size_changed.emit()
+
     def stim_changed(self):
         self.stack.setCurrentIndex(self.cmb_stim_select.currentIndex())
+        current_widget = self.stack.currentWidget()
+        if current_widget:
+            new_height = current_widget.sizeHint().height()  
+            self.stack.setFixedHeight(new_height)
+            self.adjustSize() 
+        self.size_changed.emit()
         self.on_change()
 
     def on_change(self):

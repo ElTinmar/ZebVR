@@ -71,12 +71,19 @@ class SequencerWidget(QWidget):
         main_layout.addWidget(self.list)
         main_layout.addLayout(control_layout)
 
+    def on_size_change(self):
+        for i in range(self.list.count()):
+            item = self.list.item(i)
+            stim = self.list.itemWidget(item)
+            item.setSizeHint(stim.sizeHint())
+        
     def shuffle(self):
         pass
 
     def stim_pressed(self):
         stim = StimWidget()
         stim.state_changed.connect(self.state_changed.emit)
+        stim.size_changed.connect(self.on_size_change)
         item = QListWidgetItem()
         item.setSizeHint(stim.sizeHint())
         self.list.addItem(item)
