@@ -13,8 +13,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, 
     QComboBox,
     QLabel,
-    QPushButton,
-    QStackedLayout
+    QPushButton
 )
 from ..protocol import (
     Stim,
@@ -78,7 +77,7 @@ class StopWidget(QWidget):
         self.debouncer.valueChanged.connect(self.on_change)
 
         self.trigger_mask = FileOpenLabeledEditButton()
-        self.trigger_mask.setLabel('laod mask:')
+        self.trigger_mask.setLabel('load mask:')
 
         self.trigger_mask_button = QPushButton('draw mask')
         self.trigger_mask_button.clicked.connect(self.draw_trigger_mask)
@@ -124,6 +123,7 @@ class StopWidget(QWidget):
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.cmb_policy_select)
         main_layout.addWidget(self.policy_stack)
+        main_layout.addStretch()
 
     def policy_changed(self):
         self.policy_stack.setCurrentIndex(self.cmb_policy_select.currentIndex())
@@ -387,19 +387,22 @@ class StimWidget(QWidget):
         self.looming_group.setLayout(looming_layout)
 
         self.stack = QStackedWidget()
-        self.stack.addWidget(QLabel())
-        self.stack.addWidget(QLabel())
+        self.stack.addWidget(QLabel()) # Dark
+        self.stack.addWidget(QLabel()) # Bright
         self.stack.addWidget(self.phototaxis_group)
         self.stack.addWidget(self.omr_group)
         self.stack.addWidget(self.okr_group)
         self.stack.addWidget(self.looming_group)
 
         layout = QVBoxLayout(self)
+        layout.addWidget(QLabel('Stimulus selection'))
         layout.addWidget(self.cmb_stim_select)
         layout.addLayout(foreground_color_layout)
         layout.addLayout(background_color_layout)
         layout.addWidget(self.stack)
+        layout.addWidget(QLabel('Stop condition'))
         layout.addWidget(self.stop_condition)
+        layout.addStretch()
 
     def stim_changed(self):
         self.stack.setCurrentIndex(self.cmb_stim_select.currentIndex())
