@@ -140,7 +140,7 @@ class TrackingTrigger(StopCondition):
         
         x, y = fish_centroid.astype(int)
         triggered = self.trigger_mask[y, x]
-
+        
         transition = self.debouncer.update(triggered)
         if transition.name == self.polarity.name: 
             output = True
