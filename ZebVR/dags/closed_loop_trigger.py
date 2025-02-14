@@ -41,7 +41,6 @@ from ..workers import (
     Protocol,
     QueueMonitor,
     ImageFilterWorker, 
-    TrackingTrigger,
     rgb_to_yuv420p,
     rgb_to_gray
 )

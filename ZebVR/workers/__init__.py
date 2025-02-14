@@ -10,4 +10,3 @@ from .tracker import *
 from .tracking_display import *
 from .image_filter import *
 from .tracking_saver import *
-from .tracking_trigger import *

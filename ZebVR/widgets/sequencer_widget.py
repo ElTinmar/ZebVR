@@ -1,5 +1,5 @@
 from typing import Deque
-from qt_widgets import LabeledDoubleSpinBox, QFileDialog
+from qt_widgets import LabeledDoubleSpinBox, QFileDialog, LabeledSpinBox
 from collections import deque
 import json
 from typing import Deque
@@ -277,8 +277,6 @@ class SequencerWidget(QWidget):
         self.list = QListWidget()
         self.list.setAlternatingRowColors(True)
 
-        #self.list.setSpacing(5)
-
         # add stim button
         self.btn_add_stim = QPushButton('stim')
         self.btn_add_stim.clicked.connect(self.stim_pressed)
@@ -302,6 +300,17 @@ class SequencerWidget(QWidget):
         self.btn_save = QPushButton('save')
         self.btn_save.clicked.connect(self.save)
 
+        self.btn_shuffle = QPushButton('shuffle')
+        self.btn_shuffle.clicked.connect(self.shuffle)
+        self.btn_shuffle.setEnabled(False)
+
+        self.spb_loop = LabeledSpinBox()
+        self.spb_loop.setText('loop')
+        self.spb_loop.setRange(-1,1_000)
+        self.spb_loop.setValue(0)
+        self.spb_loop.setToolTip('A value of -1 loops forever') 
+        self.spb_loop.setEnabled(False)
+
     def layout_components(self) -> None:
         
         btn_layout = QHBoxLayout()
@@ -314,10 +323,19 @@ class SequencerWidget(QWidget):
         io_layout.addWidget(self.btn_load)
         io_layout.addWidget(self.btn_save)
 
+        control_layout = QHBoxLayout()
+        control_layout.addWidget(self.spb_loop)
+        control_layout.addStretch()
+        control_layout.addWidget(self.btn_shuffle)
+
         main_layout = QVBoxLayout(self)
         main_layout.addLayout(btn_layout)
         main_layout.addWidget(self.list)
-        main_layout.addLayout(io_layout)
+        #main_layout.addLayout(io_layout) # this is now a bit redundant with global save 
+        main_layout.addLayout(control_layout)
+
+    def shuffle(self):
+        pass
 
     def stim_pressed(self):
         stim = StimSequencerItem()
