@@ -3,7 +3,6 @@ import time
 from numpy.typing import NDArray
 from typing import Dict, Optional, Any, Deque
 from ..protocol import ProtocolItem
-    
 
 class Protocol(WorkerNode):
 
@@ -37,16 +36,12 @@ class Protocol(WorkerNode):
     def process_data(self, data: Any) -> NDArray:
         pass
 
-    def process_metadata(self, metadata: Dict) -> Optional[Dict]:    
+    def next(self):
 
-        command, done = self.current_item.done(metadata)
-
-        if not done:
-            return
-        
+        command = None
         try:
             self.current_item = self.protocol.popleft()
-            self.current_item.start()
+            command = self.current_item.start()
 
         except IndexError:
             # sleep a bit to let enough time for the message 
@@ -58,6 +53,19 @@ class Protocol(WorkerNode):
             # TODO maybe add handle to parent dag to ask nicely to stop everyone
             return None
 
+        return command
+        
+
+    def process_metadata(self, metadata: Dict) -> Optional[Dict]:    
+
+        # 1rst item
+        if self.current_item == None:
+            command = self.next()
+
+        if not self.current_item.done(metadata):
+            return
+        
+        command = self.next()
         if command is None:
             return 
         

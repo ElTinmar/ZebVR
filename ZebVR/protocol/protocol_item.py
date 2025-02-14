@@ -34,8 +34,8 @@ class ProtocolItem(ABC):
     def start(self) -> Optional[DefaultDict]:
         pass
 
-    def done(self, metadata: Optional[Any]) -> Optional[Tuple[DefaultDict, bool]]:
-        return self.stop_condition.done()
+    def done(self, metadata: Optional[Any]) -> bool:
+        return self.stop_condition.done(metadata)
 
     def initialize(self):
         '''Run init steps in target worker process'''
@@ -56,10 +56,12 @@ class Phototaxis(ProtocolItem):
             self, 
             phototaxis_polarity: int,
             foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float]
+            background_color: Tuple[float, float, float, float],
+            *args,
+            **kwargs
         ) -> None:
 
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.phototaxis_polarity = phototaxis_polarity
         self.foreground_color = foreground_color
         self.background_color = background_color 
@@ -84,10 +86,12 @@ class OKR(ProtocolItem):
             okr_spatial_frequency_deg: float,
             okr_speed_deg_per_sec: float,
             foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float]
+            background_color: Tuple[float, float, float, float],
+            *args,
+            **kwargs
         ) -> None:
 
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.okr_spatial_frequency_deg = okr_spatial_frequency_deg
         self.okr_speed_deg_per_sec = okr_speed_deg_per_sec
         self.foreground_color = foreground_color
@@ -115,10 +119,12 @@ class OMR(ProtocolItem):
             omr_angle_deg: float,
             omr_speed_mm_per_sec: float,
             foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float]
+            background_color: Tuple[float, float, float, float],
+            *args,
+            **kwargs
         ) -> None:
 
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.omr_spatial_period_mm = omr_spatial_period_mm
         self.omr_angle_deg = omr_angle_deg
         self.omr_speed_mm_per_sec = omr_speed_mm_per_sec
@@ -145,10 +151,12 @@ class Dark(ProtocolItem):
     def __init__(
             self,
             foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float]
+            background_color: Tuple[float, float, float, float],
+            *args,
+            **kwargs
         ) -> None:
 
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.foreground_color = foreground_color
         self.background_color = background_color 
 
@@ -169,10 +177,12 @@ class Bright(ProtocolItem):
     def __init__(
             self, 
             foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float]
+            background_color: Tuple[float, float, float, float],
+            *args,
+            **kwargs
         ) -> None:
 
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.foreground_color = foreground_color 
         self.background_color = background_color 
 
@@ -197,10 +207,12 @@ class Looming(ProtocolItem):
             looming_center_mm: Tuple[float, float],
             looming_period_sec: float,
             looming_expansion_time_sec: float,
-            looming_expansion_speed_mm_per_sec: float   
+            looming_expansion_speed_mm_per_sec: float,
+            *args,
+            **kwargs   
         ) -> None:
 
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.foreground_color = foreground_color 
         self.background_color = background_color
         self.looming_center_mm = looming_center_mm

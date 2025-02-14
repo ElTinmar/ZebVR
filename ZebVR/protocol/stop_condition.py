@@ -1,10 +1,17 @@
-from typing import Optional, Tuple, DefaultDict, Any,TypedDict
+from typing import Optional, Any, TypedDict
 from abc import ABC, abstractmethod
 from enum import IntEnum
 import time
 import numpy as np
 from numpy.typing import NDArray
 from .debouncer import Debouncer
+
+class StopPolicy(IntEnum):
+    PAUSE = 0
+    TRIGGER = 1
+
+    def __str__(self):
+        return self.name
 
 class TriggerType(IntEnum):
     SOFTWARE = 0
@@ -31,7 +38,7 @@ class StopCondition(ABC):
         pass
 
     @abstractmethod
-    def done(self, metadata: Optional[Any]) -> Optional[Tuple[DefaultDict, bool]]:
+    def done(self, metadata: Optional[Any]) -> bool:
         pass
 
 class Pause(StopCondition):
@@ -44,11 +51,11 @@ class Pause(StopCondition):
     def initialize(self) -> None:
         self.time_start = time.perf_counter()
 
-    def done(self, metadata: Optional[Any]) -> Tuple[Any, bool]:
+    def done(self, metadata: Optional[Any]) -> bool:
         if (time.perf_counter() - self.time_start) < self.pause_sec:
-            return None, False
+            return False
         else:
-            return None, True
+            return True
 
 class SoftwareTrigger(StopCondition):
 
@@ -65,9 +72,9 @@ class SoftwareTrigger(StopCondition):
     def initialize(self) -> None:
         pass
 
-    def done(self, metadata: Optional[TriggerDict]) -> Tuple[Any, bool]:
+    def done(self, metadata: Optional[Any]) -> bool:
 
-        output = (None, False)
+        output = False
 
         if metadata is None:
             return output
@@ -82,7 +89,7 @@ class SoftwareTrigger(StopCondition):
         
         transition = self.debouncer.update(value)
         if transition.name == self.polarity.name: 
-            output = (None, True)
+            output = True
         return output
 
 class TrackingTrigger(StopCondition):
@@ -104,9 +111,9 @@ class TrackingTrigger(StopCondition):
         pass
     
     # TODO type metadata properly (nested TypedDict?) / maybe send only centroid and not full tracking 
-    def done(self, metadata) -> Tuple[Any, bool]: 
+    def done(self, metadata: Optional[Any]) -> bool:
          
-        output = (None, False)
+        output = False
 
         if metadata is None:
             return output
@@ -136,5 +143,5 @@ class TrackingTrigger(StopCondition):
 
         transition = self.debouncer.update(triggered)
         if transition.name == self.polarity.name: 
-            output = (None, True)
+            output = True
         return output
