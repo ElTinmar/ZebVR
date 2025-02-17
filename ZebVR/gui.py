@@ -292,6 +292,7 @@ class MainGui(QMainWindow):
         self.background_widget.set_state(state['background'])
         self.settings_widget.set_state(state['settings'])
         self.sequencer_widget.set_protocol(state['protocol'])
+        self.settings['main'] = state['main']
 
     def get_state(self) -> dict:
         self.refresh_settings() # TODO that may not be necessary if all signals are correctly handled

@@ -120,7 +120,6 @@ class TrackingWidget(QWidget):
 
         try:
             self.tracking_settings.setText(state['tracking_file'])
-            self.heading = state['heading']
             self.n_background_workers.setValue(state['n_background_workers'])
             self.n_tracker_workers.setValue(state['n_tracker_workers'])
             self.background_gpu.setChecked(state['background_gpu'])
@@ -143,7 +142,7 @@ if __name__ == "__main__":
         def __init__(self,*args,**kwargs):
 
             super().__init__(*args, **kwargs)
-            self.closeloop_widget = CloseLoopWidget()
+            self.closeloop_widget = TrackingWidget()
             self.setCentralWidget(self.closeloop_widget)
             self.closeloop_widget.state_changed.connect(self.state_changed)
 
