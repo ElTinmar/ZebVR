@@ -564,13 +564,10 @@ class MainGui(QMainWindow):
             self.p_queue_logger.join()
 
     def preview(self):
-        # maybe launch preview in QThread to prevent window from hanging
-
         self.settings['main']['record'] = False
         self.start()
         
     def record(self):
-        # maybe launch record in QThread to prevent window from hanging
         # TODO make sleep interruptible by stop ? 
 
         self.settings['main']['record'] = True
