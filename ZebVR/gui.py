@@ -291,8 +291,8 @@ class MainGui(QMainWindow):
         self.background_widget.set_state(state['background'])
         self.settings_widget.set_state(state['settings'])
         self.sequencer_widget.set_state(state['sequencer'])
-        
-        self.recording_duration.setValue(['main']['recording_duration'])
+
+        self.recording_duration.setValue(state['main']['recording_duration'])
         self.settings['main'] = state['main']
 
     def get_state(self) -> dict:
