@@ -12,11 +12,11 @@ from PyQt5.QtWidgets import (
     QListWidgetItem,
     QPushButton,
     QHBoxLayout,
-    QVBoxLayout, 
-    QSizePolicy
+    QVBoxLayout
 )
 from .protocol_widget import StimWidget
 from ..protocol import ProtocolItem
+
 class SequencerWidget(QWidget):
 
     state_changed = pyqtSignal()
@@ -49,12 +49,11 @@ class SequencerWidget(QWidget):
         self.btn_shuffle = QPushButton('shuffle')
         self.btn_shuffle.clicked.connect(self.shuffle)
 
-        self.spb_loop = LabeledSpinBox()
-        self.spb_loop.setText('loop')
-        self.spb_loop.setRange(-1,1_000)
-        self.spb_loop.setValue(0)
-        self.spb_loop.setToolTip('A value of -1 loops forever') 
-        self.spb_loop.setEnabled(False)
+        self.spb_repetitions = LabeledSpinBox()
+        self.spb_repetitions.setText('repetitions')
+        self.spb_repetitions.setRange(1,1_000)
+        self.spb_repetitions.setValue(1)
+        self.spb_repetitions.valueChanged.connect(self.state_changed.emit)
 
     def layout_components(self) -> None:
         
@@ -63,7 +62,7 @@ class SequencerWidget(QWidget):
         btn_layout.addWidget(self.btn_remove)
 
         control_layout = QHBoxLayout()
-        control_layout.addWidget(self.spb_loop)
+        control_layout.addWidget(self.spb_repetitions)
         control_layout.addStretch()
         control_layout.addWidget(self.btn_shuffle)
 
@@ -79,15 +78,29 @@ class SequencerWidget(QWidget):
             item.setSizeHint(stim.sizeHint())
         
     def shuffle(self):
-        # TODO This segfaults. Recreate brand new items and widgets 
 
         items = [self.list.item(i) for i in range(self.list.count())]
         widgets = [self.list.itemWidget(item) for item in items]
+        states = [widget.get_state() for widget in widgets]
 
-        random.shuffle(widgets)
+        random.shuffle(states)
+        
+        for item in items:
+            row = self.list.row(item)
+            item = self.list.takeItem(row)
+            del item
 
-        for item, widget in zip(items, widgets):
-            self.list.setItemWidget(item, widget)
+        for state in states:
+            new_widget = StimWidget()
+            new_widget.set_state(state)
+            new_widget.state_changed.connect(self.state_changed.emit)
+            new_widget.size_changed.connect(self.on_size_change)
+            new_item = QListWidgetItem()
+            new_item.setSizeHint(new_widget.sizeHint())
+            self.list.addItem(new_item)
+            self.list.setItemWidget(new_item, new_widget)
+
+        self.state_changed.emit()
 
     def stim_pressed(self):
         stim = StimWidget()
@@ -106,14 +119,17 @@ class SequencerWidget(QWidget):
             item = self.list.takeItem(row)
             del item
 
+        self.state_changed.emit()
+
     def get_protocol(self) -> Deque[ProtocolItem]:
-        state = deque()
+        protocol = deque()
         num_items = self.list.count()
         for row in range(num_items):
             item = self.list.item(row)
             widget = self.list.itemWidget(item)
-            state.append(widget.get_protocol_item())
-        return state
+            protocol.append(widget.get_protocol_item())
+        protocol *= self.spb_repetitions.value()
+        return protocol
     
     def set_protocol(self, protocol: Deque[ProtocolItem]) -> None:
         for protocol_item in protocol:
