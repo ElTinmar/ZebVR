@@ -46,7 +46,7 @@ from ..workers import (
 )
 from ..stimulus import VisualStimWorker, GeneralStim
 
-def closed_loop_trigger(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
+def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     
     # create DAG
     if dag is None:
