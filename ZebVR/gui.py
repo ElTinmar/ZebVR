@@ -113,7 +113,7 @@ class MainGui(QMainWindow):
         self.tabs.addTab(self.registration_widget, "Registration")
         self.tabs.addTab(self.calibration_widget, "Calibration")
         self.tabs.addTab(self.background_widget, "Background")
-        self.tabs.addTab(self.sequencer_widget, "Visual Stim")
+        self.tabs.addTab(self.sequencer_widget, "Protocol")
         self.tabs.addTab(self.settings_widget, "Settings") 
 
         self.start_button = QPushButton()
