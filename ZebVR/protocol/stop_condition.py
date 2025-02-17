@@ -64,7 +64,7 @@ class SoftwareTrigger(StopCondition):
 
     def __init__(
             self, 
-            polarity = TriggerPolarity.RISING_EDGE,
+            polarity: TriggerPolarity = TriggerPolarity.RISING_EDGE,
             debouncer_length: int = 3 
         ) -> None:
 
@@ -102,7 +102,7 @@ class TrackingTrigger(StopCondition):
             self, 
             mask_file: Optional[str] = None,
             mask: Optional[NDArray] = None,
-            polarity = TriggerPolarity.RISING_EDGE,
+            polarity: TriggerPolarity = TriggerPolarity.RISING_EDGE,
             debouncer_length: int = 3
         ) -> None:
 
