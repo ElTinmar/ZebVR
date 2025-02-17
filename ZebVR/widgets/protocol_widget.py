@@ -177,7 +177,7 @@ class StopWidget(QWidget):
             self.cmb_policy_select.setCurrentIndex(StopPolicy.TRIGGER)
             self.cmb_trigger_select.setCurrentIndex(TriggerType.TRACKING)
             self.cmb_trigger_polarity.setCurrentIndex(TriggerPolarity(stop_condition.polarity))
-            self.debouncer.setValue(stop_condition.debouncer.buffer_length) #NOTE breaks encapsulation a little bit
+            self.debouncer.setValue(stop_condition.debouncer_length) 
             self.trigger_mask.setText(stop_condition.mask_file) 
 
     def get_state(self) -> Dict:

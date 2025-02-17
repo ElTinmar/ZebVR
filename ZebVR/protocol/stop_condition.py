@@ -70,6 +70,7 @@ class SoftwareTrigger(StopCondition):
 
         super().__init__()
         self.polarity = polarity
+        self.debouncer_length = debouncer_length
         self.debouncer = Debouncer(debouncer_length)
 
     def initialize(self) -> None:
@@ -121,6 +122,7 @@ class TrackingTrigger(StopCondition):
             self.mask = mask
         
         self.polarity = polarity
+        self.debouncer_length = debouncer_length
         self.debouncer = Debouncer(debouncer_length)
 
     def initialize(self) -> None:
