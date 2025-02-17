@@ -36,7 +36,7 @@ from .widgets import (
     SequencerWidget,
     SettingsWidget
 )
-from .dags import closed_loop, open_loop, video_recording, tracking, closed_loop_trigger
+from .dags import closed_loop, open_loop, video_recording, tracking
 
 PROFILE = False
         
@@ -541,7 +541,7 @@ class MainGui(QMainWindow):
             self.dag, self.worker_logger, self.queue_logger = tracking(self.settings)
 
         elif self.close_loop_button.isChecked():
-            self.dag, self.worker_logger, self.queue_logger = closed_loop_trigger(self.settings)
+            self.dag, self.worker_logger, self.queue_logger = closed_loop(self.settings)
         
         else:
             raise RuntimeError()

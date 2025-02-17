@@ -46,7 +46,7 @@ from ..workers import (
 )
 from ..stimulus import VisualStimWorker, GeneralStim
 
-def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
+def closed_loop_trigger(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     
     # create DAG
     if dag is None:
@@ -117,6 +117,15 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'tracker_to_stim',
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
+        )
+    )
+
+    queue_trigger_metadata = MonitoredQueue(
+        ModifiableRingBuffer(
+            num_bytes = 500*1024**2,
+            logger = queue_logger,
+            name = 'tracker_to_protocol',
             t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
@@ -204,6 +213,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             queue_save_image: 'direct video recording',
             queue_camera_to_converter: 'pixel format conversion',
             queue_converter_to_saver: 'converted video recording',
+            queue_trigger_metadata: 'tracker to protocol',
         },
         name = 'queue_monitor',
         logger = worker_logger, 
@@ -433,6 +443,13 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
                 name = 'background_subtracted'
             )
 
+    for i in range(settings['settings']['tracking']['n_tracker_workers']):
+        dag.connect_data(
+            sender = tracker_worker_list[i], 
+            receiver = stim_worker, 
+            queue = queue_tracking, 
+            name = 'tracker_output1'
+        )
 
     for i in range(settings['settings']['tracking']['n_tracker_workers']):
         dag.connect_data(
@@ -440,14 +457,6 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             receiver = tracking_display_worker, 
             queue = queue_overlay, 
             name = 'tracker_output2'
-        )
-
-    for i in range(settings['settings']['tracking']['n_tracker_workers']):
-        dag.connect_data(
-            sender = tracker_worker_list[i], 
-            receiver = stim_worker, 
-            queue = queue_tracking, 
-            name = 'tracker_output1'
         )
 
     # metadata
@@ -460,6 +469,13 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             queue = QueueMP(), 
             name = 'visual_stim_control'
         )
+        for i in range(settings['settings']['tracking']['n_tracker_workers']):
+            dag.connect_metadata(
+                sender = tracker_worker_list[i], 
+                receiver = protocol_worker, 
+                queue = queue_trigger_metadata, 
+                name = 'tracker_metadata'
+            )
     else:
         dag.connect_metadata(
             sender = stim_control_worker, 
