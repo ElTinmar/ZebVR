@@ -452,7 +452,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
     # metadata
     if settings['main']['record']:
-        protocol = settings['protocol']
+        protocol = settings['sequencer']['protocol']
         protocol_worker.set_protocol(protocol)
         dag.connect_metadata(
             sender = protocol_worker, 

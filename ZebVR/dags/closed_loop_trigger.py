@@ -461,7 +461,7 @@ def closed_loop_trigger(settings: Dict, dag: Optional[ProcessingDAG] = None) -> 
 
     # metadata
     if settings['main']['record']:
-        protocol = settings['protocol']
+        protocol = settings['sequencer']['protocol']
         protocol_worker.set_protocol(protocol)
         dag.connect_metadata(
             sender = protocol_worker, 

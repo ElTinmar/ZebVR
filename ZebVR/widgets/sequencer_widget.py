@@ -1,7 +1,7 @@
 from typing import Deque
 from qt_widgets import LabeledSpinBox
 from collections import deque
-from typing import Deque
+from typing import Deque, Dict
 import random
 
 from PyQt5.QtCore import pyqtSignal
@@ -140,6 +140,15 @@ class SequencerWidget(QWidget):
             self.list.addItem(item)
             self.list.setItemWidget(item, stim)
         self.state_changed.emit()
+
+    def get_state(self) -> Dict:
+        state = {}
+        state['repetitions'] = self.spb_repetitions.value()
+        state['protocol'] = self.get_protocol()
+
+    def set_state(self, state: Dict) -> None:
+        self.spb_repetitions.setValue(state['repetitions'])
+        self.set_protocol(state['protocol'])
 
 if __name__ == '__main__':
 

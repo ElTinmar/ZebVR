@@ -85,7 +85,7 @@ class MainGui(QMainWindow):
         self.background_widget.background_signal.connect(self.background_callback)
 
         self.sequencer_widget = SequencerWidget()
-        self.sequencer_widget.state_changed.connect(self.update_protocol_settings)
+        self.sequencer_widget.state_changed.connect(self.update_sequencer_settings)
 
         self.settings_widget = SettingsWidget()
         self.settings_widget.state_changed.connect(self.update_settings)
@@ -272,7 +272,6 @@ class MainGui(QMainWindow):
             raise RuntimeError       
 
     def load_settings(self):
-        # TODO restore all settings for camera (camera choice dropmenu), for protocol 
         filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr)')
         with open(filename, 'rb') as fp:
             state = pickle.load(fp)
@@ -291,7 +290,7 @@ class MainGui(QMainWindow):
         self.calibration_widget.set_state(state['calibration'])
         self.background_widget.set_state(state['background'])
         self.settings_widget.set_state(state['settings'])
-        self.sequencer_widget.set_protocol(state['protocol'])
+        self.sequencer_widget.set_state(state['sequencer'])
         self.settings['main'] = state['main']
 
     def get_state(self) -> dict:
@@ -316,8 +315,8 @@ class MainGui(QMainWindow):
     def update_settings(self):
         self.settings['settings'] = self.settings_widget.get_state()
 
-    def update_protocol_settings(self):
-        self.settings['protocol'] = self.sequencer_widget.get_protocol()
+    def update_sequencer_settings(self):
+        self.settings['sequencer'] = self.sequencer_widget.get_state()
 
     def update_main_settings(self):
         self.settings['main']['recording_duration'] = self.recording_duration.value()
@@ -329,7 +328,7 @@ class MainGui(QMainWindow):
         self.update_calibration_settings()
         self.update_background_settings()
         self.update_settings()
-        self.update_protocol_settings()
+        self.update_sequencer_settings()
     
     def registration_callback(self):
         self.camera_controller.set_preview(False)
