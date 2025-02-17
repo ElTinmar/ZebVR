@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
 )
 from ..protocol import (
     Stim,
+    StopCondition,
     StopPolicy,
     TriggerType,
     TriggerPolarity,
@@ -63,7 +64,7 @@ class StopWidget(QWidget):
         self.pause_sec.setRange(0,100_000)
         self.pause_sec.setSingleStep(0.5)
         self.pause_sec.setValue(0)
-        self.pause_sec.editingFinished.connect(self.on_change)
+        self.pause_sec.valueChanged.connect(self.on_change)
 
         self.cmb_trigger_select = QComboBox()
         for trigger in TriggerType:
@@ -159,6 +160,25 @@ class StopWidget(QWidget):
     
     def set_updated(self, updated:bool) -> None:
         self.updated = updated
+
+    def from_stop_condition(self, stop_condition: StopCondition):
+
+        if isinstance(stop_condition, Pause):
+            self.cmb_policy_select.setCurrentIndex(StopPolicy.PAUSE)
+            self.pause_sec.setValue(stop_condition.pause_sec)
+
+        elif isinstance(stop_condition, SoftwareTrigger):
+            self.cmb_policy_select.setCurrentIndex(StopPolicy.TRIGGER)
+            self.cmb_trigger_select.setCurrentIndex(TriggerType.SOFTWARE)
+            self.cmb_trigger_polarity.setCurrentIndex(TriggerPolarity(stop_condition.polarity))
+            self.debouncer.setValue(stop_condition.debouncer)
+
+        elif isinstance(stop_condition, TrackingTrigger):
+            self.cmb_policy_select.setCurrentIndex(StopPolicy.TRIGGER)
+            self.cmb_trigger_select.setCurrentIndex(TriggerType.TRACKING)
+            self.cmb_trigger_polarity.setCurrentIndex(TriggerPolarity(stop_condition.polarity))
+            self.debouncer.setValue(stop_condition.debouncer)
+            #self.trigger_mask.setText(stop_condition.trigger_mask) # NOOOOOOOO
 
     def get_state(self) -> Dict:
         state = {}
@@ -363,8 +383,8 @@ class StimWidget(QWidget):
         self.sb_looming_expansion_speed_mm_per_sec.valueChanged.connect(self.on_change)
 
         # Stop condition
-        self.stop_condition = StopWidget()
-        self.stop_condition.size_changed.connect(self.on_size_changed)
+        self.stop_condition_widget = StopWidget()
+        self.stop_condition_widget.size_changed.connect(self.on_size_changed)
 
     def layout_components(self):
 
@@ -430,7 +450,7 @@ class StimWidget(QWidget):
         layout.addLayout(background_color_layout)
         layout.addWidget(self.stack)
         layout.addWidget(QLabel('Stop condition'))
-        layout.addWidget(self.stop_condition)
+        layout.addWidget(self.stop_condition_widget)
         layout.addStretch()
 
     def on_size_changed(self):
@@ -485,7 +505,7 @@ class StimWidget(QWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
-        state['stop_condition'] = self.stop_condition.get_state()
+        state['stop_condition'] = self.stop_condition_widget.get_state()
         return state
 
     def set_state(self, state: Dict) -> None:
@@ -509,49 +529,50 @@ class StimWidget(QWidget):
         self.sb_background_color_G.setValue(state['background_color'][1])
         self.sb_background_color_B.setValue(state['background_color'][2])
         self.sb_background_color_A.setValue(state['background_color'][3])
-        self.stop_condition.set_state(state['stop_condition'])
+        self.stop_condition_widget.set_state(state['stop_condition'])
     
-    def set_protocol_item(self, item: ProtocolItem):
-        # set StimWidget value based on provided ProtocolItem   
+    def from_protocol_item(self, protocol_item: ProtocolItem):
 
-        self.sb_foreground_color_R.setValue(item.foreground_color[0])
-        self.sb_foreground_color_G.setValue(item.foreground_color[1])
-        self.sb_foreground_color_B.setValue(item.foreground_color[2])
-        self.sb_foreground_color_A.setValue(item.foreground_color[3])
+        self.sb_foreground_color_R.setValue(protocol_item.foreground_color[0])
+        self.sb_foreground_color_G.setValue(protocol_item.foreground_color[1])
+        self.sb_foreground_color_B.setValue(protocol_item.foreground_color[2])
+        self.sb_foreground_color_A.setValue(protocol_item.foreground_color[3])
         
-        self.sb_background_color_R.setValue(item.background_color[0])
-        self.sb_background_color_G.setValue(item.background_color[1])
-        self.sb_background_color_B.setValue(item.background_color[2])
-        self.sb_background_color_A.setValue(item.background_color[3])         
+        self.sb_background_color_R.setValue(protocol_item.background_color[0])
+        self.sb_background_color_G.setValue(protocol_item.background_color[1])
+        self.sb_background_color_B.setValue(protocol_item.background_color[2])
+        self.sb_background_color_A.setValue(protocol_item.background_color[3])         
         
-        if isinstance(item, Bright):
+        if isinstance(protocol_item, Bright):
             self.cmb_stim_select.setCurrentText(str(Stim.Visual.BRIGHT))
 
-        elif isinstance(item, Dark):
+        elif isinstance(protocol_item, Dark):
             self.cmb_stim_select.setCurrentText(str(Stim.Visual.DARK))
 
-        elif isinstance(item, Phototaxis):
+        elif isinstance(protocol_item, Phototaxis):
             self.cmb_stim_select.setCurrentText(str(Stim.Visual.PHOTOTAXIS))
-            self.chb_phototaxis_polarity.setChecked(item.phototaxis_polarity == 1) 
+            self.chb_phototaxis_polarity.setChecked(protocol_item.phototaxis_polarity == 1) 
 
-        elif isinstance(item, OMR):
+        elif isinstance(protocol_item, OMR):
             self.cmb_stim_select.setCurrentText(str(Stim.Visual.OMR))
-            self.sb_omr_spatial_freq.setValue(item.omr_spatial_period_mm)
-            self.sb_omr_angle.setValue(item.omr_angle_deg)
-            self.sb_omr_speed.setValue(item.omr_speed_mm_per_sec)  
+            self.sb_omr_spatial_freq.setValue(protocol_item.omr_spatial_period_mm)
+            self.sb_omr_angle.setValue(protocol_item.omr_angle_deg)
+            self.sb_omr_speed.setValue(protocol_item.omr_speed_mm_per_sec)  
     
-        elif isinstance(item, OKR):
+        elif isinstance(protocol_item, OKR):
             self.cmb_stim_select.setCurrentText(str(Stim.Visual.OKR))
-            self.sb_okr_spatial_freq.setValue(item.okr_spatial_frequency_deg)
-            self.sb_okr_speed.setValue(item.okr_speed_deg_per_sec) 
+            self.sb_okr_spatial_freq.setValue(protocol_item.okr_spatial_frequency_deg)
+            self.sb_okr_speed.setValue(protocol_item.okr_speed_deg_per_sec) 
     
-        elif isinstance(item, Looming):
+        elif isinstance(protocol_item, Looming):
             self.cmb_stim_select.setCurrentText(str(Stim.Visual.LOOMING))
-            self.sb_looming_center_mm_x.setValue(item.looming_center_mm[0])
-            self.sb_looming_center_mm_y.setValue(item.looming_center_mm[1])
-            self.sb_looming_period_sec.setValue(item.looming_period_sec)
-            self.sb_looming_expansion_time_sec.setValue(item.looming_expansion_time_sec)
-            self.sb_looming_expansion_speed_mm_per_sec.setValue(item.looming_expansion_speed_mm_per_sec)
+            self.sb_looming_center_mm_x.setValue(protocol_item.looming_center_mm[0])
+            self.sb_looming_center_mm_y.setValue(protocol_item.looming_center_mm[1])
+            self.sb_looming_period_sec.setValue(protocol_item.looming_period_sec)
+            self.sb_looming_expansion_time_sec.setValue(protocol_item.looming_expansion_time_sec)
+            self.sb_looming_expansion_speed_mm_per_sec.setValue(protocol_item.looming_expansion_speed_mm_per_sec)
+
+        self.stop_condition_widget.from_stop_condition(protocol_item.stop_condition)
 
     def get_protocol_item(self) -> ProtocolItem:
 

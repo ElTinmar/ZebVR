@@ -57,6 +57,9 @@ class Pause(StopCondition):
         else:
             return True
 
+class TTLTrigger(StopCondition):
+    pass
+
 class SoftwareTrigger(StopCondition):
 
     def __init__(

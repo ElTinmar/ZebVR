@@ -1,7 +1,7 @@
 from typing import Deque
 from qt_widgets import LabeledSpinBox
 from collections import deque
-from typing import Deque, Dict
+from typing import Deque, Dict, Optional
 import random
 
 from PyQt5.QtCore import pyqtSignal
@@ -103,14 +103,7 @@ class SequencerWidget(QWidget):
         self.state_changed.emit()
 
     def stim_pressed(self):
-        stim = StimWidget()
-        stim.state_changed.connect(self.state_changed.emit)
-        stim.size_changed.connect(self.on_size_change)
-        item = QListWidgetItem()
-        item.setSizeHint(stim.sizeHint())
-        self.list.addItem(item)
-        self.list.setItemWidget(item, stim)
-        self.state_changed.emit()
+        self.add_stim_widget(None)
 
     def remove_pressed(self):
         selected_items = self.list.selectedItems()
@@ -130,15 +123,26 @@ class SequencerWidget(QWidget):
             protocol.append(widget.get_protocol_item())
         return protocol
     
+    def add_stim_widget(self, protocol_item: Optional[ProtocolItem]):
+
+        stim = StimWidget()
+        stim.state_changed.connect(self.state_changed.emit)
+        stim.size_changed.connect(self.on_size_change)
+
+        if protocol_item is not None:
+            stim.from_protocol_item(protocol_item)
+
+        item = QListWidgetItem()
+        item.setSizeHint(stim.sizeHint())
+
+        self.list.addItem(item)
+        self.list.setItemWidget(item, stim)
+
+        self.state_changed.emit()
+    
     def set_protocol(self, protocol: Deque[ProtocolItem]) -> None:
         for protocol_item in protocol:
-            stim = StimWidget()
-            stim.set_protocol_item(protocol_item)
-            item = QListWidgetItem()
-            item.setSizeHint(stim.sizeHint())
-            self.list.addItem(item)
-            self.list.setItemWidget(item, stim)
-        self.state_changed.emit()
+            self.add_stim_widget(protocol_item)
 
     def get_state(self) -> Dict:
         state = {}
