@@ -145,6 +145,7 @@ class SequencerWidget(QWidget):
         state = {}
         state['repetitions'] = self.spb_repetitions.value()
         state['protocol'] = self.get_protocol()
+        return state
 
     def set_state(self, state: Dict) -> None:
         self.spb_repetitions.setValue(state['repetitions'])
