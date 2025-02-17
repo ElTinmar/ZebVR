@@ -198,7 +198,6 @@ class StopWidget(QWidget):
         self.trigger_mask.setText(state['mask_file'])
         self.pause_sec.setValue(state['pause_sec'])
 
-# TODO check if this can be simplified (maybe set_state/get_state)
 class StimWidget(QWidget):
 
     state_changed = pyqtSignal()
