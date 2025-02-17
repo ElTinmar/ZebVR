@@ -103,7 +103,7 @@ class SequencerWidget(QWidget):
         self.state_changed.emit()
 
     def stim_pressed(self):
-        self.add_stim_widget(None)
+        self.add_stim_widget()
 
     def remove_pressed(self):
         selected_items = self.list.selectedItems()
@@ -123,7 +123,7 @@ class SequencerWidget(QWidget):
             protocol.append(widget.get_protocol_item())
         return protocol
     
-    def add_stim_widget(self, protocol_item: Optional[ProtocolItem]):
+    def add_stim_widget(self, protocol_item: Optional[ProtocolItem] = None):
 
         stim = StimWidget()
         stim.state_changed.connect(self.state_changed.emit)

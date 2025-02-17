@@ -177,8 +177,8 @@ class StopWidget(QWidget):
             self.cmb_policy_select.setCurrentIndex(StopPolicy.TRIGGER)
             self.cmb_trigger_select.setCurrentIndex(TriggerType.TRACKING)
             self.cmb_trigger_polarity.setCurrentIndex(TriggerPolarity(stop_condition.polarity))
-            self.debouncer.setValue(stop_condition.debouncer)
-            #self.trigger_mask.setText(stop_condition.trigger_mask) # NOOOOOOOO
+            self.debouncer.setValue(stop_condition.debouncer.buffer_length) #NOTE breaks encapsulation a little bit
+            self.trigger_mask.setText(stop_condition.mask_file) 
 
     def get_state(self) -> Dict:
         state = {}
@@ -186,7 +186,7 @@ class StopWidget(QWidget):
         state['trigger_select'] = self.cmb_trigger_select.currentIndex()
         state['trigger_polarity'] = self.cmb_trigger_polarity.currentIndex()
         state['debouncer'] = self.debouncer.value()
-        state['trigger_mask'] = self.trigger_mask.text()
+        state['mask_file'] = self.trigger_mask.text()
         state['pause_sec'] = self.pause_sec.value()
         return state
     
@@ -195,7 +195,7 @@ class StopWidget(QWidget):
         self.cmb_trigger_select.setCurrentIndex(state['trigger_select'])
         self.cmb_trigger_polarity.setCurrentIndex(state['trigger_polarity'])
         self.debouncer.setValue(state['debouncer'])
-        self.trigger_mask.setText(state['trigger_mask'])
+        self.trigger_mask.setText(state['mask_file'])
         self.pause_sec.setValue(state['pause_sec'])
 
 # TODO check if this can be simplified (maybe set_state/get_state)
@@ -595,11 +595,8 @@ class StimWidget(QWidget):
                 pass
 
             if state['stop_condition']['trigger_select'] == TriggerType.TRACKING:
-                with open(state['stop_condition']['trigger_mask'], 'rb') as f:
-                    trigger_mask = np.load(f)
-
                 stop_condition = TrackingTrigger(
-                    trigger_mask = trigger_mask,
+                    mask_file = state['stop_condition']['mask_file'],
                     polarity = TriggerPolarity(state['stop_condition']['trigger_polarity']),
                     debouncer_length = state['stop_condition']['debouncer']
                 )

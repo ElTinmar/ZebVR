@@ -99,14 +99,27 @@ class TrackingTrigger(StopCondition):
 
     def __init__(
             self, 
-            trigger_mask: NDArray,
+            mask_file: Optional[str] = None,
+            mask: Optional[NDArray] = None,
             polarity = TriggerPolarity.RISING_EDGE,
             debouncer_length: int = 3
         ) -> None:
 
         super().__init__()
+
+        self.mask = None
+        self.mask_file = None
+
+        if (mask_file is None) == (mask is None): 
+            raise ValueError("Either 'mask_file' or 'mask' must be provided.")
+
+        if mask_file is not None:
+            self.mask_file = mask_file
+            self.mask = np.load(mask_file)
+        else:
+            self.mask_file = ''
+            self.mask = mask
         
-        self.trigger_mask = trigger_mask
         self.polarity = polarity
         self.debouncer = Debouncer(debouncer_length)
 
@@ -142,7 +155,7 @@ class TrackingTrigger(StopCondition):
             return output
         
         x, y = fish_centroid.astype(int)
-        triggered = self.trigger_mask[y, x]
+        triggered = self.mask[y, x]
         
         transition = self.debouncer.update(triggered)
         if transition.name == self.polarity.name: 
