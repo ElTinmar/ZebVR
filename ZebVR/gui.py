@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QAction,
     QButtonGroup,
-    QFileDialog
+    QFileDialog,
 )
 from PyQt5.QtGui import QIcon
 from .calibration import (
@@ -26,6 +26,7 @@ from .calibration import (
     registration
 )
 from .background import inpaint_background, static_background
+from qt_widgets import LabeledDoubleSpinBox
 from .widgets import (
     CameraWidget, CameraController,
     ProjectorWidget, ProjectorController,
@@ -128,6 +129,12 @@ class MainGui(QMainWindow):
         self.record_button.setText('record')
         self.record_button.clicked.connect(self.record)
 
+        self.recording_duration = LabeledDoubleSpinBox()
+        self.recording_duration.setText('recording duration (s)')
+        self.recording_duration.setRange(0,100_000)
+        self.recording_duration.setValue(0)
+        self.recording_duration.valueChanged.connect(self.update_main_settings)
+
         self.main_widget = QWidget()
         self.setCentralWidget(self.main_widget)
 
@@ -159,12 +166,16 @@ class MainGui(QMainWindow):
         controls = QHBoxLayout()
         controls.addWidget(self.start_button)
         controls.addWidget(self.stop_button)
-        controls.addWidget(self.record_button)
+       
+        record = QHBoxLayout()
+        record.addWidget(self.recording_duration)
+        record.addWidget(self.record_button)
 
         layout = QVBoxLayout(self.main_widget)
         layout.addLayout(top_buttons)
         layout.addWidget(self.tabs)
         layout.addLayout(controls)
+        layout.addLayout(record)
         layout.addStretch()
 
     def set_tab_visibililty(self, widgets_to_show, widgets_to_hide):
@@ -306,6 +317,9 @@ class MainGui(QMainWindow):
 
     def update_protocol_settings(self):
         self.settings['protocol'] = self.sequencer_widget.get_protocol()
+
+    def update_main_settings(self):
+        self.settings['main']['recording_duration'] = self.recording_duration.value()
 
     def refresh_settings(self):
         self.update_camera_settings()
@@ -559,7 +573,7 @@ class MainGui(QMainWindow):
 
         self.settings['main']['record'] = True
         self.start() 
-        time.sleep(self.sequencer_widget.get_protocol_duration()) 
+        time.sleep(self.settings['main']['recording_duration']) 
         self.stop()
 
     def closeEvent(self, event):

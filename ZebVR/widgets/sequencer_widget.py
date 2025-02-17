@@ -141,9 +141,6 @@ class SequencerWidget(QWidget):
             self.list.setItemWidget(item, stim)
         self.state_changed.emit()
 
-    def get_protocol_duration(self): # TODO change this
-        return 60
-
 if __name__ == '__main__':
 
     app = QApplication([])
