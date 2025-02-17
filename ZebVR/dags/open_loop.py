@@ -382,7 +382,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     if settings['main']['record']:
 
-        protocol = settings['sequencer']['protocol']
+        protocol = settings['sequencer']['protocol']*settings['sequencer']['repetitions']
         protocol_worker.set_protocol(protocol)
         dag.connect_metadata(
             sender = protocol_worker, 

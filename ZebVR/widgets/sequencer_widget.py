@@ -128,7 +128,6 @@ class SequencerWidget(QWidget):
             item = self.list.item(row)
             widget = self.list.itemWidget(item)
             protocol.append(widget.get_protocol_item())
-        protocol *= self.spb_repetitions.value()
         return protocol
     
     def set_protocol(self, protocol: Deque[ProtocolItem]) -> None:
