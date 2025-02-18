@@ -17,8 +17,12 @@ class Debouncer:
     def __init__(self, buffer_length = 5):
 
         self.buffer_length = buffer_length
-        self.buffer = deque(maxlen=buffer_length)
+        self.buffer = deque(maxlen = buffer_length)
         self.current_state = self.State.IDLE # initial state
+
+    def set_buffer_length(self, length: int) -> None:
+        self.buffer_length = length
+        self.buffer = deque(maxlen = length)
 
     def update(self, input: int) -> 'Debouncer.Transition':
 

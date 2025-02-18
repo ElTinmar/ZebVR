@@ -1,7 +1,5 @@
-from typing import Dict, Tuple
-import numpy as np
-
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileOpenLabeledEditButton
+from typing import Dict, Tuple, Optional
+from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -16,6 +14,7 @@ from PyQt5.QtWidgets import (
     QPushButton
 )
 from ..protocol import (
+    Debouncer,
     Stim,
     StopCondition,
     StopPolicy,
@@ -32,6 +31,8 @@ from ..protocol import (
     SoftwareTrigger,
     TrackingTrigger
 )
+
+# TODO check if updated still in use, if not remove
 class StopWidget(QWidget):
 
     state_changed = pyqtSignal()
@@ -39,6 +40,7 @@ class StopWidget(QWidget):
     
     def __init__(
             self, 
+            debouncer: Debouncer,
             *args, 
             **kwargs
         ):
@@ -46,6 +48,7 @@ class StopWidget(QWidget):
         super().__init__(*args, **kwargs)
         
         self.updated = False
+        self.debouncer = debouncer
         self.declare_components()
         self.layout_components()
 
@@ -74,12 +77,6 @@ class StopWidget(QWidget):
         self.cmb_trigger_polarity = QComboBox()
         for pol in TriggerPolarity:
             self.cmb_trigger_polarity.addItem(str(pol))
-
-        self.debouncer = LabeledSpinBox()
-        self.debouncer.setText('debouncer frames')
-        self.debouncer.setRange(0, 100) 
-        self.debouncer.setValue(5)
-        self.debouncer.valueChanged.connect(self.on_change)
 
         self.trigger_mask = FileOpenLabeledEditButton()
         self.trigger_mask.setLabel('load mask:')
@@ -118,7 +115,6 @@ class StopWidget(QWidget):
         trigger_layout = QVBoxLayout(trigger_container)
         trigger_layout.addWidget(self.cmb_trigger_select)
         trigger_layout.addWidget(self.cmb_trigger_polarity)
-        trigger_layout.addWidget(self.debouncer)
         trigger_layout.addWidget(self.trigger_stack)
             
         self.policy_stack = QStackedWidget()
@@ -171,13 +167,11 @@ class StopWidget(QWidget):
             self.cmb_policy_select.setCurrentIndex(StopPolicy.TRIGGER)
             self.cmb_trigger_select.setCurrentIndex(TriggerType.SOFTWARE)
             self.cmb_trigger_polarity.setCurrentIndex(TriggerPolarity(stop_condition.polarity))
-            self.debouncer.setValue(stop_condition.debouncer)
 
         elif isinstance(stop_condition, TrackingTrigger):
             self.cmb_policy_select.setCurrentIndex(StopPolicy.TRIGGER)
             self.cmb_trigger_select.setCurrentIndex(TriggerType.TRACKING)
             self.cmb_trigger_polarity.setCurrentIndex(TriggerPolarity(stop_condition.polarity))
-            self.debouncer.setValue(stop_condition.debouncer_length) 
             self.trigger_mask.setText(stop_condition.mask_file) 
 
     def to_stop_condition(self) -> StopCondition:
@@ -194,7 +188,7 @@ class StopWidget(QWidget):
             if state['trigger_select'] == TriggerType.SOFTWARE:
                 stop_condition = SoftwareTrigger(
                     polarity = TriggerPolarity(state['trigger_polarity']),
-                    debouncer_length = state['debouncer']
+                    debouncer = self.debouncer
                 )
 
             if state['trigger_select'] == TriggerType.TTL:
@@ -204,7 +198,7 @@ class StopWidget(QWidget):
                 stop_condition = TrackingTrigger(
                     mask_file = state['mask_file'],
                     polarity = TriggerPolarity(state['trigger_polarity']),
-                    debouncer_length = state['debouncer']
+                    debouncer = self.debouncer
                 )
         
         return stop_condition
@@ -214,7 +208,6 @@ class StopWidget(QWidget):
         state['stop_policy'] = self.cmb_policy_select.currentIndex()
         state['trigger_select'] = self.cmb_trigger_select.currentIndex()
         state['trigger_polarity'] = self.cmb_trigger_polarity.currentIndex()
-        state['debouncer'] = self.debouncer.value()
         state['mask_file'] = self.trigger_mask.text()
         state['pause_sec'] = self.pause_sec.value()
         return state
@@ -223,7 +216,6 @@ class StopWidget(QWidget):
         self.cmb_policy_select.setCurrentIndex(state['stop_policy'])
         self.cmb_trigger_select.setCurrentIndex(state['trigger_select'])
         self.cmb_trigger_polarity.setCurrentIndex(state['trigger_polarity'])
-        self.debouncer.setValue(state['debouncer'])
         self.trigger_mask.setText(state['mask_file'])
         self.pause_sec.setValue(state['pause_sec'])
 
@@ -234,6 +226,7 @@ class StimWidget(QWidget):
 
     def __init__(
             self, 
+            debouncer: Debouncer,
             phototaxis_polarity: int = 1,
             omr_spatial_period_mm: float = 5,
             omr_angle_deg: float = 0,
@@ -252,6 +245,7 @@ class StimWidget(QWidget):
 
         super().__init__(*args, **kwargs)
 
+        self.debouncer = debouncer
         self.phototaxis_polarity = phototaxis_polarity
         self.omr_spatial_period_mm = omr_spatial_period_mm
         self.omr_angle_deg = omr_angle_deg
@@ -411,7 +405,7 @@ class StimWidget(QWidget):
         self.sb_looming_expansion_speed_mm_per_sec.valueChanged.connect(self.on_change)
 
         # Stop condition
-        self.stop_condition_widget = StopWidget()
+        self.stop_condition_widget = StopWidget(self.debouncer)
         self.stop_condition_widget.size_changed.connect(self.on_size_changed)
 
     def layout_components(self):

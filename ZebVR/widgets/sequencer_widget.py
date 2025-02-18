@@ -15,11 +15,12 @@ from PyQt5.QtWidgets import (
     QVBoxLayout
 )
 from .protocol_widget import StimWidget
-from ..protocol import ProtocolItem
+from ..protocol import ProtocolItem, Debouncer
 
 class SequencerWidget(QWidget):
 
     state_changed = pyqtSignal()
+    DEFAULT_DEBOUNCER_LENGTH = 5
 
     def __init__(
             self,
@@ -28,11 +29,18 @@ class SequencerWidget(QWidget):
         ):
 
         super().__init__(*args, **kwargs)
+        self.debouncer = Debouncer(self.DEFAULT_DEBOUNCER_LENGTH)
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Sequencer')
 
     def declare_components(self) -> None:
+
+        self.spb_debouncer_length = LabeledSpinBox()
+        self.spb_debouncer_length.setText('debouncer length')
+        self.spb_debouncer_length.setRange(1,1_000)
+        self.spb_debouncer_length.setValue(self.DEFAULT_DEBOUNCER_LENGTH)
+        self.spb_debouncer_length.valueChanged.connect(self.update_debouncer)
 
         # QListWidget
         self.list = QListWidget()
@@ -55,6 +63,10 @@ class SequencerWidget(QWidget):
         self.spb_repetitions.setValue(1)
         self.spb_repetitions.valueChanged.connect(self.state_changed.emit)
 
+    def update_debouncer(self, value: int) -> None:
+        self.debouncer.set_buffer_length(value)
+        self.state_changed.emit()
+
     def layout_components(self) -> None:
         
         btn_layout = QHBoxLayout()
@@ -67,6 +79,7 @@ class SequencerWidget(QWidget):
         control_layout.addWidget(self.btn_shuffle)
 
         main_layout = QVBoxLayout(self)
+        main_layout.addWidget(self.spb_debouncer_length)
         main_layout.addLayout(btn_layout)
         main_layout.addWidget(self.list)
         main_layout.addLayout(control_layout)
@@ -91,7 +104,7 @@ class SequencerWidget(QWidget):
             del item
 
         for state in states:
-            new_widget = StimWidget()
+            new_widget = StimWidget(self.debouncer)
             new_widget.set_state(state)
             new_widget.state_changed.connect(self.state_changed.emit)
             new_widget.size_changed.connect(self.on_size_change)
@@ -125,7 +138,7 @@ class SequencerWidget(QWidget):
     
     def add_stim_widget(self, protocol_item: Optional[ProtocolItem] = None):
 
-        stim = StimWidget()
+        stim = StimWidget(self.debouncer)
         stim.state_changed.connect(self.state_changed.emit)
         stim.size_changed.connect(self.on_size_change)
 
@@ -147,11 +160,13 @@ class SequencerWidget(QWidget):
     def get_state(self) -> Dict:
         state = {}
         state['repetitions'] = self.spb_repetitions.value()
+        state['debouncer_length'] = self.spb_debouncer_length.value()
         state['protocol'] = self.get_protocol()
         return state
 
     def set_state(self, state: Dict) -> None:
         self.spb_repetitions.setValue(state['repetitions'])
+        self.spb_debouncer_length.setValue(state['debouncer_length'])
         self.set_protocol(state['protocol'])
 
 if __name__ == '__main__':

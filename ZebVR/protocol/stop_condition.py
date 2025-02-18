@@ -64,14 +64,13 @@ class SoftwareTrigger(StopCondition):
 
     def __init__(
             self, 
+            debouncer: Debouncer,
             polarity: TriggerPolarity = TriggerPolarity.RISING_EDGE,
-            debouncer_length: int = 3 
         ) -> None:
 
         super().__init__()
         self.polarity = polarity
-        self.debouncer_length = debouncer_length
-        self.debouncer = Debouncer(debouncer_length)
+        self.debouncer = debouncer
 
     def initialize(self) -> None:
         pass
@@ -100,10 +99,10 @@ class TrackingTrigger(StopCondition):
 
     def __init__(
             self, 
+            debouncer = Debouncer,
             mask_file: Optional[str] = None,
             mask: Optional[NDArray] = None,
             polarity: TriggerPolarity = TriggerPolarity.RISING_EDGE,
-            debouncer_length: int = 3
         ) -> None:
 
         super().__init__()
@@ -122,8 +121,7 @@ class TrackingTrigger(StopCondition):
             self.mask = mask
         
         self.polarity = polarity
-        self.debouncer_length = debouncer_length
-        self.debouncer = Debouncer(debouncer_length)
+        self.debouncer = debouncer
 
     def initialize(self) -> None:
         pass
