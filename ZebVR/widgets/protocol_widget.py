@@ -1,6 +1,9 @@
 from typing import Dict, Tuple, Optional
-from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton
-from image_tools import DrawPolyMask
+from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton, NDarray_to_QPixmap
+from image_tools import DrawPolyMaskDialog, im2uint8
+import numpy as np
+from numpy.typing import NDArray
+import cv2
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -37,10 +40,12 @@ class StopWidget(QWidget):
 
     state_changed = pyqtSignal()
     size_changed = pyqtSignal()
+    MASK_PREVIEW_HEIGHT = 64
     
     def __init__(
             self, 
             debouncer: Debouncer,
+            background_image: Optional[NDArray] = None,
             *args, 
             **kwargs
         ):
@@ -48,6 +53,9 @@ class StopWidget(QWidget):
         super().__init__(*args, **kwargs)
         
         self.debouncer = debouncer
+        self.background_image = background_image
+        self.mask = None
+
         self.declare_components()
         self.layout_components()
         self.trigger_changed()
@@ -78,13 +86,12 @@ class StopWidget(QWidget):
 
         self.trigger_mask = FileOpenLabeledEditButton()
         self.trigger_mask.setLabel('load mask:')
+        self.trigger_mask.textChanged.connect(self.load_mask)
 
         self.trigger_mask_button = QPushButton('draw mask')
         self.trigger_mask_button.clicked.connect(self.draw_trigger_mask)
 
-    def draw_trigger_mask(self):
-        window = DrawPolyMask()
-        window.show()
+        self.mask_image = QLabel() 
 
     def layout_components(self):
 
@@ -98,10 +105,13 @@ class StopWidget(QWidget):
         self.ttl_trigger_group = QGroupBox('TTL Trigger parameters')
         self.ttl_trigger_group.setLayout(ttl_trigger_layout)
 
-        tracking_trigger_layout = QVBoxLayout()
-        tracking_trigger_layout.addWidget(self.trigger_mask)
-        tracking_trigger_layout.addWidget(self.trigger_mask_button)
-        tracking_trigger_layout.addStretch()
+        tracking_trigger_ctrl = QVBoxLayout()
+        tracking_trigger_ctrl.addWidget(self.trigger_mask)
+        tracking_trigger_ctrl.addWidget(self.trigger_mask_button)
+        tracking_trigger_ctrl.addStretch()
+        tracking_trigger_layout = QHBoxLayout()
+        tracking_trigger_layout.addLayout(tracking_trigger_ctrl)
+        tracking_trigger_layout.addWidget(self.mask_image)
         self.tracking_trigger_group = QGroupBox('Tracking Trigger parameters')
         self.tracking_trigger_group.setLayout(tracking_trigger_layout)
 
@@ -125,6 +135,39 @@ class StopWidget(QWidget):
         main_layout.addWidget(self.policy_stack)
         main_layout.addStretch()
 
+    def set_background_image(self, image: NDArray) -> None:
+        self.background_image = image
+
+    def load_mask(self, filename):
+        self.mask = np.load(filename)
+
+        h, w = self.background_image.shape[:2]
+        preview_width = int(w * self.MASK_PREVIEW_HEIGHT/h)
+        image_resized = cv2.resize(
+            im2uint8(self.mask),
+            (preview_width, self.MASK_PREVIEW_HEIGHT), 
+            cv2.INTER_NEAREST
+        )
+        self.mask_image.setPixmap(NDarray_to_QPixmap(image_resized))
+        
+    def draw_trigger_mask(self):
+        if self.background_image is None:
+            return
+        
+        dialog = DrawPolyMaskDialog(self.background_image)
+        dialog.exec()
+        self.mask = dialog.flatten()
+
+        h, w = self.background_image.shape[:2]
+        preview_width = int(w * self.MASK_PREVIEW_HEIGHT/h)
+        image = 0.5*(self.background_image.astype(float)/255 + self.mask.astype(float))
+        image_resized = cv2.resize(
+            im2uint8(image),
+            (preview_width, self.MASK_PREVIEW_HEIGHT), 
+            cv2.INTER_NEAREST
+        )
+        self.mask_image.setPixmap(NDarray_to_QPixmap(image_resized))
+
     def policy_changed(self):
         self.policy_stack.setCurrentIndex(self.cmb_policy_select.currentIndex())
         current_widget = self.policy_stack.currentWidget()
@@ -146,7 +189,7 @@ class StopWidget(QWidget):
             self.size_changed.emit()
         self.state_changed.emit()
 
-    def from_stop_condition(self, stop_condition: StopCondition):
+    def from_stop_condition(self, stop_condition: StopCondition) -> None:
 
         if isinstance(stop_condition, Pause):
             self.cmb_policy_select.setCurrentIndex(StopPolicy.PAUSE)
@@ -162,6 +205,7 @@ class StopWidget(QWidget):
             self.cmb_trigger_select.setCurrentIndex(TriggerType.TRACKING)
             self.cmb_trigger_polarity.setCurrentIndex(TriggerPolarity(stop_condition.polarity))
             self.trigger_mask.setText(stop_condition.mask_file) 
+            self.mask = stop_condition.mask
 
     def to_stop_condition(self) -> StopCondition:
 
@@ -186,6 +230,7 @@ class StopWidget(QWidget):
             if state['trigger_select'] == TriggerType.TRACKING:
                 stop_condition = TrackingTrigger(
                     mask_file = state['mask_file'],
+                    mask = self.mask,
                     polarity = TriggerPolarity(state['trigger_polarity']),
                     debouncer = self.debouncer
                 )
@@ -216,6 +261,7 @@ class StimWidget(QWidget):
     def __init__(
             self, 
             debouncer: Debouncer,
+            background_image: Optional[NDArray] = None,
             phototaxis_polarity: int = 1,
             omr_spatial_period_mm: float = 5,
             omr_angle_deg: float = 0,
@@ -235,6 +281,7 @@ class StimWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         self.debouncer = debouncer
+        self.background_image = background_image
         self.phototaxis_polarity = phototaxis_polarity
         self.omr_spatial_period_mm = omr_spatial_period_mm
         self.omr_angle_deg = omr_angle_deg
@@ -394,7 +441,7 @@ class StimWidget(QWidget):
         self.sb_looming_expansion_speed_mm_per_sec.valueChanged.connect(self.on_change)
 
         # Stop condition
-        self.stop_condition_widget = StopWidget(self.debouncer)
+        self.stop_condition_widget = StopWidget(self.debouncer, self.background_image)
         self.stop_condition_widget.size_changed.connect(self.on_size_changed)
 
     def layout_components(self):
@@ -455,18 +502,20 @@ class StimWidget(QWidget):
         self.stack.addWidget(self.looming_group)
 
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel('Stimulus selection'))
         layout.addWidget(self.cmb_stim_select)
         layout.addLayout(foreground_color_layout)
         layout.addLayout(background_color_layout)
         layout.addWidget(self.stack)
-        layout.addWidget(QLabel('Stop condition'))
         layout.addWidget(self.stop_condition_widget)
         layout.addStretch()
 
     def on_size_changed(self):
         self.adjustSize() 
         self.size_changed.emit()
+
+    def set_background_image(self, image: NDArray) -> None:
+        self.background_image = image
+        self.stop_condition_widget.set_background_image(image)
 
     def stim_changed(self):
         self.stack.setCurrentIndex(self.cmb_stim_select.currentIndex())

@@ -3,6 +3,9 @@ from qt_widgets import LabeledSpinBox
 from collections import deque
 from typing import Deque, Dict, Optional
 import random
+from numpy.typing import NDArray
+import os
+import numpy as np
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -21,6 +24,7 @@ class SequencerWidget(QWidget):
 
     state_changed = pyqtSignal()
     DEFAULT_DEBOUNCER_LENGTH = 5
+    DEFAULT_BACKGROUND_FILE = 'ZebVR/default/background.npy'
 
     def __init__(
             self,
@@ -29,6 +33,11 @@ class SequencerWidget(QWidget):
         ):
 
         super().__init__(*args, **kwargs)
+
+        self.background_image = None
+        if os.path.exists(self.DEFAULT_BACKGROUND_FILE):
+            self.background_image = np.load(self.DEFAULT_BACKGROUND_FILE)
+            
         self.debouncer = Debouncer(self.DEFAULT_DEBOUNCER_LENGTH)
         self.declare_components()
         self.layout_components()
@@ -84,6 +93,13 @@ class SequencerWidget(QWidget):
         main_layout.addWidget(self.list)
         main_layout.addLayout(control_layout)
 
+    def set_background_image(self, image: NDArray) -> None:
+        self.background_image = image
+        for i in range(self.list.count()):
+            item = self.list.item(i)
+            stim = self.list.itemWidget(item)
+            stim.set_background_image(image)
+
     def on_size_change(self):
         for i in range(self.list.count()):
             item = self.list.item(i)
@@ -91,7 +107,6 @@ class SequencerWidget(QWidget):
             item.setSizeHint(stim.sizeHint())
         
     def shuffle(self):
-
         items = [self.list.item(i) for i in range(self.list.count())]
         widgets = [self.list.itemWidget(item) for item in items]
         states = [widget.get_state() for widget in widgets]
@@ -104,7 +119,7 @@ class SequencerWidget(QWidget):
             del item
 
         for state in states:
-            new_widget = StimWidget(self.debouncer)
+            new_widget = StimWidget(self.debouncer, self.background_image)
             new_widget.set_state(state)
             new_widget.state_changed.connect(self.state_changed.emit)
             new_widget.size_changed.connect(self.on_size_change)
@@ -138,7 +153,7 @@ class SequencerWidget(QWidget):
     
     def add_stim_widget(self, protocol_item: Optional[ProtocolItem] = None):
 
-        stim = StimWidget(self.debouncer)
+        stim = StimWidget(self.debouncer, self.background_image)
         stim.state_changed.connect(self.state_changed.emit)
         stim.size_changed.connect(self.on_size_change)
 

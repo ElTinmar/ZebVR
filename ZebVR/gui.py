@@ -445,9 +445,10 @@ class MainGui(QMainWindow):
             p.start()
             p.join()
 
-        # TODO update background widget
+        # update background widget
         image = np.load(self.settings['background']['background_file'])
         self.background_widget.set_image(image)
+        self.sequencer_widget.set_background_image(image)
     
     def get_pix_per_mm_callback(self):
         self.camera_controller.set_preview(False)
