@@ -180,6 +180,35 @@ class StopWidget(QWidget):
             self.debouncer.setValue(stop_condition.debouncer_length) 
             self.trigger_mask.setText(stop_condition.mask_file) 
 
+    def to_stop_condition(self) -> StopCondition:
+
+        state = self.get_state()
+
+        stop_condition = None
+
+        if state['stop_policy'] == StopPolicy.PAUSE:
+            stop_condition = Pause(state['pause_sec'])
+
+        if state['stop_policy'] == StopPolicy.TRIGGER:
+
+            if state['trigger_select'] == TriggerType.SOFTWARE:
+                stop_condition = SoftwareTrigger(
+                    polarity = TriggerPolarity(state['trigger_polarity']),
+                    debouncer_length = state['debouncer']
+                )
+
+            if state['trigger_select'] == TriggerType.TTL:
+                pass
+
+            if state['trigger_select'] == TriggerType.TRACKING:
+                stop_condition = TrackingTrigger(
+                    mask_file = state['mask_file'],
+                    polarity = TriggerPolarity(state['trigger_polarity']),
+                    debouncer_length = state['debouncer']
+                )
+        
+        return stop_condition
+    
     def get_state(self) -> Dict:
         state = {}
         state['stop_policy'] = self.cmb_policy_select.currentIndex()
@@ -573,101 +602,52 @@ class StimWidget(QWidget):
 
         self.stop_condition_widget.from_stop_condition(protocol_item.stop_condition)
 
-    def get_protocol_item(self) -> ProtocolItem:
+    def to_protocol_item(self) -> ProtocolItem:
 
         state = self.get_state()
+        stop_condition = self.stop_condition_widget.to_stop_condition()
 
-        stop_condition = None
-
-        if state['stop_condition']['stop_policy'] == StopPolicy.PAUSE:
-            stop_condition = Pause(state['stop_condition']['pause_sec'])
-
-        if state['stop_condition']['stop_policy'] == StopPolicy.TRIGGER:
-
-            if state['stop_condition']['trigger_select'] == TriggerType.SOFTWARE:
-                stop_condition = SoftwareTrigger(
-                    polarity = TriggerPolarity(state['stop_condition']['trigger_polarity']),
-                    debouncer_length = state['stop_condition']['debouncer']
-                )
-
-            if state['stop_condition']['trigger_select'] == TriggerType.TTL:
-                pass
-
-            if state['stop_condition']['trigger_select'] == TriggerType.TRACKING:
-                stop_condition = TrackingTrigger(
-                    mask_file = state['stop_condition']['mask_file'],
-                    polarity = TriggerPolarity(state['stop_condition']['trigger_polarity']),
-                    debouncer_length = state['stop_condition']['debouncer']
-                )
-
+        foreground_color = (
+            self.sb_foreground_color_R.value(), 
+            self.sb_foreground_color_G.value(),
+            self.sb_foreground_color_B.value(),
+            self.sb_foreground_color_A.value()
+        )
+        background_color = (
+            self.sb_background_color_R.value(), 
+            self.sb_background_color_G.value(),
+            self.sb_background_color_B.value(),
+            self.sb_background_color_A.value()
+        )
+        
         protocol = None
         if state['stim_select'] == Stim.Visual.DARK:
 
             protocol = Dark(
-                foreground_color = (
-                    self.sb_foreground_color_R.value(), 
-                    self.sb_foreground_color_G.value(),
-                    self.sb_foreground_color_B.value(),
-                    self.sb_foreground_color_A.value()
-                ),
-                background_color = (
-                    self.sb_background_color_R.value(), 
-                    self.sb_background_color_G.value(),
-                    self.sb_background_color_B.value(),
-                    self.sb_background_color_A.value()
-                ),
+                foreground_color = foreground_color,
+                background_color = background_color,
                 stop_condition = stop_condition
             )
 
         if state['stim_select'] == Stim.Visual.BRIGHT:
             protocol = Bright(
-                foreground_color = (
-                    self.sb_foreground_color_R.value(), 
-                    self.sb_foreground_color_G.value(),
-                    self.sb_foreground_color_B.value(),
-                    self.sb_foreground_color_A.value()
-                ),
-                background_color = (
-                    self.sb_background_color_R.value(), 
-                    self.sb_background_color_G.value(),
-                    self.sb_background_color_B.value(),
-                    self.sb_background_color_A.value()
-                ),
+                foreground_color = foreground_color,
+                background_color = background_color,
                 stop_condition = stop_condition
             )
 
         if state['stim_select'] == Stim.Visual.PHOTOTAXIS:
             protocol = Phototaxis(
-                foreground_color = (
-                    self.sb_foreground_color_R.value(), 
-                    self.sb_foreground_color_G.value(),
-                    self.sb_foreground_color_B.value(),
-                    self.sb_foreground_color_A.value()
-                ),
-                background_color = (
-                    self.sb_background_color_R.value(), 
-                    self.sb_background_color_G.value(),
-                    self.sb_background_color_B.value(),
-                    self.sb_background_color_A.value()
-                ),
+                foreground_color = foreground_color,
+                background_color = background_color,
                 phototaxis_polarity=-1+2*self.chb_phototaxis_polarity.isChecked(),
                 stop_condition = stop_condition
             )
 
         if state['stim_select'] == Stim.Visual.OMR:
             protocol = OMR(
-                foreground_color = (
-                    self.sb_foreground_color_R.value(), 
-                    self.sb_foreground_color_G.value(),
-                    self.sb_foreground_color_B.value(),
-                    self.sb_foreground_color_A.value()
-                ),
-                background_color = (
-                    self.sb_background_color_R.value(), 
-                    self.sb_background_color_G.value(),
-                    self.sb_background_color_B.value(),
-                    self.sb_background_color_A.value()
-                ),
+                foreground_color = foreground_color,
+                background_color = background_color,
                 omr_spatial_period_mm = self.sb_omr_spatial_freq.value(),
                 omr_angle_deg =self.sb_omr_angle.value(),
                 omr_speed_mm_per_sec = self.sb_omr_speed.value(),
@@ -676,18 +656,8 @@ class StimWidget(QWidget):
 
         if state['stim_select'] == Stim.Visual.OKR:
             protocol = OKR(
-                foreground_color = (
-                    self.sb_foreground_color_R.value(), 
-                    self.sb_foreground_color_G.value(),
-                    self.sb_foreground_color_B.value(),
-                    self.sb_foreground_color_A.value()
-                ),
-                background_color = (
-                    self.sb_background_color_R.value(), 
-                    self.sb_background_color_G.value(),
-                    self.sb_background_color_B.value(),
-                    self.sb_background_color_A.value()
-                ),
+                foreground_color = foreground_color,
+                background_color = background_color,
                 okr_spatial_frequency_deg = self.sb_okr_spatial_freq.value(),
                 okr_speed_deg_per_sec = self.sb_okr_speed.value(),
                 stop_condition = stop_condition
@@ -695,18 +665,8 @@ class StimWidget(QWidget):
 
         if state['stim_select'] == Stim.Visual.LOOMING:
             protocol = Looming(
-                foreground_color = (
-                    self.sb_foreground_color_R.value(), 
-                    self.sb_foreground_color_G.value(),
-                    self.sb_foreground_color_B.value(),
-                    self.sb_foreground_color_A.value()
-                ),
-                background_color = (
-                    self.sb_background_color_R.value(), 
-                    self.sb_background_color_G.value(),
-                    self.sb_background_color_B.value(),
-                    self.sb_background_color_A.value()
-                ),
+                foreground_color = foreground_color,
+                background_color = background_color,
                 looming_center_mm = (
                     self.sb_looming_center_mm_x.value(),
                     self.sb_looming_center_mm_y.value()

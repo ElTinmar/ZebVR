@@ -120,7 +120,7 @@ class SequencerWidget(QWidget):
         for row in range(num_items):
             item = self.list.item(row)
             widget = self.list.itemWidget(item)
-            protocol.append(widget.get_protocol_item())
+            protocol.append(widget.to_protocol_item())
         return protocol
     
     def add_stim_widget(self, protocol_item: Optional[ProtocolItem] = None):
