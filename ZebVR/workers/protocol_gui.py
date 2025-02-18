@@ -62,6 +62,7 @@ class StimGUI(WorkerNode):
             foreground_color=self.foreground_color,
             background_color=self.background_color
         )
+        self.window.stop_condition_widget.setVisible(False)
         self.window.show()
     
     def process_data(self, data: None) -> NDArray:
