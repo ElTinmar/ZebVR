@@ -1,5 +1,6 @@
 from typing import Dict, Tuple, Optional
 from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton
+from image_tools import DrawPolyMask
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -32,7 +33,6 @@ from ..protocol import (
     TrackingTrigger
 )
 
-# TODO check if updated still in use, if not remove
 class StopWidget(QWidget):
 
     state_changed = pyqtSignal()
@@ -47,11 +47,9 @@ class StopWidget(QWidget):
         
         super().__init__(*args, **kwargs)
         
-        self.updated = False
         self.debouncer = debouncer
         self.declare_components()
         self.layout_components()
-
         self.trigger_changed()
         self.policy_changed()
 
@@ -67,7 +65,7 @@ class StopWidget(QWidget):
         self.pause_sec.setRange(0,100_000)
         self.pause_sec.setSingleStep(0.5)
         self.pause_sec.setValue(0)
-        self.pause_sec.valueChanged.connect(self.on_change)
+        self.pause_sec.valueChanged.connect(self.state_changed.emit)
 
         self.cmb_trigger_select = QComboBox()
         for trigger in TriggerType:
@@ -85,7 +83,8 @@ class StopWidget(QWidget):
         self.trigger_mask_button.clicked.connect(self.draw_trigger_mask)
 
     def draw_trigger_mask(self):
-        pass
+        window = DrawPolyMask()
+        window.show()
 
     def layout_components(self):
 
@@ -134,7 +133,7 @@ class StopWidget(QWidget):
             self.policy_stack.setFixedHeight(new_height) 
             self.adjustSize() 
             self.size_changed.emit()
-        self.on_change()
+        self.state_changed.emit()
 
     def trigger_changed(self):
         self.trigger_stack.setCurrentIndex(self.cmb_trigger_select.currentIndex())
@@ -145,17 +144,7 @@ class StopWidget(QWidget):
             self.adjustSize() 
             self.policy_changed()
             self.size_changed.emit()
-        self.on_change()
-
-    def on_change(self):
-        self.updated = True
         self.state_changed.emit()
-
-    def is_updated(self) -> bool:
-        return self.updated
-    
-    def set_updated(self, updated:bool) -> None:
-        self.updated = updated
 
     def from_stop_condition(self, stop_condition: StopCondition):
 
