@@ -59,7 +59,7 @@ class Protocol(WorkerNode):
     def process_metadata(self, metadata: Dict) -> Optional[Dict]:    
 
         # 1rst item
-        if self.current_item == None:
+        if self.current_item is None:
             command = self.next()
             if command is None:
                 return
@@ -73,7 +73,21 @@ class Protocol(WorkerNode):
         command = self.next()
         if command is None:
             return 
-        
         res = {}
         res['visual_stim_control'] = command
         return res
+    
+
+    # def process_metadata(self, metadata: Dict) -> Optional[Dict]:    
+
+    #     if self.current_item is not None:
+    #         if not self.current_item.done(metadata):
+    #             return
+        
+    #     command = self.next()
+    #     if command is None:
+    #         return 
+        
+    #     res = {}
+    #     res['visual_stim_control'] = command
+    #     return res
