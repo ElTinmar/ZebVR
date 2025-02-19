@@ -61,6 +61,9 @@ class Protocol(WorkerNode):
         # 1rst item
         if self.current_item == None:
             command = self.next()
+            res = {}
+            res['visual_stim_control'] = command
+            return res
 
         if not self.current_item.done(metadata):
             return
