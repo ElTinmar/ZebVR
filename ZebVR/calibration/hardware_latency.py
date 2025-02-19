@@ -152,13 +152,18 @@ class Flash2(VisualStim):
         self.program['on'] = 0.0
         self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
         self.timer.start()
+        self.tlast = 0
         self.show()
 
     def on_timer(self, event):
         self.program['on'] = self.on.value
         self.update()
         if self.on.value:
-            print(f"latency {1e-6*(time.perf_counter_ns() - self.timestamp.value)}, detected: {self.on.value}")
+            curr_time = time.perf_counter_ns()
+            if (curr_time - self.tlast)*1e-9 >= 5:
+                print("-"*40) 
+            print(f"latency {1e-6*(curr_time - self.timestamp.value)}, detected: {self.on.value}")
+            self.tlast = curr_time
 
     def on_draw(self, event):
         super().on_draw(event)
@@ -181,13 +186,13 @@ queue_logger = Logger('queue.log', Logger.INFO)
 
 camera = CameraWorker(
     camera_constructor = constructor, 
-    exposure = 1000,
+    exposure = 200,
     gain = 0,
-    framerate = 100,
-    height = 2048,
-    width = 2048,
-    offsetx = 0,
-    offsety = 0,
+    framerate = 240,
+    height = 1024,
+    width = 1024,
+    offsetx = 512,
+    offsety = 512,
     name = 'camera', 
     logger = worker_logger, 
     logger_queues = queue_logger,
@@ -196,7 +201,7 @@ camera = CameraWorker(
 )
 
 thresholder = Thresholder(
-    threshold = 2.6,
+    threshold = 15,
     name = 'thresholder', 
     logger = worker_logger, 
     logger_queues = queue_logger,
