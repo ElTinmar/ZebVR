@@ -18,10 +18,9 @@ from tracker import (
     TailTracker_CPU,
     TailTrackerParamTracking
 )
-from ZebVR.workers import (
+from ..workers import (
     BackgroundSubWorker, 
     CameraWorker, 
-    TrackerWorker, 
     DummyTrackerWorker,
     ImageSaverWorker, 
     VideoSaverWorker,
@@ -33,7 +32,7 @@ from ZebVR.workers import (
     rgb_to_yuv420p,
     rgb_to_gray
 )
-from ZebVR.stimulus import VisualStimWorker, GeneralStim
+from ..stimulus import VisualStimWorker, GeneralStim
 
 def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     
@@ -42,8 +41,8 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         dag = ProcessingDAG()
     
     # create loggers
-    worker_logger = Logger(settings['output']['worker_logfile'], Logger.INFO)
-    queue_logger = Logger(settings['output']['queue_logfile'], Logger.INFO)
+    worker_logger = Logger(settings['settings']['log']['worker_logfile'], Logger.INFO)
+    queue_logger = Logger(settings['settings']['log']['queue_logfile'], Logger.INFO)
 
     # create queues -----------------------------------------------------------------------            
     queue_cam = MonitoredQueue(
@@ -51,7 +50,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             num_bytes = 500*1024**2, # TODO add a widget for that?
             logger = queue_logger,
             name = 'camera_to_background',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -60,7 +59,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'camera_to_converter',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -69,7 +68,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'converter_to_saver',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -78,7 +77,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'camera_to_image_saver',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -87,7 +86,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'image_saver_to_display',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -97,7 +96,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             #copy=False, # you probably don't need to copy if processing is fast enough
             logger = queue_logger,
             name = 'background_to_trackers',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -106,7 +105,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'tracker_to_stim',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -115,7 +114,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'tracker_to_overlay',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -139,10 +138,10 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     # video recording ------------------------------------------
     image_saver_worker = ImageSaverWorker(
-        folder = settings['output']['video_recording_dir'], 
-        decimation = settings['output']['video_decimation'],
-        compress = settings['output']['video_recording_compression'],
-        resize = settings['output']['video_recording_resize'],
+        folder = settings['settings']['videorecording']['video_recording_dir'], 
+        decimation = settings['settings']['videorecording']['video_decimation'],
+        compress = settings['settings']['videorecording']['video_recording_compression'],
+        resize = settings['settings']['videorecording']['video_recording_resize'],
         name = 'cam_output2',  
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -152,15 +151,15 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
     video_recorder_worker = VideoSaverWorker(
         height = settings['camera']['height_value'],
         width = settings['camera']['width_value'],
-        filename = settings['output']['video_filename'],
-        decimation = settings['output']['video_decimation'],
-        fps = settings['camera']['framerate_value']/settings['output']['video_decimation'],
-        video_codec = settings['output']['video_codec'],
-        gpu = settings['output']['video_gpu'],
-        grayscale = settings['output']['video_grayscale'],
-        video_profile = 'main' if not settings['output']['video_grayscale'] else 'high',
-        video_preset = settings['output']['video_preset'],
-        video_quality = settings['output']['video_quality'],
+        filename = settings['settings']['videorecording']['video_filename'],
+        decimation = settings['settings']['videorecording']['video_decimation'],
+        fps = settings['camera']['framerate_value']/settings['settings']['videorecording']['video_decimation'],
+        video_codec = settings['settings']['videorecording']['video_codec'],
+        gpu = settings['settings']['videorecording']['video_gpu'],
+        grayscale = settings['settings']['videorecording']['video_grayscale'],
+        video_profile = 'main' if not settings['settings']['videorecording']['video_grayscale'] else 'high',
+        video_preset = settings['settings']['videorecording']['video_preset'],
+        video_quality = settings['settings']['videorecording']['video_quality'],
         name = 'video_recorder',
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -209,11 +208,11 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
     background = BackroundImage(
         image_file_name = settings['background']['background_file'],
         polarity = background_polarity,
-        use_gpu = settings['vr_settings']['background_gpu']
+        use_gpu = settings['settings']['tracking']['background_gpu']
     )
 
     background_worker_list = []
-    for i in range(settings['vr_settings']['n_background_workers']):
+    for i in range(settings['settings']['tracking']['n_background_workers']):
         background_worker_list.append(
             BackgroundSubWorker(
                 background, 
@@ -245,25 +244,25 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
     )
 
     tracker_worker_list = []
-    for i in range(settings['vr_settings']['n_tracker_workers']):
+    for i in range(settings['settings']['tracking']['n_tracker_workers']):
         tracker_worker_list.append(
             DummyTrackerWorker(
                 tracker,
                 centroid = np.array([
-                    settings['vr_settings']['centroid_x'],
-                    settings['vr_settings']['centroid_y']
+                    settings['settings']['openloop']['centroid_x'],
+                    settings['settings']['openloop']['centroid_y']
                 ]),
-                heading = np.array(settings['vr_settings']['heading']), # TODO check transposition is warranted (PC on col vs rows)
+                heading = np.array(settings['settings']['openloop']['heading']), 
                 name = f'tracker{i}', 
                 logger = worker_logger, 
                 logger_queues = queue_logger,
                 send_data_strategy = send_strategy.BROADCAST, 
                 receive_data_timeout = 1.0, 
-                        )
+            )
         )
 
     display_worker = Display(
-        fps = settings['vr_settings']['display_fps'], 
+        fps = settings['settings']['videorecording']['display_fps'],
         name = "display", 
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -290,9 +289,9 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         pix_per_mm = settings['calibration']['pix_per_mm'],
         refresh_rate = settings['projector']['fps'],
         vsync = True,
-        timings_file = settings['output']['csv_filename'],
+        timings_file = settings['settings']['tracking']['csv_filename'],
         stim_select = 0,
-        num_tail_points_interp = settings['vr_settings']['n_tail_pts_interp']
+        num_tail_points_interp = settings['settings']['tracking']['n_tail_pts_interp']
     )
 
     stim_worker = VisualStimWorker(
@@ -314,7 +313,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     # connect DAG -----------------------------------------------------------------------
 
-    for i in range(settings['vr_settings']['n_tracker_workers']):
+    for i in range(settings['settings']['tracking']['n_tracker_workers']):
         dag.connect_data(
             sender = tracker_worker_list[i], 
             receiver = stim_worker, 
@@ -322,9 +321,9 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             name = 'tracker_output1'
         )
 
-    if settings['output']['video_recording']:
+    if settings['settings']['videorecording']['video_recording']:
 
-        if settings['output']['video_method'] == 'image sequence':
+        if settings['settings']['videorecording']['video_method'] == 'image sequence':
             dag.connect_data(
                 sender = camera_worker, 
                 receiver = image_saver_worker, 
@@ -335,7 +334,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         else:
             if settings['camera']['num_channels'] == 3:
 
-                if settings['output']['video_grayscale']:
+                if settings['settings']['videorecording']['video_grayscale']:
                     dag.connect_data(
                         sender = camera_worker, 
                         receiver = rgb_to_gray_converter, 
@@ -383,7 +382,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     if settings['main']['record']:
 
-        protocol = settings['protocol']
+        protocol = settings['sequencer']['protocol']*settings['sequencer']['repetitions']
         protocol_worker.set_protocol(protocol)
         dag.connect_metadata(
             sender = protocol_worker, 

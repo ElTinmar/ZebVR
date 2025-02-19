@@ -2,11 +2,13 @@ from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional, Tuple
 import time
-from ZebVR.widgets import StimWidget # Should I do relative imports instead?
-
+from ..widgets import StimWidget
+from ..protocol import Debouncer
 from PyQt5.QtWidgets import QApplication
 
 class StimGUI(WorkerNode):
+    
+    DEFAULT_DEBOUNCER_LENGTH = 5
 
     def __init__(
             self, 
@@ -28,6 +30,7 @@ class StimGUI(WorkerNode):
 
         super().__init__(*args, **kwargs)
 
+        self.debouncer = Debouncer(self.DEFAULT_DEBOUNCER_LENGTH)
         self.phototaxis_polarity = phototaxis_polarity
         self.omr_spatial_period_mm = omr_spatial_period_mm
         self.omr_angle_deg = omr_angle_deg
@@ -45,6 +48,7 @@ class StimGUI(WorkerNode):
         super().initialize()
         self.app = QApplication([])
         self.window = StimWidget(
+            debouncer = self.debouncer,
             phototaxis_polarity=self.phototaxis_polarity,
             omr_spatial_period_mm=self.omr_spatial_period_mm,
             omr_angle_deg=self.omr_angle_deg,
@@ -58,6 +62,7 @@ class StimGUI(WorkerNode):
             foreground_color=self.foreground_color,
             background_color=self.background_color
         )
+        self.window.stop_condition_widget.setVisible(False)
         self.window.show()
     
     def process_data(self, data: None) -> NDArray:

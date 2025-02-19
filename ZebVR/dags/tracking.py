@@ -28,7 +28,7 @@ from tracker import (
     TailTrackerParamOverlay,
     TailTrackerParamTracking
 )
-from ZebVR.workers import (
+from ..workers import (
     BackgroundSubWorker, 
     CameraWorker, 
     TrackerWorker, 
@@ -45,8 +45,8 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         dag = ProcessingDAG()
     
     # create loggers
-    worker_logger = Logger(settings['output']['worker_logfile'], Logger.INFO)
-    queue_logger = Logger(settings['output']['queue_logfile'], Logger.INFO)
+    worker_logger = Logger(settings['settings']['log']['worker_logfile'], Logger.INFO)
+    queue_logger = Logger(settings['settings']['log']['queue_logfile'], Logger.INFO)
 
     # create queues -----------------------------------------------------------------------            
     queue_cam = MonitoredQueue(
@@ -54,7 +54,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             num_bytes = 500*1024**2, # TODO add a widget for that?
             logger = queue_logger,
             name = 'camera_to_background',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -63,7 +63,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'background_to_trackers',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -72,7 +72,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'tracker_to_stim',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -81,7 +81,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'tracker_to_overlay',
-            t_refresh = 1e-6 * settings['vr_settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
 
@@ -125,11 +125,11 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     background = BackroundImage(
         image_file_name = settings['background']['background_file'],
         polarity = background_polarity,
-        use_gpu = settings['vr_settings']['background_gpu']
+        use_gpu = settings['settings']['tracking']['background_gpu']
     )
 
     background_worker_list = []
-    for i in range(settings['vr_settings']['n_background_workers']):
+    for i in range(settings['settings']['tracking']['n_background_workers']):
         background_worker_list.append(
             BackgroundSubWorker(
                 background, 
@@ -161,13 +161,13 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     )
 
     tracker_worker_list = []
-    for i in range(settings['vr_settings']['n_tracker_workers']):
+    for i in range(settings['settings']['tracking']['n_tracker_workers']):
         tracker_worker_list.append(
             TrackerWorker(
                 tracker, 
                 cam_width = settings['camera']['width_value'],
                 cam_height = settings['camera']['height_value'],
-                n_tracker_workers = settings['vr_settings']['n_tracker_workers'],
+                n_tracker_workers = settings['settings']['tracking']['n_tracker_workers'],
                 name = f'tracker{i}', 
                 logger = worker_logger, 
                 logger_queues = queue_logger,
@@ -177,8 +177,8 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         )
     
     tracker_control_worker = TrackerGui(
-        n_tracker_workers = settings['vr_settings']['n_tracker_workers'],
-        settings_file = settings['vr_settings']['tracking_file'],
+        n_tracker_workers = settings['settings']['tracking']['n_tracker_workers'],
+        settings_file = settings['settings']['tracking']['tracking_file'],
         name = 'tracker_gui',  
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -198,7 +198,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
 
     tracking_display_worker = TrackingDisplay(
         overlay = overlay, 
-        fps = settings['vr_settings']['display_fps'], 
+        fps = settings['settings']['tracking']['display_fps'], 
         name = "tracking_display", 
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -207,8 +207,8 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     )
 
     tracking_saver_worker = TrackingSaver(
-        filename = settings['output']['csv_filename'],
-        num_tail_points_interp = settings['vr_settings']['n_tail_pts_interp'],
+        filename = settings['settings']['tracking']['csv_filename'],
+        num_tail_points_interp = settings['settings']['tracking']['n_tail_pts_interp'],
         name = 'tracking_saver',
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -217,7 +217,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
 
     # connect DAG -----------------------------------------------------------------------
     # data
-    for i in range(settings['vr_settings']['n_background_workers']):   
+    for i in range(settings['settings']['tracking']['n_background_workers']):   
         dag.connect_data(
             sender = camera_worker, 
             receiver = background_worker_list[i], 
@@ -225,8 +225,8 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             name = 'cam_output1'
         )
 
-    for i in range(settings['vr_settings']['n_background_workers']):
-        for j in range(settings['vr_settings']['n_tracker_workers']):
+    for i in range(settings['settings']['tracking']['n_background_workers']):
+        for j in range(settings['settings']['tracking']['n_tracker_workers']):
             dag.connect_data(
                 sender = background_worker_list[i], 
                 receiver = tracker_worker_list[j], 
@@ -235,7 +235,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             )
 
 
-    for i in range(settings['vr_settings']['n_tracker_workers']):
+    for i in range(settings['settings']['tracking']['n_tracker_workers']):
         dag.connect_data(
             sender = tracker_worker_list[i], 
             receiver = tracking_display_worker, 
@@ -243,7 +243,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             name = 'tracker_output2'
         )
 
-    for i in range(settings['vr_settings']['n_tracker_workers']):
+    for i in range(settings['settings']['tracking']['n_tracker_workers']):
         dag.connect_data(
             sender = tracker_worker_list[i], 
             receiver = tracking_saver_worker, 
@@ -252,7 +252,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         )
 
     # metadata
-    for i in range(settings['vr_settings']['n_tracker_workers']):
+    for i in range(settings['settings']['tracking']['n_tracker_workers']):
         dag.connect_metadata(
             sender = tracker_control_worker, 
             receiver = tracker_worker_list[i], 

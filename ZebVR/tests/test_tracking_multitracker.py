@@ -16,7 +16,7 @@ from ipc_tools import RingBuffer, QueueMP, MonitoredQueue
 from video_tools import BackgroundSubtractor, BackroundImage, Polarity
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG, plot_logs
-from ZebVR.stimulus import Phototaxis, VisualStimWorker
+from ..stimulus import Phototaxis, VisualStimWorker
 
 import numpy as np
 from numpy.typing import NDArray

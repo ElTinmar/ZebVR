@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 if __name__ == '__main__':
 
-    from ZebVR.config import (
+    from ..config import (
         CAM_HEIGHT,
         CAM_WIDTH,
         VIDEO_RECORDING_FPS,

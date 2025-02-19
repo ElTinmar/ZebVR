@@ -11,14 +11,12 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
-import os
 
-from qt_widgets import LabeledSpinBox, LabeledDoubleSpinBox, LabeledEditLine, LabeledComboBox, FileSaveLabeledEditButton
+from qt_widgets import LabeledSpinBox, LabeledDoubleSpinBox, LabeledComboBox, FileSaveLabeledEditButton
 
-class OutputWidget(QWidget):
+class VideoOutputWidget(QWidget):
 
     state_changed = pyqtSignal()
-    CSV_FOLDER: str = 'output/data'
     DEFAULT_VIDEOFILE: str = 'default.mp4'
 
     def __init__(self, *args, **kwargs):
@@ -31,29 +29,16 @@ class OutputWidget(QWidget):
 
     def declare_components(self):
         
-        ## data recording -----------------------------------
-        self.data_group = QGroupBox('Data')
-    
-        self.fish_id = LabeledSpinBox()
-        self.fish_id.setText('Fish ID:')
-        self.fish_id.setValue(0)
-        self.fish_id.valueChanged.connect(self.experiment_data)
-
-        self.dpf = LabeledSpinBox()
-        self.dpf.setText('Fish age (dpf):')
-        self.dpf.setValue(7)
-        self.dpf.valueChanged.connect(self.experiment_data)
-
-        self.edt_filename = LabeledEditLine()
-        self.edt_filename.setLabel('result file:')
-        self.edt_filename.setText(os.path.join(self.CSV_FOLDER, f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv'))
-        self.edt_filename.textChanged.connect(self.state_changed)
-
         ## video recording ------------------------------------
         self.video_group = QGroupBox('Enable video recording')
         self.video_group.setCheckable(True)
         self.video_group.setChecked(False)
         self.video_group.toggled.connect(self.state_changed)
+
+        self.display_fps = LabeledSpinBox()
+        self.display_fps.setText('FPS display:')
+        self.display_fps.setValue(30)
+        self.display_fps.valueChanged.connect(self.state_changed)
 
         self.video_decimation = LabeledSpinBox()
         self.video_decimation.setText('Frame decimation:')
@@ -135,18 +120,9 @@ class OutputWidget(QWidget):
         self.video_stack.addWidget(self.single_video)
         self.video_stack.addWidget(self.image_series)
 
-        ## logs ------------------------------------------------------
-        self.log_group = QGroupBox('Logs')
-
-        self.worker_logfile = LabeledEditLine()
-        self.worker_logfile.setLabel('worker log file:')
-        self.worker_logfile.setText('workers.log')
-        self.worker_logfile.textChanged.connect(self.state_changed)
-
-        self.queue_logfile = LabeledEditLine()
-        self.queue_logfile.setLabel('queue log file:')
-        self.queue_logfile.setText('queues.log')
-        self.queue_logfile.textChanged.connect(self.state_changed)
+    def force_checked(self, checked: bool):
+        self.video_group.setCheckable(not checked) 
+        self.video_group.setChecked(checked)
 
     def layout_components(self):
         
@@ -171,28 +147,13 @@ class OutputWidget(QWidget):
 
         video_layout = QVBoxLayout()
         video_layout.addWidget(self.video_decimation)
+        video_layout.addWidget(self.display_fps)
         video_layout.addWidget(self.video_combobox)
         video_layout.addWidget(self.video_stack)
         self.video_group.setLayout(video_layout)
 
-        data_layout = QVBoxLayout()
-        data_layout.addWidget(self.fish_id)
-        data_layout.addWidget(self.dpf)
-        data_layout.addWidget(self.edt_filename)
-        self.data_group.setLayout(data_layout)
-
-        log_layout = QVBoxLayout()
-        log_layout.addWidget(self.worker_logfile)
-        log_layout.addWidget(self.queue_logfile)
-        self.log_group.setLayout(log_layout)
-
         main_layout = QVBoxLayout(self)
-        main_layout.addWidget(self.data_group)
-        main_layout.addSpacing(20) 
         main_layout.addWidget(self.video_group)
-        main_layout.addSpacing(20) 
-        main_layout.addWidget(self.log_group)
-        main_layout.addStretch()
 
     def codec_changed(self):
         
@@ -307,20 +268,12 @@ class OutputWidget(QWidget):
     def enable_video_recording(self, isChecked: bool):
         self.video_group.setChecked(isChecked)
 
-    def experiment_data(self):
-        self.filename = os.path.join(self.CSV_FOLDER, f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv')
-        self.edt_filename.setText(self.filename)
-        self.state_changed.emit()
-
     def select_video_dir(self):
         filename = QFileDialog.getExistingDirectory(self, "Select Directory")
         self.video_recording_dir.setText(filename)
 
     def get_state(self) -> Dict:
         state = {}
-        state['fish_id'] = self.fish_id.value()
-        state['dpf'] = self.dpf.value()
-        state['csv_filename'] = self.edt_filename.text()
         state['video_recording'] = self.video_group.isChecked()
         state['video_method'] = self.video_combobox.currentText()
         state['video_recording_dir'] = self.video_recording_dir.text()
@@ -333,15 +286,11 @@ class OutputWidget(QWidget):
         state['video_grayscale'] = self.grayscale.isChecked()
         state['video_preset'] = self.video_preset.currentText()
         state['video_quality'] = self.video_quality.value()
-        state['worker_logfile'] = self.worker_logfile.text()
-        state['queue_logfile'] = self.queue_logfile.text()
+        state['display_fps'] = self.display_fps.value()
         return state
     
     def set_state(self, state: Dict) -> None:
         try:
-            self.fish_id.setValue(state['fish_id'])
-            self.dpf.setValue(state['dpf'])
-            self.edt_filename.setText(state['csv_filename'])
             self.video_group.setChecked(state['video_recording'])
             self.video_combobox.setCurrentText(state['video_method'])
             self.video_recording_dir.setText(state['video_recording_dir'])
@@ -354,8 +303,7 @@ class OutputWidget(QWidget):
             self.grayscale.setChecked(state['video_grayscale'])
             self.video_preset.setCurrentText(state['video_preset'])
             self.video_quality.setValue(state['video_quality'])
-            self.worker_logfile.setText(state['worker_logfile'])
-            self.queue_logfile.setText(state['queue_logfile'])
+            self.display_fps.setValue(state['display_fps'])
 
         except KeyError:
             print('Wrong state keys provided to output widget')
@@ -364,14 +312,13 @@ class OutputWidget(QWidget):
 if __name__ == "__main__":
 
     from PyQt5.QtWidgets import QApplication, QMainWindow
-    from PyQt5.QtCore import  QRunnable, QThreadPool
 
     class Window(QMainWindow):
 
         def __init__(self,*args,**kwargs):
 
             super().__init__(*args, **kwargs)
-            self.output_widget = OutputWidget()
+            self.output_widget = VideoOutputWidget()
             self.setCentralWidget(self.output_widget)
             self.output_widget.state_changed.connect(self.state_changed)
 

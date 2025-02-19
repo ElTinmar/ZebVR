@@ -10,7 +10,6 @@ dependencies:
 - vispy
 - pip
 - snakeviz
-- conda-build
 - cupy
 - pip:
   - psutil

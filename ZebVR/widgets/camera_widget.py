@@ -155,9 +155,15 @@ class CameraWidget(QWidget):
             spinbox = getattr(self, control + '_spinbox')
             layout_controls.addWidget(spinbox)
 
+        layout_image = QHBoxLayout()
+        layout_image.addStretch()
+        layout_image.addWidget(self.image)
+        layout_image.addStretch()
+
         layout_controls.addLayout(layout_channels)
         layout_controls.addLayout(layout_buttons)
-        layout_controls.addWidget(self.image)
+        layout_controls.addStretch()
+        layout_controls.addLayout(layout_image)
         layout_controls.addStretch()
 
     def on_source_change(self):

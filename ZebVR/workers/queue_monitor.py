@@ -3,7 +3,7 @@ from ipc_tools import QueueLike
 from numpy.typing import NDArray
 from typing import Dict, Optional
 from PyQt5.QtWidgets import QApplication
-from ZebVR.widgets import QueueWidget, QueueMonitorWidget
+from ..widgets import QueueWidget, QueueMonitorWidget
 from typing import List
 import time
 

@@ -14,28 +14,29 @@ from PyQt5.QtWidgets import (
     QTabWidget,
     QMainWindow,
     QAction,
-    QFileDialog
+    QButtonGroup,
+    QFileDialog,
 )
 from PyQt5.QtGui import QIcon
-from ZebVR.calibration import (
+from .calibration import (
     check_pix_per_mm, 
     check_registration, 
     open_loop_coords, 
     pix_per_mm, 
     registration
 )
-from ZebVR.background import inpaint_background, static_background
-from ZebVR.widgets import (
+from .background import inpaint_background, static_background
+from qt_widgets import LabeledDoubleSpinBox
+from .widgets import (
     CameraWidget, CameraController,
     ProjectorWidget, ProjectorController,
     RegistrationWidget,
     CalibrationWidget,
     BackgroundWidget,
-    VRSettingsWidget,
-    OutputWidget,
-    SequencerWidget
+    SequencerWidget,
+    SettingsWidget
 )
-from ZebVR.dags import closed_loop, open_loop, video_recording, tracking, closed_loop_with_triggers
+from .dags import closed_loop, open_loop, video_recording, tracking
 
 PROFILE = False
         
@@ -84,15 +85,27 @@ class MainGui(QMainWindow):
         self.background_widget.background_signal.connect(self.background_callback)
 
         self.sequencer_widget = SequencerWidget()
-        self.sequencer_widget.state_changed.connect(self.update_protocol_settings)
+        self.sequencer_widget.state_changed.connect(self.update_sequencer_settings)
 
-        self.vr_settings_widget = VRSettingsWidget()
-        self.vr_settings_widget.state_changed.connect(self.update_vr_settings_settings)
-        self.vr_settings_widget.openloop_coords_signal.connect(self.openloop_coords_callback)
+        self.settings_widget = SettingsWidget()
+        self.settings_widget.state_changed.connect(self.update_settings)
+        
+        self.close_loop_button = QPushButton('Close-loop')
+        self.close_loop_button.setCheckable(True)
+        self.open_loop_button = QPushButton('Open-loop')
+        self.open_loop_button.setCheckable(True)
+        self.video_recording_button = QPushButton('Record Video')
+        self.video_recording_button.setCheckable(True)
+        self.tracking_button = QPushButton('Track')
+        self.tracking_button.setCheckable(True)
+        self.top_buttons = QButtonGroup()
+        self.top_buttons.addButton(self.close_loop_button)
+        self.top_buttons.addButton(self.open_loop_button)
+        self.top_buttons.addButton(self.video_recording_button)
+        self.top_buttons.addButton(self.tracking_button)
+        self.top_buttons.setExclusive(True)
+        self.top_buttons.buttonClicked.connect(self.top_button_changed)
 
-        self.output_widget = OutputWidget()
-        self.output_widget.state_changed.connect(self.update_output_settings)
-        self.vr_settings_widget.video_recording_signal.connect(self.output_widget.enable_video_recording)
 
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.West)
@@ -102,8 +115,7 @@ class MainGui(QMainWindow):
         self.tabs.addTab(self.calibration_widget, "Calibration")
         self.tabs.addTab(self.background_widget, "Background")
         self.tabs.addTab(self.sequencer_widget, "Protocol")
-        self.tabs.addTab(self.vr_settings_widget, "VR")
-        self.tabs.addTab(self.output_widget, "Output") 
+        self.tabs.addTab(self.settings_widget, "Settings") 
 
         self.start_button = QPushButton()
         self.start_button.setText('start')
@@ -116,6 +128,12 @@ class MainGui(QMainWindow):
         self.record_button = QPushButton()
         self.record_button.setText('record')
         self.record_button.clicked.connect(self.record)
+
+        self.recording_duration = LabeledDoubleSpinBox()
+        self.recording_duration.setText('recording duration (s)')
+        self.recording_duration.setRange(0,100_000)
+        self.recording_duration.setValue(0)
+        self.recording_duration.valueChanged.connect(self.update_main_settings)
 
         self.main_widget = QWidget()
         self.setCentralWidget(self.main_widget)
@@ -135,20 +153,125 @@ class MainGui(QMainWindow):
         file_menu.addAction(load_action)
         file_menu.addAction(save_action)
 
+        self.close_loop_button.click()
+
     def layout_components(self):
+
+        top_buttons = QHBoxLayout()
+        top_buttons.addWidget(self.close_loop_button)
+        top_buttons.addWidget(self.open_loop_button)
+        top_buttons.addWidget(self.video_recording_button)
+        top_buttons.addWidget(self.tracking_button)
         
         controls = QHBoxLayout()
         controls.addWidget(self.start_button)
         controls.addWidget(self.stop_button)
-        controls.addWidget(self.record_button)
+       
+        record = QHBoxLayout()
+        record.addWidget(self.recording_duration)
+        record.addWidget(self.record_button)
 
         layout = QVBoxLayout(self.main_widget)
+        layout.addLayout(top_buttons)
         layout.addWidget(self.tabs)
         layout.addLayout(controls)
+        layout.addLayout(record)
         layout.addStretch()
 
+    def set_tab_visibililty(self, widgets_to_show, widgets_to_hide):
+
+        for w in widgets_to_show:
+                index = self.tabs.indexOf(w)
+                self.tabs.setTabVisible(index, True)
+            
+        for w in widgets_to_hide:
+            index = self.tabs.indexOf(w)
+            self.tabs.setTabVisible(index, False)
+
+    def top_button_changed(self):
+
+        # show only relevant settings for the current mode
+        if self.close_loop_button.isChecked():
+
+            widgets_to_show = [
+                self.camera_widget,
+                self.projector_widget, 
+                self.calibration_widget, 
+                self.background_widget, 
+                self.registration_widget,
+                self.sequencer_widget,
+                self.settings_widget
+            ]
+
+            widgets_to_hide = []
+
+            self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
+            self.settings_widget.set_tracking_visible(True)
+            self.settings_widget.set_open_loop_visible(False)
+            self.settings_widget.force_videorecording(False)
+
+        elif self.open_loop_button.isChecked():
+
+            widgets_to_show = [
+                self.camera_widget,
+                self.projector_widget, 
+                self.calibration_widget, 
+                self.registration_widget,
+                self.sequencer_widget,
+                self.settings_widget
+            ]
+
+            widgets_to_hide = [self.background_widget]
+
+            self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
+            self.settings_widget.set_tracking_visible(False)
+            self.settings_widget.set_open_loop_visible(True)
+            self.settings_widget.force_videorecording(False)
+
+        elif self.video_recording_button.isChecked():
+
+            widgets_to_show = [
+                self.camera_widget,
+                self.settings_widget
+            ]
+
+            widgets_to_hide = [
+                self.projector_widget, 
+                self.calibration_widget, 
+                self.background_widget, 
+                self.registration_widget,
+                self.sequencer_widget
+            ]
+
+            self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
+            self.settings_widget.set_tracking_visible(False)
+            self.settings_widget.set_open_loop_visible(False)
+            self.settings_widget.force_videorecording(True)
+
+        elif self.tracking_button.isChecked():
+            
+            widgets_to_show = [
+                self.camera_widget,
+                self.background_widget, 
+                self.settings_widget
+            ]
+
+            widgets_to_hide = [
+                self.registration_widget,
+                self.calibration_widget,
+                self.projector_widget, 
+                self.sequencer_widget
+            ]
+
+            self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
+            self.settings_widget.set_tracking_visible(True)
+            self.settings_widget.set_open_loop_visible(False)
+            self.settings_widget.force_videorecording(False)
+
+        else:
+            raise RuntimeError       
+
     def load_settings(self):
-        # TODO restore all settings for camera (camera choice dropmenu), for protocol 
         filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr)')
         with open(filename, 'rb') as fp:
             state = pickle.load(fp)
@@ -166,9 +289,11 @@ class MainGui(QMainWindow):
         self.registration_widget.set_state(state['registration'])
         self.calibration_widget.set_state(state['calibration'])
         self.background_widget.set_state(state['background'])
-        self.vr_settings_widget.set_state(state['vr_settings'])
-        self.output_widget.set_state(state['output'])
-        self.sequencer_widget.set_protocol(state['protocol'])
+        self.settings_widget.set_state(state['settings'])
+        self.sequencer_widget.set_state(state['sequencer'])
+
+        self.recording_duration.setValue(state['main']['recording_duration'])
+        self.settings['main'] = state['main']
 
     def get_state(self) -> dict:
         self.refresh_settings() # TODO that may not be necessary if all signals are correctly handled
@@ -189,14 +314,14 @@ class MainGui(QMainWindow):
     def update_background_settings(self):
         self.settings['background'] = self.background_widget.get_state()
 
-    def update_vr_settings_settings(self):
-        self.settings['vr_settings'] = self.vr_settings_widget.get_state()
+    def update_settings(self):
+        self.settings['settings'] = self.settings_widget.get_state()
 
-    def update_output_settings(self):
-        self.settings['output'] = self.output_widget.get_state()
+    def update_sequencer_settings(self):
+        self.settings['sequencer'] = self.sequencer_widget.get_state()
 
-    def update_protocol_settings(self):
-        self.settings['protocol'] = self.sequencer_widget.get_protocol()
+    def update_main_settings(self):
+        self.settings['main']['recording_duration'] = self.recording_duration.value()
 
     def refresh_settings(self):
         self.update_camera_settings()
@@ -204,9 +329,8 @@ class MainGui(QMainWindow):
         self.update_registration_settings()
         self.update_calibration_settings()
         self.update_background_settings()
-        self.update_vr_settings_settings()
-        self.update_output_settings()
-        self.update_protocol_settings()
+        self.update_settings()
+        self.update_sequencer_settings()
     
     def registration_callback(self):
         self.camera_controller.set_preview(False)
@@ -321,9 +445,10 @@ class MainGui(QMainWindow):
             p.start()
             p.join()
 
-        # TODO update background widget
+        # update background widget
         image = np.load(self.settings['background']['background_file'])
         self.background_widget.set_image(image)
+        self.sequencer_widget.set_background_image(image)
     
     def get_pix_per_mm_callback(self):
         self.camera_controller.set_preview(False)
@@ -389,19 +514,19 @@ class MainGui(QMainWindow):
                 "cam_width": self.settings['camera']['width_value'],
                 "cam_offset_x": self.settings['camera']['offsetX_value'],
                 "cam_offset_y": self.settings['camera']['offsetY_value'],
-                "openloop_file": self.settings['vr_settings']['openloop_coords_file']
+                "openloop_file": self.settings['settings']['openloop']['openloop_coords_file']
             }
         )   
         p.start()
         p.join() 
 
-        with open(self.settings['vr_settings']['openloop_coords_file'],  'r') as f:
+        with open(self.settings['settings']['openloop']['openloop_coords_file'],  'r') as f:
             data = json.load(f)
-            state = self.settings['vr_settings']
-            state['centroid_x'] = data['centroid'][0]
-            state['centroid_y'] = data['centroid'][1]
-            state['heading'] = data['heading']
-            self.vr_settings_widget.set_state(state)
+            state = self.settings['settings']
+            state['openloop']['centroid_x'] = data['centroid'][0]
+            state['openloop']['centroid_y'] = data['centroid'][1]
+            state['openloop']['heading'] = data['heading']
+            self.settings_widget.set_state(state)
 
     def start(self):
         self.camera_controller.set_preview(False)
@@ -409,14 +534,20 @@ class MainGui(QMainWindow):
 
         pprint.pprint(self.settings)
 
-        if self.settings['vr_settings']['openloop']:
+        if self.open_loop_button.isChecked():
             self.dag, self.worker_logger, self.queue_logger = open_loop(self.settings)
-        elif self.settings['vr_settings']['videorecording']:
+
+        elif self.video_recording_button.isChecked():
             self.dag, self.worker_logger, self.queue_logger = video_recording(self.settings)
-        elif self.settings['vr_settings']['tracking']:
+
+        elif self.tracking_button.isChecked():
             self.dag, self.worker_logger, self.queue_logger = tracking(self.settings)
-        else:
+
+        elif self.close_loop_button.isChecked():
             self.dag, self.worker_logger, self.queue_logger = closed_loop(self.settings)
+        
+        else:
+            raise RuntimeError()
 
         self.p_worker_logger = Process(target=self.worker_logger.run)
         self.p_queue_logger = Process(target=self.queue_logger.run)
@@ -434,18 +565,15 @@ class MainGui(QMainWindow):
             self.p_queue_logger.join()
 
     def preview(self):
-        # maybe launch preview in QThread to prevent window from hanging
-
         self.settings['main']['record'] = False
         self.start()
         
     def record(self):
-        # maybe launch record in QThread to prevent window from hanging
         # TODO make sleep interruptible by stop ? 
 
         self.settings['main']['record'] = True
         self.start() 
-        time.sleep(self.sequencer_widget.get_protocol_duration()) 
+        time.sleep(self.settings['main']['recording_duration']) 
         self.stop()
 
     def closeEvent(self, event):
@@ -457,5 +585,4 @@ class MainGui(QMainWindow):
         self.calibration_widget.close()
         self.background_widget.close()
         self.sequencer_widget.close()
-        self.vr_settings_widget.close()
-        self.output_widget.close()
+        self.settings_widget.close()

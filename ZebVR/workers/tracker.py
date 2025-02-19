@@ -49,7 +49,7 @@ class DummyTrackerWorker(WorkerNode):
                 ('tracking', self.tracking.dtype)
             ])
         )
-        res['stimulus'] = msg
+        res['tracker_output1'] = msg
 
         time.sleep(0.010)
 
@@ -75,6 +75,7 @@ class TrackerWorker(WorkerNode):
         self.cam_width = cam_width 
         self.cam_height = cam_height
         self.n_tracker_workers = n_tracker_workers
+        self.current_tracking = None
         
     def initialize(self) -> None:
         super().initialize()
@@ -104,7 +105,7 @@ class TrackerWorker(WorkerNode):
         res = {}    
         res['tracker_output1'] = msg # visual stimulus
         res['tracker_output2'] = msg # overlay    
-        res['tracker_output3'] = msg # tracking triggers
+        self.current_tracking = msg
 
         return res
         
@@ -122,16 +123,16 @@ class TrackerWorker(WorkerNode):
             
             if control['assignment'] == 'ROI':
                 assignment = GridAssignment(
-                    LUT=np.zeros((self.cam_height, self.cam_width), dtype=np.int_), # TODO fix that
+                    LUT=np.zeros((self.cam_height, self.cam_width), dtype=np.int_), # TODO fix that, add a ROI selection tool
                     num_animals = control['animal_tracking']['num_animals']
                 )
             elif control['assignment'] == 'Hungarian':
                 assignment = LinearSumAssignment(
-                    distance_threshold = 20, # TODO fix that
+                    distance_threshold = 20, # TODO fix that, add a widget
                     num_animals = control['animal_tracking']['num_animals']
                 )
             else:
-                return
+                break
 
             animal = AnimalTracker_CPU(
                 assignment=assignment, 
@@ -165,4 +166,12 @@ class TrackerWorker(WorkerNode):
                     tail=tail
                 )
             )
+        
+        # send tracking as metadata
+        if self.current_tracking is None:
+            return
+        
+        res = {}    
+        res['tracker_metadata'] = self.current_tracking
+        return res
 

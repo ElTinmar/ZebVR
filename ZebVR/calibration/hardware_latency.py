@@ -1,8 +1,8 @@
 from dagline import ProcessingDAG, receive_strategy, send_strategy, WorkerNode
 from ipc_tools import ModifiableRingBuffer, MonitoredQueue
 from multiprocessing_logger import Logger
-from ZebVR.workers import CameraWorker
-from ZebVR.stimulus import VisualStim, VisualStimWorker
+from ..workers import CameraWorker
+from ..stimulus import VisualStim, VisualStimWorker
 from vispy import app, gloo
 from multiprocessing import Value
 import numpy as np
@@ -21,10 +21,13 @@ except ImportError:
 
 # Estimation of hardware timings
 # ------------------------------ 
-#   XIMEA camera readout: 
+#   XIMEA camera (MX042RG-CM-X2G2) readout :  
 #       2048x2048, 1ms exposure time, PCIe Gen2X2 limited at 727MBps: 
 #       ~5.7ms readout + 1ms exposure = ~6.7ms total 
 #       image processing: supposedly disabled for XimeaCamera_Transport
+#
+#       1024x1204+512+512@240Hz,0.2ms and cset shield
+#       2.8ms readout 0.2ms exposure = ~3ms total 
 #
 #   Rendering:
 #       Double-buffering @240Hz: 4.2ms
@@ -37,6 +40,7 @@ except ImportError:
 #       Data transmission assuming RGB ~2.7ms + 4.2ms to display = 6.9ms total
 #
 # Total: 6.7 + 4.2 + 6.9 = ~18ms 
+# Total: 3 + 4.2 + 6.9 = ~14.1ms 
 
 
 def set_realtime_priority(priority):

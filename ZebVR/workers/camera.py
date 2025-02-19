@@ -1,6 +1,5 @@
 
 from camera_tools import Camera
-from image_tools import im2gray
 from dagline import WorkerNode
 import time
 from typing import Callable, Any
@@ -31,7 +30,6 @@ class CameraWorker(WorkerNode):
         self.width = width
         self.offsetx = offsetx
         self.offsety = offsety
-        self.updated = False
     
     def initialize(self) -> None:
         super().initialize()
@@ -44,7 +42,6 @@ class CameraWorker(WorkerNode):
         self.cam.set_gain(self.gain)
         self.cam.set_framerate(self.framerate)
         self.cam.start_acquisition()
-        self.updated = True
 
     def cleanup(self) -> None:
         super().cleanup()

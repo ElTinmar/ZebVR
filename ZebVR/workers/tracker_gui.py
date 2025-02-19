@@ -3,7 +3,7 @@ from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional
 from PyQt5.QtWidgets import QApplication
-from ZebVR.widgets import TrackerWidget
+from ..widgets import TrackerWidget
 from pathlib import Path
 from typing import Union
 
