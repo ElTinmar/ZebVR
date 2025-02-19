@@ -30,6 +30,7 @@ class CalibrationWidget(QWidget):
 
     CALIBRATION_CHECK_DIAMETER_MM  = [15, 30, 45, 60] #TODO make a list out of that
     DEFAULT_FILE = 'ZebVR/default/calibration.json'
+    PIXMAP_HEIGHT = 192
 
     def __init__(self, *args, **kwargs):
 
@@ -42,11 +43,11 @@ class CalibrationWidget(QWidget):
 
         self.explanation = QLabel('To calibrate, place the calibration target under the camera. Ensure proper illumination with the IR light.')
         self.checkerboard = QLabel()
-        self.checkerboard.setPixmap(QPixmap('ZebVR/resources/checkerboard.png').scaledToHeight(256,Qt.SmoothTransformation))
+        self.checkerboard.setPixmap(QPixmap('ZebVR/resources/checkerboard.png').scaledToHeight(self.PIXMAP_HEIGHT,Qt.SmoothTransformation))
 
         self.explanation_check = QLabel('To check calibration, place the reticle under the camera')
         self.reticle = QLabel()
-        self.reticle.setPixmap(QPixmap('ZebVR/resources/reticle.png').scaledToHeight(256,Qt.SmoothTransformation))
+        self.reticle.setPixmap(QPixmap('ZebVR/resources/reticle.png').scaledToHeight(self.PIXMAP_HEIGHT,Qt.SmoothTransformation))
         
         self.checkerboard_square_size_mm = LabeledDoubleSpinBox()
         self.checkerboard_square_size_mm.setText('checkerboard square size (mm):')
