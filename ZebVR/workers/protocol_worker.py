@@ -25,9 +25,6 @@ class Protocol(WorkerNode):
         for protocol_item in self.protocol:
             protocol_item.initialize()
 
-        self.current_item = self.protocol.popleft()
-        self.current_item.start()
-
     def cleanup(self) -> None:
         super().cleanup()
         for protocol_item in self.protocol:
@@ -42,6 +39,7 @@ class Protocol(WorkerNode):
         try:
             self.current_item = self.protocol.popleft()
             command = self.current_item.start()
+            print(self.protocol, self.current_item, command)
 
         except IndexError:
             # sleep a bit to let enough time for the message 
@@ -54,40 +52,17 @@ class Protocol(WorkerNode):
             return None
 
         return command
-        
 
     def process_metadata(self, metadata: Dict) -> Optional[Dict]:    
 
-        # 1rst item
-        if self.current_item is None:
-            command = self.next()
-            if command is None:
+        if self.current_item is not None:
+            if not self.current_item.done(metadata):
                 return
-            res = {}
-            res['visual_stim_control'] = command
-            return res
-
-        if not self.current_item.done(metadata):
-            return
         
         command = self.next()
         if command is None:
             return 
+        
         res = {}
         res['visual_stim_control'] = command
         return res
-    
-
-    # def process_metadata(self, metadata: Dict) -> Optional[Dict]:    
-
-    #     if self.current_item is not None:
-    #         if not self.current_item.done(metadata):
-    #             return
-        
-    #     command = self.next()
-    #     if command is None:
-    #         return 
-        
-    #     res = {}
-    #     res['visual_stim_control'] = command
-    #     return res
