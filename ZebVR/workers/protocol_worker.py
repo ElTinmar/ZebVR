@@ -48,7 +48,6 @@ class Protocol(WorkerNode):
 
             print('Protocol finished, stopping sequencer')
             self.stop_event.set()
-            # TODO maybe add handle to parent dag to ask nicely to stop everyone
             return None
 
         return command
