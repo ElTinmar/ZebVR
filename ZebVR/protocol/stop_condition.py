@@ -34,7 +34,7 @@ class TriggerDict(TypedDict):
 class StopCondition(ABC):
 
     @abstractmethod
-    def initialize(self) -> None:
+    def start(self) -> None:
         pass
 
     @abstractmethod
@@ -48,7 +48,7 @@ class Pause(StopCondition):
         self.pause_sec = pause_sec
         self.time_start = None
 
-    def initialize(self) -> None:
+    def start(self) -> None:
         self.time_start = time.perf_counter()
 
     def done(self, metadata: Optional[Any]) -> bool:
@@ -69,7 +69,7 @@ class SoftwareTrigger(StopCondition):
         self.polarity = polarity
         self.debouncer = debouncer
 
-    def initialize(self) -> None:
+    def start(self) -> None:
         pass
 
     def done(self, metadata: Optional[Any]) -> bool:
@@ -120,7 +120,7 @@ class TrackingTrigger(StopCondition):
         self.polarity = polarity
         self.debouncer = debouncer
 
-    def initialize(self) -> None:
+    def start(self) -> None:
         pass
     
     # TODO type metadata properly (nested TypedDict?) / maybe send only centroid and not full tracking 

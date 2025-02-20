@@ -32,7 +32,7 @@ class ProtocolItem(ABC):
         self.stop_condition = stop_condition
 
     def start(self) -> Optional[DefaultDict]:
-        self.stop_condition.initialize()
+        self.stop_condition.start()
 
     def done(self, metadata: Optional[Any]) -> bool:
         return self.stop_condition.done(metadata)
