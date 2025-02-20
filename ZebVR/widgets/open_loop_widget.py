@@ -20,7 +20,6 @@ class OpenLoopWidget(QWidget):
 
     state_changed = pyqtSignal()
     openloop_coords_signal = pyqtSignal()
-    video_recording_signal = pyqtSignal(bool)
 
     DEFAULT_OPENLOOP_COORD_FILE = 'ZebVR/default/open_loop_coords.json'
 

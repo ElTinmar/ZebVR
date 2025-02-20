@@ -14,6 +14,7 @@ from .log_output_widget import LogOutputWidget
 class SettingsWidget(QWidget):
 
     state_changed = pyqtSignal()
+    openloop_coords_signal = pyqtSignal()
 
     def __init__(self, *args, **kwargs):
 
@@ -30,6 +31,7 @@ class SettingsWidget(QWidget):
 
         self.tracking_widget.state_changed.connect(self.state_changed)
         self.open_loop_widget.state_changed.connect(self.state_changed)
+        self.open_loop_widget.openloop_coords_signal.connect(self.openloop_coords_signal)
         self.video_recording_widget.state_changed.connect(self.state_changed)
         self.log_widget.state_changed.connect(self.state_changed)
 

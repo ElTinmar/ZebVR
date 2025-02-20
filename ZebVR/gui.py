@@ -89,6 +89,7 @@ class MainGui(QMainWindow):
 
         self.settings_widget = SettingsWidget()
         self.settings_widget.state_changed.connect(self.update_settings)
+        self.settings_widget.openloop_coords_signal.connect(self.openloop_coords_callback)
         
         self.close_loop_button = QPushButton('Close-loop')
         self.close_loop_button.setCheckable(True)
