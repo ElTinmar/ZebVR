@@ -52,10 +52,7 @@ class Pause(StopCondition):
         self.time_start = time.perf_counter()
 
     def done(self, metadata: Optional[Any]) -> bool:
-        if (time.perf_counter() - self.time_start) < self.pause_sec:
-            return False
-        else:
-            return True
+        return (time.perf_counter() - self.time_start) >= self.pause_sec
 
 class TTLTrigger(StopCondition):
     pass
