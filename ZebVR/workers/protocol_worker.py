@@ -39,7 +39,6 @@ class Protocol(WorkerNode):
         try:
             self.current_item = self.protocol.popleft()
             command = self.current_item.start()
-            print(self.protocol, self.current_item, command)
 
         except IndexError:
             # sleep a bit to let enough time for the message 
