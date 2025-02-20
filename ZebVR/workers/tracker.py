@@ -15,7 +15,7 @@ from tracker import (
 from dagline import WorkerNode
 import numpy as np
 from numpy.typing import NDArray
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import time
 
 # TODO fix that
@@ -38,11 +38,19 @@ class DummyTrackerWorker(WorkerNode):
     def initialize(self) -> None:
         super().initialize()
 
-    def process_data(self, data: NDArray) -> Dict:
+    def process_data(self, data: Optional[NDArray]) -> Dict:
+        
+        index = 0
+        timestamp = 0
+        if data is not None:
+            index = data['index']
+            timestamp = data['timestamp']
+        else:
+            time.sleep(0.010)
         
         res = {}
         msg = np.array(
-            (-1, -1, self.tracking),
+            (index, timestamp, self.tracking),
             dtype=np.dtype([
                 ('index', int),
                 ('timestamp', np.float64),
@@ -50,9 +58,6 @@ class DummyTrackerWorker(WorkerNode):
             ])
         )
         res['tracker_output1'] = msg
-
-        time.sleep(0.010)
-
         return res
         
     def process_metadata(self, metadata) -> Any:

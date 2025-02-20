@@ -49,7 +49,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         ModifiableRingBuffer(
             num_bytes = 500*1024**2, # TODO add a widget for that?
             logger = queue_logger,
-            name = 'camera_to_background',
+            name = 'camera_to_tracker',
             t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
@@ -90,30 +90,11 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         )
     )
 
-    queue_background = MonitoredQueue(
-        ModifiableRingBuffer(
-            num_bytes = 500*1024**2,
-            #copy=False, # you probably don't need to copy if processing is fast enough
-            logger = queue_logger,
-            name = 'background_to_trackers',
-            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
-        )
-    )
-
     queue_tracking = MonitoredQueue(
         ModifiableRingBuffer(
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'tracker_to_stim',
-            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
-        )
-    )
-
-    queue_overlay = MonitoredQueue(
-        ModifiableRingBuffer(
-            num_bytes = 500*1024**2,
-            logger = queue_logger,
-            name = 'tracker_to_overlay',
             t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
         )
     )
@@ -184,11 +165,9 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     queue_monitor_worker = QueueMonitor(
         queues = {
-            queue_cam: 'camera to background',
+            queue_cam: 'camera to tarcker',
             queue_display_image: 'display',
-            queue_background: 'background to trackers',
             queue_tracking: 'tracking to stim',
-            queue_overlay: 'tracking to overlay',
             queue_save_image: 'direct video recording',
             queue_camera_to_converter: 'pixel format conversion',
             queue_converter_to_saver: 'converted video recording',
@@ -322,6 +301,14 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         )
 
     if settings['settings']['videorecording']['video_recording']:
+
+        for i in range(settings['settings']['tracking']['n_tracker_workers']):
+            dag.connect_data(
+                sender = camera_worker, 
+                receiver = tracker_worker_list[i], 
+                queue = queue_cam, 
+                name = 'cam_output1'
+            )
 
         if settings['settings']['videorecording']['video_method'] == 'image sequence':
             dag.connect_data(
