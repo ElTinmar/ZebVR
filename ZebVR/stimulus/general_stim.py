@@ -90,6 +90,7 @@ const int PHOTOTAXIS = 2;
 const int OMR = 3;
 const int OKR = 4;
 const int LOOMING = 5;
+const int PREY_CAPTURE = 6;
 const float PI=3.14159;
 
 // helper functions
@@ -158,6 +159,10 @@ void main()
             }
         }
     } 
+
+    if (u_stim_select == PREY_CAPTURE) {
+        gl_FragColor = u_foreground_color;
+    }
 }
 """
 
