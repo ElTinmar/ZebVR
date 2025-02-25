@@ -53,10 +53,16 @@ void main()
 } 
 """
 
-FRAG_SHADER = """
+MAX_PREY = 100
+
+FRAG_SHADER = f"""
+uniform vec2 u_prey_position[{MAX_PREY}];
+uniform vec2 u_prey_direction[{MAX_PREY}];
+""" + """
 // Some DMD projectors with diamond pixel layouts (e.g. Lightcrafters) do not have uniform pixel spacing.
 uniform vec2 u_pixel_scaling; 
 varying vec2 v_pix_per_mm_proj;
+uniform vec2 u_resolution;
 
 // tracking
 varying vec2 v_fish_centroid;
@@ -66,7 +72,7 @@ varying vec2 v_left_eye_centroid;
 varying float v_left_eye_angle;
 varying vec2 v_right_eye_centroid;
 varying float v_right_eye_angle;
-uniform float u_time;
+uniform float u_time_s;
 
 // stim parameters
 uniform vec4 u_foreground_color;
@@ -82,6 +88,9 @@ uniform vec2 u_looming_center_mm;
 uniform float u_looming_period_sec;
 uniform float u_looming_expansion_time_sec;
 uniform float u_looming_expansion_speed_mm_per_sec;
+uniform float u_n_preys;
+uniform float u_prey_radius_mm;
+uniform float u_prey_speed_mm_s;
 
 // constants 
 const int DARK = 0;
@@ -106,14 +115,15 @@ mat2 rotate2d(float angle_rad){
 
 void main()
 {
-    vec2 coordinates_px = gl_FragCoord.xy * u_pixel_scaling - v_fish_centroid;
-    vec2 coordinates_mm = 1/v_pix_per_mm_proj * coordinates_px;
+    vec2 coordinates_px = gl_FragCoord.xy * u_pixel_scaling;
+    vec2 coordinates_centered_px = coordinates_px - v_fish_centroid;
+    vec2 coordinates_centered_mm = 1/v_pix_per_mm_proj * coordinates_centered_px;
     // X: mediolateral_axis, Y: caudorostral_axis
     mat2 change_of_basis = mat2(
         v_fish_mediolateral_axis/length(v_fish_mediolateral_axis), 
         v_fish_caudorostral_axis/length(v_fish_caudorostral_axis)
     );
-    vec2 fish_ego_coords_mm = transpose(change_of_basis)*coordinates_mm;
+    vec2 fish_ego_coords_mm = transpose(change_of_basis)*coordinates_centered_mm;
     
     gl_FragColor = u_background_color;
 
@@ -134,7 +144,7 @@ void main()
     if (u_stim_select == OMR) {
         vec2 orientation_vector = rotate2d(deg2rad(u_omr_angle_deg)) * vec2(0,1);
         float angle = 2*PI/u_omr_spatial_period_mm * dot(fish_ego_coords_mm, orientation_vector);
-        float phase = 2*PI/u_omr_spatial_period_mm * u_omr_speed_mm_per_sec * u_time;
+        float phase = 2*PI/u_omr_spatial_period_mm * u_omr_speed_mm_per_sec * u_time_s;
         if ( sin(angle+phase) > 0.0 ) {
             gl_FragColor = u_foreground_color;
         } 
@@ -143,14 +153,14 @@ void main()
     if (u_stim_select == OKR) {
         float freq = deg2rad(u_okr_spatial_frequency_deg);
         float angle = atan(fish_ego_coords_mm.y, fish_ego_coords_mm.x);
-        float phase = deg2rad(u_okr_speed_deg_per_sec)*u_time;
+        float phase = deg2rad(u_okr_speed_deg_per_sec)*u_time_s;
         if ( mod(angle+phase, freq) > freq/2 ) {
             gl_FragColor = u_foreground_color;
         } 
     }
 
     if (u_stim_select == LOOMING) {
-        float rel_time = mod(u_time, u_looming_period_sec); 
+        float rel_time = mod(u_time_s, u_looming_period_sec); 
         float looming_on = float(rel_time<=u_looming_expansion_time_sec);
         if ( rel_time <= u_looming_period_sec/2 ) { 
             if ( distance(fish_ego_coords_mm, u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
@@ -161,10 +171,12 @@ void main()
     } 
 
     if (u_stim_select == PREY_CAPTURE) {
-    // vec2 prey_position[1000];
-    // float prey_radius_mm;
-    // vec2 prey_speed;
-        gl_FragColor = u_foreground_color;
+        for (int i = 0; i < u_n_preys; i++) {
+            vec2 pos = mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_prey_direction[i], u_resolution);
+            if ( distance(pos, coordinates_px) <= u_prey_radius_mm ) {
+                gl_FragColor = u_foreground_color;
+            }
+        }
     }
 }
 """
@@ -195,7 +207,10 @@ class GeneralStim(VisualStim):
             looming_center_mm: Tuple = (1,1),
             looming_period_sec: float = 30,
             looming_expansion_time_sec: float = 3,
-            looming_expansion_speed_mm_per_sec: float = 10
+            looming_expansion_speed_mm_per_sec: float = 10,
+            n_preys: int = 50,
+            prey_speed_mm_s: float = 20, # 0.75
+            prey_radius_mm: float = 50, # 0.25
         ) -> None:
 
         super().__init__(
@@ -223,7 +238,11 @@ class GeneralStim(VisualStim):
         self.default_looming_period_sec = looming_period_sec
         self.default_looming_expansion_time_sec = looming_expansion_time_sec
         self.default_looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
+        self.default_n_prey = n_preys
+        self.default_prey_speed_mm_s = prey_speed_mm_s
+        self.default_prey_radius_mm = prey_radius_mm 
         self.num_tail_points_interp = num_tail_points_interp
+        self.last_n_prey = 0
 
         self.tail_points = Array('d', 2*self.num_tail_points_interp)
         self.foreground_color = Array('d', self.default_foreground_color)
@@ -239,6 +258,9 @@ class GeneralStim(VisualStim):
         self.looming_period_sec = Value('d', self.default_looming_period_sec)
         self.looming_expansion_time_sec = Value('d', self.default_looming_expansion_time_sec)
         self.looming_expansion_speed_mm_per_sec = Value('d', self.default_looming_expansion_speed_mm_per_sec)
+        self.n_preys = Value('L', self.default_n_prey)
+        self.prey_speed_mm_s = Value('d', self.default_prey_speed_mm_s)
+        self.prey_radius_mm = Value('d', self.default_prey_radius_mm)
 
         self.index = Value('L', 0)
         self.timestamp = Value('d', 0)
@@ -249,7 +271,6 @@ class GeneralStim(VisualStim):
         self.left_eye_angle = Value('d', 0)
         self.right_eye_centroid = Array('d', [0, 0])
         self.right_eye_angle = Value('d', 0)
-        #self.tail_skeleton_interp = Array('d', )
 
         self.refresh_rate = refresh_rate
         self.fd = None
@@ -274,6 +295,9 @@ class GeneralStim(VisualStim):
         self.looming_period_sec.value = self.default_looming_period_sec
         self.looming_expansion_time_sec.value = self.default_looming_expansion_time_sec
         self.looming_expansion_speed_mm_per_sec.value = self.default_looming_expansion_speed_mm_per_sec
+        self.n_preys.value = self.default_n_prey
+        self.prey_speed_mm_s.value = self.default_prey_speed_mm_s
+        self.prey_radius_mm.value = self.default_prey_radius_mm
 
         self.index.value = 0
         self.timestamp.value = 0
@@ -288,7 +312,7 @@ class GeneralStim(VisualStim):
     def update_shader_variables(self, time: float):
         # communication between CPU and GPU for every frame drawn
 
-        self.program['u_time'] = time
+        self.program['u_time_s'] = time
         self.program['a_fish_caudorostral_axis'] = self.fish_caudorostral_axis[:]
         self.program['a_fish_mediolateral_axis'] = self.fish_mediolateral_axis[:]
         self.program['a_left_eye_centroid'] = self.left_eye_centroid[:]
@@ -309,12 +333,22 @@ class GeneralStim(VisualStim):
         self.program['u_looming_period_sec'] = self.looming_period_sec.value
         self.program['u_looming_expansion_time_sec'] = self.looming_expansion_time_sec.value
         self.program['u_looming_expansion_speed_mm_per_sec'] = self.looming_expansion_speed_mm_per_sec.value
+        self.program['u_prey_speed_mm_s'] = self.prey_speed_mm_s.value
+        self.program['u_prey_radius_mm'] = self.prey_radius_mm.value
+        self.program['u_n_preys'] = self.n_preys.value
 
     def initialize(self):
+
         super().initialize()
 
         self.initialize_shared_variables()
         
+        x = np.random.randint(0, self.window_size[0], MAX_PREY)
+        y = np.random.randint(0, self.window_size[1], MAX_PREY)
+        theta = np.random.uniform(0, 2*np.pi, MAX_PREY)
+        self.program['u_prey_position'] = np.column_stack((x, y)).astype(np.float32)
+        self.program['u_prey_direction'] = np.column_stack((np.cos(theta), np.sin(theta))).astype(np.float32)
+
         # init file name
         prefix, ext = os.path.splitext(self.timings_file)
         timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
@@ -490,3 +524,6 @@ class GeneralStim(VisualStim):
             self.looming_expansion_speed_mm_per_sec.value = control['looming_expansion_speed_mm_per_sec']
             self.foreground_color[:] = control['foreground_color']
             self.background_color[:] = control['background_color']
+            #self.n_preys.value = control['n_preys']
+            #self.prey_speed_mm_s.value = control['prey_speed_mm_s']
+            #self.prey_radius_mm.value = control['prey_radius_mm']
