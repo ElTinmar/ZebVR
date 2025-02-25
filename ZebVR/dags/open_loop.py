@@ -263,6 +263,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         window_size = settings['projector']['resolution'],
         window_position = settings['projector']['offset'],
         window_decoration = False,
+        camera_resolution = (settings['camera']['width_value'], settings['camera']['height_value']),
         transformation_matrix = np.array(settings['registration']['transformation_matrix'], dtype=np.float32),
         pixel_scaling = settings['projector']['pixel_scale'],
         pix_per_mm = settings['calibration']['pix_per_mm'],

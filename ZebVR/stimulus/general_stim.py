@@ -61,8 +61,11 @@ uniform vec2 u_prey_direction[{MAX_PREY}];
 """ + """
 // Some DMD projectors with diamond pixel layouts (e.g. Lightcrafters) do not have uniform pixel spacing.
 uniform vec2 u_pixel_scaling; 
+uniform float u_pix_per_mm; 
 varying vec2 v_pix_per_mm_proj;
-uniform vec2 u_resolution;
+uniform vec2 u_proj_resolution;
+uniform vec2 u_cam_resolution;
+uniform mat3 u_transformation_matrix;
 
 // tracking
 varying vec2 v_fish_centroid;
@@ -172,8 +175,9 @@ void main()
 
     if (u_stim_select == PREY_CAPTURE) {
         for (int i = 0; i < u_n_preys; i++) {
-            vec2 pos = mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_prey_direction[i], u_resolution);
-            if ( distance(pos, coordinates_px) <= u_prey_radius_mm ) {
+            vec2 pos_camera_px = mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_pix_per_mm * u_prey_direction[i], u_cam_resolution);
+            vec3 pos_proj_px = u_transformation_matrix * vec3(pos_camera_px, 1.0);
+            if ( distance(pos_proj_px.xy/v_pix_per_mm_proj, coordinates_px/v_pix_per_mm_proj) <= u_prey_radius_mm ) {
                 gl_FragColor = u_foreground_color;
             }
         }
@@ -187,6 +191,7 @@ class GeneralStim(VisualStim):
             self,  
             window_size: Tuple[int, int], 
             window_position: Tuple[int, int], 
+            camera_resolution: Tuple[int, int],
             foreground_color: Tuple[float, float, float, float] = (1.0, 0.0, 0.0, 1.0),
             background_color: Tuple[float, float, float, float] = (0.0, 0.0, 0.0, 1.0),
             window_decoration: bool = True,
@@ -218,6 +223,7 @@ class GeneralStim(VisualStim):
             fragment_shader=FRAG_SHADER, 
             window_size=window_size,
             window_position=window_position, 
+            camera_resolution=camera_resolution,
             pix_per_mm=pix_per_mm, 
             window_decoration=window_decoration, 
             transformation_matrix=transformation_matrix, 
@@ -343,8 +349,8 @@ class GeneralStim(VisualStim):
 
         self.initialize_shared_variables()
         
-        x = np.random.randint(0, self.window_size[0], MAX_PREY)
-        y = np.random.randint(0, self.window_size[1], MAX_PREY)
+        x = np.random.randint(0, self.camera_resolution[0], MAX_PREY)
+        y = np.random.randint(0, self.camera_resolution[1], MAX_PREY)
         theta = np.random.uniform(0, 2*np.pi, MAX_PREY)
         self.program['u_prey_position'] = np.column_stack((x, y)).astype(np.float32)
         self.program['u_prey_direction'] = np.column_stack((np.cos(theta), np.sin(theta))).astype(np.float32)

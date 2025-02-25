@@ -15,6 +15,7 @@ class VisualStim(app.Canvas):
             fragment_shader: str,
             window_size: Tuple[int, int],
             window_position: Tuple[int, int],
+            camera_resolution: Tuple[int, int],
             pix_per_mm: float,
             window_decoration: bool = False,
             transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
@@ -28,6 +29,7 @@ class VisualStim(app.Canvas):
             self.window_size = window_size
             self.window_position = window_position
             self.window_decoration = window_decoration 
+            self.camera_resolution = camera_resolution
             self.transformation_matrix = transformation_matrix
             self.pixel_scaling = pixel_scaling
             self.vsync = vsync
@@ -56,7 +58,8 @@ class VisualStim(app.Canvas):
         self.program['u_time_s'] = 0
         self.program['u_pixel_scaling'] = self.pixel_scaling
         self.program['u_pix_per_mm'] = self.pix_per_mm
-        self.program['u_resolution'] = self.window_size
+        self.program['u_proj_resolution'] = self.window_size
+        self.program['u_cam_resolution'] = self.camera_resolution
         
         self.t_start = None
         self.first_frame = True 
