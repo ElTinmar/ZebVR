@@ -161,6 +161,9 @@ void main()
     } 
 
     if (u_stim_select == PREY_CAPTURE) {
+    // vec2 prey_position[1000];
+    // float prey_radius_mm;
+    // vec2 prey_speed;
         gl_FragColor = u_foreground_color;
     }
 }
@@ -283,6 +286,7 @@ class GeneralStim(VisualStim):
         self.right_eye_angle.value = 0
 
     def update_shader_variables(self, time: float):
+        # communication between CPU and GPU for every frame drawn
 
         self.program['u_time'] = time
         self.program['a_fish_caudorostral_axis'] = self.fish_caudorostral_axis[:]
@@ -359,9 +363,9 @@ class GeneralStim(VisualStim):
         # init shader
         self.update_shader_variables(0)
 
+        self.show()
         self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
         self.timer.start()
-        self.show()
 
     def cleanup(self):
         super().cleanup()
