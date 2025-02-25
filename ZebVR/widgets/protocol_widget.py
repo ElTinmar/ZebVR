@@ -1,5 +1,5 @@
 from typing import Dict, Tuple, Optional
-from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton, NDarray_to_QPixmap
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileOpenLabeledEditButton, NDarray_to_QPixmap
 from image_tools import DrawPolyMaskDialog, im2uint8
 import numpy as np
 from numpy.typing import NDArray
@@ -31,10 +31,12 @@ from ..protocol import (
     Dark,
     Bright,
     Looming,
+    PreyCapture,
     Pause,
     SoftwareTrigger,
     TrackingTrigger
 )
+from ..stimulus import MAX_PREY # is that ok ?
 
 class StopWidget(QWidget):
 
@@ -274,6 +276,9 @@ class StimWidget(QWidget):
             looming_expansion_speed_mm_per_sec: float = 10,
             foreground_color: Tuple = (0.2, 0.2, 0.2, 1.0),
             background_color: Tuple = (0.0, 0.0, 0.0, 1.0),
+            n_preys: int = 50,
+            prey_speed_mm_s: float = 0.75,
+            prey_radius_mm: float = 0.25,
             *args, 
             **kwargs
         ):
@@ -294,6 +299,9 @@ class StimWidget(QWidget):
         self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
         self.foreground_color = foreground_color
         self.background_color = background_color
+        self.n_preys = n_preys
+        self.prey_speed_mm_s = prey_speed_mm_s 
+        self.prey_radius_mm = prey_radius_mm
         
         self.updated = False
         self.declare_components()
@@ -440,6 +448,26 @@ class StimWidget(QWidget):
         self.sb_looming_expansion_speed_mm_per_sec.setValue(self.looming_expansion_speed_mm_per_sec)
         self.sb_looming_expansion_speed_mm_per_sec.valueChanged.connect(self.on_change)
 
+        # prey capture
+
+        self.sb_n_preys = LabeledSpinBox()
+        self.sb_n_preys.setText('# preys')
+        self.sb_n_preys.setRange(0,MAX_PREY) 
+        self.sb_n_preys.setValue(self.n_preys)
+        self.sb_n_preys.valueChanged.connect(self.on_change)
+
+        self.sb_prey_speed_mm_s = LabeledDoubleSpinBox()
+        self.sb_prey_speed_mm_s.setText('speed (mm/s)')
+        self.sb_prey_speed_mm_s.setRange(0,10)
+        self.sb_prey_speed_mm_s.setValue(self.prey_speed_mm_s)
+        self.sb_prey_speed_mm_s.valueChanged.connect(self.on_change)
+
+        self.sb_prey_radius_mm = LabeledDoubleSpinBox()
+        self.sb_prey_radius_mm.setText('radius (mm)')
+        self.sb_prey_radius_mm.setRange(0,10)
+        self.sb_prey_radius_mm.setValue(self.prey_radius_mm)
+        self.sb_prey_radius_mm.valueChanged.connect(self.on_change)
+
         # Stop condition
         self.stop_condition_widget = StopWidget(self.debouncer, self.background_image)
         self.stop_condition_widget.size_changed.connect(self.on_size_changed)
@@ -493,6 +521,14 @@ class StimWidget(QWidget):
         self.looming_group = QGroupBox('Looming parameters')
         self.looming_group.setLayout(looming_layout)
 
+        preycapture_layout = QVBoxLayout()
+        preycapture_layout.addWidget(self.sb_n_preys)
+        preycapture_layout.addWidget(self.sb_prey_speed_mm_s)
+        preycapture_layout.addWidget(self.sb_prey_radius_mm)
+        preycapture_layout.addStretch()
+        self.preycapture_group = QGroupBox('Prey capture parameters')
+        self.preycapture_group.setLayout(preycapture_layout)
+
         self.stack = QStackedWidget()
         self.stack.addWidget(QLabel()) # Dark
         self.stack.addWidget(QLabel()) # Bright
@@ -500,6 +536,7 @@ class StimWidget(QWidget):
         self.stack.addWidget(self.omr_group)
         self.stack.addWidget(self.okr_group)
         self.stack.addWidget(self.looming_group)
+        self.stack.addWidget(self.preycapture_group)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.cmb_stim_select)
@@ -565,6 +602,9 @@ class StimWidget(QWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
+        state['n_preys'] = self.sb_n_preys.value()
+        state['prey_speed_mm_s'] = self.sb_prey_speed_mm_s.value()
+        state['prey_radius_mm'] = self.sb_prey_radius_mm.value()
         state['stop_condition'] = self.stop_condition_widget.get_state()
         return state
 
@@ -589,6 +629,9 @@ class StimWidget(QWidget):
         self.sb_background_color_G.setValue(state['background_color'][1])
         self.sb_background_color_B.setValue(state['background_color'][2])
         self.sb_background_color_A.setValue(state['background_color'][3])
+        self.sb_n_preys.setValue(state['n_preys'])
+        self.sb_prey_speed_mm_s.setValue(state['prey_speed_mm_s'])
+        self.sb_prey_radius_mm.setValue(state['prey_radius_mm'])
         self.stop_condition_widget.set_state(state['stop_condition'])
     
     def from_protocol_item(self, protocol_item: ProtocolItem):
@@ -632,6 +675,12 @@ class StimWidget(QWidget):
             self.sb_looming_expansion_time_sec.setValue(protocol_item.looming_expansion_time_sec)
             self.sb_looming_expansion_speed_mm_per_sec.setValue(protocol_item.looming_expansion_speed_mm_per_sec)
 
+        elif isinstance(protocol_item, PreyCapture):
+            self.cmb_stim_select.setCurrentText(str(Stim.Visual.PREY_CAPTURE))
+            self.sb_n_preys.setValue(protocol_item.n_preys)
+            self.sb_prey_speed_mm_s.setValue(protocol_item.prey_speed_mm_s)
+            self.sb_prey_radius_mm.setValue(protocol_item.prey_radius_mm)
+            
         self.stop_condition_widget.from_stop_condition(protocol_item.stop_condition)
 
     def to_protocol_item(self) -> ProtocolItem:
@@ -709,4 +758,14 @@ class StimWidget(QWidget):
                 stop_condition = stop_condition
             )
         
+        if state['stim_select'] == Stim.Visual.PREY_CAPTURE:
+            protocol = PreyCapture(
+                foreground_color = foreground_color,
+                background_color = background_color,
+                n_preys = self.sb_n_preys.value(),
+                prey_speed_mm_s = self.sb_prey_speed_mm_s.value(),
+                prey_radius_mm = self.sb_prey_radius_mm.value(),
+                stop_condition = stop_condition
+            )
+
         return protocol
