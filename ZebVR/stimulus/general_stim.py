@@ -349,6 +349,7 @@ class GeneralStim(VisualStim):
 
         self.initialize_shared_variables()
         
+        np.random.seed(0)
         x = np.random.randint(0, self.camera_resolution[0], MAX_PREY)
         y = np.random.randint(0, self.camera_resolution[1], MAX_PREY)
         theta = np.random.uniform(0, 2*np.pi, MAX_PREY)
