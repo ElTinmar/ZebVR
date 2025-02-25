@@ -396,7 +396,10 @@ class GeneralStim(VisualStim):
             'looming_center_mm_y',
             'looming_period_sec',
             'looming_expansion_time_sec',
-            'looming_expansion_speed_mm_per_sec'
+            'looming_expansion_speed_mm_per_sec',
+            'n_prey',
+            'prey_speed_mm_s',
+            'prey_radius_mm'
         )
         self.fd.write(','.join(headers) + '\n')
         
@@ -459,7 +462,10 @@ class GeneralStim(VisualStim):
             f'{self.looming_center_mm[1]}',
             f'{self.looming_period_sec.value}',
             f'{self.looming_expansion_time_sec.value}',
-            f'{self.looming_expansion_speed_mm_per_sec.value}'
+            f'{self.looming_expansion_speed_mm_per_sec.value}',
+            f'{self.n_preys.value}'
+            f'{self.prey_speed_mm_s.value}'
+            f'{self.prey_radius_mm.value}'
         )
         self.fd.write(','.join(row) + '\n')
 
