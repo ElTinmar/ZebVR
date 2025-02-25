@@ -463,8 +463,8 @@ class GeneralStim(VisualStim):
             f'{self.looming_period_sec.value}',
             f'{self.looming_expansion_time_sec.value}',
             f'{self.looming_expansion_speed_mm_per_sec.value}',
-            f'{self.n_preys.value}'
-            f'{self.prey_speed_mm_s.value}'
+            f'{self.n_preys.value}',
+            f'{self.prey_speed_mm_s.value}',
             f'{self.prey_radius_mm.value}'
         )
         self.fd.write(','.join(row) + '\n')
