@@ -71,9 +71,14 @@ class TrackingWidget(QWidget):
         self.dpf.setValue(7)
         self.dpf.valueChanged.connect(self.experiment_data)
 
+        self.line = LabeledEditLine()
+        self.line.setLabel('Fish line:')
+        self.line.setText('WT')
+        self.line.textChanged.connect(self.experiment_data)
+
         self.edt_filename = LabeledEditLine()
         self.edt_filename.setLabel('result file:')
-        self.edt_filename.setText(os.path.join(self.CSV_FOLDER, f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv'))
+        self.edt_filename.setText(os.path.join(self.CSV_FOLDER, f'{self.fish_id.value():02}_{self.dpf.value():02}dpf_{self.line.text()}.csv'))
         self.edt_filename.textChanged.connect(self.state_changed)
 
     def layout_components(self):
@@ -90,6 +95,7 @@ class TrackingWidget(QWidget):
         data_layout = QVBoxLayout()
         data_layout.addWidget(self.fish_id)
         data_layout.addWidget(self.dpf)
+        data_layout.addWidget(self.line)
         data_layout.addWidget(self.edt_filename)
         self.data_group.setLayout(data_layout)
 
@@ -98,7 +104,7 @@ class TrackingWidget(QWidget):
         main_layout.addWidget(self.data_group)
 
     def experiment_data(self):
-        self.filename = os.path.join(self.CSV_FOLDER, f'{self.fish_id.value():02}_{self.dpf.value():02}dpf.csv')
+        self.filename = os.path.join(self.CSV_FOLDER, f'{self.fish_id.value():02}_{self.dpf.value():02}dpf_{self.line.text()}.csv')
         self.edt_filename.setText(self.filename)
         self.state_changed.emit()
 
