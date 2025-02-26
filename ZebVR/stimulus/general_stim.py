@@ -248,7 +248,6 @@ class GeneralStim(VisualStim):
         self.default_prey_speed_mm_s = prey_speed_mm_s
         self.default_prey_radius_mm = prey_radius_mm 
         self.num_tail_points_interp = num_tail_points_interp
-        self.last_n_prey = 0
 
         self.tail_points = Array('d', 2*self.num_tail_points_interp)
         self.foreground_color = Array('d', self.default_foreground_color)
