@@ -537,6 +537,6 @@ class GeneralStim(VisualStim):
             self.looming_expansion_speed_mm_per_sec.value = control['looming_expansion_speed_mm_per_sec']
             self.foreground_color[:] = control['foreground_color']
             self.background_color[:] = control['background_color']
-            self.n_preys.value = control['n_preys']
+            self.n_preys.value = int(control['n_preys'])
             self.prey_speed_mm_s.value = control['prey_speed_mm_s']
             self.prey_radius_mm.value = control['prey_radius_mm']
