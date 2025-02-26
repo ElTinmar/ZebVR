@@ -55,6 +55,7 @@ class Protocol(WorkerNode):
 
         if self.current_item is not None:
             if not self.current_item.done(metadata):
+                time.sleep(0.002) # prevent spamming worker logger 
                 return
         
         command = self.next()
