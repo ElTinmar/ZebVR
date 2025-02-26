@@ -116,6 +116,7 @@ class TrackerWorker(WorkerNode):
         
     def process_metadata(self, metadata) -> Any:
 
+        # handle control input
         for i in range(self.n_tracker_workers):
             
             try:
@@ -176,7 +177,27 @@ class TrackerWorker(WorkerNode):
         if self.current_tracking is None:
             return
         
+        fish_centroid = np.zeros((2,), dtype=float)
+        
+        try:
+            tracking = self.current_tracking['tracking']
+
+            # TODO choose animal
+            k = tracking['animals']['identities'][0]
+
+            if tracking['body'][k] is not None:
+                fish_centroid[:] = tracking['body'][k]['centroid_original_space']
+            else:
+                fish_centroid[:] = tracking['animals']['centroids'][k,:]
+
+        except KeyError:
+            return None
+        except TypeError:
+            return None
+        except ValueError:
+            return None
+        
         res = {}    
-        res['tracker_metadata'] = self.current_tracking
+        res['tracker_metadata'] = fish_centroid.astype(int)
         return res
 
