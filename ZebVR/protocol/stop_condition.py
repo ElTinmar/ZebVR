@@ -131,27 +131,7 @@ class TrackingTrigger(StopCondition):
         if metadata is None:
             return output
         
-        fish_centroid = np.zeros((2,), dtype=float)
-        
-        try:
-            tracking = metadata['tracker_metadata']['tracking']
-
-            # TODO choose animal
-            k = tracking['animals']['identities'][0]
-
-            if tracking['body'][k] is not None:
-                fish_centroid[:] = tracking['body'][k]['centroid_original_space']
-            else:
-                fish_centroid[:] = tracking['animals']['centroids'][k,:]
-
-        except KeyError:
-            return output
-        except TypeError:
-            return output
-        except ValueError:
-            return output
-        
-        x, y = fish_centroid.astype(int)
+        x, y = metadata['tracker_metadata']
         triggered = self.mask[y, x]
         
         transition = self.debouncer.update(triggered)
