@@ -56,6 +56,9 @@ class Protocol(WorkerNode):
         if self.current_item is not None:
             if not self.current_item.done(metadata):
                 # prevent spamming worker logger (otherwise logger queue gets full -> OOM)
+                # sleep needs to be small enough to keep up with metadata, but big enough
+                # to not fill the logger queue.
+                # TODO: find a real solution
                 time.sleep(0.002) 
                 return
         
