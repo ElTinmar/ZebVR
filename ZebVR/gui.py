@@ -597,3 +597,4 @@ class MainGui(QMainWindow):
         self.background_widget.close()
         self.sequencer_widget.close()
         self.settings_widget.close()
+        self.logs_widget.close()
