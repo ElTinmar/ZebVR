@@ -37,7 +37,7 @@ class CameraWidget(QWidget):
     source_changed = pyqtSignal(str, int, str)
     state_changed = pyqtSignal()
     preview = pyqtSignal(bool)
-    PREVIEW_HEIGHT: int = 512
+    PREVIEW_HEIGHT: int = 480
 
     def __init__(self,*args,**kwargs):
 

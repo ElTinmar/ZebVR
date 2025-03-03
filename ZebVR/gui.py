@@ -34,7 +34,8 @@ from .widgets import (
     CalibrationWidget,
     BackgroundWidget,
     SequencerWidget,
-    SettingsWidget
+    SettingsWidget,
+    LogsWidget
 )
 from .dags import closed_loop, open_loop, video_recording, tracking
 
@@ -90,6 +91,9 @@ class MainGui(QMainWindow):
         self.settings_widget = SettingsWidget()
         self.settings_widget.state_changed.connect(self.update_settings)
         self.settings_widget.openloop_coords_signal.connect(self.openloop_coords_callback)
+
+        self.logs_widget = LogsWidget()
+        self.logs_widget.state_changed.connect(self.update_logs)
         
         self.close_loop_button = QPushButton('Close-loop')
         self.close_loop_button.setCheckable(True)
@@ -116,7 +120,8 @@ class MainGui(QMainWindow):
         self.tabs.addTab(self.calibration_widget, "Calibration")
         self.tabs.addTab(self.background_widget, "Background")
         self.tabs.addTab(self.sequencer_widget, "Protocol")
-        self.tabs.addTab(self.settings_widget, "Settings") 
+        self.tabs.addTab(self.settings_widget, "Settings")
+        self.tabs.addTab(self.logs_widget, "Logs") 
 
         self.start_button = QPushButton()
         self.start_button.setText('start')
@@ -291,6 +296,7 @@ class MainGui(QMainWindow):
         self.calibration_widget.set_state(state['calibration'])
         self.background_widget.set_state(state['background'])
         self.settings_widget.set_state(state['settings'])
+        self.logs_widget.set_state(state['logs'])
         self.sequencer_widget.set_state(state['sequencer'])
 
         self.recording_duration.setValue(state['main']['recording_duration'])
@@ -318,6 +324,9 @@ class MainGui(QMainWindow):
     def update_settings(self):
         self.settings['settings'] = self.settings_widget.get_state()
 
+    def update_logs(self):
+        self.settings['logs'] = self.logs_widget.get_state()
+
     def update_sequencer_settings(self):
         self.settings['sequencer'] = self.sequencer_widget.get_state()
 
@@ -331,6 +340,7 @@ class MainGui(QMainWindow):
         self.update_calibration_settings()
         self.update_background_settings()
         self.update_settings()
+        self.update_logs()
         self.update_sequencer_settings()
     
     def registration_callback(self):

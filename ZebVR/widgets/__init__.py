@@ -4,6 +4,7 @@ from .projector_widget import *
 from .registration_widget import *
 from .calibration_widget import *
 from .background_widget import *
+from .logs_widget import *
 
 from .tracking_widget import *
 from .open_loop_widget import *

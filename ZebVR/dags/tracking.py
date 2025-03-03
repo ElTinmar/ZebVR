@@ -45,8 +45,8 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         dag = ProcessingDAG()
     
     # create loggers
-    worker_logger = Logger(settings['settings']['log']['worker_logfile'], Logger.INFO)
-    queue_logger = Logger(settings['settings']['log']['queue_logfile'], Logger.INFO)
+    worker_logger = Logger(settings['logs']['log']['worker_logfile'], Logger.INFO)
+    queue_logger = Logger(settings['logs']['log']['queue_logfile'], Logger.INFO)
 
     # create queues -----------------------------------------------------------------------            
     queue_cam = MonitoredQueue(
@@ -54,7 +54,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             num_bytes = 500*1024**2, # TODO add a widget for that?
             logger = queue_logger,
             name = 'camera_to_background',
-            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
         )
     )
 
@@ -63,7 +63,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'background_to_trackers',
-            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
         )
     )
 
@@ -72,7 +72,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'tracker_to_stim',
-            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
         )
     )
 
@@ -81,7 +81,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'tracker_to_overlay',
-            t_refresh = 1e-6 * settings['settings']['queue_refresh_time_microsec']
+            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
         )
     )
 
