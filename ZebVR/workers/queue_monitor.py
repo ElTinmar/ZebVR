@@ -1,10 +1,8 @@
 from dagline import WorkerNode
 from ipc_tools import QueueLike
-from numpy.typing import NDArray
 from typing import Dict, Optional
 from PyQt5.QtWidgets import QApplication
 from ..widgets import QueueWidget, QueueMonitorWidget
-from typing import List
 import time
 
 class QueueMonitor(WorkerNode):
