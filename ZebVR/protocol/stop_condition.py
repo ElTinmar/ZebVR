@@ -96,44 +96,34 @@ class TrackingTrigger(StopCondition):
 
     def __init__(
             self, 
+            mask_file: str,
             debouncer = Debouncer,
-            mask_file: Optional[str] = None,
-            mask: Optional[NDArray] = None,
             polarity: TriggerPolarity = TriggerPolarity.RISING_EDGE,
         ) -> None:
 
         super().__init__()
 
-        self.mask = None
-        self.mask_file = None
-
-        if (mask_file is None) == (mask is None): 
-            raise ValueError("Either 'mask_file' or 'mask' must be provided.")
-
-        if mask_file is not None:
-            self.mask_file = mask_file
-            self.mask = np.load(mask_file)
-        else:
-            self.mask_file = ''
-            self.mask = mask
-        
+        self.mask_file = mask_file
+        self.mask = np.load(mask_file)
         self.polarity = polarity
         self.debouncer = debouncer
 
     def start(self) -> None:
         pass
     
-    # TODO type metadata properly (nested TypedDict?) / maybe send only centroid and not full tracking 
     def done(self, metadata: Optional[Any]) -> bool:
-         
+
         output = False
 
         if metadata is None:
             return output
         
-        x, y = metadata['tracker_metadata']
-        triggered = self.mask[y, x]
-        
+        try:
+            x, y = metadata['tracker_metadata']
+            triggered = self.mask[y, x]
+        except:
+            return output
+            
         transition = self.debouncer.update(triggered)
         if transition.name == self.polarity.name: 
             output = True
