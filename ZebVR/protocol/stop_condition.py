@@ -123,9 +123,8 @@ class TrackingTrigger(StopCondition):
     def start(self) -> None:
         pass
     
-    # TODO type metadata properly (nested TypedDict?) / maybe send only centroid and not full tracking 
     def done(self, metadata: Optional[Any]) -> bool:
-         
+
         output = False
 
         if metadata is None:
