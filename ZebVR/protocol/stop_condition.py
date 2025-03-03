@@ -118,9 +118,12 @@ class TrackingTrigger(StopCondition):
         if metadata is None:
             return output
         
-        x, y = metadata['tracker_metadata']
-        triggered = self.mask[y, x]
-        
+        try:
+            x, y = metadata['tracker_metadata']
+            triggered = self.mask[y, x]
+        except:
+            return output
+            
         transition = self.debouncer.update(triggered)
         if transition.name == self.polarity.name: 
             output = True
