@@ -4,6 +4,7 @@ from image_tools import DrawPolyMaskDialog, im2uint8
 import numpy as np
 from numpy.typing import NDArray
 import cv2
+from pathlib import Path
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -160,15 +161,14 @@ class StopWidget(QWidget):
         dialog.exec()
         self.mask = dialog.flatten()
 
-        h, w = self.background_image.shape[:2]
-        preview_width = int(w * self.MASK_PREVIEW_HEIGHT/h)
-        image = 0.5*(self.background_image.astype(float)/255 + self.mask.astype(float))
-        image_resized = cv2.resize(
-            im2uint8(image),
-            (preview_width, self.MASK_PREVIEW_HEIGHT), 
-            cv2.INTER_NEAREST
-        )
-        self.mask_image.setPixmap(NDarray_to_QPixmap(image_resized))
+        i = 0 
+        filepath = Path(f'mask_{i:03}.npy')
+        while filepath.exists():
+            i += 1 
+            filepath = Path(f'mask_{i:03}.npy')
+
+        np.save(filepath, self.mask)
+        self.trigger_mask.setText(str(filepath))
 
     def policy_changed(self):
         self.policy_stack.setCurrentIndex(self.cmb_policy_select.currentIndex())
@@ -232,7 +232,6 @@ class StopWidget(QWidget):
             if state['trigger_select'] == TriggerType.TRACKING:
                 stop_condition = TrackingTrigger(
                     mask_file = state['mask_file'],
-                    mask = self.mask,
                     polarity = TriggerPolarity(state['trigger_polarity']),
                     debouncer = self.debouncer
                 )
