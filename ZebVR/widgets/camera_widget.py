@@ -32,6 +32,12 @@ try:
 except ImportError:
     XIMEA_ENABLED = False
 
+try:
+    from camera_tools import SpinnakerCamera
+    SPINNAKER_ENABLED = True
+except ImportError:
+    SPINNAKER_ENABLED = False
+
 class CameraWidget(QWidget):
 
     source_changed = pyqtSignal(str, int, str)
@@ -60,7 +66,7 @@ class CameraWidget(QWidget):
     def declare_components(self):
 
         self.camera_choice = QComboBox()
-        self.camera_choice.addItems(["None Grayscale", "None RGB", "XIMEA", "Webcam", "Webcam Grayscale", "Webcam (Registration Mode)", "Movie"])
+        self.camera_choice.addItems(["None Grayscale", "None RGB", "XIMEA", "Spinnaker", "Webcam", "Webcam Grayscale", "Webcam (Registration Mode)", "Movie"])
         self.camera_choice.currentTextChanged.connect(self.on_source_change)
 
         self.camera_id = LabeledSpinBox()
@@ -300,6 +306,9 @@ class CameraController(QObject):
         
         elif cam_source=='Webcam (Registration Mode)':
             self.camera_constructor = partial(OpenCV_Webcam_InitEveryFrame, cam_id=cam_ind)
+        
+        elif cam_source=='Spinnaker' and SPINNAKER_ENABLED:
+            self.camera_constructor = partial(SpinnakerCamera, dev_id=cam_ind)
 
         elif cam_source=='Movie' and os.path.exists(filename):
             self.camera_constructor = partial(MovieFileCam, filename=filename)
