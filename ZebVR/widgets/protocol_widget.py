@@ -458,11 +458,13 @@ class StimWidget(QWidget):
         self.sb_prey_speed_mm_s = LabeledDoubleSpinBox()
         self.sb_prey_speed_mm_s.setText('speed (mm/s)')
         self.sb_prey_speed_mm_s.setRange(0,10)
+        self.sb_prey_speed_mm_s.setSingleStep(0.025)
         self.sb_prey_speed_mm_s.setValue(self.prey_speed_mm_s)
         self.sb_prey_speed_mm_s.valueChanged.connect(self.on_change)
 
         self.sb_prey_radius_mm = LabeledDoubleSpinBox()
         self.sb_prey_radius_mm.setText('radius (mm)')
+        self.sb_prey_radius_mm.setSingleStep(0.025)
         self.sb_prey_radius_mm.setRange(0,10)
         self.sb_prey_radius_mm.setValue(self.prey_radius_mm)
         self.sb_prey_radius_mm.valueChanged.connect(self.on_change)
