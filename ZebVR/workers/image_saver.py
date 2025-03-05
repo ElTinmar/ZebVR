@@ -11,6 +11,7 @@ from video_tools import (
     FFMPEG_VideoWriter_GPU_YUV420P,
     FFMPEG_VideoWriter_CPU_Grayscale
 )
+import time
 
 # TODO: check zarr, maybe try cv2.imwrite
 
@@ -85,6 +86,13 @@ class VideoSaverWorker(WorkerNode):
 
         super().__init__(*args, **kwargs)
         
+        # init file name: add timestamp
+        prefix, ext = os.path.splitext(filename)
+        filename = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
+        while os.path.exists(filename):
+            time.sleep(1)
+            filename = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
+
         self.filename = filename
         self.fps = fps
         self.height = 2*(height//2) # some video_codecs require images with even size
