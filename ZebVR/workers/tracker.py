@@ -108,7 +108,7 @@ class TrackerWorker(WorkerNode):
         )
 
         res = {}    
-        res['tracker_output1'] = msg # visual stimulus
+        res['tracker_output1'] = msg # visual stimulus, TODO no need to send image, send only relevant info 
         res['tracker_output2'] = msg # overlay    
         self.current_tracking = msg
 
