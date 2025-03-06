@@ -16,6 +16,7 @@ import os
 from functools import partial
 from typing import Dict, Optional, Callable
 from numpy.typing import NDArray
+from enum import IntEnum
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
 from camera_tools import (
@@ -26,7 +27,6 @@ from camera_tools import (
     MovieFileCam, 
     ZeroCam
 )
-from enum import IntEnum
 
 class CameraModel(IntEnum):
     ZERO_GRAY = 0
