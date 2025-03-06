@@ -5,12 +5,13 @@ dependencies:
 - python == 3.8.16
 - ipython
 - pyqt # somehow, install pyqt and opencv in conda seem to solve the qt library version issues
-- opencv
+- opencv == 4.6.0
 - numpy
 - vispy
 - pip
 - snakeviz
 - cupy
+- ffmpeg == 4.4.2 # old version necessary for spinnaker
 - pip:
   - psutil
   - git+https://github.com/ElTinmar/video_tools.git@main#egg=video_tools[gpu]

@@ -324,6 +324,14 @@ def registration(
         bar_fun=proj.draw_horizontal_bar,
         enhance_fun=enhance_fun
     )
+    
+    # make sure no dot on the edge
+    x_offset = int(5/100*(x_stop-x_start))
+    y_offset = int(5/100*(y_stop-y_start))
+    x_start += x_offset
+    x_stop -= x_offset
+    y_start += y_offset
+    y_stop -= y_offset
 
     print(f'Bounding box (topleft, bottomright): {(x_start, y_start),(x_stop, y_stop)}')
 

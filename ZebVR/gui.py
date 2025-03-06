@@ -303,7 +303,7 @@ class MainGui(QMainWindow):
         self.settings['main'] = state['main']
 
     def get_state(self) -> dict:
-        self.refresh_settings() # TODO that may not be necessary if all signals are correctly handled
+        self.refresh_settings()
         return self.settings
 
     def update_camera_settings(self):
@@ -342,6 +342,7 @@ class MainGui(QMainWindow):
         self.update_settings()
         self.update_logs()
         self.update_sequencer_settings()
+        self.update_main_settings()
     
     def registration_callback(self):
         self.camera_controller.set_preview(False)

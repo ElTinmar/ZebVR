@@ -56,8 +56,7 @@ class TrackingWidget(QWidget):
         self.display_fps.setText('FPS display:')
         self.display_fps.setValue(30)
         self.display_fps.valueChanged.connect(self.state_changed)
-
-                
+           
         ## data recording -----------------------------------
         self.data_group = QGroupBox('tracking output')
     
