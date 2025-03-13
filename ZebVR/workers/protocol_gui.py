@@ -24,6 +24,9 @@ class StimGUI(WorkerNode):
             looming_expansion_speed_mm_per_sec: float = 10,
             foreground_color: Tuple = (0.2, 0.2, 0.2, 1.0),
             background_color: Tuple = (0.0, 0.0, 0.0, 1.0),
+            n_preys: int = 50,
+            prey_speed_mm_s: float = 0.75,
+            prey_radius_mm: float = 0.25,
             *args, 
             **kwargs
         ):
@@ -43,6 +46,9 @@ class StimGUI(WorkerNode):
         self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
         self.foreground_color = foreground_color
         self.background_color = background_color
+        self.n_preys = n_preys
+        self.prey_speed_mm_s = prey_speed_mm_s 
+        self.prey_radius_mm = prey_radius_mm
 
     def initialize(self) -> None:
         super().initialize()
@@ -60,7 +66,10 @@ class StimGUI(WorkerNode):
             looming_expansion_time_sec=self.looming_expansion_time_sec,
             looming_expansion_speed_mm_per_sec=self.looming_expansion_speed_mm_per_sec,
             foreground_color=self.foreground_color,
-            background_color=self.background_color
+            background_color=self.background_color,
+            n_preys = self.n_preys,
+            prey_speed_mm_s = self.prey_speed_mm_s,
+            prey_radius_mm = self.prey_radius_mm
         )
         self.window.stop_condition_widget.setVisible(False)
         self.window.show()

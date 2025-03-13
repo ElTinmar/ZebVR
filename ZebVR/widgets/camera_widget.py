@@ -16,6 +16,7 @@ import os
 from functools import partial
 from typing import Dict, Optional, Callable
 from numpy.typing import NDArray
+from enum import IntEnum
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
 from camera_tools import (
@@ -26,6 +27,17 @@ from camera_tools import (
     MovieFileCam, 
     ZeroCam
 )
+
+class CameraModel(IntEnum):
+    ZERO_GRAY = 0
+    ZERO_RGB = 1
+    WEBCAM = 2
+    WEBCAM_GRAY = 3
+    WEBCAM_REGISTRATION = 4
+    XIMEA = 5
+    SPINNAKER = 6
+    MOVIE = 7
+
 try:
     from camera_tools import XimeaCamera, XimeaCamera_Transport
     XIMEA_ENABLED = True
@@ -40,7 +52,7 @@ except ImportError:
 
 class CameraWidget(QWidget):
 
-    source_changed = pyqtSignal(str, int, str)
+    source_changed = pyqtSignal(int, int, str)
     state_changed = pyqtSignal()
     preview = pyqtSignal(bool)
     PREVIEW_HEIGHT: int = 480
@@ -65,9 +77,9 @@ class CameraWidget(QWidget):
 
     def declare_components(self):
 
-        self.camera_choice = QComboBox()
-        self.camera_choice.addItems(["None Grayscale", "None RGB", "XIMEA", "Spinnaker", "Webcam", "Webcam Grayscale", "Webcam (Registration Mode)", "Movie"])
-        self.camera_choice.currentTextChanged.connect(self.on_source_change)
+        self.camera_model = QComboBox()
+        self.camera_model.addItems([model.name for model in CameraModel])
+        self.camera_model.currentTextChanged.connect(self.on_source_change)
 
         self.camera_id = LabeledSpinBox()
         self.camera_id.setText('Camera ID:')
@@ -154,7 +166,7 @@ class CameraWidget(QWidget):
         layout_channels.addWidget(self.num_channels)
 
         layout_controls = QVBoxLayout(self)
-        layout_controls.addWidget(self.camera_choice)
+        layout_controls.addWidget(self.camera_model)
         layout_controls.addLayout(layout_cam)
 
         for control in self.controls:
@@ -173,18 +185,18 @@ class CameraWidget(QWidget):
         layout_controls.addStretch()
 
     def on_source_change(self):
-        name = self.camera_choice.currentText()
+        model = self.camera_model.currentIndex()
         id = self.camera_id.value() 
         filename = self.filename.text()
 
-        if name == 'Movie':
+        if model == CameraModel.MOVIE:
             self.camera_id.setEnabled(False)
             self.movie_load.setEnabled(True)
         else:
             self.camera_id.setEnabled(True)
             self.movie_load.setEnabled(False)
 
-        self.source_changed.emit(name, id, filename)
+        self.source_changed.emit(model, id, filename)
 
     def block_signals(self, block):
         for widget in self.findChildren(QWidget):
@@ -193,7 +205,7 @@ class CameraWidget(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
-        state['camera_choice'] = self.camera_choice.currentText()
+        state['camera_model'] = self.camera_model.currentIndex()
         state['camera_index'] = self.camera_id.value()
         state['movie_file'] = self.filename.text()
         for control in self.controls:
@@ -211,7 +223,7 @@ class CameraWidget(QWidget):
         try:
             self.camera_id.setValue(state['camera_index'])
             self.filename.setText(state['movie_file'])
-            self.camera_choice.setCurrentText(state['camera_choice'])
+            self.camera_model.setCurrentIndex(state['camera_model'])
             for control in self.controls:
                 spinbox = getattr(self, control + '_spinbox')
                 spinbox.setEnabled(state[control + '_enabled'])
@@ -274,7 +286,7 @@ class CameraController(QObject):
         self.acq = None
         self.camera_preview_started = False
         
-        self.camera_source = None
+        self.camera_model= None
         self.camera_index = None
         self.filename = None
 
@@ -286,34 +298,34 @@ class CameraController(QObject):
         # initialize view
         self.view.on_source_change()
 
-    def on_source_changed(self, cam_source: str, cam_ind: int, filename: str):
+    def on_source_changed(self, camera_model: int, cam_ind: int, filename: str):
 
-        self.camera_source = cam_source
+        self.camera_model = camera_model
         self.camera_index = cam_ind
         self.filename = filename
 
-        if cam_source=='None Grayscale':
+        if camera_model==CameraModel.ZERO_GRAY:
             self.camera_constructor = partial(ZeroCam, shape=(2048,2048), dtype=np.uint8)
         
-        elif cam_source=='None RGB':
+        elif camera_model==CameraModel.ZERO_RGB:
             self.camera_constructor = partial(ZeroCam, shape=(2048,2048,3), dtype=np.uint8)
 
-        elif cam_source=='Webcam':
+        elif camera_model==CameraModel.WEBCAM:
             self.camera_constructor = partial(OpenCV_Webcam, cam_id=cam_ind)
 
-        elif cam_source=='Webcam Grayscale':
+        elif camera_model==CameraModel.WEBCAM_GRAY:
             self.camera_constructor = partial(OpenCV_Webcam_Gray, cam_id=cam_ind)
         
-        elif cam_source=='Webcam (Registration Mode)':
+        elif camera_model==CameraModel.WEBCAM_REGISTRATION:
             self.camera_constructor = partial(OpenCV_Webcam_InitEveryFrame, cam_id=cam_ind)
         
-        elif cam_source=='Spinnaker' and SPINNAKER_ENABLED:
+        elif camera_model==CameraModel.SPINNAKER and SPINNAKER_ENABLED:
             self.camera_constructor = partial(SpinnakerCamera, dev_id=cam_ind)
 
-        elif cam_source=='Movie' and os.path.exists(filename):
+        elif camera_model==CameraModel.MOVIE and os.path.exists(filename):
             self.camera_constructor = partial(MovieFileCam, filename=filename)
 
-        elif cam_source=='XIMEA' and XIMEA_ENABLED:
+        elif camera_model==CameraModel.XIMEA and XIMEA_ENABLED:
             self.camera_constructor = partial(XimeaCamera_Transport, dev_id=cam_ind)
 
         camera = self.camera_constructor()
@@ -328,7 +340,7 @@ class CameraController(QObject):
         # read camera properties and set widget state accordingly
         state = {}
         
-        state['camera_choice'] = self.camera_source
+        state['camera_model'] = self.camera_model
         state['camera_index'] = self.camera_index
         state['movie_file'] = self.filename
 
