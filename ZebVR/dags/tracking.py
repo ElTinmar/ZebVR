@@ -193,10 +193,10 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     # tracking display -----------------------------------------
     overlay = MultiFishOverlay_opencv(
         MultiFishTrackerParamOverlay(
-            AnimalOverlay_opencv(AnimalTrackerParamOverlay(pix_per_mm=settings['calibration']['pix_per_mm'])),
-            BodyOverlay_opencv(BodyTrackerParamOverlay(pix_per_mm=settings['calibration']['pix_per_mm'])),
-            EyesOverlay_opencv(EyesTrackerParamOverlay(pix_per_mm=settings['calibration']['pix_per_mm'])),
-            TailOverlay_opencv(TailTrackerParamOverlay(pix_per_mm=settings['calibration']['pix_per_mm']))
+            AnimalOverlay_opencv(AnimalTrackerParamOverlay()),
+            BodyOverlay_opencv(BodyTrackerParamOverlay()),
+            EyesOverlay_opencv(EyesTrackerParamOverlay()),
+            TailOverlay_opencv(TailTrackerParamOverlay())
         )
     )
 
