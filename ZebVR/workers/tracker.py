@@ -32,8 +32,8 @@ class DummyTrackerWorker(WorkerNode):
         super().__init__(*args, **kwargs)
 
         self.tracking = np.zeros(1, tracker.tracking_param.dtype())
-        self.tracking['body'][0]['centroid_original_space'] = centroid
-        self.tracking['body'][0]['heading'] = heading
+        self.tracking['body'][0]['centroid_global'] = centroid
+        self.tracking['body'][0]['body_axes_global'] = heading
 
     def initialize(self) -> None:
         super().initialize()
@@ -70,6 +70,7 @@ class TrackerWorker(WorkerNode):
             tracker: MultiFishTracker, 
             cam_width: int,
             cam_height: int,
+            cam_pix_per_mm: float,
             n_tracker_workers: int,
             *args, 
             **kwargs
@@ -79,6 +80,7 @@ class TrackerWorker(WorkerNode):
         self.tracker = tracker
         self.cam_width = cam_width 
         self.cam_height = cam_height
+        self.cam_pix_per_mm = cam_pix_per_mm
         self.n_tracker_workers = n_tracker_workers
         self.current_tracking = None
         
@@ -143,7 +145,10 @@ class TrackerWorker(WorkerNode):
             animal = AnimalTracker_CPU(
                 assignment=assignment, 
                 tracking_param=AnimalTrackerParamTracking( 
-                    source_image_shape = (self.cam_height,self.cam_width), 
+                    crop_dimension_mm = (
+                        self.cam_width / self.cam_pix_per_mm,
+                        self.cam_height / self.cam_pix_per_mm,
+                    ), 
                     **control['animal_tracking']
                 )
             )
@@ -183,12 +188,12 @@ class TrackerWorker(WorkerNode):
             tracking = self.current_tracking['tracking']
 
             # TODO choose animal
-            k = tracking['animals']['identities'][0]
+            k = 0
 
             if tracking['body'][k] is not None:
-                fish_centroid[:] = tracking['body'][k]['centroid_original_space']
+                fish_centroid[:] = tracking['body'][k]['centroid_global']
             else:
-                fish_centroid[:] = tracking['animals']['centroids'][k,:]
+                fish_centroid[:] = tracking['animals']['centroid_global'][k,:]
 
         except KeyError:
             return None

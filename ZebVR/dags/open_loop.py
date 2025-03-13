@@ -213,8 +213,11 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             animal = AnimalTracker_CPU(
                 assignment = GridAssignment(LUT = assignment), 
                 tracking_param = AnimalTrackerParamTracking(
-                    source_image_shape = (settings['camera']['height_value'], settings['camera']['width_value'])
-                )
+                    crop_dimension_mm = (
+                        settings['camera']['width_value']/settings['calibration']['pix_per_mm'], 
+                        settings['camera']['height_value']/settings['calibration']['pix_per_mm']
+                    ) 
+                )               
             ),
             body = BodyTracker_CPU(BodyTrackerParamTracking()), 
             eyes = EyesTracker_CPU(EyesTrackerParamTracking()), 

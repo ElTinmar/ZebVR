@@ -151,7 +151,10 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             animal = AnimalTracker_CPU(
                 assignment = GridAssignment(LUT = assignment), 
                 tracking_param = AnimalTrackerParamTracking(
-                    source_image_shape = (settings['camera']['height_value'], settings['camera']['width_value'])
+                    crop_dimension_mm = (
+                        settings['camera']['width_value']/settings['calibration']['pix_per_mm'], 
+                        settings['camera']['height_value']/settings['calibration']['pix_per_mm']
+                    )                
                 )
             ),
             body = BodyTracker_CPU(BodyTrackerParamTracking()), 
@@ -167,6 +170,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
                 tracker, 
                 cam_width = settings['camera']['width_value'],
                 cam_height = settings['camera']['height_value'],
+                cam_pix_per_mm = settings['calibration']['pix_per_mm'],
                 n_tracker_workers = settings['settings']['tracking']['n_tracker_workers'],
                 name = f'tracker{i}', 
                 logger = worker_logger, 

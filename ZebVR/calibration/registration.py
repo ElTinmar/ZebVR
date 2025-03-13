@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 import json
 from image_tools import im2single, enhance, im2rgb, im2uint8, im2gray, bwareafilter_centroids
 import cv2
-from geometry import to_homogeneous
+from geometry import homogeneous_coord_2d, AffineTransform2D
 from enum import IntEnum
 from functools import partial
 from camera_tools import Camera
@@ -350,7 +350,7 @@ def registration(
     pts_proj = pts_proj[~nans]
 
     # compute least-square estimate of the transformation and output to json
-    transformation = np.linalg.lstsq(to_homogeneous(pts_cam), to_homogeneous(pts_proj), rcond=None)[0]
+    transformation = np.linalg.lstsq(homogeneous_coord_2d(pts_cam), homogeneous_coord_2d(pts_proj), rcond=None)[0]
     transformation = np.transpose(transformation)
     calibration = {}
     calibration['cam_to_proj'] = transformation.tolist()

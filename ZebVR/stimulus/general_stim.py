@@ -482,15 +482,15 @@ class GeneralStim(VisualStim):
                 print(f"{data['index']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
 
                 # TODO choose animal
-                k = data['tracking']['animals']['identities'][0]
+                k = 0
 
                 if data['tracking']['body'][k] is not None:
-                    self.fish_centroid[:] = data['tracking']['body'][k]['centroid_original_space']
-                    heading = data['tracking']['body'][k]['heading']
-                    self.fish_caudorostral_axis[:] = heading[:,0]
-                    self.fish_mediolateral_axis[:] = heading[:,1]
+                    self.fish_centroid[:] = data['tracking']['body'][k]['centroid_global']
+                    body_axes = data['tracking']['body'][k]['body_axes_global']
+                    self.fish_caudorostral_axis[:] = body_axes[:,0]
+                    self.fish_mediolateral_axis[:] = body_axes[:,1]
                 else:
-                    self.fish_centroid[:] = data['tracking']['animals']['centroids'][k,:]
+                    self.fish_centroid[:] = data['tracking']['animals']['centroid_global'][k,:]
 
 
                 # TODO use eyes heading vector if present?
@@ -498,16 +498,16 @@ class GeneralStim(VisualStim):
                 if data['tracking']['eyes'][k] is not None:
 
                     if data['tracking']['eyes'][k]['left_eye'] is not None:
-                        self.left_eye_centroid[:] = data['tracking']['eyes'][k]['left_eye']['centroid'] 
+                        self.left_eye_centroid[:] = data['tracking']['eyes'][k]['left_eye']['centroid_cropped'] 
                         self.left_eye_angle.value = data['tracking']['eyes'][k]['left_eye']['angle']
 
                     if data['tracking']['eyes'][k]['right_eye'] is not None:
-                        self.right_eye_centroid[:] = data['tracking']['eyes'][k]['right_eye']['centroid']
+                        self.right_eye_centroid[:] = data['tracking']['eyes'][k]['right_eye']['centroid_cropped']
                         self.right_eye_angle.value = data['tracking']['eyes'][k]['right_eye']['angle']
 
                 # tail
                 if data['tracking']['tail'][k] is not None:
-                    skeleton_interp = data['tracking']['tail'][k]['skeleton_interp']  
+                    skeleton_interp = data['tracking']['tail'][k]['skeleton_interp_cropped']  
                     self.tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
                     self.tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
 

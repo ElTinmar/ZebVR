@@ -22,7 +22,7 @@ class TrackerType(IntEnum):
     TAIL = 4
 
 class DisplayType(IntEnum):
-    RAW = 0
+    PROCESSED = 0
     OVERLAY = 1
     MASK = 2
 
@@ -133,8 +133,8 @@ class TrackingDisplayWidget(QWidget):
         self.bg_tracker_type.addButton(self.btn_tail, id=TrackerType.TAIL)
         self.btn_multi.setChecked(True)
 
-        self.btn_raw = QPushButton('raw')
-        self.btn_raw.setCheckable(True)
+        self.btn_processed = QPushButton('processed')
+        self.btn_processed.setCheckable(True)
 
         self.btn_overlay = QPushButton('overlay')
         self.btn_overlay.setCheckable(True)
@@ -143,10 +143,10 @@ class TrackingDisplayWidget(QWidget):
         self.btn_mask.setCheckable(True)
 
         self.bg_display_type = QButtonGroup()
-        self.bg_display_type.addButton(self.btn_raw, id=DisplayType.RAW)
+        self.bg_display_type.addButton(self.btn_processed, id=DisplayType.PROCESSED)
         self.bg_display_type.addButton(self.btn_overlay, id=DisplayType.OVERLAY)
         self.bg_display_type.addButton(self.btn_mask, id=DisplayType.MASK)
-        self.btn_raw.setChecked(True)
+        self.btn_processed.setChecked(True)
 
     def layout_components(self):
 
@@ -158,7 +158,7 @@ class TrackingDisplayWidget(QWidget):
         layout_tracker_btn.addWidget(self.btn_tail)
 
         layout_display_btn = QHBoxLayout()
-        layout_display_btn.addWidget(self.btn_raw)
+        layout_display_btn.addWidget(self.btn_processed)
         layout_display_btn.addWidget(self.btn_overlay)
         layout_display_btn.addWidget(self.btn_mask)
 
