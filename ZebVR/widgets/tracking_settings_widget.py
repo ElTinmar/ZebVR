@@ -162,7 +162,6 @@ class Animal(QWidget):
     def layout_components(self):
 
         animal = QVBoxLayout(self)
-        animal.addWidget(self.assignment_choice)
         animal.addWidget(self.animal_num_animals)
         animal.addWidget(self.animal_pix_per_mm)
         animal.addWidget(self.animal_target_pix_per_mm)
@@ -888,7 +887,7 @@ class TrackerWidget(QWidget):
         groups.addWidget(self.group_tail)
         
         final = QVBoxLayout(self)
-        final.addLayout(self.assignment_choice)
+        final.addWidget(self.assignment_choice)
         final.addLayout(groups)
         final.addLayout(io_layout)
 
@@ -940,7 +939,7 @@ class TrackerWidget(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
-        state['assignment']=self.assignment_choice.getCurrentIndex()
+        state['assignment']=self.assignment_choice.currentText()
         state['body_tracking_enabled']=self.group_body.isChecked()
         state['eyes_tracking_enabled']=self.group_eyes.isChecked()
         state['tail_tracking_enabled']=self.group_tail.isChecked()
@@ -953,6 +952,7 @@ class TrackerWidget(QWidget):
     def set_state(self, state:Dict) -> None:
 
         setters = {
+            'assignment': self.assignment_choice.setCurrentText,
             'body_tracking_enabled': self.group_body.setChecked,
             'eyes_tracking_enabled': self.group_eyes.setChecked,
             'tail_tracking_enabled': self.group_tail.setChecked,
