@@ -149,7 +149,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         MultiFishTrackerParamTracking(
             accumulator = None,
             animal = AnimalTracker_CPU(
-                assignment = GridAssignment(LUT = assignment), 
+                assignment = GridAssignment(LUT = assignment, num_animals=1), 
                 tracking_param = AnimalTrackerParamTracking()
             ),
             body = BodyTracker_CPU(BodyTrackerParamTracking()), 

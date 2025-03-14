@@ -255,7 +255,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         MultiFishTrackerParamTracking(
             accumulator = None,
             animal = AnimalTracker_CPU(
-                assignment = GridAssignment(LUT = assignment), 
+                assignment = GridAssignment(LUT = assignment, num_animals=1), 
                 tracking_param = AnimalTrackerParamTracking()
             ),
             body = BodyTracker_CPU(BodyTrackerParamTracking()), 
