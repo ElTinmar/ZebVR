@@ -207,19 +207,17 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         (settings['camera']['height_value'], settings['camera']['width_value']), 
         dtype=np.int_
     )
-    image_shape =  (settings['camera']['height_value'], settings['camera']['width_value'])
+    
     tracker = MultiFishTracker_CPU(
         MultiFishTrackerParamTracking(
             accumulator = None,
             animal = AnimalTracker_CPU(
                 assignment = GridAssignment(LUT = assignment), 
-                tracking_param = AnimalTrackerParamTracking(
-                    input_image_shape = image_shape
-                )
+                tracking_param = AnimalTrackerParamTracking()
             ),
-            body = BodyTracker_CPU(BodyTrackerParamTracking(input_image_shape = image_shape)), 
-            eyes = EyesTracker_CPU(EyesTrackerParamTracking(input_image_shape = image_shape)), 
-            tail = TailTracker_CPU(TailTrackerParamTracking(input_image_shape = image_shape))
+            body = BodyTracker_CPU(BodyTrackerParamTracking()), 
+            eyes = EyesTracker_CPU(EyesTrackerParamTracking()), 
+            tail = TailTracker_CPU(TailTrackerParamTracking())
         )
     )
 
