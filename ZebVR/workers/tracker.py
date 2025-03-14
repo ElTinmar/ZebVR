@@ -141,30 +141,28 @@ class TrackerWorker(WorkerNode):
                 )
             else:
                 break
-
+            
+            image_shape = (self.cam_height, self.cam_width)
             animal = AnimalTracker_CPU(
                 assignment=assignment, 
                 tracking_param=AnimalTrackerParamTracking( 
-                    crop_dimension_mm = (
-                        self.cam_width / self.cam_pix_per_mm,
-                        self.cam_height / self.cam_pix_per_mm,
-                    ), 
+                    input_image_shape = image_shape,
                     **control['animal_tracking']
                 )
             )
             
             if control['body']:
-                body = BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**control['body_tracking']))
+                body = BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(input_image_shape = image_shape, **control['body_tracking']))
             else:
                 body = None
 
             if control['eyes']:
-                eyes = EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**control['eyes_tracking']))
+                eyes = EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(input_image_shape = image_shape, **control['eyes_tracking']))
             else:
                 eyes = None
 
             if control['tail']:
-                tail = TailTracker_CPU(tracking_param=TailTrackerParamTracking(**control['tail_tracking']))
+                tail = TailTracker_CPU(tracking_param=TailTrackerParamTracking(input_image_shape = image_shape, **control['tail_tracking']))
             else:
                 tail = None  
             

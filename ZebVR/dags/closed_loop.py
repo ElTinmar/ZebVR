@@ -250,21 +250,20 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         (settings['camera']['height_value'], settings['camera']['width_value']), 
         dtype=np.int_
     )
+
+    image_shape =  (settings['camera']['height_value'], settings['camera']['width_value'])
     tracker = MultiFishTracker_CPU(
         MultiFishTrackerParamTracking(
             accumulator = None,
             animal = AnimalTracker_CPU(
                 assignment = GridAssignment(LUT = assignment), 
                 tracking_param = AnimalTrackerParamTracking(
-                    crop_dimension_mm = (
-                        settings['camera']['width_value']/settings['calibration']['pix_per_mm'], 
-                        settings['camera']['height_value']/settings['calibration']['pix_per_mm']
-                    )
+                    input_image_shape = image_shape
                 )
             ),
-            body = BodyTracker_CPU(BodyTrackerParamTracking()), 
-            eyes = EyesTracker_CPU(EyesTrackerParamTracking()), 
-            tail = TailTracker_CPU(TailTrackerParamTracking())
+            body = BodyTracker_CPU(BodyTrackerParamTracking(input_image_shape = image_shape)), 
+            eyes = EyesTracker_CPU(EyesTrackerParamTracking(input_image_shape = image_shape)), 
+            tail = TailTracker_CPU(TailTrackerParamTracking(input_image_shape = image_shape))
         )
     )
 
