@@ -73,10 +73,8 @@ class OpenLoopWidget(QWidget):
 
         if os.path.exists(self.DEFAULT_OPENLOOP_COORD_FILE):
             with open(self.DEFAULT_OPENLOOP_COORD_FILE, 'r') as f:
-                data = json.load(f)
-            self.heading = data['heading']
-            self.centroid_x.setValue(data['centroid'][0])
-            self.centroid_y.setValue(data['centroid'][1])
+                state = json.load(f)
+                self.set_state(state)
 
         self.update_table()
 
@@ -114,23 +112,26 @@ class OpenLoopWidget(QWidget):
 
         state = {}
         state['openloop_coords_file'] = self.openloop_coords_file.text()
-        state['centroid_x'] = self.centroid_x.value()
-        state['centroid_y'] = self.centroid_y.value()
+        state['centroid'] = (self.centroid_x.value(), self.centroid_y.value())
         state['heading'] = self.heading
         return state
     
     def set_state(self, state: Dict) -> None:
 
-        try:
-            self.openloop_coords_file.setText(state['openloop_coords_file'])
-            self.centroid_x.setValue(state['centroid_x'])
-            self.centroid_y.setValue(state['centroid_y'])
-            self.heading = state['heading']
-            self.update_table()
+        setters = {
+            'openloop_coords_file': self.openloop_coords_file.setText,
+            'centroid': lambda x : (
+                self.centroid_x.setValue(x[0]),
+                self.centroid_y.setValue(x[1])
+            )
+        }
 
-        except KeyError:
-            print('Wrong state keys provided to VR setting widget')
-            raise
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
+        
+        self.heading = state.get('heading', [[1.0, 0.0], [0.0, 1.0]])
+        self.update_table()
 
 if __name__ == "__main__":
 

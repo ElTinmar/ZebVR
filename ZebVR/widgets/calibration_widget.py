@@ -179,21 +179,27 @@ class CalibrationWidget(QWidget):
         return state
     
     def set_state(self, state: Dict) -> None:
-        try:
-            self.checkerboard_square_size_mm.setValue(state['checkerboard_square_size_mm'])
-            self.checkerboard_grid_size_x.setValue(state['checkerboard_grid_size'][0])
-            self.checkerboard_grid_size_y.setValue(state['checkerboard_grid_size'][1])
-            self.camera_exposure_ms.setValue(state['camera_exposure_ms'])
-            self.camera_fps.setValue(state['camera_fps'])
-            self.pix_per_mm.setValue(state['pix_per_mm'])
-            self.calibration_file.setText(state['calibration_file'])
-            self.reticle_thickness.setValue(state['reticle_thickness'])
-            self.reticle_center_x.setValue(state['reticle_center'][0])
-            self.reticle_center_y.setValue(state['reticle_center'][1])
 
-        except KeyError:
-            print('Wrong state keys provided to calibration widget')
-            raise
+        setters = {
+            'checkerboard_square_size_mm': self.checkerboard_square_size_mm.setValue,
+            'checkerboard_grid_size': lambda x: (
+                self.checkerboard_grid_size_x.setValue(x[0]),
+                self.checkerboard_grid_size_y.setValue(x[1]),
+            ),
+            'camera_exposure_ms': self.camera_exposure_ms.setValue,
+            'camera_fps': self.camera_fps.setValue,
+            'pix_per_mm': self.pix_per_mm.setValue,
+            'calibration_file': self.calibration_file.setText,
+            'reticle_thickness': self.reticle_thickness.setValue,
+            'reticle_center': lambda x: (
+                self.reticle_center_x.setValue(x[0]),
+                self.reticle_center_y.setValue(x[1])
+            )
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
 
 if __name__ == "__main__":
 

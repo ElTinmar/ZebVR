@@ -46,10 +46,13 @@ class LogsWidget(QWidget):
     
     def set_state(self, state: Dict) -> None:
 
-        try:
-            self.log_widget.set_state(state['log'])
-            self.queue_refresh_time_microsec.setValue(state['queue_refresh_time_microsec'])
+        setters = {
+            'log': self.log_widget.set_state,
+            'queue_refresh_time_microsec': self.queue_refresh_time_microsec.setValue,
+        }
 
-        except KeyError:
-            print('Wrong state keys provided to logs widget')
-            raise
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
+
+        

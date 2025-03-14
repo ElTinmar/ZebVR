@@ -8,7 +8,11 @@ from PyQt5.QtWidgets import (
     QPushButton
 )
 from PyQt5.QtCore import pyqtSignal
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledComboBox
+from qt_widgets import (
+    LabeledDoubleSpinBox, 
+    LabeledSpinBox, 
+    LabeledComboBox
+)
 import json
 from pathlib import Path
 
@@ -212,26 +216,34 @@ class Animal(QWidget):
     
     def set_state(self, state: Dict) -> None:
 
-        self.assignment_choice.setCurrentText(state['assignment'])
-        self.animal_pix_per_mm.setValue(state['pix_per_mm'])
-        self.animal_target_pix_per_mm.setValue(state['target_pix_per_mm'])
-        self.animal_intensity.setValue(state['intensity'])
-        self.animal_gamma.setValue(state['gamma'])
-        self.animal_contrast.setValue(state['contrast'])
-        self.animal_min_size_mm.setValue(state['min_size_mm'])
-        self.animal_max_size_mm.setValue(state['max_size_mm'])
-        self.animal_min_length_mm.setValue(state['min_length_mm'])
-        self.animal_max_length_mm.setValue(state['max_length_mm'])
-        self.animal_min_width_mm.setValue(state['min_width_mm'])
-        self.animal_max_width_mm.setValue(state['max_width_mm'])
-        self.animal_crop_offset_y_mm.setValue(state['crop_offset_y_mm'])
-        self.animal_crop_width_mm.setValue(state['crop_dimension_mm'][0])
-        self.animal_crop_height_mm.setValue(state['crop_dimension_mm'][1])
-        self.animal_blur_sz_mm.setValue(state['blur_sz_mm'])
-        self.animal_median_filter_sz_mm.setValue(state['median_filter_sz_mm'])
-        self.animal_num_animals.setValue(state['num_animals'])
-        self.animal_downsample_factor.setValue(state['downsample_ratio'])
+        setters = {
+            'assignment': self.assignment_choice.setCurrentText,
+            'pix_per_mm': self.animal_pix_per_mm.setValue,
+            'target_pix_per_mm': self.animal_target_pix_per_mm.setValue,
+            'intensity': self.animal_intensity.setValue,
+            'gamma': self.animal_gamma.setValue,
+            'contrast': self.animal_contrast.setValue,
+            'min_size_mm': self.animal_min_size_mm.setValue,
+            'max_size_mm': self.animal_max_size_mm.setValue,
+            'min_length_mm': self.animal_min_length_mm.setValue,
+            'max_length_mm': self.animal_max_length_mm.setValue,
+            'min_width_mm': self.animal_min_width_mm.setValue,
+            'max_width_mm': self.animal_max_width_mm.setValue,
+            'crop_offset_y_mm': self.animal_crop_offset_y_mm.setValue,
+            'crop_dimension_mm': lambda x: (
+                self.animal_crop_width_mm.setValue(x[0]),
+                self.animal_crop_height_mm.setValue(x[1]),
+            ),
+            'blur_sz_mm': self.animal_blur_sz_mm.setValue,
+            'median_filter_sz_mm': self.animal_median_filter_sz_mm.setValue,
+            'num_animals': self.animal_num_animals.setValue,
+            'downsample_ratio': self.animal_downsample_factor.setValue
+        }
         
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
+
 class Body(QWidget):
 
     state_change = pyqtSignal()
@@ -404,22 +416,30 @@ class Body(QWidget):
 
     def set_state(self, state: Dict) -> None:
 
-        self.body_pix_per_mm.setValue(state['pix_per_mm'])
-        self.body_target_pix_per_mm.setValue(state['target_pix_per_mm'])
-        self.body_intensity.setValue(state['intensity'])
-        self.body_gamma.setValue(state['gamma'])
-        self.body_contrast.setValue(state['contrast'])
-        self.body_min_size_mm.setValue(state['min_size_mm'])
-        self.body_max_size_mm.setValue(state['max_size_mm'])
-        self.body_min_length_mm.setValue(state['min_length_mm'])
-        self.body_max_length_mm.setValue(state['max_length_mm'])
-        self.body_min_width_mm.setValue(state['min_width_mm'])
-        self.body_max_width_mm.setValue(state['max_width_mm'])
-        self.body_crop_offset_y_mm.setValue(state['crop_offset_y_mm'])
-        self.body_crop_width_mm.setValue(state['crop_dimension_mm'][0])
-        self.body_crop_height_mm.setValue(state['crop_dimension_mm'][1])
-        self.body_blur_sz_mm.setValue(state['blur_sz_mm'])
-        self.body_median_filter_sz_mm.setValue(state['median_filter_sz_mm'])
+        setters = {
+            'pix_per_mm': self.body_pix_per_mm.setValue,
+            'target_pix_per_mm': self.body_target_pix_per_mm.setValue,
+            'intensity': self.body_intensity.setValue,
+            'gamma': self.body_gamma.setValue,
+            'contrast': self.body_contrast.setValue,
+            'min_size_mm': self.body_min_size_mm.setValue,
+            'max_size_mm': self.body_max_size_mm.setValue,
+            'min_length_mm': self.body_min_length_mm.setValue,
+            'max_length_mm': self.body_max_length_mm.setValue,
+            'min_width_mm': self.body_min_width_mm.setValue,
+            'max_width_mm': self.body_max_width_mm.setValue,
+            'crop_offset_y_mm': self.body_crop_offset_y_mm.setValue,
+            'crop_dimension_mm': lambda x: (
+                self.body_crop_width_mm.setValue(x[0]),
+                self.body_crop_height_mm.setValue(x[1])
+            ),
+            'blur_sz_mm': self.body_blur_sz_mm.setValue,
+            'median_filter_sz_mm': self.body_median_filter_sz_mm.setValue
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
 
 class Eyes(QWidget):
 
@@ -575,20 +595,28 @@ class Eyes(QWidget):
     
     def set_state(self, state: Dict) -> None:
 
-        self.eyes_pix_per_mm.setValue(state['pix_per_mm'])
-        self.eyes_target_pix_per_mm.setValue(state['target_pix_per_mm'])
-        self.eyes_intensity_lo.setValue(state['thresh_lo'])
-        self.eyes_intensity_hi.setValue(state['thresh_hi'])
-        self.eyes_thresh_resolution.setValue(state['dyntresh_res'])
-        self.eyes_gamma.setValue(state['gamma'])
-        self.eyes_contrast.setValue(state['contrast'])
-        self.eyes_min_size_mm.setValue(state['size_lo_mm'])
-        self.eyes_max_size_mm.setValue(state['size_hi_mm'])
-        self.eyes_crop_offset_y_mm.setValue(state['crop_offset_y_mm'])
-        self.eyes_crop_width_mm.setValue(state['crop_dimension_mm'][0])
-        self.eyes_crop_height_mm.setValue(state['crop_dimension_mm'][1])
-        self.eyes_blur_sz_mm.setValue(state['blur_sz_mm'])
-        self.eyes_median_filter_sz_mm.setValue(state['median_filter_sz_mm'])
+        setters = {
+            'pix_per_mm': self.eyes_pix_per_mm.setValue,
+            'target_pix_per_mm': self.eyes_target_pix_per_mm.setValue,
+            'thresh_lo': self.eyes_intensity_lo.setValue,
+            'thresh_hi': self.eyes_intensity_hi.setValue,
+            'dyntresh_res': self.eyes_thresh_resolution.setValue,
+            'gamma': self.eyes_gamma.setValue,
+            'contrast': self.eyes_contrast.setValue,
+            'size_lo_mm': self.eyes_min_size_mm.setValue,
+            'size_hi_mm': self.eyes_max_size_mm.setValue,
+            'crop_offset_y_mm': self.eyes_crop_offset_y_mm.setValue,
+            'crop_dimension_mm': lambda x: (
+                self.eyes_crop_width_mm.setValue(x[0]),
+                self.eyes_crop_height_mm.setValue(x[1])
+            ),
+            'blur_sz_mm': self.eyes_blur_sz_mm.setValue,
+            'median_filter_sz_mm': self.eyes_median_filter_sz_mm.setValue
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
 
 class Tail(QWidget):
     
@@ -753,24 +781,34 @@ class Tail(QWidget):
         return state
     
     def set_state(self, state: Dict) -> None:
+        
+        setters = {
+            'pix_per_mm': self.tail_pix_per_mm.setValue,
+            'target_pix_per_mm': self.tail_target_pix_per_mm.setValue,
+            'gamma': self.tail_gamma.setValue,
+            'contrast': self.tail_contrast.setValue,
+            'ball_radius_mm': self.tail_ball_radius_mm.setValue,
+            'arc_angle_deg': self.tail_arc_angle_deg.setValue,
+            'n_pts_arc': self.tail_n_points_arc.setValue,
+            'n_tail_points': self.n_tail_points.setValue,
+            'n_pts_interp': self.n_tail_points_interp.setValue,
+            'tail_length_mm': self.tail_length_mm.setValue,
+            'crop_offset_y_mm': self.tail_crop_offset_y_mm.setValue,
+            'crop_dimension_mm': lambda x: (
+                self.tail_crop_width_mm.setValue(x[0]),
+                self.tail_crop_height_mm.setValue(x[1])    
+            ),
+            'blur_sz_mm': self.tail_blur_sz_mm.setValue,
+            'median_filter_sz_mm': self.tail_median_filter_sz_mm.setValue
+        }
 
-        self.tail_pix_per_mm.setValue(state['pix_per_mm'])
-        self.tail_target_pix_per_mm.setValue(state['target_pix_per_mm'])
-        self.tail_gamma.setValue(state['gamma'])
-        self.tail_contrast.setValue(state['contrast'])
-        self.tail_ball_radius_mm.setValue(state['ball_radius_mm'])
-        self.tail_arc_angle_deg.setValue(state['arc_angle_deg'])
-        self.tail_n_points_arc.setValue(state['n_pts_arc'])
-        self.n_tail_points.setValue(state['n_tail_points'])
-        self.n_tail_points_interp.setValue(state['n_pts_interp'])
-        self.tail_length_mm.setValue(state['tail_length_mm'])
-        self.tail_crop_offset_y_mm.setValue(state['crop_offset_y_mm'])
-        self.tail_crop_width_mm.setValue(state['crop_dimension_mm'][0])
-        self.tail_crop_height_mm.setValue(state['crop_dimension_mm'][1])
-        self.tail_blur_sz_mm.setValue(state['blur_sz_mm'])
-        self.tail_median_filter_sz_mm.setValue(state['median_filter_sz_mm'])
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
 
 class TrackerWidget(QWidget):
+
+    state_change = pyqtSignal()
 
     def __init__(
             self,
@@ -781,6 +819,7 @@ class TrackerWidget(QWidget):
 
         super().__init__(*args, **kwargs)
         self.updated = False
+        self.settings_file = settings_file
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Tracking controls')
@@ -861,6 +900,7 @@ class TrackerWidget(QWidget):
             self.group_tail.setChecked(False)
 
         self.updated = True
+        self.state_change.emit()
 
     def is_updated(self) -> bool:
         return self.updated
@@ -901,9 +941,6 @@ class TrackerWidget(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
-        state['body'] = self.group_body.isChecked()
-        state['eyes'] = self.group_eyes.isChecked()
-        state['tail'] = self.group_tail.isChecked() 
         state['body_tracking_enabled']=self.group_body.isChecked()
         state['eyes_tracking_enabled']=self.group_eyes.isChecked()
         state['tail_tracking_enabled']=self.group_tail.isChecked()
@@ -915,13 +952,16 @@ class TrackerWidget(QWidget):
 
     def set_state(self, state:Dict) -> None:
 
-        self.group_body.setChecked(state['body'])
-        self.group_eyes.setChecked(state['eyes'])
-        self.group_tail.setChecked(state['tail'])  
-        self.group_body.setChecked(state['body_tracking_enabled'])
-        self.group_eyes.setChecked(state['eyes_tracking_enabled'])
-        self.group_tail.setChecked(state['tail_tracking_enabled'])
-        self.animal.set_state(state['animal_tracking'])
-        self.body.set_state(state['body_tracking'])
-        self.eyes.set_state(state['eyes_tracking'])
-        self.tail.set_state(state['tail_tracking'])
+        setters = {
+            'body_tracking_enabled': self.group_body.setChecked,
+            'eyes_tracking_enabled': self.group_eyes.setChecked,
+            'tail_tracking_enabled': self.group_tail.setChecked,
+            'animal_tracking': self.animal.set_state,
+            'body_tracking': self.body.set_state,
+            'eyes_tracking': self.eyes.set_state,
+            'tail_tracking': self.tail.set_state,
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])

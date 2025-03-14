@@ -147,18 +147,20 @@ class BackgroundWidget(QWidget):
         return state
     
     def set_state(self, state: Dict) -> None:
-        try:
-            self.inpaint_radius.setValue(state['inpaint_radius'])
-            self.static_num_images.setValue(state['static_num_images'])
-            self.static_pause_duration.setValue(state['static_pause_duration'])
-            self.inpaint_algo.setCurrentText(state['inpaint_algo'])
-            self.bckgsub_method_combobox.setCurrentText(state['bckgsub_method'])
-            self.bckgsub_polarity_combobox.setCurrentText(state['bckgsub_polarity'])
-            self.background_file.setText(state['background_file'])
+        
+        setters = {
+            'inpaint_radius': self.inpaint_radius.setValue,
+            'static_num_images': self.static_num_images.setValue,
+            'static_pause_duration': self.static_pause_duration.setValue,
+            'inpaint_algo': self.inpaint_algo.setCurrentText,
+            'bckgsub_method': self.bckgsub_method_combobox.setCurrentText,
+            'bckgsub_polarity': self.bckgsub_polarity_combobox.setCurrentText,
+            'background_file': self.background_file.setText
+        }
 
-        except KeyError:
-            print('Wrong state keys provided to background widget')
-            raise
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
 
 if __name__ == "__main__":
 

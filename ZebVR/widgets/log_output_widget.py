@@ -51,13 +51,15 @@ class LogOutputWidget(QWidget):
         return state
     
     def set_state(self, state: Dict) -> None:
-        try:
-            self.worker_logfile.setText(state['worker_logfile'])
-            self.queue_logfile.setText(state['queue_logfile'])
 
-        except KeyError:
-            print('Wrong state keys provided to output widget')
-            raise
+        setters = {
+            'worker_logfile': self.worker_logfile.setText,
+            'queue_logfile': self.queue_logfile.setText
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
 
 if __name__ == "__main__":
 

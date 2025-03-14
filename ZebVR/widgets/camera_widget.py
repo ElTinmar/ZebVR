@@ -220,21 +220,30 @@ class CameraWidget(QWidget):
     
     def set_state(self, state: Dict) -> None:
 
-        try:
-            self.camera_id.setValue(state['camera_index'])
-            self.filename.setText(state['movie_file'])
-            self.camera_model.setCurrentIndex(state['camera_model'])
-            for control in self.controls:
-                spinbox = getattr(self, control + '_spinbox')
-                spinbox.setEnabled(state[control + '_enabled'])
-                if state[control + '_enabled']:
-                    spinbox.setRange(state[control + '_min'], state[control + '_max'])
-                    spinbox.setSingleStep(state[control + '_step'])
-                    spinbox.setValue(state[control + '_value'])
-            self.num_channels.setText(str(state['num_channels']))
-        except KeyError:
-            print('Wrong state provided to camera widget')
-            raise
+        setters = {
+            'camera_index': self.camera_id.setValue,
+            'movie_file': self.filename.setText,
+            'camera_model': self.camera_model.setCurrentIndex,
+            'num_channels': lambda x: self.num_channels.setText(str(x)),
+        }
+
+        for control in self.controls:
+            attr = control + '_spinbox'
+            spinbox = getattr(self, attr)
+
+            setter = {
+                control + '_enabled': spinbox.setEnabled,
+                control + '_min': spinbox.setMinimum,
+                control + '_max': spinbox.setMaximum,
+                control + '_step': spinbox.setSingleStep,
+                control + '_value': spinbox.setValue
+            }
+            
+            setters.update(setter)
+        
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
     
     def closeEvent(self, event):
         # If widget is a children of some other widget, it needs
