@@ -148,17 +148,17 @@ class TrackerWorker(WorkerNode):
                 tracking_param=AnimalTrackerParamTracking(**control['animal_tracking'])
             )
             
-            if control['body']:
+            if control['body_tracking_enabled']:
                 body = BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**control['body_tracking']))
             else:
                 body = None
 
-            if control['eyes']:
+            if control['eyes_tracking_enabled']:
                 eyes = EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**control['eyes_tracking']))
             else:
                 eyes = None
 
-            if control['tail']:
+            if control['tail_tracking_enabled']:
                 tail = TailTracker_CPU(tracking_param=TailTrackerParamTracking(**control['tail_tracking']))
             else:
                 tail = None  
