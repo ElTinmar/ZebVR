@@ -93,11 +93,8 @@ class TrackerWorker(WorkerNode):
         if data is None:
             return None
 
-        try:
-            tracking = self.tracker.track(data['image'])
-        except:
-            return None
-        
+        tracking = self.tracker.track(data['image'])
+
         if tracking is None:
             return None
         
