@@ -236,7 +236,6 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
                 name = 'background_subtracted'
             )
 
-
     for i in range(settings['settings']['tracking']['n_tracker_workers']):
         dag.connect_data(
             sender = tracker_worker_list[i], 
