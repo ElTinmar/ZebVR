@@ -32,13 +32,6 @@ class Animal(QWidget):
 
     def declare_components(self):
 
-        self.assignment_choice = LabeledComboBox()
-        self.assignment_choice.setText('Assignment:')
-        self.assignment_choice.addItem('ROI')
-        self.assignment_choice.addItem('Hungarian')
-        self.assignment_choice.currentIndexChanged.connect(self.state_change)      
-        self.assignment_choice.setEnabled(False)
-
         self.animal_num_animals = LabeledSpinBox()
         self.animal_num_animals.setText('#animals')
         self.animal_num_animals.setRange(0,100)
@@ -193,7 +186,6 @@ class Animal(QWidget):
     def get_state(self) -> Dict:
         
         state = {}
-        state['assignment'] = self.assignment_choice.currentText()
         state['pix_per_mm'] = self.animal_pix_per_mm.value()
         state['target_pix_per_mm'] = self.animal_target_pix_per_mm.value()
         state['intensity'] = self.animal_intensity.value()
@@ -217,7 +209,6 @@ class Animal(QWidget):
     def set_state(self, state: Dict) -> None:
 
         setters = {
-            'assignment': self.assignment_choice.setCurrentText,
             'pix_per_mm': self.animal_pix_per_mm.setValue,
             'target_pix_per_mm': self.animal_target_pix_per_mm.setValue,
             'intensity': self.animal_intensity.setValue,
@@ -829,6 +820,13 @@ class TrackerWidget(QWidget):
 
     def declare_components(self):
 
+        self.assignment_choice = LabeledComboBox()
+        self.assignment_choice.setText('Assignment:')
+        self.assignment_choice.addItem('ROI')
+        self.assignment_choice.addItem('Hungarian')
+        self.assignment_choice.currentIndexChanged.connect(self.on_change)      
+        self.assignment_choice.setEnabled(False)
+
         self.animal = Animal()
         self.animal.state_change.connect(self.on_change)
 
@@ -890,6 +888,7 @@ class TrackerWidget(QWidget):
         groups.addWidget(self.group_tail)
         
         final = QVBoxLayout(self)
+        final.addLayout(self.assignment_choice)
         final.addLayout(groups)
         final.addLayout(io_layout)
 
@@ -941,6 +940,7 @@ class TrackerWidget(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
+        state['assignment']=self.assignment_choice.getCurrentIndex()
         state['body_tracking_enabled']=self.group_body.isChecked()
         state['eyes_tracking_enabled']=self.group_eyes.isChecked()
         state['tail_tracking_enabled']=self.group_tail.isChecked()

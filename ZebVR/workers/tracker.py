@@ -93,7 +93,10 @@ class TrackerWorker(WorkerNode):
         if data is None:
             return None
 
-        tracking = self.tracker.track(data['image'])
+        try:
+            tracking = self.tracker.track(data['image'])
+        except:
+            return None
         
         if tracking is None:
             return None
@@ -127,12 +130,12 @@ class TrackerWorker(WorkerNode):
             if control is None:
                 continue
             
-            if control['assignment'] == 'ROI':
+            if control['animal_tracking']['assignment'] == 'ROI':
                 assignment = GridAssignment(
                     LUT=np.zeros((self.cam_height, self.cam_width), dtype=np.int_), # TODO fix that, add a ROI selection tool
                     num_animals = control['animal_tracking']['num_animals']
                 )
-            elif control['assignment'] == 'Hungarian':
+            elif control['animal_tracking']['assignment'] == 'Hungarian':
                 assignment = LinearSumAssignment(
                     distance_threshold = 20, # TODO fix that, add a widget
                     num_animals = control['animal_tracking']['num_animals']
