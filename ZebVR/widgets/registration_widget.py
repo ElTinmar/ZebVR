@@ -229,29 +229,37 @@ class RegistrationWidget(QWidget):
         return state
     
     def set_state(self, state: Dict) -> None:
-        try:
-            self.detection_threshold.setValue(state['detection_threshold'])
-            self.image_contrast.setValue(state['image_contrast'])
-            self.image_gamma.setValue(state['image_gamma'])
-            self.image_brightness.setValue(state['image_brightness'])
-            self.blur_size_px.setValue(state['blur_size_px'])
-            self.dot_radius_px.setValue(state['dot_radius_px'])
-            self.dot_steps.setValue(state['dot_steps'])
-            self.dot_fps.setValue(state['dot_fps'])
-            self.bar_width_px.setValue(state['bar_width_px'])
-            self.bar_step.setValue(state['bar_step'])
-            self.bar_fps.setValue(state['bar_fps'])
-            self.camera_exposure_ms.setValue(state['camera_exposure_ms'])
-            self.camera_gain.setValue(state['camera_gain'])
-            self.pattern_intensity.setValue(state['pattern_intensity'])
-            self.pattern_grid_size.setValue(state['pattern_grid_size'])
-            self.registration_file.setText(state['registration_file'])
-            self.transformation_matrix = state['transformation_matrix']
-            self.update_table()
+        
+        setters = {
+            'detection_threshold': self.detection_threshold.setValue,
+            'image_contrast': self.image_contrast.setValue,
+            'image_gamma': self.image_gamma.setValue,
+            'image_brightness': self.image_brightness.setValue,
+            'blur_size_px': self.blur_size_px.setValue,
+            'dot_radius_px': self.dot_radius_px.setValue,
+            'dot_steps': self.dot_steps.setValue,
+            'dot_fps': self.dot_fps.setValue,
+            'bar_width_px': self.bar_width_px.setValue,
+            'bar_step': self.bar_step.setValue,
+            'bar_fps': self.bar_fps.setValue,
+            'camera_exposure_ms': self.camera_exposure_ms.setValue,
+            'camera_gain': self.camera_gain.setValue,
+            'pattern_intensity': self.pattern_intensity.setValue,
+            'pattern_grid_size': self.pattern_grid_size.setValue,
+            'registration_file': self.registration_file.setText,
+        }
 
-        except KeyError:
-            print('Wrong state keys provided to registration widget')
-            raise
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
+
+        self.transformation_matrix = state.get(
+            'transformation_matrix',
+            [[1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0]]
+        )
+        self.update_table()
 
 if __name__ == "__main__":
 

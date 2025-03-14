@@ -180,9 +180,16 @@ class SequencerWidget(QWidget):
         return state
 
     def set_state(self, state: Dict) -> None:
-        self.spb_repetitions.setValue(state['repetitions'])
-        self.spb_debouncer_length.setValue(state['debouncer_length'])
-        self.set_protocol(state['protocol'])
+        
+        setters = {
+            'repetitions': self.spb_repetitions.setValue,
+            'debouncer_length': self.spb_debouncer_length.setValue,
+            'protocol': self.set_protocol
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])       
 
 if __name__ == '__main__':
 

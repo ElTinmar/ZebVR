@@ -290,24 +290,26 @@ class VideoOutputWidget(QWidget):
         return state
     
     def set_state(self, state: Dict) -> None:
-        try:
-            self.video_group.setChecked(state['video_recording'])
-            self.video_combobox.setCurrentText(state['video_method'])
-            self.video_recording_dir.setText(state['video_recording_dir'])
-            self.video_recording_compress.setChecked(state['video_recording_compression'])
-            self.video_recording_resize.setValue(state['video_recording_resize'])
-            self.video_decimation.setValue(state['video_decimation'])
-            self.video_file.setText(state['video_filename'])
-            self.codec_combobox.setCurrentText(state['video_codec'])
-            self.use_gpu.setChecked(state['video_gpu'])
-            self.grayscale.setChecked(state['video_grayscale'])
-            self.video_preset.setCurrentText(state['video_preset'])
-            self.video_quality.setValue(state['video_quality'])
-            self.display_fps.setValue(state['display_fps'])
+        
+        setters = {
+            'video_recording': self.video_group.setChecked,
+            'video_method': self.video_combobox.setCurrentText,
+            'video_recording_dir': self.video_recording_dir.setText,
+            'video_recording_compression': self.video_recording_compress.setChecked,
+            'video_recording_resize': self.video_recording_resize.setValue,
+            'video_decimation': self.video_decimation.setValue,
+            'video_filename': self.video_file.setText,
+            'video_codec': self.codec_combobox.setCurrentText,
+            'video_gpu': self.use_gpu.setChecked,
+            'video_grayscale': self.grayscale.setChecked,
+            'video_preset': self.video_preset.setCurrentText,
+            'video_quality': self.video_quality.setValue,
+            'display_fps': self.display_fps.setValue
+        }
 
-        except KeyError:
-            print('Wrong state keys provided to output widget')
-            raise
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])        
 
 if __name__ == "__main__":
 

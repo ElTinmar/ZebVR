@@ -248,11 +248,18 @@ class StopWidget(QWidget):
         return state
     
     def set_state(self, state: Dict) -> None:
-        self.cmb_policy_select.setCurrentIndex(state['stop_policy'])
-        self.cmb_trigger_select.setCurrentIndex(state['trigger_select'])
-        self.cmb_trigger_polarity.setCurrentIndex(state['trigger_polarity'])
-        self.trigger_mask.setText(state['mask_file'])
-        self.pause_sec.setValue(state['pause_sec'])
+
+        setters = {
+            'stop_policy': self.cmb_policy_select.setCurrentIndex,
+            'trigger_select': self.cmb_trigger_select.setCurrentIndex,
+            'trigger_polarity': self.cmb_trigger_polarity.setCurrentIndex,
+            'mask_file': self.trigger_mask.setText,
+            'pause_sec': self.pause_sec.setValue
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
 
 class StimWidget(QWidget):
 

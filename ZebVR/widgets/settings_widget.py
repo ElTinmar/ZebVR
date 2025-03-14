@@ -57,12 +57,13 @@ class SettingsWidget(QWidget):
         return state
     
     def set_state(self, state: Dict) -> None:
+        
+        setters = {
+            'tracking': self.tracking_widget.set_state,
+            'openloop': self.open_loop_widget.set_state,
+            'videorecording': self.video_recording_widget.set_state
+        }
 
-        try:
-            self.tracking_widget.set_state(state['tracking'])
-            self.open_loop_widget.set_state(state['openloop'])
-            self.video_recording_widget.set_state(state['videorecording'])
-
-        except KeyError:
-            print('Wrong state keys provided to Settings widget')
-            raise
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])

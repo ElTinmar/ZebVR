@@ -123,20 +123,21 @@ class TrackingWidget(QWidget):
     
     def set_state(self, state: Dict) -> None:
 
-        try:
-            self.tracking_settings.setText(state['tracking_file'])
-            self.n_background_workers.setValue(state['n_background_workers'])
-            self.n_tracker_workers.setValue(state['n_tracker_workers'])
-            self.background_gpu.setChecked(state['background_gpu'])
-            self.n_tail_pts_interp.setValue(state['n_tail_pts_interp'])
-            self.display_fps.setValue(state['display_fps'])
-            self.fish_id.setValue(state['fish_id'])
-            self.dpf.setValue(state['dpf'])
-            self.edt_filename.setText(state['csv_filename'])
-
-        except KeyError:
-            print('Wrong state keys provided to VR setting widget')
-            raise
+        setters = {
+            'tracking_file': self.tracking_settings.setText,
+            'n_background_workers': self.n_background_workers.setValue,
+            'n_tracker_workers': self.n_tracker_workers.setValue,
+            'background_gpu': self.background_gpu.setChecked,
+            'n_tail_pts_interp': self.n_tail_pts_interp.setValue,
+            'display_fps': self.display_fps.setValue,
+            'fish_id': self.fish_id.setValue,
+            'dpf': self.dpf.setValue,
+            'csv_filename': self.edt_filename.setText
+        }
+        
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
 
 if __name__ == "__main__":
 
