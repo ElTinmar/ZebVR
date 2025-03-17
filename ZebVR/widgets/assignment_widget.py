@@ -2,10 +2,7 @@ from PyQt5.QtWidgets import (
     QWidget, 
     QApplication,
     QVBoxLayout, 
-    QHBoxLayout, 
-    QPushButton, 
     QLabel,
-    QStackedWidget
 )
 from PyQt5.QtCore import pyqtSignal, Qt
 from typing import Dict
@@ -15,7 +12,6 @@ import cv2
 import os
 
 from qt_widgets import (
-    LabeledDoubleSpinBox, 
     LabeledSpinBox, 
     NDarray_to_QPixmap
 )
@@ -30,43 +26,131 @@ class AssignmentWidget(QWidget):
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
+
+        if os.path.exists(self.DEFAULT_FILE):
+            self.image = np.load(self.DEFAULT_FILE)
+        else:
+            self.image = np.zeros((512,512), dtype=np.uint8)
+        self.mask = np.full(self.image.shape, -1, dtype=np.int8)
+
         self.declare_components()
         self.layout_components()
 
     def declare_components(self):
 
-        self.rows = LabeledSpinBox()
-        self.rows.setText('#animals')
-        self.rows.setRange(0,100)
-        self.rows.setSingleStep(1)
-        self.rows.setValue(1)
-        self.rows.valueChanged.connect(self.state_changed)
+        self.row = LabeledSpinBox()
+        self.row.setText('row')
+        self.row.setRange(1,10)
+        self.row.setSingleStep(1)
+        self.row.setValue(1)
+        self.row.valueChanged.connect(self.on_change)
 
-        self.image = QLabel()
-        if os.path.exists(self.DEFAULT_FILE):
-            self.set_image(np.load(self.DEFAULT_FILE))
-        else:
-            self.set_image(np.zeros((512,512), dtype=np.uint8))
-        
+        self.col = LabeledSpinBox()
+        self.col.setText('col')
+        self.col.setRange(1,10)
+        self.col.setSingleStep(1)
+        self.col.setValue(1)
+        self.col.valueChanged.connect(self.on_change)
+
+        self.width = LabeledSpinBox()
+        self.width.setText('width')
+        self.width.setRange(0,10_000)
+        self.width.setSingleStep(1)
+        self.width.setValue(self.image.shape[1])
+        self.width.valueChanged.connect(self.on_change)
+
+        self.height = LabeledSpinBox()
+        self.height.setText('height')
+        self.height.setRange(0,10_000)
+        self.height.setSingleStep(1)
+        self.height.setValue(self.image.shape[0])
+        self.height.valueChanged.connect(self.on_change)
+    
+        self.offsetX = LabeledSpinBox()
+        self.offsetX.setText('offsetX')
+        self.offsetX.setRange(0,10_000)
+        self.offsetX.setSingleStep(1)
+        self.offsetX.setValue(0)
+        self.offsetX.valueChanged.connect(self.on_change)
+
+        self.offsetY = LabeledSpinBox()
+        self.offsetY.setText('offsetY')
+        self.offsetY.setRange(0,10_000)
+        self.offsetY.setSingleStep(1)
+        self.offsetY.setValue(0)
+        self.offsetY.valueChanged.connect(self.on_change)
+
+        self.image_label = QLabel()
+        self.set_image(self.image)
 
     def layout_components(self):
         main_layout = QVBoxLayout(self)
-        main_layout.addWidget(self.self.image)
+        main_layout.addWidget(self.row)
+        main_layout.addWidget(self.col)
+        main_layout.addWidget(self.width)
+        main_layout.addWidget(self.height)
+        main_layout.addWidget(self.offsetX)
+        main_layout.addWidget(self.offsetY)
+        main_layout.addWidget(self.image_label)
+
+    def on_change(self):
+        self.set_image(self.image)
+        self.state_changed.emit()
     
     def set_image(self, image: NDArray):
-        # TODO maybe check that image is uint8
+
+        self.image = image
+        self.mask = np.full(image.shape, -1, dtype=np.int8)
+
+        # Create a copy to draw the grid
+        grid_image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
+        # Get grid parameters
+        rows, cols = self.row.value(), self.col.value()
+        box_width, box_height = self.width.value()//cols, self.height.value()//rows
+        offset_x, offset_y = self.offsetX.value(), self.offsetY.value()
+
+        # Draw grid
+        count = 0
+        for r in range(rows):
+            for c in range(cols):
+                x1 = offset_x + c * box_width
+                y1 = offset_y + r * box_height
+                x2 = x1 + box_width
+                y2 = y1 + box_height
+                color = (0, 255, 0) 
+                thickness = 2
+                cv2.rectangle(grid_image, (x1, y1), (x2, y2), color, thickness)
+                self.mask[y1:y2, x1:x2] = count
+                count += 1
+
+        # Convert to QPixmap and display
         h, w = image.shape[:2]
         preview_width = int(w * self.PREVIEW_HEIGHT/h)
-        image_resized = cv2.resize(image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
-        self.image.setPixmap(NDarray_to_QPixmap(image_resized))
+        image_resized = cv2.resize(grid_image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
+        self.image_label.setPixmap(NDarray_to_QPixmap(image_resized))
 
     def get_state(self) -> Dict:
-        state = {}
+        state = {
+            'row': self.row.value(),
+            'col': self.col.value(),
+            'width': self.width.value(),
+            'height': self.height.value(),
+            'offsetX': self.offsetX.value(),
+            'offsetY': self.offsetY.value(),
+        }
         return state
     
     def set_state(self, state: Dict) -> None:
         
-        setters = {}
+        setters = {
+            'row': self.row.setValue,
+            'col': self.col.setValue,
+            'width': self.width.setValue,
+            'height': self.height.setValue,
+            'offsetX': self.offsetX.setValue,
+            'offsetY': self.offsetY.setValue,
+        }
 
         for key, setter in setters.items():
             if key in state:
