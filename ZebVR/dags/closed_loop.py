@@ -256,6 +256,8 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     )
 
     with open(settings['settings']['tracking']['tracker_settings_file'],'r') as fp:
+        # NOTE if this has wrong keys, ParamTracking will create an error.  
+        # maybe writ ea proper function with sane default values.
         tracker_settings = json.load(fp)
 
     if tracker_settings['assignment'] == 'ROI':
