@@ -32,6 +32,7 @@ class AssignmentWidget(QWidget):
         else:
             self.image = np.zeros((512,512), dtype=np.uint8)
         self.mask = np.full(self.image.shape, -1, dtype=np.int8)
+        self.ROIs = []
 
         self.declare_components()
         self.layout_components()
@@ -101,6 +102,7 @@ class AssignmentWidget(QWidget):
 
         self.image = image
         self.mask = np.full(image.shape, -1, dtype=np.int8)
+        self.ROIs = []
 
         # Create a copy to draw the grid
         grid_image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
@@ -114,15 +116,16 @@ class AssignmentWidget(QWidget):
         count = 0
         for r in range(rows):
             for c in range(cols):
-                x1 = offset_x + c * box_width
-                y1 = offset_y + r * box_height
-                x2 = x1 + box_width
-                y2 = y1 + box_height
+                x1 = min(offset_x + c * box_width, image.shape[1])
+                y1 = min(offset_y + r * box_height, image.shape[0])
+                x2 = min(x1 + box_width, image.shape[1]) 
+                y2 = min(y1 + box_height, image.shape[0])
                 color = (0, 255, 0) 
                 thickness = 2
                 cv2.rectangle(grid_image, (x1, y1), (x2, y2), color, thickness)
                 self.mask[y1:y2, x1:x2] = count
                 count += 1
+                self.ROIs.append((x1,y1,box_width,box_height))
 
         # Convert to QPixmap and display
         h, w = image.shape[:2]
@@ -162,3 +165,5 @@ if __name__ == "__main__":
     window = AssignmentWidget()
     window.show()
     app.exec()
+
+    print(window.ROIs)
