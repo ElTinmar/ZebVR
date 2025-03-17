@@ -84,6 +84,7 @@ class AssignmentWidget(QWidget):
         self.set_image(self.image)
 
     def layout_components(self):
+
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.row)
         main_layout.addWidget(self.col)
@@ -94,6 +95,7 @@ class AssignmentWidget(QWidget):
         main_layout.addWidget(self.image_label)
 
     def on_change(self):
+        
         self.set_image(self.image)
         self.state_changed.emit()
     
