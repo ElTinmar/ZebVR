@@ -110,7 +110,7 @@ class TrackingWidget(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
-        state['tracking_file'] = self.tracking_settings.text()
+        state['tracker_settings_file'] = self.tracking_settings.text()
         state['n_background_workers'] = self.n_background_workers.value()
         state['n_tracker_workers'] = self.n_tracker_workers.value()
         state['background_gpu'] = self.background_gpu.isChecked()
@@ -124,7 +124,7 @@ class TrackingWidget(QWidget):
     def set_state(self, state: Dict) -> None:
 
         setters = {
-            'tracking_file': self.tracking_settings.setText,
+            'tracker_settings_file': self.tracking_settings.setText,
             'n_background_workers': self.n_background_workers.setValue,
             'n_tracker_workers': self.n_tracker_workers.setValue,
             'background_gpu': self.background_gpu.setChecked,

@@ -176,7 +176,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     
     tracker_control_worker = TrackerGui(
         n_tracker_workers = settings['settings']['tracking']['n_tracker_workers'],
-        settings_file = settings['settings']['tracking']['tracking_file'],
+        settings_file = settings['settings']['tracking']['tracker_settings_file'],
         name = 'tracker_gui',  
         logger = worker_logger, 
         logger_queues = queue_logger,
