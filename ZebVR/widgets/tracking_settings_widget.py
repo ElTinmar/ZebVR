@@ -1,6 +1,7 @@
 from typing import Dict
 from PyQt5.QtWidgets import (
     QWidget, 
+    QApplication,
     QVBoxLayout, 
     QHBoxLayout, 
     QGroupBox,
@@ -965,3 +966,10 @@ class TrackerWidget(QWidget):
         for key, setter in setters.items():
             if key in state:
                 setter(state[key])
+
+if __name__ == "__main__":
+
+    app = QApplication([])
+    main = TrackerWidget()
+    main.show()
+    app.exec_()
