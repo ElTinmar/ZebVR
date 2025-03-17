@@ -31,7 +31,6 @@ class AssignmentWidget(QWidget):
             self.image = np.load(self.DEFAULT_FILE)
         else:
             self.image = np.zeros((512,512), dtype=np.uint8)
-        self.mask = np.full(self.image.shape, -1, dtype=np.int8)
         self.ROIs = []
 
         self.declare_components()
@@ -101,7 +100,6 @@ class AssignmentWidget(QWidget):
     def set_image(self, image: NDArray):
 
         self.image = image
-        self.mask = np.full(image.shape, -1, dtype=np.int8)
         self.ROIs = []
 
         # Create a copy to draw the grid
@@ -113,7 +111,6 @@ class AssignmentWidget(QWidget):
         offset_x, offset_y = self.offsetX.value(), self.offsetY.value()
 
         # Draw grid
-        count = 0
         for r in range(rows):
             for c in range(cols):
                 x1 = min(offset_x + c * box_width, image.shape[1])
@@ -123,8 +120,6 @@ class AssignmentWidget(QWidget):
                 color = (0, 255, 0) 
                 thickness = 2
                 cv2.rectangle(grid_image, (x1, y1), (x2, y2), color, thickness)
-                self.mask[y1:y2, x1:x2] = count
-                count += 1
                 self.ROIs.append((x1,y1,box_width,box_height))
 
         # Convert to QPixmap and display
@@ -134,6 +129,7 @@ class AssignmentWidget(QWidget):
         self.image_label.setPixmap(NDarray_to_QPixmap(image_resized))
 
     def get_state(self) -> Dict:
+
         state = {
             'row': self.row.value(),
             'col': self.col.value(),
@@ -141,6 +137,7 @@ class AssignmentWidget(QWidget):
             'height': self.height.value(),
             'offsetX': self.offsetX.value(),
             'offsetY': self.offsetY.value(),
+            'ROIs': self.ROIs
         }
         return state
     
@@ -158,12 +155,10 @@ class AssignmentWidget(QWidget):
         for key, setter in setters.items():
             if key in state:
                 setter(state[key])
-
+        
 if __name__ == "__main__":
     
     app = QApplication([])
     window = AssignmentWidget()
     window.show()
     app.exec()
-
-    print(window.ROIs)
