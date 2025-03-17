@@ -19,7 +19,7 @@ from pathlib import Path
 
 class Animal(QWidget):
 
-    state_change = pyqtSignal() 
+    state_changed = pyqtSignal() 
 
     def __init__(
             self,
@@ -38,7 +38,7 @@ class Animal(QWidget):
         self.animal_num_animals.setRange(0,100)
         self.animal_num_animals.setSingleStep(1)
         self.animal_num_animals.setValue(1)
-        self.animal_num_animals.valueChanged.connect(self.state_change)
+        self.animal_num_animals.valueChanged.connect(self.state_changed)
         self.animal_num_animals.setEnabled(False)
     
         self.animal_pix_per_mm = LabeledDoubleSpinBox()
@@ -46,119 +46,119 @@ class Animal(QWidget):
         self.animal_pix_per_mm.setRange(1,200)
         self.animal_pix_per_mm.setValue(50)
         self.animal_pix_per_mm.setSingleStep(0.25)
-        self.animal_pix_per_mm.valueChanged.connect(self.state_change)
+        self.animal_pix_per_mm.valueChanged.connect(self.state_changed)
 
         self.animal_target_pix_per_mm = LabeledDoubleSpinBox()
         self.animal_target_pix_per_mm.setText('target pix/mm')
         self.animal_target_pix_per_mm.setRange(1,200)
         self.animal_target_pix_per_mm.setValue(5)
         self.animal_target_pix_per_mm.setSingleStep(0.25)
-        self.animal_target_pix_per_mm.valueChanged.connect(self.state_change)
+        self.animal_target_pix_per_mm.valueChanged.connect(self.state_changed)
 
         self.animal_intensity = LabeledDoubleSpinBox()
         self.animal_intensity.setText('intensity')
         self.animal_intensity.setRange(0,1)
         self.animal_intensity.setSingleStep(0.025)
         self.animal_intensity.setValue(0.2)
-        self.animal_intensity.valueChanged.connect(self.state_change)
+        self.animal_intensity.valueChanged.connect(self.state_changed)
 
         self.animal_gamma = LabeledDoubleSpinBox()
         self.animal_gamma.setText('gamma')
         self.animal_gamma.setRange(0.05,10)
         self.animal_gamma.setSingleStep(0.05)
         self.animal_gamma.setValue(1.0)
-        self.animal_gamma.valueChanged.connect(self.state_change)
+        self.animal_gamma.valueChanged.connect(self.state_changed)
         
         self.animal_contrast = LabeledDoubleSpinBox()
         self.animal_contrast.setText('contrast')
         self.animal_contrast.setRange(-10,10)
         self.animal_contrast.setSingleStep(0.05)
         self.animal_contrast.setValue(1.0)
-        self.animal_contrast.valueChanged.connect(self.state_change)
+        self.animal_contrast.valueChanged.connect(self.state_changed)
 
         self.animal_min_size_mm = LabeledDoubleSpinBox()
         self.animal_min_size_mm.setText('min area (mm2)')
         self.animal_min_size_mm.setRange(0,100_000)
         self.animal_min_size_mm.setSingleStep(1.0)
         self.animal_min_size_mm.setValue(2.0)
-        self.animal_min_size_mm.valueChanged.connect(self.state_change)
+        self.animal_min_size_mm.valueChanged.connect(self.state_changed)
 
         self.animal_max_size_mm = LabeledDoubleSpinBox()
         self.animal_max_size_mm.setText('max area (mm2)')
         self.animal_max_size_mm.setRange(0,100_000)
         self.animal_max_size_mm.setSingleStep(1.0)
         self.animal_max_size_mm.setValue(300.0)
-        self.animal_max_size_mm.valueChanged.connect(self.state_change)
+        self.animal_max_size_mm.valueChanged.connect(self.state_changed)
 
         self.animal_min_length_mm = LabeledDoubleSpinBox()
         self.animal_min_length_mm.setText('min length (mm)')
         self.animal_min_length_mm.setRange(0,100_000)
         self.animal_min_length_mm.setSingleStep(1.0)
         self.animal_min_length_mm.setValue(0.0)
-        self.animal_min_length_mm.valueChanged.connect(self.state_change)
+        self.animal_min_length_mm.valueChanged.connect(self.state_changed)
 
         self.animal_max_length_mm = LabeledDoubleSpinBox()
         self.animal_max_length_mm.setText('max length (mm)')
         self.animal_max_length_mm.setRange(0,100_000)
         self.animal_max_length_mm.setSingleStep(1.0)
         self.animal_max_length_mm.setValue(0.0)
-        self.animal_max_length_mm.valueChanged.connect(self.state_change)
+        self.animal_max_length_mm.valueChanged.connect(self.state_changed)
 
         self.animal_min_width_mm = LabeledDoubleSpinBox()
         self.animal_min_width_mm.setText('min width (mm)')
         self.animal_min_width_mm.setRange(0,100_000)
         self.animal_min_width_mm.setSingleStep(1.0)
         self.animal_min_width_mm.setValue(0.0)
-        self.animal_min_width_mm.valueChanged.connect(self.state_change)
+        self.animal_min_width_mm.valueChanged.connect(self.state_changed)
 
         self.animal_max_width_mm = LabeledDoubleSpinBox()
         self.animal_max_width_mm.setText('max width (mm)')
         self.animal_max_width_mm.setRange(0,100_000)
         self.animal_max_width_mm.setSingleStep(1.0)
         self.animal_max_width_mm.setValue(0.0)
-        self.animal_max_width_mm.valueChanged.connect(self.state_change)
+        self.animal_max_width_mm.valueChanged.connect(self.state_changed)
 
         self.animal_crop_offset_y_mm = LabeledDoubleSpinBox()
         self.animal_crop_offset_y_mm.setText('vertical offset (mm)')
         self.animal_crop_offset_y_mm.setRange(-10,10)
         self.animal_crop_offset_y_mm.setSingleStep(0.025)
         self.animal_crop_offset_y_mm.setValue(0.0)
-        self.animal_crop_offset_y_mm.valueChanged.connect(self.state_change)
+        self.animal_crop_offset_y_mm.valueChanged.connect(self.state_changed)
 
         self.animal_crop_width_mm = LabeledDoubleSpinBox()
         self.animal_crop_width_mm.setText('crop width (mm)')
         self.animal_crop_width_mm.setRange(0,100)
         self.animal_crop_width_mm.setSingleStep(0.05)
         self.animal_crop_width_mm.setValue(0)
-        self.animal_crop_width_mm.valueChanged.connect(self.state_change)
+        self.animal_crop_width_mm.valueChanged.connect(self.state_changed)
 
         self.animal_crop_height_mm = LabeledDoubleSpinBox()
         self.animal_crop_height_mm.setText('crop height (mm)')
         self.animal_crop_height_mm.setRange(0,1000)
         self.animal_crop_height_mm.setSingleStep(0.05)
         self.animal_crop_height_mm.setValue(0)
-        self.animal_crop_height_mm.valueChanged.connect(self.state_change)
+        self.animal_crop_height_mm.valueChanged.connect(self.state_changed)
 
         self.animal_blur_sz_mm = LabeledDoubleSpinBox()
         self.animal_blur_sz_mm.setText('blur size (mm)')
         self.animal_blur_sz_mm.setRange(0,1000)
         self.animal_blur_sz_mm.setSingleStep(0.1)
         self.animal_blur_sz_mm.setValue(0.60)
-        self.animal_blur_sz_mm.valueChanged.connect(self.state_change)
+        self.animal_blur_sz_mm.valueChanged.connect(self.state_changed)
         
         self.animal_median_filter_sz_mm = LabeledDoubleSpinBox()
         self.animal_median_filter_sz_mm.setText('medfilt size (mm)')
         self.animal_median_filter_sz_mm.setRange(0,1000)
         self.animal_median_filter_sz_mm.setSingleStep(0.1)
         self.animal_median_filter_sz_mm.setValue(0.0)
-        self.animal_median_filter_sz_mm.valueChanged.connect(self.state_change)
+        self.animal_median_filter_sz_mm.valueChanged.connect(self.state_changed)
 
         self.animal_downsample_factor = LabeledDoubleSpinBox()
         self.animal_downsample_factor.setText('downsample ratio')
         self.animal_downsample_factor.setRange(0.1,1.0)
         self.animal_downsample_factor.setSingleStep(0.05)
         self.animal_downsample_factor.setValue(0.25)
-        self.animal_downsample_factor.valueChanged.connect(self.state_change)
+        self.animal_downsample_factor.valueChanged.connect(self.state_changed)
 
     def layout_components(self):
 
@@ -237,7 +237,7 @@ class Animal(QWidget):
 
 class Body(QWidget):
 
-    state_change = pyqtSignal()
+    state_changed = pyqtSignal()
 
     def __init__(
             self,
@@ -256,112 +256,112 @@ class Body(QWidget):
         self.body_pix_per_mm.setRange(1,200)
         self.body_pix_per_mm.setSingleStep(0.25)
         self.body_pix_per_mm.setValue(50)
-        self.body_pix_per_mm.valueChanged.connect(self.state_change)
+        self.body_pix_per_mm.valueChanged.connect(self.state_changed)
         
         self.body_target_pix_per_mm = LabeledDoubleSpinBox()
         self.body_target_pix_per_mm.setText('target pix/mm')
         self.body_target_pix_per_mm.setRange(1,200)
         self.body_target_pix_per_mm.setSingleStep(0.25)
         self.body_target_pix_per_mm.setValue(7.5)
-        self.body_target_pix_per_mm.valueChanged.connect(self.state_change)
+        self.body_target_pix_per_mm.valueChanged.connect(self.state_changed)
         
         self.body_intensity = LabeledDoubleSpinBox()
         self.body_intensity.setText('intensity')
         self.body_intensity.setRange(0,1)
         self.body_intensity.setSingleStep(0.025)
         self.body_intensity.setValue(0.2)
-        self.body_intensity.valueChanged.connect(self.state_change)
+        self.body_intensity.valueChanged.connect(self.state_changed)
 
         self.body_gamma = LabeledDoubleSpinBox()
         self.body_gamma.setText('gamma')
         self.body_gamma.setRange(0.05,10)
         self.body_gamma.setSingleStep(0.05)
         self.body_gamma.setValue(1.0)
-        self.body_gamma.valueChanged.connect(self.state_change)
+        self.body_gamma.valueChanged.connect(self.state_changed)
 
         self.body_contrast = LabeledDoubleSpinBox()
         self.body_contrast.setText('contrast')
         self.body_contrast.setRange(-10,10)
         self.body_contrast.setSingleStep(0.05)
         self.body_contrast.setValue(1.0)
-        self.body_contrast.valueChanged.connect(self.state_change)
+        self.body_contrast.valueChanged.connect(self.state_changed)
 
         self.body_min_size_mm = LabeledDoubleSpinBox()
         self.body_min_size_mm.setText('min area (mm2)')
         self.body_min_size_mm.setRange(0,100_000)
         self.body_min_size_mm.setSingleStep(1.0)
         self.body_min_size_mm.setValue(2.0)
-        self.body_min_size_mm.valueChanged.connect(self.state_change)
+        self.body_min_size_mm.valueChanged.connect(self.state_changed)
 
         self.body_max_size_mm = LabeledDoubleSpinBox()
         self.body_max_size_mm.setText('max area (mm2)')
         self.body_max_size_mm.setRange(0,100_000)
         self.body_max_size_mm.setSingleStep(1.0)
         self.body_max_size_mm.setValue(300)
-        self.body_max_size_mm.valueChanged.connect(self.state_change)
+        self.body_max_size_mm.valueChanged.connect(self.state_changed)
 
         self.body_min_length_mm = LabeledDoubleSpinBox()
         self.body_min_length_mm.setText('min length (mm)')
         self.body_min_length_mm.setRange(0,100_000)
         self.body_min_length_mm.setSingleStep(1.0)
         self.body_min_length_mm.setValue(0.0)
-        self.body_min_length_mm.valueChanged.connect(self.state_change)
+        self.body_min_length_mm.valueChanged.connect(self.state_changed)
 
         self.body_max_length_mm = LabeledDoubleSpinBox()
         self.body_max_length_mm.setText('max length (mm)')
         self.body_max_length_mm.setRange(0,100_000)
         self.body_max_length_mm.setSingleStep(1.0)
         self.body_max_length_mm.setValue(0.0)
-        self.body_max_length_mm.valueChanged.connect(self.state_change)
+        self.body_max_length_mm.valueChanged.connect(self.state_changed)
 
         self.body_min_width_mm = LabeledDoubleSpinBox()
         self.body_min_width_mm.setText('min width (mm)')
         self.body_min_width_mm.setRange(0,100_000)
         self.body_min_width_mm.setSingleStep(1.0)
         self.body_min_width_mm.setValue(0.0)
-        self.body_min_width_mm.valueChanged.connect(self.state_change)
+        self.body_min_width_mm.valueChanged.connect(self.state_changed)
 
         self.body_max_width_mm = LabeledDoubleSpinBox()
         self.body_max_width_mm.setText('max width (mm)')
         self.body_max_width_mm.setRange(0,100_000)
         self.body_max_width_mm.setSingleStep(1.0)
         self.body_max_width_mm.setValue(0.0)
-        self.body_max_width_mm.valueChanged.connect(self.state_change)
+        self.body_max_width_mm.valueChanged.connect(self.state_changed)
 
         self.body_crop_offset_y_mm = LabeledDoubleSpinBox()
         self.body_crop_offset_y_mm.setText('vertical offset (mm)')
         self.body_crop_offset_y_mm.setRange(-10,10)
         self.body_crop_offset_y_mm.setSingleStep(0.025)
         self.body_crop_offset_y_mm.setValue(0.0)
-        self.body_crop_offset_y_mm.valueChanged.connect(self.state_change)
+        self.body_crop_offset_y_mm.valueChanged.connect(self.state_changed)
 
         self.body_crop_width_mm = LabeledDoubleSpinBox()
         self.body_crop_width_mm.setText('crop width (mm)')
         self.body_crop_width_mm.setRange(0,1000)
         self.body_crop_width_mm.setSingleStep(0.05)
         self.body_crop_width_mm.setValue(9)
-        self.body_crop_width_mm.valueChanged.connect(self.state_change)
+        self.body_crop_width_mm.valueChanged.connect(self.state_changed)
 
         self.body_crop_height_mm = LabeledDoubleSpinBox()
         self.body_crop_height_mm.setText('crop height (mm)')
         self.body_crop_height_mm.setRange(0,1000)
         self.body_crop_height_mm.setSingleStep(0.05)
         self.body_crop_height_mm.setValue(9)
-        self.body_crop_height_mm.valueChanged.connect(self.state_change)
+        self.body_crop_height_mm.valueChanged.connect(self.state_changed)
 
         self.body_blur_sz_mm = LabeledDoubleSpinBox()
         self.body_blur_sz_mm.setText('blur size (mm)')
         self.body_blur_sz_mm.setRange(0,1000)
         self.body_blur_sz_mm.setSingleStep(0.1)
         self.body_blur_sz_mm.setValue(0.60)
-        self.body_blur_sz_mm.valueChanged.connect(self.state_change)
+        self.body_blur_sz_mm.valueChanged.connect(self.state_changed)
 
         self.body_median_filter_sz_mm = LabeledDoubleSpinBox()
         self.body_median_filter_sz_mm.setText('medfilt size (mm)')
         self.body_median_filter_sz_mm.setRange(0,1000)
         self.body_median_filter_sz_mm.setSingleStep(0.1)
         self.body_median_filter_sz_mm.setValue(0.0)
-        self.body_median_filter_sz_mm.valueChanged.connect(self.state_change)
+        self.body_median_filter_sz_mm.valueChanged.connect(self.state_changed)
 
     def layout_components(self):
 
@@ -434,7 +434,7 @@ class Body(QWidget):
 
 class Eyes(QWidget):
 
-    state_change = pyqtSignal()
+    state_changed = pyqtSignal()
     
     def __init__(
             self,
@@ -453,98 +453,98 @@ class Eyes(QWidget):
         self.eyes_pix_per_mm.setRange(1,200)
         self.eyes_pix_per_mm.setSingleStep(0.25)
         self.eyes_pix_per_mm.setValue(50)
-        self.eyes_pix_per_mm.valueChanged.connect(self.state_change)
+        self.eyes_pix_per_mm.valueChanged.connect(self.state_changed)
 
         self.eyes_target_pix_per_mm = LabeledDoubleSpinBox()
         self.eyes_target_pix_per_mm.setText('target pix/mm')
         self.eyes_target_pix_per_mm.setRange(1,200)
         self.eyes_target_pix_per_mm.setSingleStep(0.25)
         self.eyes_target_pix_per_mm.setValue(40)
-        self.eyes_target_pix_per_mm.valueChanged.connect(self.state_change)
+        self.eyes_target_pix_per_mm.valueChanged.connect(self.state_changed)
         
         self.eyes_intensity_lo = LabeledDoubleSpinBox()
         self.eyes_intensity_lo.setText('thresh low')
         self.eyes_intensity_lo.setRange(0,1)
         self.eyes_intensity_lo.setSingleStep(0.025)
         self.eyes_intensity_lo.setValue(0.2)
-        self.eyes_intensity_lo.valueChanged.connect(self.state_change)
+        self.eyes_intensity_lo.valueChanged.connect(self.state_changed)
 
         self.eyes_intensity_hi = LabeledDoubleSpinBox()
         self.eyes_intensity_hi.setText('thresh high')
         self.eyes_intensity_hi.setRange(0,1)
         self.eyes_intensity_hi.setSingleStep(0.025)
         self.eyes_intensity_hi.setValue(0.8)
-        self.eyes_intensity_hi.valueChanged.connect(self.state_change)
+        self.eyes_intensity_hi.valueChanged.connect(self.state_changed)
 
         self.eyes_thresh_resolution = LabeledSpinBox()
         self.eyes_thresh_resolution.setText('thresh steps')
         self.eyes_thresh_resolution.setSingleStep(1)
         self.eyes_thresh_resolution.setRange(1,100)
         self.eyes_thresh_resolution.setValue(10)
-        self.eyes_thresh_resolution.valueChanged.connect(self.state_change)
+        self.eyes_thresh_resolution.valueChanged.connect(self.state_changed)
 
         self.eyes_gamma = LabeledDoubleSpinBox()
         self.eyes_gamma.setText('gamma')
         self.eyes_gamma.setRange(0.05,10)
         self.eyes_gamma.setSingleStep(0.05)
         self.eyes_gamma.setValue(1.0)
-        self.eyes_gamma.valueChanged.connect(self.state_change)
+        self.eyes_gamma.valueChanged.connect(self.state_changed)
 
         self.eyes_contrast = LabeledDoubleSpinBox()
         self.eyes_contrast.setText('contrast')
         self.eyes_contrast.setRange(-10,10)
         self.eyes_contrast.setSingleStep(0.05)
         self.eyes_contrast.setValue(1.0)
-        self.eyes_contrast.valueChanged.connect(self.state_change)
+        self.eyes_contrast.valueChanged.connect(self.state_changed)
 
         self.eyes_min_size_mm = LabeledDoubleSpinBox()
         self.eyes_min_size_mm.setText('min area (mm2)')
         self.eyes_min_size_mm.setRange(0,1000)
         self.eyes_min_size_mm.setSingleStep(1.0)
         self.eyes_min_size_mm.setValue(2.0)
-        self.eyes_min_size_mm.valueChanged.connect(self.state_change)
+        self.eyes_min_size_mm.valueChanged.connect(self.state_changed)
 
         self.eyes_max_size_mm = LabeledDoubleSpinBox()
         self.eyes_max_size_mm.setText('max area (mm2)')
         self.eyes_max_size_mm.setRange(0,1000)
         self.eyes_max_size_mm.setSingleStep(1.0)
         self.eyes_max_size_mm.setValue(30.0)
-        self.eyes_max_size_mm.valueChanged.connect(self.state_change)
+        self.eyes_max_size_mm.valueChanged.connect(self.state_changed)
 
         self.eyes_crop_offset_y_mm = LabeledDoubleSpinBox()
         self.eyes_crop_offset_y_mm.setText('vertical offset (mm)')
         self.eyes_crop_offset_y_mm.setRange(-10,10)
         self.eyes_crop_offset_y_mm.setSingleStep(0.025)
         self.eyes_crop_offset_y_mm.setValue(0.0)
-        self.eyes_crop_offset_y_mm.valueChanged.connect(self.state_change)
+        self.eyes_crop_offset_y_mm.valueChanged.connect(self.state_changed)
 
         self.eyes_crop_width_mm = LabeledDoubleSpinBox()
         self.eyes_crop_width_mm.setText('crop width (mm)')
         self.eyes_crop_width_mm.setRange(0,1000)
         self.eyes_crop_width_mm.setSingleStep(0.05)
         self.eyes_crop_width_mm.setValue(2)
-        self.eyes_crop_width_mm.valueChanged.connect(self.state_change)
+        self.eyes_crop_width_mm.valueChanged.connect(self.state_changed)
 
         self.eyes_crop_height_mm = LabeledDoubleSpinBox()
         self.eyes_crop_height_mm.setText('crop height (mm)')
         self.eyes_crop_height_mm.setRange(0,1000)
         self.eyes_crop_height_mm.setSingleStep(0.05)
         self.eyes_crop_height_mm.setValue(2)
-        self.eyes_crop_height_mm.valueChanged.connect(self.state_change)
+        self.eyes_crop_height_mm.valueChanged.connect(self.state_changed)
 
         self.eyes_blur_sz_mm = LabeledDoubleSpinBox()
         self.eyes_blur_sz_mm.setText('blur size (mm)')
         self.eyes_blur_sz_mm.setRange(0,1000)
         self.eyes_blur_sz_mm.setSingleStep(0.1)
         self.eyes_blur_sz_mm.setValue(0.1)
-        self.eyes_blur_sz_mm.valueChanged.connect(self.state_change)
+        self.eyes_blur_sz_mm.valueChanged.connect(self.state_changed)
 
         self.eyes_median_filter_sz_mm = LabeledDoubleSpinBox()
         self.eyes_median_filter_sz_mm.setText('medfilt size (mm)')
         self.eyes_median_filter_sz_mm.setRange(0,1000)
         self.eyes_median_filter_sz_mm.setSingleStep(0.1)
         self.eyes_median_filter_sz_mm.setValue(0.0)
-        self.eyes_median_filter_sz_mm.valueChanged.connect(self.state_change)
+        self.eyes_median_filter_sz_mm.valueChanged.connect(self.state_changed)
 
     def layout_components(self):
 
@@ -611,7 +611,7 @@ class Eyes(QWidget):
 
 class Tail(QWidget):
     
-    state_change = pyqtSignal()
+    state_changed = pyqtSignal()
 
     def __init__(
             self,
@@ -630,63 +630,63 @@ class Tail(QWidget):
         self.tail_pix_per_mm.setRange(1,200)
         self.tail_pix_per_mm.setSingleStep(0.25)
         self.tail_pix_per_mm.setValue(50)
-        self.tail_pix_per_mm.valueChanged.connect(self.state_change)
+        self.tail_pix_per_mm.valueChanged.connect(self.state_changed)
         
         self.tail_target_pix_per_mm = LabeledDoubleSpinBox()
         self.tail_target_pix_per_mm.setText('target pix/mm')
         self.tail_target_pix_per_mm.setRange(1,200)
         self.tail_target_pix_per_mm.setSingleStep(0.25)
         self.tail_target_pix_per_mm.setValue(20)
-        self.tail_target_pix_per_mm.valueChanged.connect(self.state_change)
+        self.tail_target_pix_per_mm.valueChanged.connect(self.state_changed)
 
         self.tail_gamma = LabeledDoubleSpinBox()
         self.tail_gamma.setText('gamma')
         self.tail_gamma.setRange(0.05,10)
         self.tail_gamma.setSingleStep(0.05)
         self.tail_gamma.setValue(1.0)
-        self.tail_gamma.valueChanged.connect(self.state_change)
+        self.tail_gamma.valueChanged.connect(self.state_changed)
 
         self.tail_contrast = LabeledDoubleSpinBox()
         self.tail_contrast.setText('contrast')
         self.tail_contrast.setRange(-10,10)
         self.tail_contrast.setSingleStep(0.05)
         self.tail_contrast.setValue(1.0)
-        self.tail_contrast.valueChanged.connect(self.state_change)
+        self.tail_contrast.valueChanged.connect(self.state_changed)
 
         self.tail_ball_radius_mm = LabeledDoubleSpinBox()
         self.tail_ball_radius_mm.setText('ball radius (mm)')
         self.tail_ball_radius_mm.setRange(0.05,10)
         self.tail_ball_radius_mm.setSingleStep(0.01)
         self.tail_ball_radius_mm.setValue(0.15)
-        self.tail_ball_radius_mm.valueChanged.connect(self.state_change)
+        self.tail_ball_radius_mm.valueChanged.connect(self.state_changed)
 
         self.tail_arc_angle_deg = LabeledDoubleSpinBox()
         self.tail_arc_angle_deg.setText('arc angle (deg)')
         self.tail_arc_angle_deg.setRange(1,360)
         self.tail_arc_angle_deg.setSingleStep(1.0)
         self.tail_arc_angle_deg.setValue(90)
-        self.tail_arc_angle_deg.valueChanged.connect(self.state_change)
+        self.tail_arc_angle_deg.valueChanged.connect(self.state_changed)
         
         self.tail_n_points_arc = LabeledSpinBox()
         self.tail_n_points_arc.setText('arc resolution')
         self.tail_n_points_arc.setRange(2,100)
         self.tail_n_points_arc.setSingleStep(1)
         self.tail_n_points_arc.setValue(20)
-        self.tail_n_points_arc.valueChanged.connect(self.state_change)
+        self.tail_n_points_arc.valueChanged.connect(self.state_changed)
 
         self.n_tail_points = LabeledSpinBox()
         self.n_tail_points.setText('#tail points')
         self.n_tail_points.setRange(3,100)
         self.n_tail_points.setSingleStep(1)
         self.n_tail_points.setValue(6)
-        self.n_tail_points.valueChanged.connect(self.state_change)
+        self.n_tail_points.valueChanged.connect(self.state_changed)
 
         self.n_tail_points_interp = LabeledSpinBox()
         self.n_tail_points_interp.setText('#tail points interp')
         self.n_tail_points_interp.setRange(2,100)
         self.n_tail_points_interp.setSingleStep(1)
         self.n_tail_points_interp.setValue(40)
-        self.n_tail_points_interp.valueChanged.connect(self.state_change)
+        self.n_tail_points_interp.valueChanged.connect(self.state_changed)
         self.n_tail_points_interp.setEnabled(False) # This cant change because it would change columns in output csv 
 
         self.tail_length_mm = LabeledDoubleSpinBox()
@@ -694,42 +694,42 @@ class Tail(QWidget):
         self.tail_length_mm.setRange(0.5,10)
         self.tail_length_mm.setSingleStep(0.05)
         self.tail_length_mm.setValue(3.5)
-        self.tail_length_mm.valueChanged.connect(self.state_change)
+        self.tail_length_mm.valueChanged.connect(self.state_changed)
 
         self.tail_crop_offset_y_mm = LabeledDoubleSpinBox()
         self.tail_crop_offset_y_mm.setText('vertical offset (mm)')
         self.tail_crop_offset_y_mm.setRange(0,10)
         self.tail_crop_offset_y_mm.setSingleStep(0.025)
         self.tail_crop_offset_y_mm.setValue(2.0)
-        self.tail_crop_offset_y_mm.valueChanged.connect(self.state_change)
+        self.tail_crop_offset_y_mm.valueChanged.connect(self.state_changed)
 
         self.tail_crop_width_mm = LabeledDoubleSpinBox()
         self.tail_crop_width_mm.setText('crop width (mm)')
         self.tail_crop_width_mm.setRange(0,1000)
         self.tail_crop_width_mm.setSingleStep(0.05)
         self.tail_crop_width_mm.setValue(5)
-        self.tail_crop_width_mm.valueChanged.connect(self.state_change)
+        self.tail_crop_width_mm.valueChanged.connect(self.state_changed)
 
         self.tail_crop_height_mm = LabeledDoubleSpinBox()
         self.tail_crop_height_mm.setText('crop height (mm)')
         self.tail_crop_height_mm.setRange(0,1000)
         self.tail_crop_height_mm.setSingleStep(0.05)
         self.tail_crop_height_mm.setValue(5)
-        self.tail_crop_height_mm.valueChanged.connect(self.state_change)
+        self.tail_crop_height_mm.valueChanged.connect(self.state_changed)
 
         self.tail_blur_sz_mm = LabeledDoubleSpinBox()
         self.tail_blur_sz_mm.setText('blur size (mm)')
         self.tail_blur_sz_mm.setRange(0,1000)
         self.tail_blur_sz_mm.setSingleStep(0.1)
         self.tail_blur_sz_mm.setValue(0.1)
-        self.tail_blur_sz_mm.valueChanged.connect(self.state_change)
+        self.tail_blur_sz_mm.valueChanged.connect(self.state_changed)
 
         self.tail_median_filter_sz_mm = LabeledDoubleSpinBox()
         self.tail_median_filter_sz_mm.setText('medfilt size (mm)')
         self.tail_median_filter_sz_mm.setRange(0,1000)
         self.tail_median_filter_sz_mm.setSingleStep(0.1)
         self.tail_median_filter_sz_mm.setValue(0.1)
-        self.tail_median_filter_sz_mm.valueChanged.connect(self.state_change)
+        self.tail_median_filter_sz_mm.valueChanged.connect(self.state_changed)
 
     def layout_components(self):
 
@@ -799,7 +799,7 @@ class Tail(QWidget):
 
 class TrackerWidget(QWidget):
 
-    state_change = pyqtSignal()
+    state_changed = pyqtSignal()
 
     def __init__(
             self,
@@ -828,16 +828,16 @@ class TrackerWidget(QWidget):
         self.assignment_choice.setEnabled(False)
 
         self.animal = Animal()
-        self.animal.state_change.connect(self.on_change)
+        self.animal.state_changed.connect(self.on_change)
 
         self.body = Body()
-        self.body.state_change.connect(self.on_change)
+        self.body.state_changed.connect(self.on_change)
 
         self.eyes = Eyes()
-        self.eyes.state_change.connect(self.on_change)
+        self.eyes.state_changed.connect(self.on_change)
 
         self.tail = Tail()
-        self.tail.state_change.connect(self.on_change)
+        self.tail.state_changed.connect(self.on_change)
 
         self.btn_load = QPushButton('load')
         self.btn_load.clicked.connect(self.load)
@@ -899,7 +899,7 @@ class TrackerWidget(QWidget):
             self.group_tail.setChecked(False)
 
         self.updated = True
-        self.state_change.emit()
+        self.state_changed.emit()
 
     def is_updated(self) -> bool:
         return self.updated
