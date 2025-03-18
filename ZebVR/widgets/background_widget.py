@@ -126,7 +126,9 @@ class BackgroundWidget(QWidget):
         main_layout.addWidget(self.bckgsub_polarity_combobox)
         main_layout.addWidget(self.background_file)
         main_layout.addWidget(self.background)
+        main_layout.addStretch()
         main_layout.addLayout(image_layout)
+        main_layout.addStretch()
     
     def set_image(self, image: NDArray):
         # TODO maybe check that image is uint8

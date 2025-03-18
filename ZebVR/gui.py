@@ -33,6 +33,7 @@ from .widgets import (
     RegistrationWidget,
     CalibrationWidget,
     BackgroundWidget,
+    IdentityWidget,
     SequencerWidget,
     SettingsWidget,
     LogsWidget
@@ -85,6 +86,9 @@ class MainGui(QMainWindow):
         self.background_widget.state_changed.connect(self.update_background_settings)
         self.background_widget.background_signal.connect(self.background_callback)
 
+        self.identity_widget = IdentityWidget()
+        self.identity_widget.state_changed.connect(self.update_identity_settings)
+
         self.sequencer_widget = SequencerWidget()
         self.sequencer_widget.state_changed.connect(self.update_sequencer_settings)
 
@@ -119,6 +123,7 @@ class MainGui(QMainWindow):
         self.tabs.addTab(self.registration_widget, "Registration")
         self.tabs.addTab(self.calibration_widget, "Calibration")
         self.tabs.addTab(self.background_widget, "Background")
+        self.tabs.addTab(self.identity_widget, "Identity")
         self.tabs.addTab(self.sequencer_widget, "Protocol")
         self.tabs.addTab(self.settings_widget, "Settings")
         self.tabs.addTab(self.logs_widget, "Logs") 
@@ -203,7 +208,8 @@ class MainGui(QMainWindow):
                 self.camera_widget,
                 self.projector_widget, 
                 self.calibration_widget, 
-                self.background_widget, 
+                self.background_widget,
+                self.identity_widget, 
                 self.registration_widget,
                 self.sequencer_widget,
                 self.settings_widget
@@ -220,14 +226,17 @@ class MainGui(QMainWindow):
 
             widgets_to_show = [
                 self.camera_widget,
-                self.projector_widget, 
-                self.calibration_widget, 
+                self.projector_widget,
+                self.calibration_widget,
                 self.registration_widget,
                 self.sequencer_widget,
                 self.settings_widget
             ]
 
-            widgets_to_hide = [self.background_widget]
+            widgets_to_hide = [
+                self.background_widget,
+                self.identity_widget
+            ]
 
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
             self.settings_widget.set_tracking_visible(False)
@@ -244,7 +253,8 @@ class MainGui(QMainWindow):
             widgets_to_hide = [
                 self.projector_widget, 
                 self.calibration_widget, 
-                self.background_widget, 
+                self.background_widget,
+                self.identity_widget,
                 self.registration_widget,
                 self.sequencer_widget
             ]
@@ -259,6 +269,7 @@ class MainGui(QMainWindow):
             widgets_to_show = [
                 self.camera_widget,
                 self.background_widget, 
+                self.identity_widget,
                 self.settings_widget
             ]
 
@@ -290,17 +301,25 @@ class MainGui(QMainWindow):
             state = pickle.dump(state, fp)
 
     def set_state(self, state: dict) -> None:
-        self.camera_widget.set_state(state['camera'])
-        self.projector_widget.set_state(state['projector'])
-        self.registration_widget.set_state(state['registration'])
-        self.calibration_widget.set_state(state['calibration'])
-        self.background_widget.set_state(state['background'])
-        self.settings_widget.set_state(state['settings'])
-        self.logs_widget.set_state(state['logs'])
-        self.sequencer_widget.set_state(state['sequencer'])
 
-        self.recording_duration.setValue(state['main']['recording_duration'])
-        self.settings['main'] = state['main']
+        setters = {
+            'camera': self.camera_widget.set_state,
+            'projector': self.projector_widget.set_state,
+            'registration': self.registration_widget.set_state,
+            'calibration': self.calibration_widget.set_state,
+            'background': self.background_widget.set_state,
+            'identity': self.identity_widget.set_state,
+            'settings': self.settings_widget.set_state,
+            'logs': self.logs_widget.set_state,
+            'sequencer': self.sequencer_widget.set_state
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
+
+        self.settings['main'] = state.get('main', {'recording_duration': 0, 'record': False})
+        self.recording_duration.setValue(self.settings['main']['recording_duration'])
 
     def get_state(self) -> dict:
         self.refresh_settings()
@@ -321,6 +340,9 @@ class MainGui(QMainWindow):
     def update_background_settings(self):
         self.settings['background'] = self.background_widget.get_state()
 
+    def update_identity_settings(self):
+        self.settings['identity'] = self.identity_widget.get_state()
+
     def update_settings(self):
         self.settings['settings'] = self.settings_widget.get_state()
 
@@ -339,6 +361,7 @@ class MainGui(QMainWindow):
         self.update_registration_settings()
         self.update_calibration_settings()
         self.update_background_settings()
+        self.update_identity_settings()
         self.update_settings()
         self.update_logs()
         self.update_sequencer_settings()
@@ -461,7 +484,8 @@ class MainGui(QMainWindow):
         image = np.load(self.settings['background']['background_file'])
         self.background_widget.set_image(image)
         self.sequencer_widget.set_background_image(image)
-    
+        self.identity_widget.set_image(image)
+
     def get_pix_per_mm_callback(self):
         self.camera_controller.set_preview(False)
         #self.projector_controller.set_checker(False)
@@ -596,6 +620,7 @@ class MainGui(QMainWindow):
         self.registration_widget.close()
         self.calibration_widget.close()
         self.background_widget.close()
+        self.identity_widget.close()
         self.sequencer_widget.close()
         self.settings_widget.close()
         self.logs_widget.close()

@@ -1,10 +1,11 @@
 from PyQt5.QtWidgets import (
     QWidget, 
     QApplication,
-    QVBoxLayout, 
+    QVBoxLayout,
+    QHBoxLayout,
     QLabel,
 )
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal
 from typing import Dict
 from numpy.typing import NDArray
 import numpy as np
@@ -17,7 +18,7 @@ from qt_widgets import (
 )
 import numpy as np
 
-class AssignmentWidget(QWidget):
+class IdentityWidget(QWidget):
 
     state_changed = pyqtSignal()
     PREVIEW_HEIGHT: int = 512
@@ -85,6 +86,11 @@ class AssignmentWidget(QWidget):
 
     def layout_components(self):
 
+        image_layout = QHBoxLayout()
+        image_layout.addStretch()
+        image_layout.addWidget(self.image_label)
+        image_layout.addStretch() 
+
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.row)
         main_layout.addWidget(self.col)
@@ -92,7 +98,9 @@ class AssignmentWidget(QWidget):
         main_layout.addWidget(self.height)
         main_layout.addWidget(self.offsetX)
         main_layout.addWidget(self.offsetY)
-        main_layout.addWidget(self.image_label)
+        main_layout.addStretch()
+        main_layout.addLayout(image_layout)
+        main_layout.addStretch()
 
     def on_change(self):
         
@@ -113,6 +121,7 @@ class AssignmentWidget(QWidget):
         offset_x, offset_y = self.offsetX.value(), self.offsetY.value()
 
         # Draw grid
+        count = 0
         for r in range(rows):
             for c in range(cols):
                 x1 = min(offset_x + c * box_width, image.shape[1])
@@ -121,8 +130,24 @@ class AssignmentWidget(QWidget):
                 y2 = min(y1 + box_height, image.shape[0])
                 color = (0, 255, 0) 
                 thickness = 2
+                text = str(count)
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                fontweight = 2
+                fontsize = 1.5
+                textsize = cv2.getTextSize(text, font, fontsize, fontweight)[0]
+                
                 cv2.rectangle(grid_image, (x1, y1), (x2, y2), color, thickness)
+                cv2.putText(
+                    grid_image, 
+                    str(count), 
+                    (x1+box_width//2-textsize[0]//2, y1+box_height//2+textsize[1]//2), 
+                    font, fontsize, 
+                    color, 
+                    fontweight, 
+                    cv2.LINE_AA
+                )
                 self.ROIs.append((x1,y1,box_width,box_height))
+                count += 1
 
         # Convert to QPixmap and display
         h, w = image.shape[:2]
@@ -161,6 +186,6 @@ class AssignmentWidget(QWidget):
 if __name__ == "__main__":
     
     app = QApplication([])
-    window = AssignmentWidget()
+    window = IdentityWidget()
     window.show()
     app.exec()
