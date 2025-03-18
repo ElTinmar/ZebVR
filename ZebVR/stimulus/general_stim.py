@@ -474,9 +474,9 @@ class GeneralStim(VisualStim):
         self.fd.write(','.join(row) + '\n')
 
     def process_data(self, data) -> None:
-        
-        # TODO reinitialize if number of tail points changes
 
+        # TODO: implement a lock to make sure data is coherent?
+        
         if data is not None:
 
             try:
