@@ -438,7 +438,7 @@ class GeneralStim(VisualStim):
             f'{t_display}',
             f'{t_local}',
             f'{1e-6*(time.perf_counter_ns() - self.timestamp.value)}',
-            f'{self.identity.value}'
+            f'{self.identity.value}',
             f'{self.fish_centroid[0]}',
             f'{self.fish_centroid[1]}',
             f'{self.fish_caudorostral_axis[0]}',
