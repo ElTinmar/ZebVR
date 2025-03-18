@@ -24,6 +24,12 @@ class IdentityWidget(QWidget):
     PREVIEW_HEIGHT: int = 512
     DEFAULT_FILE = 'ZebVR/default/background.npy'
 
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    fontweight = 2
+    fontsize = 1.5
+    color = (0, 255, 0) 
+    line_thickness = 2
+
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -128,22 +134,22 @@ class IdentityWidget(QWidget):
                 y1 = min(offset_y + r * box_height, image.shape[0])
                 x2 = min(x1 + box_width, image.shape[1]) 
                 y2 = min(y1 + box_height, image.shape[0])
-                color = (0, 255, 0) 
-                thickness = 2
                 text = str(count)
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                fontweight = 2
-                fontsize = 1.5
-                textsize = cv2.getTextSize(text, font, fontsize, fontweight)[0]
+                textsize = cv2.getTextSize(text, self.font, self.fontsize, self.fontweight)[0]
                 
-                cv2.rectangle(grid_image, (x1, y1), (x2, y2), color, thickness)
+                cv2.rectangle(
+                    grid_image, 
+                    (x1, y1), (x2, y2), 
+                    self.color, 
+                    self.line_thickness
+                )
                 cv2.putText(
                     grid_image, 
                     str(count), 
                     (x1+box_width//2-textsize[0]//2, y1+box_height//2+textsize[1]//2), 
-                    font, fontsize, 
-                    color, 
-                    fontweight, 
+                    self.font, self.fontsize, 
+                    self.color, 
+                    self.fontweight, 
                     cv2.LINE_AA
                 )
                 self.ROIs.append((x1,y1,box_width,box_height))
