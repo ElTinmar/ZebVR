@@ -269,6 +269,7 @@ class GeneralStim(VisualStim):
 
         self.index = Value('L', 0)
         self.timestamp = Value('d', 0)
+        self.identity = Value('L', 0)
         self.fish_mediolateral_axis = Array('d', [0, 0])
         self.fish_caudorostral_axis = Array('d', [0, 0])
         self.fish_centroid = Array('d', [0, 0])
@@ -306,6 +307,7 @@ class GeneralStim(VisualStim):
 
         self.index.value = 0
         self.timestamp.value = 0
+        self.identity.value = 0
         self.fish_mediolateral_axis[:] = [0, 0]
         self.fish_caudorostral_axis[:] = [0, 0]
         self.fish_centroid[:] = [0, 0]
@@ -369,6 +371,7 @@ class GeneralStim(VisualStim):
             't_display',
             't_local',
             'latency',
+            'identity',
             'centroid_x',
             'centroid_y',
             'pc1_x',
@@ -435,6 +438,7 @@ class GeneralStim(VisualStim):
             f'{t_display}',
             f'{t_local}',
             f'{1e-6*(time.perf_counter_ns() - self.timestamp.value)}',
+            f'{self.identity.value}'
             f'{self.fish_centroid[0]}',
             f'{self.fish_centroid[1]}',
             f'{self.fish_caudorostral_axis[0]}',
@@ -478,10 +482,11 @@ class GeneralStim(VisualStim):
             try:
                 self.index.value = data['index']
                 self.timestamp.value = data['timestamp']
+                self.identity.value = data['identity']
 
-                print(f"{data['index']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
-
-                # TODO choose animal
+                print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
+                
+                # TODO maybe create a single fish tracker
                 k = 0
 
                 if data['tracking']['body'][k] is not None:
@@ -491,7 +496,6 @@ class GeneralStim(VisualStim):
                     self.fish_mediolateral_axis[:] = body_axes[:,1]
                 else:
                     self.fish_centroid[:] = data['tracking']['animals']['centroid_global'][k,:]
-
 
                 # TODO use eyes heading vector if present?
                 # eyes

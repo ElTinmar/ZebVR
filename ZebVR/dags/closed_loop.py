@@ -107,6 +107,8 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     )
 
     queue_background = []
+    queue_tracking_to_stim = []
+    queue_tracking_to_overlay = []
     for i in range(settings['identity']['n_animals']):
         queue_background.append(
             MonitoredQueue(ModifiableRingBuffer(
@@ -118,14 +120,23 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             ))
         )
 
-    queue_tracking = MonitoredQueue(
-        ModifiableRingBuffer(
-            num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
-            logger = queue_logger,
-            name = 'tracker_to_stim',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+        queue_tracking_to_stim.append(
+            MonitoredQueue(ModifiableRingBuffer(
+                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+                logger = queue_logger,
+                name = 'tracker_to_stim',
+                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+            ))
         )
-    )
+
+        queue_tracking_to_overlay.append(
+            MonitoredQueue(ModifiableRingBuffer(
+                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+                logger = queue_logger,
+                name = 'tracker_to_overlay',
+                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+            ))
+        )
 
     queue_trigger_metadata = MonitoredQueue(
         ModifiableRingBuffer(
@@ -136,14 +147,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         )
     )
 
-    queue_overlay = MonitoredQueue(
-        ModifiableRingBuffer(
-            num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
-            logger = queue_logger,
-            name = 'tracker_to_overlay',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
-    )
+
 
     # create workers -----------------------------------------------------------------------
     camera_worker = CameraWorker(
@@ -212,14 +216,14 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     queues = {
         queue_cam: 'camera to background',
         queue_display_image: 'display',
-        queue_tracking: 'tracking to stim',
-        queue_overlay: 'tracking to overlay',
         queue_save_image: 'direct video recording',
         queue_camera_to_converter: 'pixel format conversion',
         queue_converter_to_saver: 'converted video recording',
         queue_trigger_metadata: 'tracker to protocol',
     }
+    queues.update({q: f'tracking to stim {n}' for n,q in enumerate(queue_tracking_to_stim)})
     queues.update({q: f'background to tracker {n}' for n,q in enumerate(queue_background)})
+    queues.update({q: f'tracking to overlay {n}' for n,q in enumerate(queue_tracking_to_overlay)})
     
     queue_monitor_worker = QueueMonitor(
         queues = queues,
@@ -482,16 +486,16 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         dag.connect_data(
             sender = tracker_worker_list[i], 
             receiver = stim_worker, 
-            queue = queue_tracking, 
-            name = 'tracker_output1'
+            queue = queue_tracking_to_stim[i], 
+            name = f'tracker_output_stim'
         )
 
     for i in range(settings['identity']['n_animals']):
         dag.connect_data(
             sender = tracker_worker_list[i], 
             receiver = tracking_display_worker, 
-            queue = queue_overlay, 
-            name = 'tracker_output2'
+            queue = queue_tracking_to_overlay[i], 
+            name = 'tracker_output_overlay'
         )
 
     # metadata
@@ -523,7 +527,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         dag.connect_metadata(
             sender = tracker_control_worker, 
             receiver = tracker_worker_list[i], 
-            queue = QueueMP(), 
+            queue = QueueMP(), # multiple queues
             name = f'tracker_control_{i}'
         )
 

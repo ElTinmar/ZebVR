@@ -51,11 +51,12 @@ class DummyTrackerWorker(WorkerNode):
         
         res = {}
         msg = np.array(
-            (index, timestamp, self.tracking),
+            (index, timestamp, self.tracking, 0),
             dtype=np.dtype([
                 ('index', int),
                 ('timestamp', np.float64),
-                ('tracking', self.tracking.dtype)
+                ('tracking', self.tracking.dtype),
+                ('identity', np.int32)
             ])
         )
         res['tracker_output1'] = msg
@@ -112,8 +113,8 @@ class TrackerWorker(WorkerNode):
         )
 
         res = {}    
-        res['tracker_output1'] = msg # visual stimulus, TODO no need to send image, send only relevant info 
-        res['tracker_output2'] = msg # overlay    
+        res['tracker_output_stim'] = msg # visual stimulus, TODO no need to send image, send only relevant info 
+        res['tracker_output_overlay'] = msg 
         self.current_tracking = msg
 
         return res
