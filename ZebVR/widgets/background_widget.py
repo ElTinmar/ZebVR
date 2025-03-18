@@ -4,7 +4,8 @@ from PyQt5.QtWidgets import (
     QHBoxLayout, 
     QPushButton, 
     QLabel,
-    QStackedWidget
+    QStackedWidget,
+    QApplication
 )
 from PyQt5.QtCore import pyqtSignal, Qt
 from typing import Dict
@@ -166,26 +167,7 @@ class BackgroundWidget(QWidget):
 
 if __name__ == "__main__":
 
-    from PyQt5.QtWidgets import QApplication, QMainWindow
-    from PyQt5.QtCore import  QRunnable, QThreadPool
-
-    class Window(QMainWindow):
-
-        def __init__(self,*args,**kwargs):
-
-            super().__init__(*args, **kwargs)
-            self.background_widget = BackgroundWidget()
-            self.setCentralWidget(self.background_widget)
-            self.background_widget.background_signal.connect(self.background)
-            self.background_widget.state_changed.connect(self.state_changed)
-
-        def background(self):
-            print('background clicked')
-
-        def state_changed(self):
-            print(self.background_widget.get_state())
-    
     app = QApplication([])
-    window = Window()
+    window = BackgroundWidget()
     window.show()
     app.exec()
