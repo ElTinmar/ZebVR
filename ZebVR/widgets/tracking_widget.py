@@ -27,20 +27,10 @@ class TrackingWidget(QWidget):
     def declare_components(self):
 
         self.closedloop_group = QGroupBox('tracking settings')
-    
-        self.n_background_workers = LabeledSpinBox()
-        self.n_background_workers.setText('# background subtraction workers:')
-        self.n_background_workers.setValue(1)
-        self.n_background_workers.valueChanged.connect(self.state_changed)
 
         self.background_gpu = QCheckBox('GPU background subtraction')
         self.background_gpu.setChecked(True)
         self.background_gpu.stateChanged.connect(self.state_changed)
-    
-        self.n_tracker_workers = LabeledSpinBox()
-        self.n_tracker_workers.setText('# tracker workers:')
-        self.n_tracker_workers.setValue(1)
-        self.n_tracker_workers.valueChanged.connect(self.state_changed)
 
         self.n_tail_pts_interp = LabeledSpinBox()
         self.n_tail_pts_interp.setText('# tail points interp:')
@@ -84,8 +74,6 @@ class TrackingWidget(QWidget):
 
         closedloop_layout = QVBoxLayout()
         closedloop_layout.addWidget(self.background_gpu)
-        closedloop_layout.addWidget(self.n_background_workers)
-        closedloop_layout.addWidget(self.n_tracker_workers)
         closedloop_layout.addWidget(self.n_tail_pts_interp)
         closedloop_layout.addWidget(self.display_fps)
         closedloop_layout.addWidget(self.tracking_settings)
@@ -111,8 +99,6 @@ class TrackingWidget(QWidget):
 
         state = {}
         state['tracker_settings_file'] = self.tracking_settings.text()
-        state['n_background_workers'] = self.n_background_workers.value()
-        state['n_tracker_workers'] = self.n_tracker_workers.value()
         state['background_gpu'] = self.background_gpu.isChecked()
         state['n_tail_pts_interp'] = self.n_tail_pts_interp.value()
         state['display_fps'] = self.display_fps.value()
@@ -125,8 +111,6 @@ class TrackingWidget(QWidget):
 
         setters = {
             'tracker_settings_file': self.tracking_settings.setText,
-            'n_background_workers': self.n_background_workers.setValue,
-            'n_tracker_workers': self.n_tracker_workers.setValue,
             'background_gpu': self.background_gpu.setChecked,
             'n_tail_pts_interp': self.n_tail_pts_interp.setValue,
             'display_fps': self.display_fps.setValue,

@@ -40,7 +40,7 @@ def inpaint_background(
     window.show()
     app.exec()
 
-    _,mask = window.get_masks()[1]
+    mask = window.flatten()
     background = cv2.inpaint(image, im2uint8(mask), radius, algo)
 
     print('Background done, press key to save...')

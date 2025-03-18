@@ -61,28 +61,28 @@ class IdentityWidget(QWidget):
 
         self.width = LabeledSpinBox()
         self.width.setText('width')
-        self.width.setRange(0,10_000)
+        self.width.setRange(1,self.image.shape[1])
         self.width.setSingleStep(1)
         self.width.setValue(self.image.shape[1])
         self.width.valueChanged.connect(self.on_change)
 
         self.height = LabeledSpinBox()
         self.height.setText('height')
-        self.height.setRange(0,10_000)
+        self.height.setRange(1,self.image.shape[0])
         self.height.setSingleStep(1)
         self.height.setValue(self.image.shape[0])
         self.height.valueChanged.connect(self.on_change)
     
         self.offsetX = LabeledSpinBox()
         self.offsetX.setText('offsetX')
-        self.offsetX.setRange(0,10_000)
+        self.offsetX.setRange(0,self.image.shape[1]-1)
         self.offsetX.setSingleStep(1)
         self.offsetX.setValue(0)
         self.offsetX.valueChanged.connect(self.on_change)
 
         self.offsetY = LabeledSpinBox()
         self.offsetY.setText('offsetY')
-        self.offsetY.setRange(0,10_000)
+        self.offsetY.setRange(0,self.image.shape[0]-1)
         self.offsetY.setSingleStep(1)
         self.offsetY.setValue(0)
         self.offsetY.valueChanged.connect(self.on_change)
@@ -116,7 +116,14 @@ class IdentityWidget(QWidget):
     def set_image(self, image: NDArray):
 
         self.image = image
+
         self.ROIs = []
+        self.width.setRange(1,self.image.shape[1])
+        self.width.setValue(self.image.shape[1])
+        self.height.setRange(1,self.image.shape[0])
+        self.height.setValue(self.image.shape[0])
+        self.offsetX.setRange(0,self.image.shape[1]-1)
+        self.offsetY.setRange(0,self.image.shape[0]-1)
 
         # Create a copy to draw the grid
         grid_image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
@@ -170,7 +177,8 @@ class IdentityWidget(QWidget):
             'height': self.height.value(),
             'offsetX': self.offsetX.value(),
             'offsetY': self.offsetY.value(),
-            'ROIs': self.ROIs
+            'ROIs': self.ROIs,
+            'n_animals': len(self.ROIs)
         }
         return state
     
