@@ -17,6 +17,7 @@ import numpy as np
 from numpy.typing import NDArray
 from typing import Any, Dict, Optional
 import time
+from geometry import SimilarityTransform2D
 
 # TODO fix that
 class DummyTrackerWorker(WorkerNode):
@@ -93,7 +94,9 @@ class TrackerWorker(WorkerNode):
         if data is None:
             return None
 
-        tracking = self.tracker.track(data['image'])
+        T = SimilarityTransform2D.translation(data['origin'][0],data['origin'][1])
+
+        tracking = self.tracker.track(data['image'], None, T)
 
         if tracking is None:
             return None
