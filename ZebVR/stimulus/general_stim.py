@@ -1,7 +1,7 @@
 from typing import Tuple
 from .visual_stim import VisualStim
 from vispy import gloo, app
-from multiprocessing import Value, Array
+from multiprocessing import Value, Array, Lock
 import time
 from numpy.typing import NDArray
 import numpy as np 
@@ -249,6 +249,7 @@ class GeneralStim(VisualStim):
         self.default_prey_radius_mm = prey_radius_mm 
         self.num_tail_points_interp = num_tail_points_interp
 
+        self.lock = Lock()
         self.tail_points = Array('d', 2*self.num_tail_points_interp)
         self.foreground_color = Array('d', self.default_foreground_color)
         self.background_color = Array('d', self.default_background_color)
@@ -430,99 +431,101 @@ class GeneralStim(VisualStim):
         t_display = time.perf_counter_ns()
         t_local = 1e-9*(t_display - self.tstart)
 
-        self.update_shader_variables(t_local)
-        self.update()
+        with self.lock:
 
-        row = (
-            f'{self.index.value}',
-            f'{t_display}',
-            f'{t_local}',
-            f'{1e-6*(time.perf_counter_ns() - self.timestamp.value)}',
-            f'{self.identity.value}',
-            f'{self.fish_centroid[0]}',
-            f'{self.fish_centroid[1]}',
-            f'{self.fish_caudorostral_axis[0]}',
-            f'{self.fish_caudorostral_axis[1]}',
-            f'{self.fish_mediolateral_axis[0]}',
-            f'{self.fish_mediolateral_axis[1]}',
-            f'{self.left_eye_centroid[0]}',
-            f'{self.left_eye_centroid[1]}',
-            f'{self.left_eye_angle.value}',
-            f'{self.right_eye_centroid[0]}',
-            f'{self.right_eye_centroid[1]}',
-            f'{self.right_eye_angle.value}',
-        ) \
-        + tuple(f'{self.tail_points[i]}' for i in range(self.num_tail_points_interp)) \
-        + tuple(f'{self.tail_points[i]}' for i in range(self.num_tail_points_interp,2*self.num_tail_points_interp)) \
-        + (
-            f'{self.stim_select.value}',
-            f'{self.phototaxis_polarity.value}',
-            f'{self.omr_spatial_period_mm.value}',
-            f'{self.omr_angle_deg.value}',
-            f'{self.omr_speed_mm_per_sec.value}',
-            f'{self.okr_spatial_frequency_deg.value}',
-            f'{self.okr_speed_deg_per_sec.value}',
-            f'{self.looming_center_mm[0]}',
-            f'{self.looming_center_mm[1]}',
-            f'{self.looming_period_sec.value}',
-            f'{self.looming_expansion_time_sec.value}',
-            f'{self.looming_expansion_speed_mm_per_sec.value}',
-            f'{self.n_preys.value}',
-            f'{self.prey_speed_mm_s.value}',
-            f'{self.prey_radius_mm.value}'
-        )
-        self.fd.write(','.join(row) + '\n')
+            self.update_shader_variables(t_local)
+            self.update()
+
+            row = (
+                f'{self.index.value}',
+                f'{t_display}',
+                f'{t_local}',
+                f'{1e-6*(time.perf_counter_ns() - self.timestamp.value)}',
+                f'{self.identity.value}',
+                f'{self.fish_centroid[0]}',
+                f'{self.fish_centroid[1]}',
+                f'{self.fish_caudorostral_axis[0]}',
+                f'{self.fish_caudorostral_axis[1]}',
+                f'{self.fish_mediolateral_axis[0]}',
+                f'{self.fish_mediolateral_axis[1]}',
+                f'{self.left_eye_centroid[0]}',
+                f'{self.left_eye_centroid[1]}',
+                f'{self.left_eye_angle.value}',
+                f'{self.right_eye_centroid[0]}',
+                f'{self.right_eye_centroid[1]}',
+                f'{self.right_eye_angle.value}',
+            ) \
+            + tuple(f'{self.tail_points[i]}' for i in range(self.num_tail_points_interp)) \
+            + tuple(f'{self.tail_points[i]}' for i in range(self.num_tail_points_interp,2*self.num_tail_points_interp)) \
+            + (
+                f'{self.stim_select.value}',
+                f'{self.phototaxis_polarity.value}',
+                f'{self.omr_spatial_period_mm.value}',
+                f'{self.omr_angle_deg.value}',
+                f'{self.omr_speed_mm_per_sec.value}',
+                f'{self.okr_spatial_frequency_deg.value}',
+                f'{self.okr_speed_deg_per_sec.value}',
+                f'{self.looming_center_mm[0]}',
+                f'{self.looming_center_mm[1]}',
+                f'{self.looming_period_sec.value}',
+                f'{self.looming_expansion_time_sec.value}',
+                f'{self.looming_expansion_speed_mm_per_sec.value}',
+                f'{self.n_preys.value}',
+                f'{self.prey_speed_mm_s.value}',
+                f'{self.prey_radius_mm.value}'
+            )
+            self.fd.write(','.join(row) + '\n')
 
     def process_data(self, data) -> None:
-
-        # TODO: implement a lock to make sure data is coherent?
-        
+                
         if data is not None:
 
-            try:
-                self.index.value = data['index']
-                self.timestamp.value = data['timestamp']
-                self.identity.value = data['identity']
+            with self.lock:
 
-                print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
+                try:
+                    self.index.value = data['index']
+                    self.timestamp.value = data['timestamp']
+                    self.identity.value = data['identity']
+
+                    print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
+                    
+                    # TODO maybe create a single fish tracker
+                    k = 0
+
+                    if data['tracking']['body'][k] is not None:
+                        self.fish_centroid[:] = data['tracking']['body'][k]['centroid_global']
+                        body_axes = data['tracking']['body'][k]['body_axes_global']
+                        self.fish_caudorostral_axis[:] = body_axes[:,0]
+                        self.fish_mediolateral_axis[:] = body_axes[:,1]
+                    else:
+                        self.fish_centroid[:] = data['tracking']['animals']['centroid_global'][k,:]
+
+                    # TODO use eyes heading vector if present?
+                    # eyes
+                    if data['tracking']['eyes'][k] is not None:
+
+                        if data['tracking']['eyes'][k]['left_eye'] is not None:
+                            self.left_eye_centroid[:] = data['tracking']['eyes'][k]['left_eye']['centroid_cropped'] 
+                            self.left_eye_angle.value = data['tracking']['eyes'][k]['left_eye']['angle']
+
+                        if data['tracking']['eyes'][k]['right_eye'] is not None:
+                            self.right_eye_centroid[:] = data['tracking']['eyes'][k]['right_eye']['centroid_cropped']
+                            self.right_eye_angle.value = data['tracking']['eyes'][k]['right_eye']['angle']
+
+                    # tail
+                    if data['tracking']['tail'][k] is not None:
+                        skeleton_interp = data['tracking']['tail'][k]['skeleton_interp_cropped']  
+                        self.tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
+                        self.tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
+
+                except KeyError:
+                    return None 
                 
-                # TODO maybe create a single fish tracker
-                k = 0
-
-                if data['tracking']['body'][k] is not None:
-                    self.fish_centroid[:] = data['tracking']['body'][k]['centroid_global']
-                    body_axes = data['tracking']['body'][k]['body_axes_global']
-                    self.fish_caudorostral_axis[:] = body_axes[:,0]
-                    self.fish_mediolateral_axis[:] = body_axes[:,1]
-                else:
-                    self.fish_centroid[:] = data['tracking']['animals']['centroid_global'][k,:]
-
-                # TODO use eyes heading vector if present?
-                # eyes
-                if data['tracking']['eyes'][k] is not None:
-
-                    if data['tracking']['eyes'][k]['left_eye'] is not None:
-                        self.left_eye_centroid[:] = data['tracking']['eyes'][k]['left_eye']['centroid_cropped'] 
-                        self.left_eye_angle.value = data['tracking']['eyes'][k]['left_eye']['angle']
-
-                    if data['tracking']['eyes'][k]['right_eye'] is not None:
-                        self.right_eye_centroid[:] = data['tracking']['eyes'][k]['right_eye']['centroid_cropped']
-                        self.right_eye_angle.value = data['tracking']['eyes'][k]['right_eye']['angle']
-
-                # tail
-                if data['tracking']['tail'][k] is not None:
-                    skeleton_interp = data['tracking']['tail'][k]['skeleton_interp_cropped']  
-                    self.tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
-                    self.tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
-
-            except KeyError:
-                return None 
-            
-            except TypeError:
-                return None
-            
-            except ValueError:
-                return None
+                except TypeError:
+                    return None
+                
+                except ValueError:
+                    return None
 
     def process_metadata(self, metadata) -> None:
         control = metadata['visual_stim_control']
