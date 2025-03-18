@@ -39,8 +39,6 @@ from .widgets import (
     LogsWidget
 )
 from .dags import closed_loop, open_loop, video_recording, tracking
-
-PROFILE = False
         
 class MainGui(QMainWindow):
     
