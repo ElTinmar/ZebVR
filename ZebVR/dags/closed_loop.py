@@ -340,6 +340,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     tracking_display_worker = TrackingDisplay(
         overlay = overlay, 
         fps = settings['settings']['tracking']['display_fps'], 
+        n_animals = settings['identity']['n_animals'],
         name = "tracking_display", 
         logger = worker_logger, 
         logger_queues = queue_logger,

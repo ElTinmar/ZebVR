@@ -14,6 +14,7 @@ class TrackingDisplay(WorkerNode):
     def __init__(
             self, 
             overlay: MultiFishOverlay,
+            n_animals: int = 1, 
             fps: int = 30,
             *args, 
             **kwargs
@@ -22,6 +23,7 @@ class TrackingDisplay(WorkerNode):
         super().__init__(*args, **kwargs)
         self.overlay = overlay
         self.fps = fps
+        self.n_animals = n_animals
         self.prev_time = 0
         self.first_timestamp = 0
 
@@ -30,10 +32,11 @@ class TrackingDisplay(WorkerNode):
         super().initialize()
         
         self.app = QApplication([])
-        self.window = TrackingDisplayWidget()
+        self.window = TrackingDisplayWidget(n_animals=self.n_animals)
         self.window.show()
 
     def process_data(self, data) -> NDArray:
+        
         self.app.processEvents()
         self.app.sendPostedEvents()
         
@@ -42,81 +45,86 @@ class TrackingDisplay(WorkerNode):
             if self.first_timestamp == 0:
                 self.first_timestamp = data['timestamp'].copy()
 
+
+            state = self.window.get_state()
+
+            if state['identity'] != data['identity']:
+                return
+                
             # restrict update freq to save resources
             if time.monotonic() - self.prev_time > 1/self.fps:
 
-                button_pressed = self.window.get_state()
                 image_to_display = None
                 
                 try:
-                    if button_pressed['display_type'] == DisplayType.PROCESSED:
+                    if state['display_type'] == DisplayType.PROCESSED:
 
-                        if button_pressed['tracker_type'] == TrackerType.MULTI:
+                        if state['tracker_type'] == TrackerType.MULTI:
                             image_to_display = im2uint8(data['tracking']['animals']['image_processed'])
 
-                        if button_pressed['tracker_type'] == TrackerType.ANIMAL:
+                        if state['tracker_type'] == TrackerType.ANIMAL:
                             image_to_display = im2uint8(data['tracking']['animals']['image_processed'])
 
-                        if button_pressed['tracker_type'] == TrackerType.BODY:
+                        if state['tracker_type'] == TrackerType.BODY:
                             image_to_display = im2uint8(data['tracking']['body'][0]['image_processed'])
 
-                        if button_pressed['tracker_type'] == TrackerType.EYES:
+                        if state['tracker_type'] == TrackerType.EYES:
                             image_to_display = im2uint8(data['tracking']['eyes'][0]['image_processed'])
 
-                        if button_pressed['tracker_type'] == TrackerType.TAIL:
+                        if state['tracker_type'] == TrackerType.TAIL:
                             image_to_display = im2uint8(data['tracking']['tail'][0]['image_processed'])
                     
-                    if button_pressed['display_type'] == DisplayType.OVERLAY:
+                    if state['display_type'] == DisplayType.OVERLAY:
 
                         T_downsample = SimilarityTransform2D.scaling(
                             data['tracking']['animals']['downsample_ratio']
                         ) 
 
-                        if button_pressed['tracker_type'] == TrackerType.MULTI:
+                        if state['tracker_type'] == TrackerType.MULTI:
                             image_to_display = self.overlay.overlay_global(
                                 data['tracking']['animals']['image_downsampled'], 
                                 data['tracking'],
                                 T_downsample
                             )
 
-                        if button_pressed['tracker_type'] == TrackerType.ANIMAL:
+                        if state['tracker_type'] == TrackerType.ANIMAL:
                             image_to_display = self.overlay.overlay_param.animal.overlay_global(
                                 data['tracking']['animals']['image_downsampled'], 
                                 data['tracking']['animals'], 
                                 T_downsample
                             )
 
-                        if button_pressed['tracker_type'] == TrackerType.BODY:
+                        if state['tracker_type'] == TrackerType.BODY:
                             image_to_display = self.overlay.overlay_param.body.overlay_cropped(
                                 data['tracking']['body'][0]
                             )
 
-                        if button_pressed['tracker_type'] == TrackerType.EYES:
+                        if state['tracker_type'] == TrackerType.EYES:
                             image_to_display = self.overlay.overlay_param.eyes.overlay_cropped(
                                 data['tracking']['eyes'][0]
                             )
 
-                        if button_pressed['tracker_type'] == TrackerType.TAIL:
+                        if state['tracker_type'] == TrackerType.TAIL:
                             image_to_display = self.overlay.overlay_param.tail.overlay_cropped(
                                 data['tracking']['tail'][0]
                             )
 
-                    if button_pressed['display_type'] == DisplayType.MASK:
+                    if state['display_type'] == DisplayType.MASK:
 
-                        if button_pressed['tracker_type'] == TrackerType.MULTI:
+                        if state['tracker_type'] == TrackerType.MULTI:
                             # there is no mask for multi, show image instead
                             image_to_display = im2uint8(data['tracking']['animals']['image_processed'])
 
-                        if button_pressed['tracker_type'] == TrackerType.ANIMAL:
+                        if state['tracker_type'] == TrackerType.ANIMAL:
                             image_to_display = im2uint8(data['tracking']['animals']['mask'])
 
-                        if button_pressed['tracker_type'] == TrackerType.BODY:
+                        if state['tracker_type'] == TrackerType.BODY:
                             image_to_display = im2uint8(data['tracking']['body'][0]['mask'])
 
-                        if button_pressed['tracker_type'] == TrackerType.EYES:
+                        if state['tracker_type'] == TrackerType.EYES:
                             image_to_display = im2uint8(data['tracking']['eyes'][0]['mask'])
 
-                        if button_pressed['tracker_type'] == TrackerType.TAIL:
+                        if state['tracker_type'] == TrackerType.TAIL:
                             # there is no mask for the tail, show image instead
                             image_to_display = im2uint8(data['tracking']['tail'][0]['image_processed'])
                 except:

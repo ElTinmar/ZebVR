@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (
     QLabel
 )
 from PyQt5.QtGui import QImage
-from qt_widgets import NDarray_to_QPixmap
+from qt_widgets import NDarray_to_QPixmap, LabeledSpinBox
 
 class TrackerType(IntEnum):
     MULTI = 0
@@ -89,6 +89,7 @@ class TrackingDisplayWidget(QWidget):
     def __init__(
             self,
             display_height: int = 512,
+            n_animals: int = 1,
             *args, 
             **kwargs
         ):
@@ -96,12 +97,19 @@ class TrackingDisplayWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         self.display_height = display_height 
+        self.n_animals = n_animals
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Tracking display')
         self.show()
 
     def declare_components(self):
+
+        self.animal_identity = LabeledSpinBox()
+        self.animal_identity.setText('#animals')
+        self.animal_identity.setRange(0,self.n_animals-1)
+        self.animal_identity.setSingleStep(1)
+        self.animal_identity.setValue(0)
 
         self.lbl_index = QLabel()
         self.lbl_timestamp = QLabel()        
@@ -175,6 +183,7 @@ class TrackingDisplayWidget(QWidget):
         layout_image.addStretch() 
 
         layout = QVBoxLayout(self)
+        layout.addWidget(self.animal_identity)
         layout.addLayout(layout_tracker_btn)
         layout.addLayout(layout_display_btn)
         layout.addLayout(layout_image)
@@ -182,6 +191,7 @@ class TrackingDisplayWidget(QWidget):
 
     def get_state(self) -> Dict:
         state = {}
+        state['identity'] = self.animal_identity.value()
         state['display_type'] = self.bg_display_type.checkedId()
         state['tracker_type'] = self.bg_tracker_type.checkedId()
         return state

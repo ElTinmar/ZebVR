@@ -33,12 +33,13 @@ class BackgroundSubWorker(WorkerNode):
                 crop = background_sub[y:y+h,x:x+w]
                 origin = np.array((x,y), dtype = np.int32)
                 res[f'background_output_{n}'] = np.array(
-                    (data['index'], data['timestamp'], crop, origin),
+                    (data['index'], data['timestamp'], crop, origin, n),
                     dtype=([
                         ('index', int),
                         ('timestamp', np.float64),
                         ('image', crop.dtype, crop.shape),
-                        ('origin', np.int32, (2,))
+                        ('origin', np.int32, (2,)),
+                        ('identity', np.int32)
                     ])
                 )            
             
