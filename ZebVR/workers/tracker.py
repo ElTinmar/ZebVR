@@ -103,13 +103,14 @@ class TrackerWorker(WorkerNode):
             return None
         
         msg = np.array(
-            (data['index'], data['timestamp'], tracking, data['identity'], data['origin']),
+            (data['index'], data['timestamp'], tracking, data['origin'], data['shape'], data['identity']),
             dtype=np.dtype([
                 ('index', int),
                 ('timestamp', np.float64),
                 ('tracking', tracking.dtype),
+                ('origin', np.int32, (2,)),
+                ('shape', np.int32, (2,))
                 ('identity', np.int32),
-                ('origin', np.int32, (2,))
             ])
         )
 

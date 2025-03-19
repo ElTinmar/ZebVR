@@ -487,6 +487,9 @@ class GeneralStim(VisualStim):
                     self.timestamp.value = data['timestamp']
                     self.identity.value = data['identity']
 
+                    #data['origin']
+                    #data['shape']
+
                     print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
                     
                     # TODO maybe create a single fish tracker

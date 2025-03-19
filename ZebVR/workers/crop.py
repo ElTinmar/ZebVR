@@ -24,13 +24,15 @@ class CropWorker(WorkerNode):
             x,y,w,h = roi
             crop = data['image'][y:y+h,x:x+w]
             origin = np.array((x,y), dtype = np.int32)
+            shape = np.array((h,w), dtype = np.int32) 
             res[f'background_output_{n}'] = np.array(
-                (data['index'], data['timestamp'], crop, origin, n),
+                (data['index'], data['timestamp'], crop, origin, shape, n),
                 dtype=([
                     ('index', int),
                     ('timestamp', np.float64),
                     ('image', crop.dtype, crop.shape),
                     ('origin', np.int32, (2,)),
+                    ('shape', np.int32, (2,)),
                     ('identity', np.int32)
                 ])
             )            
