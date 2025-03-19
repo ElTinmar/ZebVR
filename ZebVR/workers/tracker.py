@@ -109,7 +109,7 @@ class TrackerWorker(WorkerNode):
                 ('timestamp', np.float64),
                 ('tracking', tracking.dtype),
                 ('origin', np.int32, (2,)),
-                ('shape', np.int32, (2,))
+                ('shape', np.int32, (2,)),
                 ('identity', np.int32),
             ])
         )
