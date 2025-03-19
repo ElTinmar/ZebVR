@@ -23,7 +23,6 @@ class VisualStim(app.Canvas):
             vsync: bool = False,
         ) -> None:
             
-
             self.vertex_shader = vertex_shader
             self.fragment_shader = fragment_shader
             self.window_size = window_size
