@@ -228,13 +228,12 @@ class MainGui(QMainWindow):
                 self.calibration_widget,
                 self.registration_widget,
                 self.sequencer_widget,
-                self.settings_widget
-            ]
-
-            widgets_to_hide = [
+                self.settings_widget,
                 self.background_widget,
                 self.identity_widget
             ]
+
+            widgets_to_hide = []
 
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
             self.settings_widget.set_tracking_visible(False)

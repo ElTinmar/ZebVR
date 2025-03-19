@@ -51,11 +51,13 @@ class DummyTrackerWorker(WorkerNode):
         
         res = {}
         msg = np.array(
-            (index, timestamp, self.tracking, 0),
+            (index, timestamp, self.tracking, data['origin'], data['shape'], data['identity']),
             dtype=np.dtype([
                 ('index', int),
                 ('timestamp', np.float64),
                 ('tracking', self.tracking.dtype),
+                ('origin', np.int32, (2,)),
+                ('shape', np.int32, (2,)),
                 ('identity', np.int32)
             ])
         )
