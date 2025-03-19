@@ -7,6 +7,13 @@ from numpy.typing import NDArray
 import numpy as np 
 import os
 
+# TODO adapt shader code to receive state from all animals and display only in their respective ROIs.
+# TODO pass state of all animals to the shader (multidim RawArray)
+# TODO maybe pass ROIs to __init__ instead of sending for each frame along with tracking data
+# TODO maybe save tracking and stimulus info to two different files (I already have a TrackingSaver class!)
+# The two files can be synchronized using time.perf_counter timestamps? This way, tracking data can be saved @ camera fps
+# and stimulus data can be saved @ projector / shader fps
+
 VERT_SHADER = """
 uniform mat3 u_transformation_matrix;
 uniform float u_pix_per_mm; 
