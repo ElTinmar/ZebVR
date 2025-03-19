@@ -13,7 +13,7 @@ from tracker import (
 )
 from multiprocessing_logger import Logger
 from ipc_tools import RingBuffer, QueueMP, MonitoredQueue, ObjectRingBuffer
-from video_tools import BackgroundSubtractor, BackroundImage, Polarity
+from video_tools import BackgroundSubtractor, BackgroundImage, Polarity
 from image_tools import im2single, im2gray
 from dagline import WorkerNode, receive_strategy, send_strategy, ProcessingDAG, plot_logs
 from ..stimulus.stimulus import VisualStimWorker
@@ -239,7 +239,7 @@ if __name__ == "__main__":
     )
 
     l = Logger(LOGFILE, Logger.INFO)
-    b = BackroundImage(
+    b = BackgroundImage(
         image_file_name = BACKGROUND_IMAGE,
         polarity = BACKGROUND_POLARITY,
         use_gpu = BACKGROUND_GPU

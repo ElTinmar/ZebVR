@@ -4,7 +4,7 @@ import json
 
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
-from video_tools import BackroundImage, Polarity
+from video_tools import BackgroundImage, Polarity
 from dagline import ProcessingDAG, receive_strategy, send_strategy
 from tracker import (
     GridAssignment, 
@@ -31,7 +31,8 @@ from tracker import (
     TailTrackerParamTracking
 )
 from ..workers import (
-    BackgroundSubWorker, 
+    BackgroundSubWorker,
+    CropWorker, 
     CameraWorker, 
     TrackerWorker, 
     ImageSaverWorker, 
@@ -61,15 +62,6 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     queue_logger = Logger(settings['logs']['log']['queue_logfile'], Logger.INFO)
 
     # create queues -----------------------------------------------------------------------            
-    queue_cam = MonitoredQueue(
-        ModifiableRingBuffer(
-            num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2, # TODO add a widget for that?
-            logger = queue_logger,
-            name = 'camera_to_background',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
-    )
-
     queue_camera_to_converter = MonitoredQueue(
         ModifiableRingBuffer(
             num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
@@ -106,11 +98,27 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         )
     )
 
-    queue_background = []
+    queue_cam_to_background = MonitoredQueue(ModifiableRingBuffer(
+        num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+        #copy=False, # you probably don't need to copy if processing is fast enough
+        logger = queue_logger,
+        name = 'background_to_crop',
+        t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+    ))
+
+    queue_background_to_cropper = MonitoredQueue(ModifiableRingBuffer(
+        num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+        #copy=False, # you probably don't need to copy if processing is fast enough
+        logger = queue_logger,
+        name = 'background_to_crop',
+        t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+    ))
+
+    queue_crop_to_tracker = []
     queue_tracking_to_stim = []
     queue_tracking_to_overlay = []
     for i in range(settings['identity']['n_animals']):
-        queue_background.append(
+        queue_crop_to_tracker.append(
             MonitoredQueue(ModifiableRingBuffer(
                 num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
                 #copy=False, # you probably don't need to copy if processing is fast enough
@@ -146,8 +154,6 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
         )
     )
-
-
 
     # create workers -----------------------------------------------------------------------
     camera_worker = CameraWorker(
@@ -214,7 +220,8 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     )
 
     queues = {
-        queue_cam: 'camera to background',
+        queue_cam_to_background: 'camera to background',
+        queue_background_to_cropper: 'backgroud_to_cropper',
         queue_display_image: 'display',
         queue_save_image: 'direct video recording',
         queue_camera_to_converter: 'pixel format conversion',
@@ -222,7 +229,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         queue_trigger_metadata: 'tracker to protocol',
     }
     queues.update({q: f'tracking to stim {n}' for n,q in enumerate(queue_tracking_to_stim)})
-    queues.update({q: f'background to tracker {n}' for n,q in enumerate(queue_background)})
+    queues.update({q: f'crop to tracker {n}' for n,q in enumerate(queue_crop_to_tracker)})
     queues.update({q: f'tracking to overlay {n}' for n,q in enumerate(queue_tracking_to_overlay)})
     
     queue_monitor_worker = QueueMonitor(
@@ -239,7 +246,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     else:
         background_polarity = Polarity.BRIGHT_ON_DARK
 
-    background = BackroundImage(
+    background = BackgroundImage(
         image_file_name = settings['background']['background_file'],
         polarity = background_polarity,
         use_gpu = settings['settings']['tracking']['background_gpu']
@@ -247,12 +254,19 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
     background_worker = BackgroundSubWorker(
         background, 
-        settings['identity']['ROIs'],
-        name = f'background{i}', 
+        name = f'background', 
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0, 
-        send_data_strategy = send_strategy.BROADCAST, 
+    )
+
+    cropper = CropWorker(
+        ROI_identities=settings['identity']['ROIs'],
+        name = f'crop', 
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        receive_data_timeout = 1.0, 
+        send_data_strategy = send_strategy.BROADCAST,
     )
         
     # tracking --------------------------------------------------
@@ -409,8 +423,15 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     dag.connect_data(
         sender = camera_worker, 
         receiver = background_worker, 
-        queue = queue_cam, 
+        queue = queue_cam_to_background, 
         name = 'cam_output1'
+    )
+
+    dag.connect_data(
+        sender = background_worker, 
+        receiver = cropper, 
+        queue = queue_background_to_cropper, 
+        name = 'background_to_crop'
     )
 
     # NOTE: the order in which you declare connections matter: background_subtraction will
@@ -476,9 +497,9 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
     for i in range(settings['identity']['n_animals']):
         dag.connect_data(
-            sender = background_worker, 
+            sender = cropper, 
             receiver = tracker_worker_list[i], 
-            queue = queue_background[i], 
+            queue = queue_crop_to_tracker[i], 
             name = f'background_output_{i}'
         )
 

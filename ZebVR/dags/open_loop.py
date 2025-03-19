@@ -4,7 +4,7 @@ import json
 
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
-from video_tools import BackroundImage, Polarity
+from video_tools import BackgroundImage, Polarity
 from dagline import ProcessingDAG, receive_strategy, send_strategy
 from tracker import (
     GridAssignment, 
@@ -186,7 +186,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
     else:
         background_polarity = Polarity.BRIGHT_ON_DARK
 
-    background = BackroundImage(
+    background = BackgroundImage(
         image_file_name = settings['background']['background_file'],
         polarity = background_polarity,
         use_gpu = settings['settings']['tracking']['background_gpu']
