@@ -532,21 +532,25 @@ class GeneralStim(VisualStim):
                 return None
 
     def process_metadata(self, metadata) -> None:
+
         control = metadata['visual_stim_control']
-        if control is not None:
-            self.stim_select.value = control['stim_select']
-            self.phototaxis_polarity.value = control['phototaxis_polarity']
-            self.omr_spatial_period_mm.value = control['omr_spatial_period_mm']
-            self.omr_angle_deg.value = control['omr_angle_deg']
-            self.omr_speed_mm_per_sec.value = control['omr_speed_mm_per_sec']
-            self.okr_spatial_frequency_deg.value = control['okr_spatial_frequency_deg']
-            self.okr_speed_deg_per_sec.value = control['okr_speed_deg_per_sec']
-            self.looming_center_mm[:] = control['looming_center_mm']
-            self.looming_period_sec.value = control['looming_period_sec']
-            self.looming_expansion_time_sec.value = control['looming_expansion_time_sec']
-            self.looming_expansion_speed_mm_per_sec.value = control['looming_expansion_speed_mm_per_sec']
-            self.foreground_color[:] = control['foreground_color']
-            self.background_color[:] = control['background_color']
-            self.n_preys.value = int(control['n_preys'])
-            self.prey_speed_mm_s.value = control['prey_speed_mm_s']
-            self.prey_radius_mm.value = control['prey_radius_mm']
+        
+        if control is None:
+            return
+        
+        self.stim_select.value = control['stim_select']
+        self.phototaxis_polarity.value = control['phototaxis_polarity']
+        self.omr_spatial_period_mm.value = control['omr_spatial_period_mm']
+        self.omr_angle_deg.value = control['omr_angle_deg']
+        self.omr_speed_mm_per_sec.value = control['omr_speed_mm_per_sec']
+        self.okr_spatial_frequency_deg.value = control['okr_spatial_frequency_deg']
+        self.okr_speed_deg_per_sec.value = control['okr_speed_deg_per_sec']
+        self.looming_center_mm[:] = control['looming_center_mm']
+        self.looming_period_sec.value = control['looming_period_sec']
+        self.looming_expansion_time_sec.value = control['looming_expansion_time_sec']
+        self.looming_expansion_speed_mm_per_sec.value = control['looming_expansion_speed_mm_per_sec']
+        self.foreground_color[:] = control['foreground_color']
+        self.background_color[:] = control['background_color']
+        self.n_preys.value = int(control['n_preys'])
+        self.prey_speed_mm_s.value = control['prey_speed_mm_s']
+        self.prey_radius_mm.value = control['prey_radius_mm']
