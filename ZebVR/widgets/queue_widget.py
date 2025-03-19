@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
     QProgressBar,
+    QScrollArea,
+    QVBoxLayout,
     QLabel
 )
 from typing import Optional
@@ -52,11 +54,21 @@ class QueueMonitorWidget(QWidget):
 
         super().__init__(*args, **kwargs)
         self.widget_count = 0
-        self.layout = QGridLayout(self)
+
+        self.layout = QVBoxLayout(self)
+
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.layout.addWidget(self.scroll_area)
+
+        self.container = QWidget()
+        self.grid = QGridLayout(self.container)
+        self.scroll_area.setWidget(self.container) 
+        
         self.setWindowTitle('Queue Monitor')
 
     def add_progress_bar(self, queue_widget: QueueWidget):
         row = self.widget_count % self.MAX_ROWS
         col = self.widget_count // self.MAX_ROWS
-        self.layout.addWidget(queue_widget, row, col)
+        self.grid.addWidget(queue_widget, row, col)
         self.widget_count += 1
