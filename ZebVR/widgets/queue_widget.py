@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QWidget, 
-    QVBoxLayout,
+    QGridLayout,
     QHBoxLayout,
     QProgressBar,
     QLabel
@@ -42,6 +42,8 @@ class QueueWidget(QWidget):
 
 class QueueMonitorWidget(QWidget):
 
+    MAX_ROWS = 10
+
     def __init__(
             self,
             *args, 
@@ -49,8 +51,12 @@ class QueueMonitorWidget(QWidget):
         ):
 
         super().__init__(*args, **kwargs)
-        self.layout = QVBoxLayout(self)
+        self.widget_count = 0
+        self.layout = QGridLayout(self)
         self.setWindowTitle('Queue Monitor')
 
     def add_progress_bar(self, queue_widget: QueueWidget):
-        self.layout.addWidget(queue_widget)
+        row = self.widget_count % self.MAX_ROWS
+        col = self.widget_count // self.MAX_ROWS
+        self.layout.addWidget(queue_widget, row, col)
+        self.widget_count += 1
