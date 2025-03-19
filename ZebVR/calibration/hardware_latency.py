@@ -177,9 +177,12 @@ class Flash2(VisualStim):
         self.program.draw('triangle_strip')
 
     def process_data(self, data) -> None:
-        if data is not None:
-            self.on.value = data['detected']
-            self.timestamp.value = data['timestamp']
+
+        if data is None:
+            return
+        
+        self.on.value = data['detected']
+        self.timestamp.value = data['timestamp']
 
     def process_metadata(self, metadata) -> None:
         pass

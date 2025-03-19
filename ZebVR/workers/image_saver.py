@@ -43,20 +43,21 @@ class ImageSaverWorker(WorkerNode):
 
     def process_data(self, data: NDArray) -> None:
 
-        if data is not None:
+        if data is None:
+            return
 
-            if data['index'] % self.decimation == 0:
-                
-                image_resized = cv2.resize(data['image'],None,None,self.resize,self.resize,cv2.INTER_NEAREST)
-                metadata = data[['index','timestamp']]
-                filename = os.path.join(self.folder, f"{data['index']:0{self.zero_padding}}")
-                
-                if self.compress:
-                    np.savez_compressed(filename, image=image_resized, metadata=metadata)
-                else:
-                    np.savez(filename, image=image_resized, metadata=metadata)
-                
-                return data
+        if data['index'] % self.decimation == 0:
+            
+            image_resized = cv2.resize(data['image'],None,None,self.resize,self.resize,cv2.INTER_NEAREST)
+            metadata = data[['index','timestamp']]
+            filename = os.path.join(self.folder, f"{data['index']:0{self.zero_padding}}")
+            
+            if self.compress:
+                np.savez_compressed(filename, image=image_resized, metadata=metadata)
+            else:
+                np.savez(filename, image=image_resized, metadata=metadata)
+            
+            return data
 
     def process_metadata(self, metadata) -> Any:
         pass
@@ -163,18 +164,20 @@ class VideoSaverWorker(WorkerNode):
 
     def process_data(self, data: NDArray) -> None:
 
-        if data is not None:
-            if data['index'] % self.decimation == 0:
-                
-                # TODO: write a resize node to put in between 
+        if data is None:
+            return
 
-                #image_resized = cv2.resize(data['image'], (self.width, self.height), interpolation = cv2.INTER_NEAREST)
-                #self.writer.write_frame(image_resized)
+        if data['index'] % self.decimation == 0:
+            
+            # TODO: write a resize node to put in between 
 
-                # TODO write a node to convert images to yuv420p and write video writer that can handle direct yuv420p input 
+            #image_resized = cv2.resize(data['image'], (self.width, self.height), interpolation = cv2.INTER_NEAREST)
+            #self.writer.write_frame(image_resized)
 
-                self.writer.write_frame(data['image'])
-                return data
+            # TODO write a node to convert images to yuv420p and write video writer that can handle direct yuv420p input 
+
+            self.writer.write_frame(data['image'])
+            return data
 
     def process_metadata(self, metadata) -> Any:
         pass

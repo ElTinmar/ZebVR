@@ -32,23 +32,24 @@ class Display(WorkerNode):
         self.app.processEvents()
         self.app.sendPostedEvents()
         
-        if data is not None:
+        if data is None:
+            return
 
-            if self.first_timestamp == 0:
-                self.first_timestamp = data['timestamp'].copy()
+        if self.first_timestamp == 0:
+            self.first_timestamp = data['timestamp'].copy()
 
-            # restrict update freq to save resources
-            if time.monotonic() - self.prev_time > 1/self.fps:
+        # restrict update freq to save resources
+        if time.monotonic() - self.prev_time > 1/self.fps:
 
-                self.window.set_state(
-                    index = data['index'],
-                    timestamp = (data['timestamp'] - self.first_timestamp)*1e-9,
-                    image_rgb = data['image']
-                )
+            self.window.set_state(
+                index = data['index'],
+                timestamp = (data['timestamp'] - self.first_timestamp)*1e-9,
+                image_rgb = data['image']
+            )
 
-                self.prev_time = time.monotonic()
+            self.prev_time = time.monotonic()
 
-            return data
+        return data
 
     def process_metadata(self, metadata: Dict) -> Optional[Dict]:
         pass
