@@ -8,6 +8,8 @@ import numpy as np
 import os
 from dataclasses import dataclass
 
+# TODO I need to restrict drawing for each fish to their respective bbox.
+
 @dataclass
 class SharedFishState:
     num_tail_points_interp: int
@@ -97,6 +99,7 @@ class GeneralStim(VisualStim):
         self.ROI_identities = ROI_identities
         self.num_tail_points_interp = num_tail_points_interp
         self.n_animals = len(ROI_identities)
+        self.n_preys = n_preys
 
         VERT_SHADER = f"""
         uniform mat3 u_transformation_matrix;
@@ -105,13 +108,13 @@ class GeneralStim(VisualStim):
         uniform float u_n_animals;
 
         // tracking
-        attribute vec2 a_fish_caudorostral_axis[{self.n_animals}];
-        attribute vec2 a_fish_mediolateral_axis[{self.n_animals}];
-        attribute vec2 a_fish_centroid;[{self.n_animals}] 
-        attribute vec2 a_left_eye_centroid[{self.n_animals}]; 
-        attribute float a_left_eye_angle[{self.n_animals}];
-        attribute vec2 a_right_eye_centroid[{self.n_animals}];
-        attribute float a_right_eye_angle[{self.n_animals}];
+        uniform vec2 a_fish_caudorostral_axis[{self.n_animals}];
+        uniform vec2 a_fish_mediolateral_axis[{self.n_animals}];
+        uniform vec2 a_fish_centroid[{self.n_animals}]; 
+        uniform vec2 a_left_eye_centroid[{self.n_animals}]; 
+        uniform float a_left_eye_angle[{self.n_animals}];
+        uniform vec2 a_right_eye_centroid[{self.n_animals}];
+        uniform float a_right_eye_angle[{self.n_animals}];
 
         varying vec2 v_fish_caudorostral_axis[{self.n_animals}];
         varying vec2 v_fish_mediolateral_axis[{self.n_animals}];
@@ -120,7 +123,7 @@ class GeneralStim(VisualStim):
         varying float v_left_eye_angle[{self.n_animals}];
         varying vec2 v_right_eye_centroid[{self.n_animals}];
         varying float v_right_eye_angle[{self.n_animals}];
-        varying vec2 v_pix_per_mm_proj[{self.n_animals}];
+        varying vec2 v_pix_per_mm_proj;
 
         """ + """
 
@@ -128,23 +131,25 @@ class GeneralStim(VisualStim):
         {
             gl_Position = vec4(a_position, 0.0, 1.0);
 
-            //NOTE setting last component to 0 for scaling without translation
-            vec3 fish_centroid = u_transformation_matrix * vec3(a_fish_centroid, 1.0);
-            vec3 left_eye_centroid = u_transformation_matrix * vec3(a_left_eye_centroid, 1.0);
-            vec3 right_eye_centroid = u_transformation_matrix * vec3(a_right_eye_centroid, 1.0);
-            vec3 fish_caudorostral_axis = u_transformation_matrix * vec3(a_fish_caudorostral_axis, 0);
-            vec3 fish_mediolateral_axis = u_transformation_matrix * vec3(a_fish_mediolateral_axis, 0);
-            vec3 proj_scale = u_transformation_matrix * vec3(u_pix_per_mm, u_pix_per_mm, 0);
+            for (int i = 0; i < u_n_animals; i++) {
+                vec3 fish_centroid = u_transformation_matrix * vec3(a_fish_centroid[i], 1.0);
+                vec3 left_eye_centroid = u_transformation_matrix * vec3(a_left_eye_centroid[i], 1.0);
+                vec3 right_eye_centroid = u_transformation_matrix * vec3(a_right_eye_centroid[i], 1.0);
+                vec3 fish_caudorostral_axis = u_transformation_matrix * vec3(a_fish_caudorostral_axis[i], 0);
+                vec3 fish_mediolateral_axis = u_transformation_matrix * vec3(a_fish_mediolateral_axis[i], 0);
+                
+                v_fish_centroid[i] = fish_centroid.xy;
+                v_left_eye_centroid[i] = left_eye_centroid.xy;
+                v_right_eye_centroid[i] = right_eye_centroid.xy;
+                v_fish_caudorostral_axis[i] = fish_caudorostral_axis.xy;
+                v_fish_mediolateral_axis[i] = fish_mediolateral_axis.xy;
+                v_left_eye_angle[i] = a_left_eye_angle[i]; // TODO should I transform that as well ?
+                v_right_eye_angle[i] = a_right_eye_angle[i]; // TODO should I transform that as well ?
+            } 
 
-            v_fish_centroid = fish_centroid.xy;
-            v_left_eye_centroid = left_eye_centroid.xy;
-            v_right_eye_centroid = right_eye_centroid.xy;
-            v_fish_caudorostral_axis = fish_caudorostral_axis.xy;
-            v_fish_mediolateral_axis = fish_mediolateral_axis.xy;
-            v_left_eye_angle = a_left_eye_angle;
-            v_right_eye_angle = a_right_eye_angle;
+            vec3 proj_scale = u_transformation_matrix * vec3(u_pix_per_mm, u_pix_per_mm, 0);
             v_pix_per_mm_proj = abs(proj_scale.xy);
-        } 
+        }
         """
 
         FRAG_SHADER = f"""
@@ -160,13 +165,14 @@ class GeneralStim(VisualStim):
         uniform mat3 u_transformation_matrix;
 
         // tracking
-        varying vec2 v_fish_centroid;
-        varying vec2 v_fish_caudorostral_axis;
-        varying vec2 v_fish_mediolateral_axis;
-        varying vec2 v_left_eye_centroid; 
-        varying float v_left_eye_angle;
-        varying vec2 v_right_eye_centroid;
-        varying float v_right_eye_angle;
+        uniform float u_n_animals;
+        varying vec2 v_fish_centroid[{self.n_animals}];
+        varying vec2 v_fish_caudorostral_axis[{self.n_animals}];
+        varying vec2 v_fish_mediolateral_axis[{self.n_animals}];
+        varying vec2 v_left_eye_centroid[{self.n_animals}]; 
+        varying float v_left_eye_angle[{self.n_animals}];
+        varying vec2 v_right_eye_centroid[{self.n_animals}];
+        varying float v_right_eye_angle[{self.n_animals}];
         uniform float u_time_s;
 
         // stim parameters
@@ -213,66 +219,70 @@ class GeneralStim(VisualStim):
         void main()
         {
             vec2 coordinates_px = gl_FragCoord.xy * u_pixel_scaling;
-            vec2 coordinates_centered_px = coordinates_px - v_fish_centroid;
-            vec2 coordinates_centered_mm = 1/v_pix_per_mm_proj * coordinates_centered_px;
-            // X: mediolateral_axis, Y: caudorostral_axis
-            mat2 change_of_basis = mat2(
-                v_fish_mediolateral_axis/length(v_fish_mediolateral_axis), 
-                v_fish_caudorostral_axis/length(v_fish_caudorostral_axis)
-            );
-            vec2 fish_ego_coords_mm = transpose(change_of_basis)*coordinates_centered_mm;
-            
-            gl_FragColor = u_background_color;
 
-            if (u_stim_select == DARK) {
+            for (int animal = 0; animal < u_n_animals; animal++) {
+
+                vec2 coordinates_centered_px = coordinates_px - v_fish_centroid[animal];
+                vec2 coordinates_centered_mm = 1/v_pix_per_mm_proj * coordinates_centered_px;
+                // X: mediolateral_axis, Y: caudorostral_axis
+                mat2 change_of_basis = mat2(
+                    v_fish_mediolateral_axis[animal]/length(v_fish_mediolateral_axis[animal]), 
+                    v_fish_caudorostral_axis[animal]/length(v_fish_caudorostral_axis[animal])
+                );
+                vec2 fish_ego_coords_mm = transpose(change_of_basis)*coordinates_centered_mm;
+                
                 gl_FragColor = u_background_color;
-            }
 
-            if (u_stim_select == BRIGHT) {
-                gl_FragColor = u_foreground_color;
-            }
-
-            if (u_stim_select == PHOTOTAXIS) {
-                if ( u_phototaxis_polarity * fish_ego_coords_mm.x > 0.0 ) {
-                    gl_FragColor = u_foreground_color;
-                } 
-            }
-
-            if (u_stim_select == OMR) {
-                vec2 orientation_vector = rotate2d(deg2rad(u_omr_angle_deg)) * vec2(0,1);
-                float angle = 2*PI/u_omr_spatial_period_mm * dot(fish_ego_coords_mm, orientation_vector);
-                float phase = 2*PI/u_omr_spatial_period_mm * u_omr_speed_mm_per_sec * u_time_s;
-                if ( sin(angle+phase) > 0.0 ) {
-                    gl_FragColor = u_foreground_color;
-                } 
-            }
-
-            if (u_stim_select == OKR) {
-                float freq = deg2rad(u_okr_spatial_frequency_deg);
-                float angle = atan(fish_ego_coords_mm.y, fish_ego_coords_mm.x);
-                float phase = deg2rad(u_okr_speed_deg_per_sec)*u_time_s;
-                if ( mod(angle+phase, freq) > freq/2 ) {
-                    gl_FragColor = u_foreground_color;
-                } 
-            }
-
-            if (u_stim_select == LOOMING) {
-                float rel_time = mod(u_time_s, u_looming_period_sec); 
-                float looming_on = float(rel_time<=u_looming_expansion_time_sec);
-                if ( rel_time <= u_looming_period_sec/2 ) { 
-                    if ( distance(fish_ego_coords_mm, u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
-                    {
-                        gl_FragColor = u_foreground_color;
-                    }
+                if (u_stim_select == DARK) {
+                    gl_FragColor = u_background_color;
                 }
-            } 
 
-            if (u_stim_select == PREY_CAPTURE) {
-                for (int i = 0; i < u_n_preys; i++) {
-                    vec2 pos_camera_px = mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_pix_per_mm * u_prey_direction[i], u_cam_resolution);
-                    vec3 pos_proj_px = u_transformation_matrix * vec3(pos_camera_px, 1.0);
-                    if ( distance(pos_proj_px.xy/v_pix_per_mm_proj, coordinates_px/v_pix_per_mm_proj) <= u_prey_radius_mm ) {
+                if (u_stim_select == BRIGHT) {
+                    gl_FragColor = u_foreground_color;
+                }
+
+                if (u_stim_select == PHOTOTAXIS) {
+                    if ( u_phototaxis_polarity * fish_ego_coords_mm.x > 0.0 ) {
                         gl_FragColor = u_foreground_color;
+                    } 
+                }
+
+                if (u_stim_select == OMR) {
+                    vec2 orientation_vector = rotate2d(deg2rad(u_omr_angle_deg)) * vec2(0,1);
+                    float angle = 2*PI/u_omr_spatial_period_mm * dot(fish_ego_coords_mm, orientation_vector);
+                    float phase = 2*PI/u_omr_spatial_period_mm * u_omr_speed_mm_per_sec * u_time_s;
+                    if ( sin(angle+phase) > 0.0 ) {
+                        gl_FragColor = u_foreground_color;
+                    } 
+                }
+
+                if (u_stim_select == OKR) {
+                    float freq = deg2rad(u_okr_spatial_frequency_deg);
+                    float angle = atan(fish_ego_coords_mm.y, fish_ego_coords_mm.x);
+                    float phase = deg2rad(u_okr_speed_deg_per_sec)*u_time_s;
+                    if ( mod(angle+phase, freq) > freq/2 ) {
+                        gl_FragColor = u_foreground_color;
+                    } 
+                }
+
+                if (u_stim_select == LOOMING) {
+                    float rel_time = mod(u_time_s, u_looming_period_sec); 
+                    float looming_on = float(rel_time<=u_looming_expansion_time_sec);
+                    if ( rel_time <= u_looming_period_sec/2 ) { 
+                        if ( distance(fish_ego_coords_mm, u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
+                        {
+                            gl_FragColor = u_foreground_color;
+                        }
+                    }
+                } 
+
+                if (u_stim_select == PREY_CAPTURE) {
+                    for (int i = 0; i < u_n_preys; i++) {
+                        vec2 pos_camera_px = mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_pix_per_mm * u_prey_direction[i], u_cam_resolution);
+                        vec3 pos_proj_px = u_transformation_matrix * vec3(pos_camera_px, 1.0);
+                        if ( distance(pos_proj_px.xy/v_pix_per_mm_proj, coordinates_px/v_pix_per_mm_proj) <= u_prey_radius_mm ) {
+                            gl_FragColor = u_foreground_color;
+                        }
                     }
                 }
             }
@@ -327,13 +337,13 @@ class GeneralStim(VisualStim):
 
         # fish state 
         # TODO send tail data to shader?
-        self.program['a_fish_caudorostral_axis'] = np.row_stack([self.shared_fish_state[ID].fish_caudorostral_axis[:] for ID in range(self.n_animals)])
-        self.program['a_fish_mediolateral_axis'] = np.row_stack([self.shared_fish_state[ID].fish_mediolateral_axis[:] for ID in range(self.n_animals)])
-        self.program['a_left_eye_centroid'] = np.row_stack([self.shared_fish_state[ID].left_eye_centroid[:] for ID in range(self.n_animals)])
-        self.program['a_left_eye_angle'] = np.row_stack([self.shared_fish_state[ID].left_eye_angle.value for ID in range(self.n_animals)])
-        self.program['a_right_eye_centroid'] = np.row_stack([self.shared_fish_state[ID].right_eye_centroid[:] for ID in range(self.n_animals)])
-        self.program['a_right_eye_angle'] = np.row_stack([self.shared_fish_state[ID].right_eye_angle.value for ID in range(self.n_animals)])
-        self.program['a_fish_centroid'] = np.row_stack([self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)])
+        self.program['a_fish_caudorostral_axis'] = np.row_stack([self.shared_fish_state[ID].fish_caudorostral_axis[:] for ID in range(self.n_animals)]).astype(np.float32)
+        self.program['a_fish_mediolateral_axis'] = np.row_stack([self.shared_fish_state[ID].fish_mediolateral_axis[:] for ID in range(self.n_animals)]).astype(np.float32)
+        self.program['a_left_eye_centroid'] = np.row_stack([self.shared_fish_state[ID].left_eye_centroid[:] for ID in range(self.n_animals)]).astype(np.float32)
+        self.program['a_left_eye_angle'] = np.row_stack([self.shared_fish_state[ID].left_eye_angle.value for ID in range(self.n_animals)]).astype(np.float32)
+        self.program['a_right_eye_centroid'] = np.row_stack([self.shared_fish_state[ID].right_eye_centroid[:] for ID in range(self.n_animals)]).astype(np.float32)
+        self.program['a_right_eye_angle'] = np.row_stack([self.shared_fish_state[ID].right_eye_angle.value for ID in range(self.n_animals)]).astype(np.float32)
+        self.program['a_fish_centroid'] = np.row_stack([self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)]).astype(np.float32)
 
         # stim parameters
         self.program['u_foreground_color'] = self.shared_stim_parameters.foreground_color[:]
@@ -358,9 +368,9 @@ class GeneralStim(VisualStim):
         super().initialize()
         
         np.random.seed(0)
-        x = np.random.randint(0, self.camera_resolution[0], MAX_PREY)
-        y = np.random.randint(0, self.camera_resolution[1], MAX_PREY)
-        theta = np.random.uniform(0, 2*np.pi, MAX_PREY)
+        x = np.random.randint(0, self.camera_resolution[0], self.n_preys)
+        y = np.random.randint(0, self.camera_resolution[1], self.n_preys)
+        theta = np.random.uniform(0, 2*np.pi, self.n_preys)
         self.program['u_prey_position'] = np.column_stack((x, y)).astype(np.float32)
         self.program['u_prey_direction'] = np.column_stack((np.cos(theta), np.sin(theta))).astype(np.float32)
 
