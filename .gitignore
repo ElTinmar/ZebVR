@@ -1,6 +1,11 @@
 toy_data/
 output/
 
+!output/data/README.md
+!output/video/README.md
+!output/logs/README.md
+
+
 tracking.json
 protocol.json
 registration.json
