@@ -37,7 +37,6 @@ from ..protocol import (
     SoftwareTrigger,
     TrackingTrigger
 )
-from ..stimulus import MAX_PREY # is that ok ?
 
 class StopWidget(QWidget):
 
@@ -458,7 +457,7 @@ class StimWidget(QWidget):
 
         self.sb_n_preys = LabeledSpinBox()
         self.sb_n_preys.setText('# preys')
-        self.sb_n_preys.setRange(0,MAX_PREY) 
+        self.sb_n_preys.setRange(0, 200) 
         self.sb_n_preys.setValue(self.n_preys)
         self.sb_n_preys.valueChanged.connect(self.on_change)
 
