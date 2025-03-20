@@ -219,6 +219,7 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(True)
             self.settings_widget.set_open_loop_visible(False)
             self.settings_widget.force_videorecording(False)
+            self.settings_widget.set_stim_output_visible(True)
 
         elif self.open_loop_button.isChecked():
 
@@ -239,6 +240,7 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(False)
             self.settings_widget.set_open_loop_visible(True)
             self.settings_widget.force_videorecording(False)
+            self.settings_widget.set_stim_output_visible(True)
 
         elif self.video_recording_button.isChecked():
 
@@ -260,6 +262,7 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(False)
             self.settings_widget.set_open_loop_visible(False)
             self.settings_widget.force_videorecording(True)
+            self.settings_widget.set_stim_output_visible(False)
 
         elif self.tracking_button.isChecked():
             
@@ -281,6 +284,7 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(True)
             self.settings_widget.set_open_loop_visible(False)
             self.settings_widget.force_videorecording(False)
+            self.settings_widget.set_stim_output_visible(False)
 
         else:
             raise RuntimeError       

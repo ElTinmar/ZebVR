@@ -1,6 +1,7 @@
 
 from PyQt5.QtWidgets import (
     QWidget, 
+    QApplication,
     QVBoxLayout,
     QGroupBox,
     QCheckBox
@@ -47,54 +48,30 @@ class TrackingWidget(QWidget):
         self.display_fps.setText('FPS display:')
         self.display_fps.setValue(30)
         self.display_fps.valueChanged.connect(self.state_changed)
-           
-        ## data recording -----------------------------------
-        self.data_group = QGroupBox('tracking output')
-    
-        self.fish_id = LabeledSpinBox()
-        self.fish_id.setText('Fish ID:')
-        self.fish_id.setValue(0)
-        self.fish_id.valueChanged.connect(self.experiment_data)
-
-        self.dpf = LabeledSpinBox()
-        self.dpf.setText('Fish age (dpf):')
-        self.dpf.setValue(7)
-        self.dpf.valueChanged.connect(self.experiment_data)
-
-        self.line = LabeledEditLine()
-        self.line.setLabel('Fish line:')
-        self.line.setText('WT')
-        self.line.textChanged.connect(self.experiment_data)
 
         self.edt_filename = LabeledEditLine()
         self.edt_filename.setLabel('result file:')
-        self.edt_filename.setText(os.path.join(self.CSV_FOLDER, f'{self.fish_id.value():02}_{self.dpf.value():02}dpf_{self.line.text()}.csv'))
+        self.edt_filename.setText('tracking.csv')
         self.edt_filename.textChanged.connect(self.state_changed)
+
+    def update_prefix(self, prefix: str):
+
+        self.filename = os.path.join(self.CSV_FOLDER, f'tracking_{prefix}.csv')
+        self.edt_filename.setText(self.filename)
+        self.state_changed.emit()
 
     def layout_components(self):
 
         closedloop_layout = QVBoxLayout()
+        closedloop_layout.addWidget(self.tracking_settings)
         closedloop_layout.addWidget(self.background_gpu)
         closedloop_layout.addWidget(self.n_tail_pts_interp)
         closedloop_layout.addWidget(self.display_fps)
-        closedloop_layout.addWidget(self.tracking_settings)
+        closedloop_layout.addWidget(self.edt_filename)
         self.closedloop_group.setLayout(closedloop_layout)
-
-        data_layout = QVBoxLayout()
-        data_layout.addWidget(self.fish_id)
-        data_layout.addWidget(self.dpf)
-        data_layout.addWidget(self.line)
-        data_layout.addWidget(self.edt_filename)
-        self.data_group.setLayout(data_layout)
 
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.closedloop_group)
-        main_layout.addWidget(self.data_group)
-
-    def experiment_data(self):
-        self.filename = os.path.join(self.CSV_FOLDER, f'{self.fish_id.value():02}_{self.dpf.value():02}dpf_{self.line.text()}.csv')
-        self.edt_filename.setText(self.filename)
-        self.state_changed.emit()
 
     def get_state(self) -> Dict:
 
@@ -103,8 +80,6 @@ class TrackingWidget(QWidget):
         state['background_gpu'] = self.background_gpu.isChecked()
         state['n_tail_pts_interp'] = self.n_tail_pts_interp.value()
         state['display_fps'] = self.display_fps.value()
-        state['fish_id'] = self.fish_id.value()
-        state['dpf'] = self.dpf.value()
         state['csv_filename'] = self.edt_filename.text()
         return state
     
@@ -115,8 +90,6 @@ class TrackingWidget(QWidget):
             'background_gpu': self.background_gpu.setChecked,
             'n_tail_pts_interp': self.n_tail_pts_interp.setValue,
             'display_fps': self.display_fps.setValue,
-            'fish_id': self.fish_id.setValue,
-            'dpf': self.dpf.setValue,
             'csv_filename': self.edt_filename.setText
         }
         
@@ -125,25 +98,8 @@ class TrackingWidget(QWidget):
                 setter(state[key])
 
 if __name__ == "__main__":
-
-    from PyQt5.QtWidgets import QApplication, QMainWindow
-
-    class Window(QMainWindow):
-
-        def __init__(self,*args,**kwargs):
-
-            super().__init__(*args, **kwargs)
-            self.closeloop_widget = TrackingWidget()
-            self.setCentralWidget(self.closeloop_widget)
-            self.closeloop_widget.state_changed.connect(self.state_changed)
-
-        def state_changed(self):
-            print(self.closeloop_widget.get_state())
-
-        def openloop(self):
-            print('openloop coords clicked')
     
     app = QApplication([])
-    window = Window()
+    window = TrackingWidget()
     window.show()
     app.exec()
