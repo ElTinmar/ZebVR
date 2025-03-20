@@ -1,7 +1,7 @@
 from typing import Tuple
 from .visual_stim import VisualStim
 from vispy import gloo, app
-from multiprocessing import RawValue, RawArray, Lock
+from multiprocessing import RawValue, RawArray
 import time
 from numpy.typing import NDArray
 import numpy as np 
@@ -10,9 +10,6 @@ import os
 # TODO adapt shader code to receive state from all animals and display only in their respective ROIs.
 # TODO pass state of all animals to the shader (multidim RawArray)
 # TODO maybe pass ROIs to __init__ instead of sending for each frame along with tracking data
-# TODO maybe save tracking and stimulus info to two different files (I already have a TrackingSaver class!)
-# The two files can be synchronized using time.perf_counter timestamps? This way, tracking data can be saved @ camera fps
-# and stimulus data can be saved @ projector / shader fps
 
 VERT_SHADER = """
 uniform mat3 u_transformation_matrix;
@@ -256,7 +253,6 @@ class GeneralStim(VisualStim):
         self.default_prey_radius_mm = prey_radius_mm 
         self.num_tail_points_interp = num_tail_points_interp
 
-        self.lock = Lock()
         self.tail_points = RawArray('d', 2*self.num_tail_points_interp)
         self.foreground_color = RawArray('d', self.default_foreground_color)
         self.background_color = RawArray('d', self.default_background_color)
@@ -417,85 +413,81 @@ class GeneralStim(VisualStim):
         
         timestamp = time.perf_counter_ns()
 
-        with self.lock:
+        self.update_shader_variables(timestamp)
+        self.update()
 
-            self.update_shader_variables(timestamp)
-            self.update()
-
-            row = (
-                f'{timestamp}',
-                f'{self.stim_select.value}',
-                f'{self.phototaxis_polarity.value}',
-                f'{self.omr_spatial_period_mm.value}',
-                f'{self.omr_angle_deg.value}',
-                f'{self.omr_speed_mm_per_sec.value}',
-                f'{self.okr_spatial_frequency_deg.value}',
-                f'{self.okr_speed_deg_per_sec.value}',
-                f'{self.looming_center_mm[0]}',
-                f'{self.looming_center_mm[1]}',
-                f'{self.looming_period_sec.value}',
-                f'{self.looming_expansion_time_sec.value}',
-                f'{self.looming_expansion_speed_mm_per_sec.value}',
-                f'{self.n_preys.value}',
-                f'{self.prey_speed_mm_s.value}',
-                f'{self.prey_radius_mm.value}'
-            )
-            self.fd.write(','.join(row) + '\n')
+        row = (
+            f'{timestamp}',
+            f'{self.stim_select.value}',
+            f'{self.phototaxis_polarity.value}',
+            f'{self.omr_spatial_period_mm.value}',
+            f'{self.omr_angle_deg.value}',
+            f'{self.omr_speed_mm_per_sec.value}',
+            f'{self.okr_spatial_frequency_deg.value}',
+            f'{self.okr_speed_deg_per_sec.value}',
+            f'{self.looming_center_mm[0]}',
+            f'{self.looming_center_mm[1]}',
+            f'{self.looming_period_sec.value}',
+            f'{self.looming_expansion_time_sec.value}',
+            f'{self.looming_expansion_speed_mm_per_sec.value}',
+            f'{self.n_preys.value}',
+            f'{self.prey_speed_mm_s.value}',
+            f'{self.prey_radius_mm.value}'
+        )
+        self.fd.write(','.join(row) + '\n')
 
     def process_data(self, data) -> None:
 
         if data is None:
             return
 
-        with self.lock:
+        try:
+            self.index.value = data['index']
+            self.timestamp.value = data['timestamp']
+            self.identity.value = data['identity']
 
-            try:
-                self.index.value = data['index']
-                self.timestamp.value = data['timestamp']
-                self.identity.value = data['identity']
+            #data['origin']
+            #data['shape']
 
-                #data['origin']
-                #data['shape']
-
-                print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
-                
-                # TODO maybe create a single fish tracker
-                k = 0
-
-                if data['tracking']['body'][k] is not None:
-                    self.fish_centroid[:] = data['tracking']['body'][k]['centroid_global']
-                    body_axes = data['tracking']['body'][k]['body_axes_global']
-                    self.fish_caudorostral_axis[:] = body_axes[:,0]
-                    self.fish_mediolateral_axis[:] = body_axes[:,1]
-                else:
-                    self.fish_centroid[:] = data['tracking']['animals']['centroid_global'][k,:]
-
-                # TODO use eyes heading vector if present?
-                # eyes
-                if data['tracking']['eyes'][k] is not None:
-
-                    if data['tracking']['eyes'][k]['left_eye'] is not None:
-                        self.left_eye_centroid[:] = data['tracking']['eyes'][k]['left_eye']['centroid_cropped'] 
-                        self.left_eye_angle.value = data['tracking']['eyes'][k]['left_eye']['angle']
-
-                    if data['tracking']['eyes'][k]['right_eye'] is not None:
-                        self.right_eye_centroid[:] = data['tracking']['eyes'][k]['right_eye']['centroid_cropped']
-                        self.right_eye_angle.value = data['tracking']['eyes'][k]['right_eye']['angle']
-
-                # tail
-                if data['tracking']['tail'][k] is not None:
-                    skeleton_interp = data['tracking']['tail'][k]['skeleton_interp_cropped']  
-                    self.tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
-                    self.tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
-
-            except KeyError:
-                return None 
+            print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
             
-            except TypeError:
-                return None
-            
-            except ValueError:
-                return None
+            # TODO maybe create a single fish tracker
+            k = 0
+
+            if data['tracking']['body'][k] is not None:
+                self.fish_centroid[:] = data['tracking']['body'][k]['centroid_global']
+                body_axes = data['tracking']['body'][k]['body_axes_global']
+                self.fish_caudorostral_axis[:] = body_axes[:,0]
+                self.fish_mediolateral_axis[:] = body_axes[:,1]
+            else:
+                self.fish_centroid[:] = data['tracking']['animals']['centroid_global'][k,:]
+
+            # TODO use eyes heading vector if present?
+            # eyes
+            if data['tracking']['eyes'][k] is not None:
+
+                if data['tracking']['eyes'][k]['left_eye'] is not None:
+                    self.left_eye_centroid[:] = data['tracking']['eyes'][k]['left_eye']['centroid_cropped'] 
+                    self.left_eye_angle.value = data['tracking']['eyes'][k]['left_eye']['angle']
+
+                if data['tracking']['eyes'][k]['right_eye'] is not None:
+                    self.right_eye_centroid[:] = data['tracking']['eyes'][k]['right_eye']['centroid_cropped']
+                    self.right_eye_angle.value = data['tracking']['eyes'][k]['right_eye']['angle']
+
+            # tail
+            if data['tracking']['tail'][k] is not None:
+                skeleton_interp = data['tracking']['tail'][k]['skeleton_interp_cropped']  
+                self.tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
+                self.tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
+
+        except KeyError:
+            return None 
+        
+        except TypeError:
+            return None
+        
+        except ValueError:
+            return None
 
     def process_metadata(self, metadata) -> None:
 
