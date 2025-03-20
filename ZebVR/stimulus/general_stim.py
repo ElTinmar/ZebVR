@@ -6,6 +6,7 @@ import time
 from numpy.typing import NDArray
 import numpy as np 
 import os
+from dataclasses import dataclass
 
 # TODO adapt shader code to receive state from all animals and display only in their respective ROIs.
 # TODO pass state of all animals to the shader (multidim RawArray)
@@ -189,6 +190,58 @@ void main()
 }
 """
 
+@dataclass
+class SharedFishState:
+    num_tail_points_interp: int
+
+    def __post_init__(self):
+        self.fish_mediolateral_axis = RawArray('d', [0, 0])
+        self.fish_caudorostral_axis = RawArray('d', [0, 0])
+        self.fish_centroid = RawArray('d', [0, 0])
+        self.left_eye_centroid = RawArray('d', [0, 0])
+        self.left_eye_angle = RawValue('d', 0)
+        self.right_eye_centroid = RawArray('d', [0, 0])
+        self.right_eye_angle = RawValue('d', 0)
+        self.tail_points = RawArray('d', 2*self.num_tail_points_interp)
+
+# TODO maybe also make that an array per fish if you want each fish to receive a different stimulus
+@dataclass
+class SharedStimParameters:
+    default_foreground_color: Tuple[float, float, float, float]
+    default_background_color: Tuple[float, float, float, float]
+    default_stim_select: float
+    default_phototaxis_polarity: int
+    default_omr_spatial_period_mm: float
+    default_omr_angle_deg: float
+    default_omr_speed_mm_per_sec: float
+    default_okr_spatial_frequency_deg: float
+    default_okr_speed_deg_per_sec: float
+    default_looming_center_mm: Tuple[int, int]
+    default_looming_period_sec: float
+    default_looming_expansion_time_sec: float
+    default_looming_expansion_speed_mm_per_sec: float
+    default_n_preys: int
+    default_prey_speed_mm_s: float
+    default_prey_radius_mm: float
+
+    def __post_init__(self):
+        self.foreground_color = RawArray('d', self.default_foreground_color)
+        self.background_color = RawArray('d', self.default_background_color)
+        self.stim_select = RawValue('d', self.default_stim_select) 
+        self.phototaxis_polarity = RawValue('d', self.default_phototaxis_polarity) 
+        self.omr_spatial_period_mm = RawValue('d', self.default_omr_spatial_period_mm)
+        self.omr_angle_deg = RawValue('d', self.default_omr_angle_deg)
+        self.omr_speed_mm_per_sec = RawValue('d', self.default_omr_speed_mm_per_sec)
+        self.okr_spatial_frequency_deg = RawValue('d', self.default_okr_spatial_frequency_deg)
+        self.okr_speed_deg_per_sec = RawValue('d', self.default_okr_speed_deg_per_sec)
+        self.looming_center_mm = RawArray('d', self.default_looming_center_mm)
+        self.looming_period_sec = RawValue('d', self.default_looming_period_sec)
+        self.looming_expansion_time_sec = RawValue('d', self.default_looming_expansion_time_sec)
+        self.looming_expansion_speed_mm_per_sec = RawValue('d', self.default_looming_expansion_speed_mm_per_sec)
+        self.n_preys = RawValue('L', self.default_n_preys)
+        self.prey_speed_mm_s = RawValue('d', self.default_prey_speed_mm_s)
+        self.prey_radius_mm = RawValue('d', self.default_prey_radius_mm)
+
 class GeneralStim(VisualStim):
 
     def __init__(
@@ -237,53 +290,26 @@ class GeneralStim(VisualStim):
         )
 
         self.ROI_identities = ROI_identities
-        self.n_animals = len(ROI_identities) 
-        self.default_stim_select = stim_select
-        self.default_background_color = background_color
-        self.default_foreground_color = foreground_color
-        self.default_phototaxis_polarity = phototaxis_polarity
-        self.default_omr_spatial_period_mm = omr_spatial_period_mm
-        self.default_omr_angle_deg = omr_angle_deg
-        self.default_omr_speed_mm_per_sec = omr_speed_mm_per_sec
-        self.default_okr_spatial_frequency_deg = okr_spatial_frequency_deg
-        self.default_okr_speed_deg_per_sec = okr_speed_deg_per_sec 
-        self.default_looming_center_mm = looming_center_mm
-        self.default_looming_period_sec = looming_period_sec
-        self.default_looming_expansion_time_sec = looming_expansion_time_sec
-        self.default_looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
-        self.default_n_prey = n_preys
-        self.default_prey_speed_mm_s = prey_speed_mm_s
-        self.default_prey_radius_mm = prey_radius_mm 
         self.num_tail_points_interp = num_tail_points_interp
-
-        self.tail_points = RawArray('d', 2*self.num_tail_points_interp)
-        self.foreground_color = RawArray('d', self.default_foreground_color)
-        self.background_color = RawArray('d', self.default_background_color)
-        self.stim_select = RawValue('d', self.default_stim_select) 
-        self.phototaxis_polarity = RawValue('d', self.default_phototaxis_polarity) 
-        self.omr_spatial_period_mm = RawValue('d', self.default_omr_spatial_period_mm)
-        self.omr_angle_deg = RawValue('d', self.default_omr_angle_deg)
-        self.omr_speed_mm_per_sec = RawValue('d', self.default_omr_speed_mm_per_sec)
-        self.okr_spatial_frequency_deg = RawValue('d', self.default_okr_spatial_frequency_deg)
-        self.okr_speed_deg_per_sec = RawValue('d', self.default_okr_speed_deg_per_sec)
-        self.looming_center_mm = RawArray('d', self.default_looming_center_mm)
-        self.looming_period_sec = RawValue('d', self.default_looming_period_sec)
-        self.looming_expansion_time_sec = RawValue('d', self.default_looming_expansion_time_sec)
-        self.looming_expansion_speed_mm_per_sec = RawValue('d', self.default_looming_expansion_speed_mm_per_sec)
-        self.n_preys = RawValue('L', self.default_n_prey)
-        self.prey_speed_mm_s = RawValue('d', self.default_prey_speed_mm_s)
-        self.prey_radius_mm = RawValue('d', self.default_prey_radius_mm)
-
-        self.index = RawValue('L', 0)
-        self.timestamp = RawValue('d', 0)
-        self.identity = RawValue('L', 0)
-        self.fish_mediolateral_axis = RawArray('d', [0, 0])
-        self.fish_caudorostral_axis = RawArray('d', [0, 0])
-        self.fish_centroid = RawArray('d', [0, 0])
-        self.left_eye_centroid = RawArray('d', [0, 0])
-        self.left_eye_angle = RawValue('d', 0)
-        self.right_eye_centroid = RawArray('d', [0, 0])
-        self.right_eye_angle = RawValue('d', 0)
+        self.shared_fish_state = [SharedFishState(num_tail_points_interp) for _ in  ROI_identities]
+        self.shared_stim_parameters = SharedStimParameters(
+            default_foreground_color = foreground_color,
+            default_background_color = background_color,
+            default_stim_select = stim_select,
+            default_phototaxis_polarity = phototaxis_polarity,
+            default_omr_spatial_period_mm = omr_spatial_period_mm,
+            default_omr_angle_deg = omr_angle_deg,
+            default_omr_speed_mm_per_sec = omr_speed_mm_per_sec,
+            default_okr_spatial_frequency_deg = okr_spatial_frequency_deg,
+            default_okr_speed_deg_per_sec = okr_speed_deg_per_sec,
+            default_looming_center_mm = looming_center_mm,
+            default_looming_period_sec = looming_period_sec,
+            default_looming_expansion_time_sec = looming_expansion_time_sec,
+            default_looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec,
+            default_n_preys = n_preys,
+            default_prey_speed_mm_s = prey_speed_mm_s,
+            default_prey_radius_mm = prey_radius_mm, 
+        )
 
         self.refresh_rate = refresh_rate
         self.fd = None
@@ -293,69 +319,45 @@ class GeneralStim(VisualStim):
     def set_filename(self, filename:str):
         self.timings_file = filename
 
-    def initialize_shared_variables(self):
-
-        self.foreground_color[:] = self.default_foreground_color
-        self.background_color[:] = self.default_background_color
-        self.stim_select.value = self.default_stim_select
-        self.phototaxis_polarity.value = self.default_phototaxis_polarity 
-        self.omr_spatial_period_mm.value = self.default_omr_spatial_period_mm
-        self.omr_angle_deg.value = self.default_omr_angle_deg
-        self.omr_speed_mm_per_sec.value = self.default_omr_speed_mm_per_sec
-        self.okr_spatial_frequency_deg.value = self.default_okr_spatial_frequency_deg
-        self.okr_speed_deg_per_sec.value = self.default_okr_speed_deg_per_sec
-        self.looming_center_mm[:] = self.default_looming_center_mm
-        self.looming_period_sec.value = self.default_looming_period_sec
-        self.looming_expansion_time_sec.value = self.default_looming_expansion_time_sec
-        self.looming_expansion_speed_mm_per_sec.value = self.default_looming_expansion_speed_mm_per_sec
-        self.n_preys.value = self.default_n_prey
-        self.prey_speed_mm_s.value = self.default_prey_speed_mm_s
-        self.prey_radius_mm.value = self.default_prey_radius_mm
-
-        self.index.value = 0
-        self.timestamp.value = 0
-        self.identity.value = 0
-        self.fish_mediolateral_axis[:] = [0, 0]
-        self.fish_caudorostral_axis[:] = [0, 0]
-        self.fish_centroid[:] = [0, 0]
-        self.left_eye_centroid[:] = [0, 0]
-        self.left_eye_angle.value = 0
-        self.right_eye_centroid[:] = [0, 0]
-        self.right_eye_angle.value = 0
-
     def update_shader_variables(self, time: float):
         # communication between CPU and GPU for every frame drawn
 
+        # TODO implement arrays in shader
+        ID = 0
+
         self.program['u_time_s'] = time
-        self.program['a_fish_caudorostral_axis'] = self.fish_caudorostral_axis[:]
-        self.program['a_fish_mediolateral_axis'] = self.fish_mediolateral_axis[:]
-        self.program['a_left_eye_centroid'] = self.left_eye_centroid[:]
-        self.program['a_left_eye_angle'] = self.left_eye_angle.value
-        self.program['a_right_eye_centroid'] = self.right_eye_centroid[:]
-        self.program['a_right_eye_angle'] = self.right_eye_angle.value
-        self.program['a_fish_centroid'] = self.fish_centroid[:]
-        self.program['u_foreground_color'] = self.foreground_color[:]
-        self.program['u_background_color'] = self.background_color[:]
-        self.program['u_stim_select'] = self.stim_select.value
-        self.program['u_phototaxis_polarity'] = self.phototaxis_polarity.value
-        self.program['u_omr_spatial_period_mm'] = self.omr_spatial_period_mm.value
-        self.program['u_omr_angle_deg'] = self.omr_angle_deg.value
-        self.program['u_omr_speed_mm_per_sec'] = self.omr_speed_mm_per_sec.value
-        self.program['u_okr_spatial_frequency_deg'] = self.okr_spatial_frequency_deg.value
-        self.program['u_okr_speed_deg_per_sec'] = self.okr_speed_deg_per_sec.value
-        self.program['u_looming_center_mm'] = self.looming_center_mm[:]
-        self.program['u_looming_period_sec'] = self.looming_period_sec.value
-        self.program['u_looming_expansion_time_sec'] = self.looming_expansion_time_sec.value
-        self.program['u_looming_expansion_speed_mm_per_sec'] = self.looming_expansion_speed_mm_per_sec.value
-        self.program['u_prey_speed_mm_s'] = self.prey_speed_mm_s.value
-        self.program['u_prey_radius_mm'] = self.prey_radius_mm.value
-        self.program['u_n_preys'] = self.n_preys.value
+
+        # fish state 
+        # TODO send tail data to shader?
+        self.program['a_fish_caudorostral_axis'] = self.shared_fish_state[ID].fish_caudorostral_axis[:]
+        self.program['a_fish_mediolateral_axis'] = self.shared_fish_state[ID].fish_mediolateral_axis[:]
+        self.program['a_left_eye_centroid'] = self.shared_fish_state[ID].left_eye_centroid[:]
+        self.program['a_left_eye_angle'] = self.shared_fish_state[ID].left_eye_angle.value
+        self.program['a_right_eye_centroid'] = self.shared_fish_state[ID].right_eye_centroid[:]
+        self.program['a_right_eye_angle'] = self.shared_fish_state[ID].right_eye_angle.value
+        self.program['a_fish_centroid'] = self.shared_fish_state[ID].fish_centroid[:]
+
+        # stim parameters
+        self.program['u_foreground_color'] = self.shared_stim_parameters.foreground_color[:]
+        self.program['u_background_color'] = self.shared_stim_parameters.background_color[:]
+        self.program['u_stim_select'] = self.shared_stim_parameters.stim_select.value
+        self.program['u_phototaxis_polarity'] = self.shared_stim_parameters.phototaxis_polarity.value
+        self.program['u_omr_spatial_period_mm'] = self.shared_stim_parameters.omr_spatial_period_mm.value
+        self.program['u_omr_angle_deg'] = self.shared_stim_parameters.omr_angle_deg.value
+        self.program['u_omr_speed_mm_per_sec'] = self.shared_stim_parameters.omr_speed_mm_per_sec.value
+        self.program['u_okr_spatial_frequency_deg'] = self.shared_stim_parameters.okr_spatial_frequency_deg.value
+        self.program['u_okr_speed_deg_per_sec'] = self.shared_stim_parameters.okr_speed_deg_per_sec.value
+        self.program['u_looming_center_mm'] = self.shared_stim_parameters.looming_center_mm[:]
+        self.program['u_looming_period_sec'] = self.shared_stim_parameters.looming_period_sec.value
+        self.program['u_looming_expansion_time_sec'] = self.shared_stim_parameters.looming_expansion_time_sec.value
+        self.program['u_looming_expansion_speed_mm_per_sec'] = self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value
+        self.program['u_prey_speed_mm_s'] = self.shared_stim_parameters.prey_speed_mm_s.value
+        self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
+        self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
 
     def initialize(self):
 
         super().initialize()
-
-        self.initialize_shared_variables()
         
         np.random.seed(0)
         x = np.random.randint(0, self.camera_resolution[0], MAX_PREY)
@@ -421,21 +423,21 @@ class GeneralStim(VisualStim):
 
         row = (
             f'{timestamp}',
-            f'{self.stim_select.value}',
-            f'{self.phototaxis_polarity.value}',
-            f'{self.omr_spatial_period_mm.value}',
-            f'{self.omr_angle_deg.value}',
-            f'{self.omr_speed_mm_per_sec.value}',
-            f'{self.okr_spatial_frequency_deg.value}',
-            f'{self.okr_speed_deg_per_sec.value}',
-            f'{self.looming_center_mm[0]}',
-            f'{self.looming_center_mm[1]}',
-            f'{self.looming_period_sec.value}',
-            f'{self.looming_expansion_time_sec.value}',
-            f'{self.looming_expansion_speed_mm_per_sec.value}',
-            f'{self.n_preys.value}',
-            f'{self.prey_speed_mm_s.value}',
-            f'{self.prey_radius_mm.value}'
+            f'{self.shared_stim_parameters.stim_select.value}',
+            f'{self.shared_stim_parameters.phototaxis_polarity.value}',
+            f'{self.shared_stim_parameters.omr_spatial_period_mm.value}',
+            f'{self.shared_stim_parameters.omr_angle_deg.value}',
+            f'{self.shared_stim_parameters.omr_speed_mm_per_sec.value}',
+            f'{self.shared_stim_parameters.okr_spatial_frequency_deg.value}',
+            f'{self.shared_stim_parameters.okr_speed_deg_per_sec.value}',
+            f'{self.shared_stim_parameters.looming_center_mm[0]}',
+            f'{self.shared_stim_parameters.looming_center_mm[1]}',
+            f'{self.shared_stim_parameters.looming_period_sec.value}',
+            f'{self.shared_stim_parameters.looming_expansion_time_sec.value}',
+            f'{self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value}',
+            f'{self.shared_stim_parameters.n_preys.value}',
+            f'{self.shared_stim_parameters.prey_speed_mm_s.value}',
+            f'{self.shared_stim_parameters.prey_radius_mm.value}'
         )
         self.fd.write(','.join(row) + '\n')
 
@@ -445,43 +447,38 @@ class GeneralStim(VisualStim):
             return
 
         try:
-            self.index.value = data['index']
-            self.timestamp.value = data['timestamp']
-            self.identity.value = data['identity']
-
-            #data['origin']
-            #data['shape']
 
             print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
-            
+            ID = data['identity']
+
             # TODO maybe create a single fish tracker
             k = 0
 
             if data['tracking']['body'][k] is not None:
-                self.fish_centroid[:] = data['tracking']['body'][k]['centroid_global']
+                self.shared_fish_state[ID].fish_centroid[:] = data['tracking']['body'][k]['centroid_global']
                 body_axes = data['tracking']['body'][k]['body_axes_global']
-                self.fish_caudorostral_axis[:] = body_axes[:,0]
-                self.fish_mediolateral_axis[:] = body_axes[:,1]
+                self.shared_fish_state[ID].fish_caudorostral_axis[:] = body_axes[:,0]
+                self.shared_fish_state[ID].fish_mediolateral_axis[:] = body_axes[:,1]
             else:
-                self.fish_centroid[:] = data['tracking']['animals']['centroid_global'][k,:]
+                self.shared_fish_state[ID].fish_centroid[:] = data['tracking']['animals']['centroid_global'][k,:]
 
             # TODO use eyes heading vector if present?
             # eyes
             if data['tracking']['eyes'][k] is not None:
 
                 if data['tracking']['eyes'][k]['left_eye'] is not None:
-                    self.left_eye_centroid[:] = data['tracking']['eyes'][k]['left_eye']['centroid_cropped'] 
-                    self.left_eye_angle.value = data['tracking']['eyes'][k]['left_eye']['angle']
+                    self.shared_fish_state[ID].left_eye_centroid[:] = data['tracking']['eyes'][k]['left_eye']['centroid_cropped'] 
+                    self.shared_fish_state[ID].left_eye_angle.value = data['tracking']['eyes'][k]['left_eye']['angle']
 
                 if data['tracking']['eyes'][k]['right_eye'] is not None:
-                    self.right_eye_centroid[:] = data['tracking']['eyes'][k]['right_eye']['centroid_cropped']
-                    self.right_eye_angle.value = data['tracking']['eyes'][k]['right_eye']['angle']
+                    self.shared_fish_state[ID].right_eye_centroid[:] = data['tracking']['eyes'][k]['right_eye']['centroid_cropped']
+                    self.shared_fish_state[ID].right_eye_angle.value = data['tracking']['eyes'][k]['right_eye']['angle']
 
             # tail
             if data['tracking']['tail'][k] is not None:
                 skeleton_interp = data['tracking']['tail'][k]['skeleton_interp_cropped']  
-                self.tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
-                self.tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
+                self.shared_fish_state[ID].tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
+                self.shared_fish_state[ID].tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
 
         except KeyError:
             return None 
@@ -499,19 +496,19 @@ class GeneralStim(VisualStim):
         if control is None:
             return
         
-        self.stim_select.value = control['stim_select']
-        self.phototaxis_polarity.value = control['phototaxis_polarity']
-        self.omr_spatial_period_mm.value = control['omr_spatial_period_mm']
-        self.omr_angle_deg.value = control['omr_angle_deg']
-        self.omr_speed_mm_per_sec.value = control['omr_speed_mm_per_sec']
-        self.okr_spatial_frequency_deg.value = control['okr_spatial_frequency_deg']
-        self.okr_speed_deg_per_sec.value = control['okr_speed_deg_per_sec']
-        self.looming_center_mm[:] = control['looming_center_mm']
-        self.looming_period_sec.value = control['looming_period_sec']
-        self.looming_expansion_time_sec.value = control['looming_expansion_time_sec']
-        self.looming_expansion_speed_mm_per_sec.value = control['looming_expansion_speed_mm_per_sec']
-        self.foreground_color[:] = control['foreground_color']
-        self.background_color[:] = control['background_color']
-        self.n_preys.value = int(control['n_preys'])
-        self.prey_speed_mm_s.value = control['prey_speed_mm_s']
-        self.prey_radius_mm.value = control['prey_radius_mm']
+        self.shared_stim_parameters.stim_select.value = control['stim_select']
+        self.shared_stim_parameters.phototaxis_polarity.value = control['phototaxis_polarity']
+        self.shared_stim_parameters.omr_spatial_period_mm.value = control['omr_spatial_period_mm']
+        self.shared_stim_parameters.omr_angle_deg.value = control['omr_angle_deg']
+        self.shared_stim_parameters.omr_speed_mm_per_sec.value = control['omr_speed_mm_per_sec']
+        self.shared_stim_parameters.okr_spatial_frequency_deg.value = control['okr_spatial_frequency_deg']
+        self.shared_stim_parameters.okr_speed_deg_per_sec.value = control['okr_speed_deg_per_sec']
+        self.shared_stim_parameters.looming_center_mm[:] = control['looming_center_mm']
+        self.shared_stim_parameters.looming_period_sec.value = control['looming_period_sec']
+        self.shared_stim_parameters.looming_expansion_time_sec.value = control['looming_expansion_time_sec']
+        self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value = control['looming_expansion_speed_mm_per_sec']
+        self.shared_stim_parameters.foreground_color[:] = control['foreground_color']
+        self.shared_stim_parameters.background_color[:] = control['background_color']
+        self.shared_stim_parameters.n_preys.value = int(control['n_preys'])
+        self.shared_stim_parameters.prey_speed_mm_s.value = control['prey_speed_mm_s']
+        self.shared_stim_parameters.prey_radius_mm.value = control['prey_radius_mm']
