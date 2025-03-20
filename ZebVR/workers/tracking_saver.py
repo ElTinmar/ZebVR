@@ -35,8 +35,10 @@ class TrackingSaver(WorkerNode):
         # write csv headers
         self.fd = open(file, 'w')
         headers = (
-            'image_index',
-            'time',
+            'index',
+            'timestamp',
+            'identity',
+            'latency_ms',
             'centroid_x',
             'centroid_y',
             'pc1_x',
@@ -112,6 +114,8 @@ class TrackingSaver(WorkerNode):
         row = (
             f"{data['index']}",
             f"{data['timestamp']}",
+            f"{data['identity']}",
+            f"{1e-6*(time.perf_counter_ns() - data['timestamp'])}",
             f"{fish_centroid[0]}",
             f"{fish_centroid[1]}",
             f"{fish_caudorostral_axis[0]}",

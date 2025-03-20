@@ -207,7 +207,7 @@ class GeneralStim(VisualStim):
             pix_per_mm: float = 30,
             refresh_rate: int = 120,
             vsync: bool = True,
-            timings_file: str = 'display_timings.csv',
+            timings_file: str = 'stim.csv',
             num_tail_points_interp: int = 40,
             stim_select: float = 0,
             phototaxis_polarity: int = 1,
@@ -375,27 +375,7 @@ class GeneralStim(VisualStim):
         # write csv headers
         self.fd = open(timings_file, 'w')
         headers = (
-            'image_index',
-            't_display',
-            't_local',
-            'latency',
-            'identity',
-            'centroid_x',
-            'centroid_y',
-            'pc1_x',
-            'pc1_y',
-            'pc2_x',
-            'pc2_y',
-            'left_eye_x',
-            'left_eye_y',
-            'left_eye_angle',
-            'right_eye_x',
-            'right_eye_y',
-            'right_eye_angle',
-        ) \
-        + tuple(f'tail_point_{n:03d}_x' for n in range(self.num_tail_points_interp)) \
-        + tuple(f'tail_point_{n:03d}_y' for n in range(self.num_tail_points_interp)) \
-        + (
+            'timestamp',
             'stim_id',
             'phototaxis_polarity',
             'omr_spatial_period_mm',
@@ -435,36 +415,15 @@ class GeneralStim(VisualStim):
         if self.tstart == 0:
             self.tstart = time.perf_counter_ns()
         
-        t_display = time.perf_counter_ns()
-        t_local = 1e-9*(t_display - self.tstart)
+        timestamp = time.perf_counter_ns()
 
         with self.lock:
 
-            self.update_shader_variables(t_local)
+            self.update_shader_variables(timestamp)
             self.update()
 
             row = (
-                f'{self.index.value}',
-                f'{t_display}',
-                f'{t_local}',
-                f'{1e-6*(time.perf_counter_ns() - self.timestamp.value)}',
-                f'{self.identity.value}',
-                f'{self.fish_centroid[0]}',
-                f'{self.fish_centroid[1]}',
-                f'{self.fish_caudorostral_axis[0]}',
-                f'{self.fish_caudorostral_axis[1]}',
-                f'{self.fish_mediolateral_axis[0]}',
-                f'{self.fish_mediolateral_axis[1]}',
-                f'{self.left_eye_centroid[0]}',
-                f'{self.left_eye_centroid[1]}',
-                f'{self.left_eye_angle.value}',
-                f'{self.right_eye_centroid[0]}',
-                f'{self.right_eye_centroid[1]}',
-                f'{self.right_eye_angle.value}',
-            ) \
-            + tuple(f'{self.tail_points[i]}' for i in range(self.num_tail_points_interp)) \
-            + tuple(f'{self.tail_points[i]}' for i in range(self.num_tail_points_interp,2*self.num_tail_points_interp)) \
-            + (
+                f'{timestamp}',
                 f'{self.stim_select.value}',
                 f'{self.phototaxis_polarity.value}',
                 f'{self.omr_spatial_period_mm.value}',

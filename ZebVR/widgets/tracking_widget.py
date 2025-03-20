@@ -10,6 +10,7 @@ from typing import Dict
 import os
 
 from qt_widgets import LabeledSpinBox, FileOpenLabeledEditButton, LabeledEditLine
+
 class TrackingWidget(QWidget):
 
     state_changed = pyqtSignal()
