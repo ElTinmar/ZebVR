@@ -1,10 +1,16 @@
 toy_data/
-output/
+output/*
+!output/data
+!output/video
+!output/logs
+
+output/data/*
+output/video/*
+output/logs/*
 
 !output/data/README.md
 !output/video/README.md
 !output/logs/README.md
-
 
 tracking.json
 protocol.json
