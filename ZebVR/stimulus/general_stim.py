@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import List, Tuple
 from .visual_stim import VisualStim
 from vispy import gloo, app
 from multiprocessing import RawValue, RawArray
@@ -193,6 +193,7 @@ class GeneralStim(VisualStim):
 
     def __init__(
             self,  
+            ROI_identities: List[Tuple[int,int,int,int]],
             window_size: Tuple[int, int], 
             window_position: Tuple[int, int], 
             camera_resolution: Tuple[int, int],
@@ -235,6 +236,8 @@ class GeneralStim(VisualStim):
             vsync=vsync
         )
 
+        self.ROI_identities = ROI_identities
+        self.n_animals = len(ROI_identities) 
         self.default_stim_select = stim_select
         self.default_background_color = background_color
         self.default_foreground_color = foreground_color

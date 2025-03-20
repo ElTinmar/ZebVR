@@ -275,7 +275,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     )
 
     cropper = CropWorker(
-        ROI_identities=settings['identity']['ROIs'],
+        ROI_identities = settings['identity']['ROIs'],
         name = f'crop', 
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -409,6 +409,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
     # visual stim ----------------------------------------------
     stim = GeneralStim(
+        ROI_identities = settings['identity']['ROIs'],
         window_size = settings['projector']['resolution'],
         window_position = settings['projector']['offset'],
         window_decoration = False,
