@@ -44,6 +44,7 @@ from ..workers import (
     Protocol,
     QueueMonitor,
     ImageFilterWorker, 
+    TrackingSaver,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -117,7 +118,10 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     queue_crop_to_tracker = []
     queue_tracking_to_stim = []
     queue_tracking_to_overlay = []
+    queue_tracking_to_saver = []
+
     for i in range(settings['identity']['n_animals']):
+
         queue_crop_to_tracker.append(
             MonitoredQueue(ModifiableRingBuffer(
                 num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
@@ -138,6 +142,15 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         )
 
         queue_tracking_to_overlay.append(
+            MonitoredQueue(ModifiableRingBuffer(
+                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+                logger = queue_logger,
+                name = 'tracker_to_overlay',
+                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+            ))
+        )
+
+        queue_tracking_to_saver.append(
             MonitoredQueue(ModifiableRingBuffer(
                 num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
                 logger = queue_logger,
@@ -231,6 +244,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     queues.update({q: f'tracking to stim {n}' for n,q in enumerate(queue_tracking_to_stim)})
     queues.update({q: f'crop to tracker {n}' for n,q in enumerate(queue_crop_to_tracker)})
     queues.update({q: f'tracking to overlay {n}' for n,q in enumerate(queue_tracking_to_overlay)})
+    queues.update({q: f'tracking to saver {n}' for n,q in enumerate(queue_tracking_to_saver)})
     
     queue_monitor_worker = QueueMonitor(
         queues = queues,
@@ -343,6 +357,15 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         logger_queues = queue_logger,
         receive_data_timeout = 1.0, # TODO add widget for that ?
         profile = False
+    )
+
+    tracking_saver_worker = TrackingSaver(
+        filename = settings['settings']['tracking']['csv_filename'],
+        num_tail_points_interp = settings['settings']['tracking']['n_tail_pts_interp'],
+        name = 'tracking_saver',
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        receive_data_timeout = 1.0,
     )
 
     # tracking display -----------------------------------------
@@ -503,7 +526,6 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             name = f'background_output_{i}'
         )
 
-    for i in range(settings['identity']['n_animals']):
         dag.connect_data(
             sender = tracker_worker_list[i], 
             receiver = stim_worker, 
@@ -511,12 +533,18 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             name = f'tracker_output_stim'
         )
 
-    for i in range(settings['identity']['n_animals']):
         dag.connect_data(
             sender = tracker_worker_list[i], 
             receiver = tracking_display_worker, 
             queue = queue_tracking_to_overlay[i], 
             name = 'tracker_output_overlay'
+        )
+
+        dag.connect_data(
+            sender = tracker_worker_list[i], 
+            receiver = tracking_saver_worker, 
+            queue = queue_tracking_to_saver[i], 
+            name = 'tracker_output_saver'
         )
 
     # metadata

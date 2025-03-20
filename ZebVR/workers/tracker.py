@@ -118,7 +118,8 @@ class TrackerWorker(WorkerNode):
 
         res = {}    
         res['tracker_output_stim'] = msg # visual stimulus, TODO no need to send image, send only relevant info 
-        res['tracker_output_overlay'] = msg 
+        res['tracker_output_overlay'] = msg
+        res['tracker_output_saver'] = msg 
         self.current_tracking = msg
 
         return res
