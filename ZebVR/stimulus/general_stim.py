@@ -197,7 +197,6 @@ class GeneralStim(VisualStim):
                 } 
 
                 vec2 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
-                // X: mediolateral_axis, Y: caudorostral_axis
                 mat2 change_of_basis = mat2(
                     u_fish_mediolateral_axis[animal]/length(u_fish_mediolateral_axis[animal]), 
                     u_fish_caudorostral_axis[animal]/length(u_fish_caudorostral_axis[animal])
