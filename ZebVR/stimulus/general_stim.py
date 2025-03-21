@@ -168,11 +168,7 @@ class GeneralStim(VisualStim):
         """ + """
 
         // helper functions
-
-        float get_relative_time(float freq, int time_sec, float time_subsec) {
-            return mod(time_sec, 1/freq) + time_subsec;
-        }
-
+        
         mat2 rotate2d(float angle_rad){
             return mat2(cos(angle_rad),-sin(angle_rad),
                         sin(angle_rad),cos(angle_rad));
