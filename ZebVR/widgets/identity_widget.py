@@ -87,6 +87,20 @@ class IdentityWidget(QWidget):
         self.offsetY.setValue(0)
         self.offsetY.valueChanged.connect(self.on_change)
 
+        self.marginX = LabeledSpinBox()
+        self.marginX.setText('marginX')
+        self.marginX.setRange(0,self.image.shape[1]-1)
+        self.marginX.setSingleStep(1)
+        self.marginX.setValue(0)
+        self.marginX.valueChanged.connect(self.on_change)
+
+        self.marginY = LabeledSpinBox()
+        self.marginY.setText('marginY')
+        self.marginY.setRange(0,self.image.shape[0]-1)
+        self.marginY.setSingleStep(1)
+        self.marginY.setValue(0)
+        self.marginY.valueChanged.connect(self.on_change)
+
         self.image_label = QLabel()
         self.set_image(self.image)
 
@@ -97,13 +111,31 @@ class IdentityWidget(QWidget):
         image_layout.addWidget(self.image_label)
         image_layout.addStretch() 
 
+        grid_layout = QHBoxLayout()
+        grid_layout.addWidget(self.col)
+        grid_layout.addWidget(self.row)
+        grid_layout.setSpacing(50)
+
+        size_layout = QHBoxLayout()
+        size_layout.addWidget(self.width)
+        size_layout.addWidget(self.height)
+        size_layout.setSpacing(50)
+
+        offset_layout = QHBoxLayout()
+        offset_layout.addWidget(self.offsetX)
+        offset_layout.addWidget(self.offsetY)
+        offset_layout.setSpacing(50)
+
+        margin_layout = QHBoxLayout()
+        margin_layout.addWidget(self.marginX)
+        margin_layout.addWidget(self.marginY)
+        margin_layout.setSpacing(50)
+        
         main_layout = QVBoxLayout(self)
-        main_layout.addWidget(self.row)
-        main_layout.addWidget(self.col)
-        main_layout.addWidget(self.width)
-        main_layout.addWidget(self.height)
-        main_layout.addWidget(self.offsetX)
-        main_layout.addWidget(self.offsetY)
+        main_layout.addLayout(grid_layout)
+        main_layout.addLayout(size_layout)
+        main_layout.addLayout(offset_layout)
+        main_layout.addLayout(margin_layout)
         main_layout.addStretch()
         main_layout.addLayout(image_layout)
         main_layout.addStretch()
@@ -128,15 +160,17 @@ class IdentityWidget(QWidget):
 
         # Get grid parameters
         rows, cols = self.row.value(), self.col.value()
-        box_width, box_height = self.width.value()//cols, self.height.value()//rows
         offset_x, offset_y = self.offsetX.value(), self.offsetY.value()
+        margin_x, margin_y = self.marginX.value(), self.marginY.value()
+        box_width, box_height = (self.width.value() - 2*cols*margin_x)//cols, (self.height.value() - 2*rows*margin_y)//rows
+
 
         # Draw grid
         count = 0
         for r in range(rows):
             for c in range(cols):
-                x1 = min(offset_x + c * box_width, image.shape[1])
-                y1 = min(offset_y + r * box_height, image.shape[0])
+                x1 = min(offset_x + c * (2*margin_x + box_width), image.shape[1])
+                y1 = min(offset_y + r * (2*margin_y + box_height), image.shape[0])
                 x2 = min(x1 + box_width, image.shape[1]) 
                 y2 = min(y1 + box_height, image.shape[0])
                 text = str(count)
@@ -157,7 +191,7 @@ class IdentityWidget(QWidget):
                     self.fontweight, 
                     cv2.LINE_AA
                 )
-                self.ROIs.append((x1,y1,box_width,box_height))
+                self.ROIs.append((x1,y1,x2-x1,y2-y1))
                 count += 1
 
         # Convert to QPixmap and display
