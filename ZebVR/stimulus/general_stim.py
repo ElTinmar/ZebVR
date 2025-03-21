@@ -167,9 +167,9 @@ class GeneralStim(VisualStim):
         """ + """
 
         // helper functions
-        float deg2rad(float deg) {
-            float rad = PI/180 * deg;
-            return rad;
+
+        float get_relative_time(float freq, int time_sec, float time_subsec) {
+            return mod(time_sec, 1/freq) + time_subsec;
         }
 
         mat2 rotate2d(float angle_rad){
@@ -208,18 +208,18 @@ class GeneralStim(VisualStim):
                 }
 
                 if (u_stim_select == OMR) {
-                    vec2 orientation_vector = rotate2d(deg2rad(u_omr_angle_deg)) * vec2(0,1);
-                    float angle = 2*PI/u_omr_spatial_period_mm * dot(fish_ego_coords_mm, orientation_vector);
-                    float phase = 2*PI/u_omr_spatial_period_mm * u_omr_speed_mm_per_sec * u_time_s;
-                    if ( sin(angle+phase) > 0.0 ) {
+                    vec2 orientation_vector = rotate2d(radians(u_omr_angle_deg)) * vec2(0,1);
+                    float angle = 1/u_omr_spatial_period_mm * dot(fish_ego_coords_mm, orientation_vector)/length(orientation_vector);
+                    float phase = u_omr_speed_mm_per_sec/u_omr_spatial_period_mm * u_time_s;
+                    if ( sin(2*PI*(angle+phase)) > 0.0 ) {
                         gl_FragColor = u_foreground_color;
                     } 
                 }
 
                 if (u_stim_select == OKR) {
-                    float freq = deg2rad(u_okr_spatial_frequency_deg);
+                    float freq = radians(u_okr_spatial_frequency_deg);
                     float angle = atan(fish_ego_coords_mm.y, fish_ego_coords_mm.x);
-                    float phase = deg2rad(u_okr_speed_deg_per_sec)*u_time_s;
+                    float phase = radians(u_okr_speed_deg_per_sec)*u_time_s;
                     if ( mod(angle+phase, freq) > freq/2 ) {
                         gl_FragColor = u_foreground_color;
                     } 
