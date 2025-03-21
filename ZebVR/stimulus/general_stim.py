@@ -162,7 +162,8 @@ class GeneralStim(VisualStim):
         const int OKR = 4;
         const int LOOMING = 5;
         const int PREY_CAPTURE = 6;
-        const float PI=3.14159;
+
+        const float PI=radians(180.0);
 
         """ + """
 
@@ -209,18 +210,24 @@ class GeneralStim(VisualStim):
 
                 if (u_stim_select == OMR) {
                     vec2 orientation_vector = rotate2d(radians(u_omr_angle_deg)) * vec2(0,1);
-                    float angle = 1/u_omr_spatial_period_mm * dot(fish_ego_coords_mm, orientation_vector)/length(orientation_vector);
-                    float phase = u_omr_speed_mm_per_sec/u_omr_spatial_period_mm * u_time_s;
+                    float position_on_orientation_vector = dot(fish_ego_coords_mm, orientation_vector)/length(orientation_vector);
+                    float spatial_freq = 1/u_omr_spatial_period_mm;
+                    float temporal_freq = u_omr_speed_mm_per_sec/u_omr_spatial_period_mm;
+                    float angle = spatial_freq * position_on_orientation_vector;
+                    float phase = temporal_freq * u_time_s;
+
                     if ( sin(2*PI*(angle+phase)) > 0.0 ) {
                         gl_FragColor = u_foreground_color;
                     } 
                 }
 
                 if (u_stim_select == OKR) {
-                    float freq = radians(u_okr_spatial_frequency_deg);
+                    float angular_spatial_freq = radians(u_okr_spatial_frequency_deg);
+                    float angular_temporal_freq = radians(u_okr_speed_deg_per_sec);
+                    
                     float angle = atan(fish_ego_coords_mm.y, fish_ego_coords_mm.x);
-                    float phase = radians(u_okr_speed_deg_per_sec)*u_time_s;
-                    if ( mod(angle+phase, freq) > freq/2 ) {
+                    float phase = angular_temporal_freq * u_time_s;
+                    if ( mod(angle+phase, angular_spatial_freq) > angular_spatial_freq/2 ) {
                         gl_FragColor = u_foreground_color;
                     } 
                 }
