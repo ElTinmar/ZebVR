@@ -185,14 +185,13 @@ class GeneralStim(VisualStim):
         void main()
         {
             vec2 coordinates_px = gl_FragCoord.xy * u_pixel_scaling;
-            vec3 camera_coordinates_px = u_proj_to_cam * vec3(coordinates_px ,1.0);
+            vec3 camera_coordinates_px = u_proj_to_cam * vec3(coordinates_px, 1.0);
 
             gl_FragColor = u_background_color;
 
             for (int animal = 0; animal < u_n_animals; animal++) {
 
                 vec4 bbox = u_bounding_box[animal];
-
                 if ( !is_point_in_bbox(camera_coordinates_px.xy, bbox.xy, bbox.xy+bbox.wz) ) {
                     continue;
                 } 
@@ -324,8 +323,6 @@ class GeneralStim(VisualStim):
         self.program['u_right_eye_angle'] = [[self.shared_fish_state[ID].right_eye_angle.value] for ID in range(self.n_animals)]
         self.program['u_fish_centroid'] = [self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)]
         self.program['u_bounding_box'] = self.ROI_identities
-
-        #print([self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)])
     
         # stim parameters
         self.program['u_foreground_color'] = self.shared_stim_parameters.foreground_color[:]
