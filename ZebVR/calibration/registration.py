@@ -360,6 +360,7 @@ def registration(
     # compute least-square estimate of the transformation and output to json
     transformation = np.linalg.lstsq(homogeneous_coord_2d(pts_cam), homogeneous_coord_2d(pts_proj), rcond=None)[0]
     transformation = np.transpose(transformation)
+    transformation[2] = np.array([0, 0, 1])
     calibration = {}
     calibration['cam_to_proj'] = transformation.tolist()
     calibration['proj_to_cam'] = np.linalg.inv(transformation).tolist()

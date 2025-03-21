@@ -7,24 +7,23 @@ from numpy.typing import NDArray
 import numpy as np 
 import os
 from dataclasses import dataclass
+from geometry import AffineTransform2D
 
 # TODO I need to restrict drawing for each fish to their respective bbox.
-
-MAX_PREY = 100
 
 @dataclass
 class SharedFishState:
     num_tail_points_interp: int
 
     def __post_init__(self):
-        self.fish_mediolateral_axis = RawArray('d', [0, 0])
-        self.fish_caudorostral_axis = RawArray('d', [0, 0])
-        self.fish_centroid = RawArray('d', [0, 0])
-        self.left_eye_centroid = RawArray('d', [0, 0])
-        self.left_eye_angle = RawValue('d', 0)
-        self.right_eye_centroid = RawArray('d', [0, 0])
-        self.right_eye_angle = RawValue('d', 0)
-        self.tail_points = RawArray('d', 2*self.num_tail_points_interp)
+        self.fish_mediolateral_axis = RawArray('f', [0, 0])
+        self.fish_caudorostral_axis = RawArray('f', [0, 0])
+        self.fish_centroid = RawArray('f', [0, 0])
+        self.left_eye_centroid = RawArray('f', [0, 0])
+        self.left_eye_angle = RawValue('f', 0)
+        self.right_eye_centroid = RawArray('f', [0, 0])
+        self.right_eye_angle = RawValue('f', 0)
+        self.tail_points = RawArray('f', 2*self.num_tail_points_interp)
 
 # TODO maybe also make that an array per fish if you want each fish to receive a different stimulus
 @dataclass
@@ -64,6 +63,17 @@ class SharedStimParameters:
         self.prey_speed_mm_s = RawValue('d', self.default_prey_speed_mm_s)
         self.prey_radius_mm = RawValue('d', self.default_prey_radius_mm)
 
+MAX_PREY = 100
+
+VERT_SHADER = """
+attribute vec2 a_position;
+
+void main()
+{
+    gl_Position = vec4(a_position, 0.0, 1.0);
+}
+"""
+
 class GeneralStim(VisualStim):
 
     def __init__(
@@ -75,7 +85,7 @@ class GeneralStim(VisualStim):
             foreground_color: Tuple[float, float, float, float] = (1.0, 0.0, 0.0, 1.0),
             background_color: Tuple[float, float, float, float] = (0.0, 0.0, 0.0, 1.0),
             window_decoration: bool = True,
-            transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
+            transformation_matrix: AffineTransform2D = AffineTransform2D.identity(),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             pix_per_mm: float = 30,
             refresh_rate: int = 120,
@@ -103,57 +113,6 @@ class GeneralStim(VisualStim):
         self.n_animals = len(ROI_identities)
         self.n_preys = n_preys
 
-        VERT_SHADER = f"""
-        uniform mat3 u_transformation_matrix;
-        uniform float u_pix_per_mm; 
-        attribute vec2 a_position;
-        uniform float u_n_animals;
-
-        // tracking
-        uniform vec2 u_fish_caudorostral_axis[{self.n_animals}];
-        uniform vec2 u_fish_mediolateral_axis[{self.n_animals}];
-        uniform vec2 u_fish_centroid[{self.n_animals}]; 
-        uniform vec2 u_left_eye_centroid[{self.n_animals}]; 
-        uniform float u_left_eye_angle[{self.n_animals}];
-        uniform vec2 u_right_eye_centroid[{self.n_animals}];
-        uniform float u_right_eye_angle[{self.n_animals}];
-
-        varying vec2 v_fish_caudorostral_axis[{self.n_animals}];
-        varying vec2 v_fish_mediolateral_axis[{self.n_animals}];
-        varying vec2 v_fish_centroid[{self.n_animals}];
-        varying vec2 v_left_eye_centroid[{self.n_animals}]; 
-        varying float v_left_eye_angle[{self.n_animals}];
-        varying vec2 v_right_eye_centroid[{self.n_animals}];
-        varying float v_right_eye_angle[{self.n_animals}];
-        varying vec2 v_pix_per_mm_proj;
-
-        """ + """
-
-        void main()
-        {
-            gl_Position = vec4(a_position, 0.0, 1.0);
-
-            for (int i = 0; i < u_n_animals; i++) {
-                vec3 fish_centroid = u_transformation_matrix * vec3(u_fish_centroid[i], 1.0);
-                vec3 left_eye_centroid = u_transformation_matrix * vec3(u_left_eye_centroid[i], 1.0);
-                vec3 right_eye_centroid = u_transformation_matrix * vec3(u_right_eye_centroid[i], 1.0);
-                vec3 fish_caudorostral_axis = u_transformation_matrix * vec3(u_fish_caudorostral_axis[i], 0);
-                vec3 fish_mediolateral_axis = u_transformation_matrix * vec3(u_fish_mediolateral_axis[i], 0);
-                
-                v_fish_centroid[i] = fish_centroid.xy;
-                v_left_eye_centroid[i] = left_eye_centroid.xy;
-                v_right_eye_centroid[i] = right_eye_centroid.xy;
-                v_fish_caudorostral_axis[i] = fish_caudorostral_axis.xy;
-                v_fish_mediolateral_axis[i] = fish_mediolateral_axis.xy;
-                v_left_eye_angle[i] = u_left_eye_angle[i]; // TODO should I transform that as well ?
-                v_right_eye_angle[i] = u_right_eye_angle[i]; // TODO should I transform that as well ?
-            } 
-
-            vec3 proj_scale = u_transformation_matrix * vec3(u_pix_per_mm, u_pix_per_mm, 0);
-            v_pix_per_mm_proj = abs(proj_scale.xy);
-        }
-        """
-
         FRAG_SHADER = f"""
         uniform vec2 u_prey_position[{MAX_PREY}];
         uniform vec2 u_prey_direction[{MAX_PREY}];
@@ -161,20 +120,20 @@ class GeneralStim(VisualStim):
         // Some DMD projectors with diamond pixel layouts (e.g. Lightcrafters) do not have uniform pixel spacing.
         uniform vec2 u_pixel_scaling; 
         uniform float u_pix_per_mm; 
-        varying vec2 v_pix_per_mm_proj;
+        uniform vec2 u_pix_per_mm_proj;
         uniform vec2 u_proj_resolution;
         uniform vec2 u_cam_resolution;
         uniform mat3 u_transformation_matrix;
 
         // tracking
         uniform float u_n_animals;
-        varying vec2 v_fish_centroid[{self.n_animals}];
-        varying vec2 v_fish_caudorostral_axis[{self.n_animals}];
-        varying vec2 v_fish_mediolateral_axis[{self.n_animals}];
-        varying vec2 v_left_eye_centroid[{self.n_animals}]; 
-        varying float v_left_eye_angle[{self.n_animals}];
-        varying vec2 v_right_eye_centroid[{self.n_animals}];
-        varying float v_right_eye_angle[{self.n_animals}];
+        uniform vec2 u_fish_centroid[{self.n_animals}];
+        uniform vec2 u_fish_caudorostral_axis[{self.n_animals}];
+        uniform vec2 u_fish_mediolateral_axis[{self.n_animals}];
+        uniform vec2 u_left_eye_centroid[{self.n_animals}]; 
+        uniform float u_left_eye_angle[{self.n_animals}];
+        uniform vec2 u_right_eye_centroid[{self.n_animals}];
+        uniform float u_right_eye_angle[{self.n_animals}];
         uniform float u_time_s;
 
         // stim parameters
@@ -225,12 +184,12 @@ class GeneralStim(VisualStim):
 
             for (int animal = 0; animal < u_n_animals; animal++) {
 
-                vec2 coordinates_centered_px = coordinates_px - v_fish_centroid[animal];
-                vec2 coordinates_centered_mm = 1/v_pix_per_mm_proj * coordinates_centered_px;
+                vec2 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
+                vec2 coordinates_centered_mm = 1/u_pix_per_mm_proj * coordinates_centered_px;
                 // X: mediolateral_axis, Y: caudorostral_axis
                 mat2 change_of_basis = mat2(
-                    v_fish_mediolateral_axis[animal]/length(v_fish_mediolateral_axis[animal]), 
-                    v_fish_caudorostral_axis[animal]/length(v_fish_caudorostral_axis[animal])
+                    u_fish_mediolateral_axis[animal]/length(u_fish_mediolateral_axis[animal]), 
+                    u_fish_caudorostral_axis[animal]/length(u_fish_caudorostral_axis[animal])
                 );
                 vec2 fish_ego_coords_mm = transpose(change_of_basis)*coordinates_centered_mm;
                 
@@ -281,7 +240,7 @@ class GeneralStim(VisualStim):
                     for (int i = 0; i < u_n_preys; i++) {
                         vec2 pos_camera_px = mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_pix_per_mm * u_prey_direction[i], u_cam_resolution);
                         vec3 pos_proj_px = u_transformation_matrix * vec3(pos_camera_px, 1.0);
-                        if ( distance(pos_proj_px.xy/v_pix_per_mm_proj, coordinates_px/v_pix_per_mm_proj) <= u_prey_radius_mm ) {
+                        if ( distance(pos_proj_px.xy/u_pix_per_mm_proj, coordinates_px/u_pix_per_mm_proj) <= u_prey_radius_mm ) {
                             gl_FragColor = u_foreground_color;
                         }
                     }
@@ -330,21 +289,23 @@ class GeneralStim(VisualStim):
     def set_filename(self, filename:str):
         self.timings_file = filename
 
-    def update_shader_variables(self, time: float):
+    def update_shader_variables(self, time_s: float):
         # communication between CPU and GPU for every frame drawn
 
-        self.program['u_time_s'] = time
+        self.program['u_time_s'] = time_s
 
         # fish state 
         # TODO send tail data to shader?
-        self.program['u_fish_caudorostral_axis'] = np.row_stack([self.shared_fish_state[ID].fish_caudorostral_axis[:] for ID in range(self.n_animals)]).astype(np.float32)
-        self.program['u_fish_mediolateral_axis'] = np.row_stack([self.shared_fish_state[ID].fish_mediolateral_axis[:] for ID in range(self.n_animals)]).astype(np.float32)
-        self.program['u_left_eye_centroid'] = np.row_stack([self.shared_fish_state[ID].left_eye_centroid[:] for ID in range(self.n_animals)]).astype(np.float32)
-        self.program['u_left_eye_angle'] = np.row_stack([self.shared_fish_state[ID].left_eye_angle.value for ID in range(self.n_animals)]).astype(np.float32)
-        self.program['u_right_eye_centroid'] = np.row_stack([self.shared_fish_state[ID].right_eye_centroid[:] for ID in range(self.n_animals)]).astype(np.float32)
-        self.program['u_right_eye_angle'] = np.row_stack([self.shared_fish_state[ID].right_eye_angle.value for ID in range(self.n_animals)]).astype(np.float32)
-        self.program['u_fish_centroid'] = np.row_stack([self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)]).astype(np.float32)
-        
+        self.program['u_fish_caudorostral_axis'] = [self.shared_fish_state[ID].fish_caudorostral_axis[:] for ID in range(self.n_animals)]
+        self.program['u_fish_mediolateral_axis'] = [self.shared_fish_state[ID].fish_mediolateral_axis[:] for ID in range(self.n_animals)]
+        self.program['u_left_eye_centroid'] = [self.shared_fish_state[ID].left_eye_centroid[:] for ID in range(self.n_animals)]
+        self.program['u_left_eye_angle'] = [[self.shared_fish_state[ID].left_eye_angle.value] for ID in range(self.n_animals)]
+        self.program['u_right_eye_centroid'] = [self.shared_fish_state[ID].right_eye_centroid[:] for ID in range(self.n_animals)]
+        self.program['u_right_eye_angle'] = [[self.shared_fish_state[ID].right_eye_angle.value] for ID in range(self.n_animals)]
+        self.program['u_fish_centroid'] = [self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)]
+
+        #print([self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)])
+    
         # stim parameters
         self.program['u_foreground_color'] = self.shared_stim_parameters.foreground_color[:]
         self.program['u_background_color'] = self.shared_stim_parameters.background_color[:]
@@ -411,6 +372,8 @@ class GeneralStim(VisualStim):
         self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
         self.timer.start()
 
+        self.initialized.set()
+
     def cleanup(self):
         super().cleanup()
         self.fd.close()
@@ -425,7 +388,7 @@ class GeneralStim(VisualStim):
 
         timestamp = time.perf_counter_ns()
 
-        self.update_shader_variables(timestamp)
+        self.update_shader_variables(timestamp*1e-9)
         self.update()
 
         row = (
@@ -463,38 +426,41 @@ class GeneralStim(VisualStim):
             k = 0
 
             if data['tracking']['body'][k] is not None:
-                self.shared_fish_state[ID].fish_centroid[:] = data['tracking']['body'][k]['centroid_global']
+                self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body'][k]['centroid_global']).squeeze()
                 body_axes = data['tracking']['body'][k]['body_axes_global']
-                self.shared_fish_state[ID].fish_caudorostral_axis[:] = body_axes[:,0]
-                self.shared_fish_state[ID].fish_mediolateral_axis[:] = body_axes[:,1]
+                self.shared_fish_state[ID].fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
+                self.shared_fish_state[ID].fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
             else:
-                self.shared_fish_state[ID].fish_centroid[:] = data['tracking']['animals']['centroid_global'][k,:]
+                self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroid_global'][k,:]).squeeze()
 
             # TODO use eyes heading vector if present?
             # eyes
             if data['tracking']['eyes'][k] is not None:
 
                 if data['tracking']['eyes'][k]['left_eye'] is not None:
-                    self.shared_fish_state[ID].left_eye_centroid[:] = data['tracking']['eyes'][k]['left_eye']['centroid_cropped'] 
+                    self.shared_fish_state[ID].left_eye_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['eyes'][k]['left_eye']['centroid_cropped']).squeeze()
                     self.shared_fish_state[ID].left_eye_angle.value = data['tracking']['eyes'][k]['left_eye']['angle']
 
                 if data['tracking']['eyes'][k]['right_eye'] is not None:
-                    self.shared_fish_state[ID].right_eye_centroid[:] = data['tracking']['eyes'][k]['right_eye']['centroid_cropped']
+                    self.shared_fish_state[ID].right_eye_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['eyes'][k]['right_eye']['centroid_cropped']).squeeze()
                     self.shared_fish_state[ID].right_eye_angle.value = data['tracking']['eyes'][k]['right_eye']['angle']
 
             # tail
             if data['tracking']['tail'][k] is not None:
-                skeleton_interp = data['tracking']['tail'][k]['skeleton_interp_cropped']  
+                skeleton_interp = self.transformation_matrix.transform_points(data['tracking']['tail'][k]['skeleton_interp_cropped'])
                 self.shared_fish_state[ID].tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
                 self.shared_fish_state[ID].tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
 
-        except KeyError:
+        except KeyError as err:
+            print(f'KeyError: {err}')
             return None 
         
-        except TypeError:
+        except TypeError as err:
+            print(f'TypeError: {err}')
             return None
         
-        except ValueError:
+        except ValueError as err:
+            print(f'ValueError: {err}')
             return None
 
     def process_metadata(self, metadata) -> None:

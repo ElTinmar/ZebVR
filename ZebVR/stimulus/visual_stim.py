@@ -1,11 +1,11 @@
 from vispy import app, gloo
 from typing import Tuple, Any
-import time
 from dagline import WorkerNode
 from multiprocessing import Process
 from numpy.typing import NDArray
 import numpy as np 
 from multiprocessing import Event
+from geometry import AffineTransform2D
 
 class VisualStim(app.Canvas):
 
@@ -18,7 +18,7 @@ class VisualStim(app.Canvas):
             camera_resolution: Tuple[int, int],
             pix_per_mm: float,
             window_decoration: bool = False,
-            transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
+            transformation_matrix: AffineTransform2D = AffineTransform2D.identity(),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             vsync: bool = False,
         ) -> None:
@@ -53,24 +53,21 @@ class VisualStim(app.Canvas):
 
         # set attributes, these must be present in the vertex shader
         self.program['a_position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
-        self.program['u_transformation_matrix'] = self.transformation_matrix.T
         self.program['u_time_s'] = 0
         self.program['u_pixel_scaling'] = self.pixel_scaling
+        self.program['u_transformation_matrix'] = self.transformation_matrix.T
         self.program['u_pix_per_mm'] = self.pix_per_mm
+        self.program['u_pix_per_mm_proj'] = self.transformation_matrix.transform_vectors([self.pix_per_mm, self.pix_per_mm])
         self.program['u_proj_resolution'] = self.window_size
         self.program['u_cam_resolution'] = self.camera_resolution
         
-        self.t_start = None
-        self.first_frame = True 
-        self.initialized.set() #TODO call this in subclass instead ?
+        #NOTE don't forget to call self.initialized.set() in subclass
 
     def cleanup(self):
         self.initialized.clear()
             
     def on_draw(self, event):
-        if self.first_frame:
-            self.t_start = time.monotonic()
-            self.first_frame = False
+        pass
 
     def on_timer(self, event):
         pass

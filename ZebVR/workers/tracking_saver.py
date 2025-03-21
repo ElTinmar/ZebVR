@@ -102,14 +102,17 @@ class TrackingSaver(WorkerNode):
             if data['tracking']['tail'][k] is not None:
                 skeleton_interp = data['tracking']['tail'][k]['skeleton_interp_cropped']  
 
-        except KeyError:
-            pass 
+        except KeyError as err:
+            print(f'KeyError: {err}')
+            return None 
         
-        except TypeError:
-            pass
+        except TypeError as err:
+            print(f'TypeError: {err}')
+            return None
         
-        except ValueError:
-            pass
+        except ValueError as err:
+            print(f'ValueError: {err}')
+            return None
 
         row = (
             f"{data['index']}",

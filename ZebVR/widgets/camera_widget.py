@@ -277,8 +277,9 @@ class CameraAcquisition(QRunnable):
                 frame = camera.get_frame()
                 if frame['image'] is not None:
                     self.widget.set_image(frame['image'])
-            except:
-                pass
+            except Exception as e:
+                print(e)
+                
         camera.stop_acquisition()
 
 class CameraController(QObject):

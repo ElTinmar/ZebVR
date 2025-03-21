@@ -6,6 +6,8 @@ from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
 from video_tools import BackgroundImage, Polarity
 from dagline import ProcessingDAG, receive_strategy, send_strategy
+from geometry import AffineTransform2D
+
 from tracker import (
     GridAssignment, 
     LinearSumAssignment,
@@ -414,7 +416,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         window_position = settings['projector']['offset'],
         window_decoration = False,
         camera_resolution = (settings['camera']['width_value'], settings['camera']['height_value']),
-        transformation_matrix = np.array(settings['registration']['transformation_matrix'], dtype=np.float32),
+        transformation_matrix = AffineTransform2D.from_array(np.array(settings['registration']['transformation_matrix'])),
         pixel_scaling = settings['projector']['pixel_scale'],
         pix_per_mm = settings['calibration']['pix_per_mm'],
         refresh_rate = settings['projector']['fps'],

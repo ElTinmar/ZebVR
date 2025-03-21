@@ -11,6 +11,7 @@ from numpy.typing import NDArray
 import time
 from typing import Any, Tuple
 from camera_tools import OpenCV_Webcam
+from geometry import AffineTransform2D
 try:
     from camera_tools import XimeaCamera, XimeaCamera_Transport
     XIMEA_ENABLED = True
@@ -97,7 +98,6 @@ class Thresholder(WorkerNode):
 
 VERT_SHADER = """
 attribute vec2 a_position;
-uniform mat3 u_transformation_matrix;
 uniform float u_pix_per_mm; 
 
 void main()
@@ -129,7 +129,7 @@ class Flash2(VisualStim):
             window_position: Tuple[int, int], 
             window_decoration: bool = False,
             camera_resolution: Tuple = (1024, 1024),
-            transformation_matrix: NDArray = np.eye(3, dtype=np.float32),
+            transformation_matrix: AffineTransform2D = AffineTransform2D.identity(),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             pix_per_mm: float = 30,
             refresh_rate: int = 240,
