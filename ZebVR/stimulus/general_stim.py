@@ -9,7 +9,7 @@ import os
 from dataclasses import dataclass
 from geometry import AffineTransform2D
 
-# TODO I need to restrict drawing for each fish to their respective bbox.
+# TODO generate preys for each fish ?
 
 @dataclass
 class SharedFishState:
@@ -106,12 +106,14 @@ class GeneralStim(VisualStim):
             n_preys: int = 50,
             prey_speed_mm_s: float = 20, # 0.75
             prey_radius_mm: float = 50, # 0.25
+            rollover_time_sec: float = 3600
         ) -> None:
 
         self.ROI_identities = ROI_identities
         self.num_tail_points_interp = num_tail_points_interp
         self.n_animals = len(ROI_identities)
         self.n_preys = n_preys
+        self.rollover_time_sec = rollover_time_sec
 
         FRAG_SHADER = f"""
         uniform vec2 u_prey_position[{MAX_PREY}];
@@ -123,7 +125,8 @@ class GeneralStim(VisualStim):
         uniform vec2 u_pix_per_mm_proj;
         uniform vec2 u_proj_resolution;
         uniform vec2 u_cam_resolution;
-        uniform mat3 u_transformation_matrix;
+        uniform mat3 u_cam_to_proj;
+        uniform mat3 u_proj_to_cam;
 
         // tracking
         uniform float u_n_animals;
@@ -134,6 +137,7 @@ class GeneralStim(VisualStim):
         uniform float u_left_eye_angle[{self.n_animals}];
         uniform vec2 u_right_eye_centroid[{self.n_animals}];
         uniform float u_right_eye_angle[{self.n_animals}];
+        uniform vec4 u_bounding_box[{self.n_animals}];
         uniform float u_time_s;
 
         // stim parameters
@@ -168,7 +172,11 @@ class GeneralStim(VisualStim):
         """ + """
 
         // helper functions
-        
+
+        bool is_point_in_bbox(vec2 point, vec2 minBounds, vec2 maxBounds) {
+            return all(greaterThanEqual(point, minBounds)) && all(lessThanEqual(point, maxBounds));
+        }
+
         mat2 rotate2d(float angle_rad){
             return mat2(cos(angle_rad),-sin(angle_rad),
                         sin(angle_rad),cos(angle_rad));
@@ -177,9 +185,17 @@ class GeneralStim(VisualStim):
         void main()
         {
             vec2 coordinates_px = gl_FragCoord.xy * u_pixel_scaling;
+            vec3 camera_coordinates_px = u_proj_to_cam * vec3(coordinates_px ,1.0);
+
             gl_FragColor = u_background_color;
 
             for (int animal = 0; animal < u_n_animals; animal++) {
+
+                vec4 bbox = u_bounding_box[animal];
+
+                if ( !is_point_in_bbox(camera_coordinates_px.xy, bbox.xy, bbox.xy+bbox.wz) ) {
+                    continue;
+                } 
 
                 vec2 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
                 vec2 coordinates_centered_mm = 1/u_pix_per_mm_proj * coordinates_centered_px;
@@ -242,7 +258,7 @@ class GeneralStim(VisualStim):
                 if (u_stim_select == PREY_CAPTURE) {
                     for (int i = 0; i < u_n_preys; i++) {
                         vec2 pos_camera_px = mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_pix_per_mm * u_prey_direction[i], u_cam_resolution);
-                        vec3 pos_proj_px = u_transformation_matrix * vec3(pos_camera_px, 1.0);
+                        vec3 pos_proj_px = u_cam_to_proj * vec3(pos_camera_px, 1.0);
                         if ( distance(pos_proj_px.xy/u_pix_per_mm_proj, coordinates_px/u_pix_per_mm_proj) <= u_prey_radius_mm ) {
                             gl_FragColor = u_foreground_color;
                         }
@@ -307,6 +323,7 @@ class GeneralStim(VisualStim):
         self.program['u_right_eye_centroid'] = [self.shared_fish_state[ID].right_eye_centroid[:] for ID in range(self.n_animals)]
         self.program['u_right_eye_angle'] = [[self.shared_fish_state[ID].right_eye_angle.value] for ID in range(self.n_animals)]
         self.program['u_fish_centroid'] = [self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)]
+        self.program['u_bounding_box'] = self.ROI_identities
 
         #print([self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)])
     
@@ -390,12 +407,10 @@ class GeneralStim(VisualStim):
     def on_timer(self, event):
         # this runs in the display process
 
-        if self.tstart == 0:
-            self.tstart = time.perf_counter_ns()
-
         timestamp = time.perf_counter_ns()
+        timestamp_sec = 1e-9*timestamp
 
-        self.update_shader_variables(1e-9*(timestamp-self.tstart))
+        self.update_shader_variables(timestamp_sec % self.rollover_time_sec)
         self.update()
 
         row = (
