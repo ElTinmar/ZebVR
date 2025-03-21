@@ -129,7 +129,7 @@ class GeneralStim(VisualStim):
         uniform mat3 u_proj_to_cam;
 
         // tracking
-        uniform float u_n_animals;
+        uniform int u_n_animals;
         uniform vec2 u_fish_centroid[{self.n_animals}];
         uniform vec2 u_fish_caudorostral_axis[{self.n_animals}];
         uniform vec2 u_fish_mediolateral_axis[{self.n_animals}];
@@ -167,7 +167,7 @@ class GeneralStim(VisualStim):
         const int LOOMING = 5;
         const int PREY_CAPTURE = 6;
 
-        const float PI=radians(180.0);
+        const float PI = radians(180.0);
 
         """ + """
 
