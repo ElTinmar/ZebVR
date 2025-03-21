@@ -10,6 +10,8 @@ from dataclasses import dataclass
 
 # TODO I need to restrict drawing for each fish to their respective bbox.
 
+MAX_PREY = 100
+
 @dataclass
 class SharedFishState:
     num_tail_points_interp: int
@@ -108,13 +110,13 @@ class GeneralStim(VisualStim):
         uniform float u_n_animals;
 
         // tracking
-        uniform vec2 a_fish_caudorostral_axis[{self.n_animals}];
-        uniform vec2 a_fish_mediolateral_axis[{self.n_animals}];
-        uniform vec2 a_fish_centroid[{self.n_animals}]; 
-        uniform vec2 a_left_eye_centroid[{self.n_animals}]; 
-        uniform float a_left_eye_angle[{self.n_animals}];
-        uniform vec2 a_right_eye_centroid[{self.n_animals}];
-        uniform float a_right_eye_angle[{self.n_animals}];
+        uniform vec2 u_fish_caudorostral_axis[{self.n_animals}];
+        uniform vec2 u_fish_mediolateral_axis[{self.n_animals}];
+        uniform vec2 u_fish_centroid[{self.n_animals}]; 
+        uniform vec2 u_left_eye_centroid[{self.n_animals}]; 
+        uniform float u_left_eye_angle[{self.n_animals}];
+        uniform vec2 u_right_eye_centroid[{self.n_animals}];
+        uniform float u_right_eye_angle[{self.n_animals}];
 
         varying vec2 v_fish_caudorostral_axis[{self.n_animals}];
         varying vec2 v_fish_mediolateral_axis[{self.n_animals}];
@@ -132,19 +134,19 @@ class GeneralStim(VisualStim):
             gl_Position = vec4(a_position, 0.0, 1.0);
 
             for (int i = 0; i < u_n_animals; i++) {
-                vec3 fish_centroid = u_transformation_matrix * vec3(a_fish_centroid[i], 1.0);
-                vec3 left_eye_centroid = u_transformation_matrix * vec3(a_left_eye_centroid[i], 1.0);
-                vec3 right_eye_centroid = u_transformation_matrix * vec3(a_right_eye_centroid[i], 1.0);
-                vec3 fish_caudorostral_axis = u_transformation_matrix * vec3(a_fish_caudorostral_axis[i], 0);
-                vec3 fish_mediolateral_axis = u_transformation_matrix * vec3(a_fish_mediolateral_axis[i], 0);
+                vec3 fish_centroid = u_transformation_matrix * vec3(u_fish_centroid[i], 1.0);
+                vec3 left_eye_centroid = u_transformation_matrix * vec3(u_left_eye_centroid[i], 1.0);
+                vec3 right_eye_centroid = u_transformation_matrix * vec3(u_right_eye_centroid[i], 1.0);
+                vec3 fish_caudorostral_axis = u_transformation_matrix * vec3(u_fish_caudorostral_axis[i], 0);
+                vec3 fish_mediolateral_axis = u_transformation_matrix * vec3(u_fish_mediolateral_axis[i], 0);
                 
                 v_fish_centroid[i] = fish_centroid.xy;
                 v_left_eye_centroid[i] = left_eye_centroid.xy;
                 v_right_eye_centroid[i] = right_eye_centroid.xy;
                 v_fish_caudorostral_axis[i] = fish_caudorostral_axis.xy;
                 v_fish_mediolateral_axis[i] = fish_mediolateral_axis.xy;
-                v_left_eye_angle[i] = a_left_eye_angle[i]; // TODO should I transform that as well ?
-                v_right_eye_angle[i] = a_right_eye_angle[i]; // TODO should I transform that as well ?
+                v_left_eye_angle[i] = u_left_eye_angle[i]; // TODO should I transform that as well ?
+                v_right_eye_angle[i] = u_right_eye_angle[i]; // TODO should I transform that as well ?
             } 
 
             vec3 proj_scale = u_transformation_matrix * vec3(u_pix_per_mm, u_pix_per_mm, 0);
@@ -153,8 +155,8 @@ class GeneralStim(VisualStim):
         """
 
         FRAG_SHADER = f"""
-        uniform vec2 u_prey_position[{n_preys}];
-        uniform vec2 u_prey_direction[{n_preys}];
+        uniform vec2 u_prey_position[{MAX_PREY}];
+        uniform vec2 u_prey_direction[{MAX_PREY}];
 
         // Some DMD projectors with diamond pixel layouts (e.g. Lightcrafters) do not have uniform pixel spacing.
         uniform vec2 u_pixel_scaling; 
@@ -219,6 +221,7 @@ class GeneralStim(VisualStim):
         void main()
         {
             vec2 coordinates_px = gl_FragCoord.xy * u_pixel_scaling;
+            gl_FragColor = u_background_color;
 
             for (int animal = 0; animal < u_n_animals; animal++) {
 
@@ -231,8 +234,6 @@ class GeneralStim(VisualStim):
                 );
                 vec2 fish_ego_coords_mm = transpose(change_of_basis)*coordinates_centered_mm;
                 
-                gl_FragColor = u_background_color;
-
                 if (u_stim_select == DARK) {
                     gl_FragColor = u_background_color;
                 }
@@ -324,7 +325,6 @@ class GeneralStim(VisualStim):
 
         self.refresh_rate = refresh_rate
         self.fd = None
-        self.tstart = 0
         self.timings_file = timings_file
 
     def set_filename(self, filename:str):
@@ -337,14 +337,14 @@ class GeneralStim(VisualStim):
 
         # fish state 
         # TODO send tail data to shader?
-        self.program['a_fish_caudorostral_axis'] = np.row_stack([self.shared_fish_state[ID].fish_caudorostral_axis[:] for ID in range(self.n_animals)]).astype(np.float32)
-        self.program['a_fish_mediolateral_axis'] = np.row_stack([self.shared_fish_state[ID].fish_mediolateral_axis[:] for ID in range(self.n_animals)]).astype(np.float32)
-        self.program['a_left_eye_centroid'] = np.row_stack([self.shared_fish_state[ID].left_eye_centroid[:] for ID in range(self.n_animals)]).astype(np.float32)
-        self.program['a_left_eye_angle'] = np.row_stack([self.shared_fish_state[ID].left_eye_angle.value for ID in range(self.n_animals)]).astype(np.float32)
-        self.program['a_right_eye_centroid'] = np.row_stack([self.shared_fish_state[ID].right_eye_centroid[:] for ID in range(self.n_animals)]).astype(np.float32)
-        self.program['a_right_eye_angle'] = np.row_stack([self.shared_fish_state[ID].right_eye_angle.value for ID in range(self.n_animals)]).astype(np.float32)
-        self.program['a_fish_centroid'] = np.row_stack([self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)]).astype(np.float32)
-
+        self.program['u_fish_caudorostral_axis'] = np.row_stack([self.shared_fish_state[ID].fish_caudorostral_axis[:] for ID in range(self.n_animals)]).astype(np.float32)
+        self.program['u_fish_mediolateral_axis'] = np.row_stack([self.shared_fish_state[ID].fish_mediolateral_axis[:] for ID in range(self.n_animals)]).astype(np.float32)
+        self.program['u_left_eye_centroid'] = np.row_stack([self.shared_fish_state[ID].left_eye_centroid[:] for ID in range(self.n_animals)]).astype(np.float32)
+        self.program['u_left_eye_angle'] = np.row_stack([self.shared_fish_state[ID].left_eye_angle.value for ID in range(self.n_animals)]).astype(np.float32)
+        self.program['u_right_eye_centroid'] = np.row_stack([self.shared_fish_state[ID].right_eye_centroid[:] for ID in range(self.n_animals)]).astype(np.float32)
+        self.program['u_right_eye_angle'] = np.row_stack([self.shared_fish_state[ID].right_eye_angle.value for ID in range(self.n_animals)]).astype(np.float32)
+        self.program['u_fish_centroid'] = np.row_stack([self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)]).astype(np.float32)
+        
         # stim parameters
         self.program['u_foreground_color'] = self.shared_stim_parameters.foreground_color[:]
         self.program['u_background_color'] = self.shared_stim_parameters.background_color[:]
@@ -364,18 +364,10 @@ class GeneralStim(VisualStim):
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
 
     def initialize(self):
+        # this runs in the display process
 
         super().initialize()
         
-        np.random.seed(0)
-        x = np.random.randint(0, self.camera_resolution[0], self.n_preys)
-        y = np.random.randint(0, self.camera_resolution[1], self.n_preys)
-        theta = np.random.uniform(0, 2*np.pi, self.n_preys)
-        self.program['u_prey_position'] = np.column_stack((x, y)).astype(np.float32)
-        self.program['u_prey_direction'] = np.column_stack((np.cos(theta), np.sin(theta))).astype(np.float32)
-
-        self.program['u_n_animals'] = self.n_animals
-
         # init file name
         prefix, ext = os.path.splitext(self.timings_file)
         timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
@@ -406,6 +398,13 @@ class GeneralStim(VisualStim):
         self.fd.write(','.join(headers) + '\n')
         
         # init shader
+        np.random.seed(0)
+        x = np.random.randint(0, self.camera_resolution[0], MAX_PREY)
+        y = np.random.randint(0, self.camera_resolution[1], MAX_PREY)
+        theta = np.random.uniform(0, 2*np.pi, MAX_PREY)
+        self.program['u_n_animals'] = self.n_animals
+        self.program['u_prey_position'] = np.column_stack((x, y)).astype(np.float32)
+        self.program['u_prey_direction'] = np.column_stack((np.cos(theta), np.sin(theta))).astype(np.float32)
         self.update_shader_variables(0)
 
         self.show()
@@ -422,10 +421,8 @@ class GeneralStim(VisualStim):
         self.program.draw('triangle_strip')
 
     def on_timer(self, event):
+        # this runs in the display process
 
-        if self.tstart == 0:
-            self.tstart = time.perf_counter_ns()
-        
         timestamp = time.perf_counter_ns()
 
         self.update_shader_variables(timestamp)
@@ -452,6 +449,7 @@ class GeneralStim(VisualStim):
         self.fd.write(','.join(row) + '\n')
 
     def process_data(self, data) -> None:
+        # this runs in the worker process
 
         if data is None:
             return
@@ -500,6 +498,7 @@ class GeneralStim(VisualStim):
             return None
 
     def process_metadata(self, metadata) -> None:
+        # this runs in the worker process
 
         control = metadata['visual_stim_control']
         
