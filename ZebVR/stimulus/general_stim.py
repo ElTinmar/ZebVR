@@ -197,13 +197,13 @@ class GeneralStim(VisualStim):
                 } 
 
                 vec2 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
-                vec2 coordinates_centered_mm = 1/u_pix_per_mm_proj * coordinates_centered_px;
                 // X: mediolateral_axis, Y: caudorostral_axis
                 mat2 change_of_basis = mat2(
                     u_fish_mediolateral_axis[animal]/length(u_fish_mediolateral_axis[animal]), 
                     u_fish_caudorostral_axis[animal]/length(u_fish_caudorostral_axis[animal])
                 );
-                vec2 fish_ego_coords_mm = transpose(change_of_basis)*coordinates_centered_mm;
+                vec2 fish_ego_coords_px = transpose(change_of_basis)*coordinates_centered_px;
+                vec2 fish_ego_coords_mm = fish_ego_coords_px/u_pix_per_mm_proj;
                 
                 if (u_stim_select == DARK) {
                     gl_FragColor = u_background_color;
@@ -446,7 +446,7 @@ class GeneralStim(VisualStim):
 
             if data['tracking']['body'][k] is not None:
                 self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body'][k]['centroid_global']).squeeze()
-                body_axes = data['tracking']['body'][k]['body_axes_global']
+                body_axes = data['tracking']['body'][k]['body_axes_global']                
                 self.shared_fish_state[ID].fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
                 self.shared_fish_state[ID].fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
             else:
