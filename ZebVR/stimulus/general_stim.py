@@ -285,6 +285,7 @@ class GeneralStim(VisualStim):
         self.refresh_rate = refresh_rate
         self.fd = None
         self.timings_file = timings_file
+        self.tstart = 0
 
     def set_filename(self, filename:str):
         self.timings_file = filename
@@ -386,9 +387,12 @@ class GeneralStim(VisualStim):
     def on_timer(self, event):
         # this runs in the display process
 
+        if self.tstart == 0:
+            self.tstart = time.perf_counter_ns()
+
         timestamp = time.perf_counter_ns()
 
-        self.update_shader_variables(timestamp*1e-9)
+        self.update_shader_variables(1e-9*(timestamp-self.tstart))
         self.update()
 
         row = (
