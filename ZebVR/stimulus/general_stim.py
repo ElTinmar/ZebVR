@@ -172,7 +172,6 @@ class GeneralStim(VisualStim):
         """ + """
 
         // helper functions
-
         bool is_point_in_bbox(vec2 point, vec2 minBounds, vec2 maxBounds) {
             return all(greaterThanEqual(point, minBounds)) && all(lessThanEqual(point, maxBounds));
         }
@@ -195,14 +194,15 @@ class GeneralStim(VisualStim):
                 if ( !is_point_in_bbox(camera_coordinates_px.xy, bbox.xy, bbox.xy+bbox.wz) ) {
                     continue;
                 } 
-
+                
+                //u_fish_centroid[animal] is (0,0) for animal > 0 ?
                 vec2 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
                 mat2 change_of_basis = mat2(
                     u_fish_mediolateral_axis[animal]/length(u_fish_mediolateral_axis[animal]), 
                     u_fish_caudorostral_axis[animal]/length(u_fish_caudorostral_axis[animal])
                 );
-                vec2 fish_ego_coords_px = transpose(change_of_basis)*coordinates_centered_px;
-                vec2 fish_ego_coords_mm = fish_ego_coords_px/u_pix_per_mm_proj;
+                vec2 fish_ego_coords_px = transpose(change_of_basis) * coordinates_centered_px;
+                vec2 fish_ego_coords_mm = fish_ego_coords_px / u_pix_per_mm_proj;
                 
                 if (u_stim_select == DARK) {
                     gl_FragColor = u_background_color;
@@ -314,13 +314,13 @@ class GeneralStim(VisualStim):
 
         # fish state 
         # TODO send tail data to shader?
+        self.program['u_fish_centroid'] = [self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)]
         self.program['u_fish_caudorostral_axis'] = [self.shared_fish_state[ID].fish_caudorostral_axis[:] for ID in range(self.n_animals)]
         self.program['u_fish_mediolateral_axis'] = [self.shared_fish_state[ID].fish_mediolateral_axis[:] for ID in range(self.n_animals)]
         self.program['u_left_eye_centroid'] = [self.shared_fish_state[ID].left_eye_centroid[:] for ID in range(self.n_animals)]
         self.program['u_left_eye_angle'] = [[self.shared_fish_state[ID].left_eye_angle.value] for ID in range(self.n_animals)]
         self.program['u_right_eye_centroid'] = [self.shared_fish_state[ID].right_eye_centroid[:] for ID in range(self.n_animals)]
         self.program['u_right_eye_angle'] = [[self.shared_fish_state[ID].right_eye_angle.value] for ID in range(self.n_animals)]
-        self.program['u_fish_centroid'] = [self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)]
         self.program['u_bounding_box'] = self.ROI_identities
     
         # stim parameters
