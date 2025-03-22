@@ -3,7 +3,6 @@ from .visual_stim import VisualStim
 from vispy import gloo, app
 from multiprocessing import RawValue, RawArray
 import time
-from numpy.typing import NDArray
 import numpy as np 
 import os
 from dataclasses import dataclass
@@ -138,7 +137,7 @@ class GeneralStim(VisualStim):
         uniform vec2 u_right_eye_centroid[{self.n_animals}];
         uniform float u_right_eye_angle[{self.n_animals}];
         uniform vec4 u_bounding_box[{self.n_animals}];
-        uniform float u_time_s;
+        uniform highp float u_time_s;
 
         // stim parameters
         uniform vec4 u_foreground_color;
@@ -185,25 +184,31 @@ class GeneralStim(VisualStim):
         {
             vec2 coordinates_px = gl_FragCoord.xy * u_pixel_scaling;
             vec3 camera_coordinates_px = u_proj_to_cam * vec3(coordinates_px, 1.0);
+            vec2 coordinates_centered_px;
+            mat2 change_of_basis;
+            vec2 fish_ego_coords_px;
+            vec2 fish_ego_coords_mm;
+            vec4 bbox;
 
             gl_FragColor = u_background_color;
 
             for (int animal = 0; animal < u_n_animals; animal++) {
 
-                vec4 bbox = u_bounding_box[animal];
+                bbox = u_bounding_box[animal];
                 if ( !is_point_in_bbox(camera_coordinates_px.xy, bbox.xy, bbox.xy+bbox.wz) ) {
                     continue;
                 } 
                 
-                //u_fish_centroid[animal] is (0,0) for animal > 0 ?
-                vec2 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
-                mat2 change_of_basis = mat2(
+                // compute pixel coordinates in fish egocentric coordinates (mm)
+                coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
+                change_of_basis = mat2(
                     u_fish_mediolateral_axis[animal]/length(u_fish_mediolateral_axis[animal]), 
                     u_fish_caudorostral_axis[animal]/length(u_fish_caudorostral_axis[animal])
                 );
-                vec2 fish_ego_coords_px = transpose(change_of_basis) * coordinates_centered_px;
-                vec2 fish_ego_coords_mm = fish_ego_coords_px / u_pix_per_mm_proj;
+                fish_ego_coords_px = transpose(change_of_basis) * coordinates_centered_px;
+                fish_ego_coords_mm = fish_ego_coords_px / u_pix_per_mm_proj;
                 
+                // implement the different stimuli
                 if (u_stim_select == DARK) {
                     gl_FragColor = u_background_color;
                 }
@@ -267,16 +272,16 @@ class GeneralStim(VisualStim):
         """
 
         super().__init__(
-            vertex_shader=VERT_SHADER, 
-            fragment_shader=FRAG_SHADER, 
-            window_size=window_size,
-            window_position=window_position, 
-            camera_resolution=camera_resolution,
-            pix_per_mm=pix_per_mm, 
-            window_decoration=window_decoration, 
-            transformation_matrix=transformation_matrix, 
-            pixel_scaling=pixel_scaling, 
-            vsync=vsync
+            vertex_shader = VERT_SHADER, 
+            fragment_shader = FRAG_SHADER, 
+            window_size = window_size,
+            window_position = window_position, 
+            camera_resolution = camera_resolution,
+            pix_per_mm = pix_per_mm, 
+            window_decoration = window_decoration, 
+            transformation_matrix = transformation_matrix, 
+            pixel_scaling = pixel_scaling, 
+            vsync = vsync
         )
 
         self.shared_fish_state = [SharedFishState(num_tail_points_interp) for _ in  ROI_identities]
