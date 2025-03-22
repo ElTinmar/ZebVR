@@ -260,7 +260,7 @@ class GeneralStim(VisualStim):
 
                 if (u_stim_select == PREY_CAPTURE) {
                     for (int i = 0; i < u_n_preys; i++) {
-                        vec2 pos_camera_px = mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_pix_per_mm * u_prey_direction[i], u_cam_resolution);
+                        vec2 pos_camera_px =  bbox.xy + mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_pix_per_mm * u_prey_direction[i], bbox.wz);
                         vec3 pos_proj_px = u_cam_to_proj * vec3(pos_camera_px, 1.0);
                         if ( distance(pos_proj_px.xy/u_pix_per_mm_proj, coordinates_px/u_pix_per_mm_proj) <= u_prey_radius_mm ) {
                             gl_FragColor = u_foreground_color;
@@ -319,7 +319,7 @@ class GeneralStim(VisualStim):
 
         # fish state 
         # TODO send tail data to shader?        
-        
+
         self.program['u_bounding_box'] = self.ROI_identities
         
         for i in range(self.n_animals):
