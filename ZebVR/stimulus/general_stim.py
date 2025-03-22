@@ -115,9 +115,6 @@ class GeneralStim(VisualStim):
         self.rollover_time_sec = rollover_time_sec
 
         FRAG_SHADER = f"""
-        uniform vec2 u_prey_position[{MAX_PREY}];
-        uniform vec2 u_prey_direction[{MAX_PREY}];
-
         // Some DMD projectors with diamond pixel layouts (e.g. Lightcrafters) do not have uniform pixel spacing.
         uniform vec2 u_pixel_scaling; 
         uniform float u_pix_per_mm; 
@@ -156,6 +153,8 @@ class GeneralStim(VisualStim):
         uniform float u_n_preys;
         uniform float u_prey_radius_mm;
         uniform float u_prey_speed_mm_s;
+        uniform vec2 u_prey_position[{MAX_PREY}];
+        uniform vec2 u_prey_direction[{MAX_PREY}];
 
         // constants 
         const int DARK = 0;
@@ -182,13 +181,14 @@ class GeneralStim(VisualStim):
 
         void main()
         {
-            vec2 coordinates_px = gl_FragCoord.xy * u_pixel_scaling;
-            vec3 camera_coordinates_px = u_proj_to_cam * vec3(coordinates_px, 1.0);
             vec2 coordinates_centered_px;
             mat2 change_of_basis;
             vec2 fish_ego_coords_px;
             vec2 fish_ego_coords_mm;
             vec4 bbox;
+
+            vec2 coordinates_px = gl_FragCoord.xy * u_pixel_scaling;
+            vec3 camera_coordinates_px = u_proj_to_cam * vec3(coordinates_px, 1.0);
 
             gl_FragColor = u_background_color;
 
@@ -319,14 +319,18 @@ class GeneralStim(VisualStim):
 
         # fish state 
         # TODO send tail data to shader?
-        self.program['u_fish_centroid'] = [self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)]
-        self.program['u_fish_caudorostral_axis'] = [self.shared_fish_state[ID].fish_caudorostral_axis[:] for ID in range(self.n_animals)]
-        self.program['u_fish_mediolateral_axis'] = [self.shared_fish_state[ID].fish_mediolateral_axis[:] for ID in range(self.n_animals)]
-        self.program['u_left_eye_centroid'] = [self.shared_fish_state[ID].left_eye_centroid[:] for ID in range(self.n_animals)]
-        self.program['u_left_eye_angle'] = [[self.shared_fish_state[ID].left_eye_angle.value] for ID in range(self.n_animals)]
-        self.program['u_right_eye_centroid'] = [self.shared_fish_state[ID].right_eye_centroid[:] for ID in range(self.n_animals)]
-        self.program['u_right_eye_angle'] = [[self.shared_fish_state[ID].right_eye_angle.value] for ID in range(self.n_animals)]
+        #self.program['u_fish_centroid'] = [self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)]
+        
         self.program['u_bounding_box'] = self.ROI_identities
+        
+        for i in range(self.n_animals):
+            self.program[f'u_fish_centroid[{i}]'] = self.shared_fish_state[i].fish_centroid[:] 
+            self.program[f'u_fish_caudorostral_axis[{i}]'] = self.shared_fish_state[i].fish_caudorostral_axis[:]
+            self.program[f'u_fish_mediolateral_axis[{i}]'] = self.shared_fish_state[i].fish_mediolateral_axis[:]
+            self.program[f'u_left_eye_centroid[{i}]'] = self.shared_fish_state[i].left_eye_centroid[:]
+            self.program[f'u_left_eye_angle[{i}]'] = self.shared_fish_state[i].left_eye_angle.value
+            self.program[f'u_right_eye_centroid[{i}]'] = self.shared_fish_state[i].right_eye_centroid[:]
+            self.program[f'u_right_eye_angle[{i}]'] = self.shared_fish_state[i].right_eye_angle.value
     
         # stim parameters
         self.program['u_foreground_color'] = self.shared_stim_parameters.foreground_color[:]
