@@ -318,8 +318,7 @@ class GeneralStim(VisualStim):
         self.program['u_time_s'] = time_s
 
         # fish state 
-        # TODO send tail data to shader?
-        #self.program['u_fish_centroid'] = [self.shared_fish_state[ID].fish_centroid[:] for ID in range(self.n_animals)]
+        # TODO send tail data to shader?        
         
         self.program['u_bounding_box'] = self.ROI_identities
         
