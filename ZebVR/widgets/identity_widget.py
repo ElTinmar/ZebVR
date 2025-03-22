@@ -209,6 +209,8 @@ class IdentityWidget(QWidget):
             'height': self.height.value(),
             'offsetX': self.offsetX.value(),
             'offsetY': self.offsetY.value(),
+            'marginX': self.marginX.value(),
+            'marginY': self.marginY.value(),
             'ROIs': self.ROIs,
             'n_animals': len(self.ROIs)
         }
@@ -223,6 +225,8 @@ class IdentityWidget(QWidget):
             'height': self.height.setValue,
             'offsetX': self.offsetX.setValue,
             'offsetY': self.offsetY.setValue,
+            'marginX': self.marginX.setValue,
+            'marginY': self.marginY.setValue,
         }
 
         for key, setter in setters.items():
