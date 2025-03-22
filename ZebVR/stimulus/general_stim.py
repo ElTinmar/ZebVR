@@ -106,7 +106,7 @@ class GeneralStim(VisualStim):
             n_preys: int = 50,
             prey_speed_mm_s: float = 20, # 0.75
             prey_radius_mm: float = 50, # 0.25
-            rollover_time_sec: float = 3600
+            rollover_time_sec: float = 3600 # TODO add that to a gui somewhere
         ) -> None:
 
         self.ROI_identities = ROI_identities
