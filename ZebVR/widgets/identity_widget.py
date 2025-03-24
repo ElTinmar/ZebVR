@@ -149,7 +149,7 @@ class IdentityWidget(QWidget):
 
         self.image = image
 
-        self.ROIs = []
+        self.ROIs.clear()
         self.width.setRange(1,self.image.shape[1])
         self.height.setRange(1,self.image.shape[0])
         self.offsetX.setRange(0,self.image.shape[1]-1)
