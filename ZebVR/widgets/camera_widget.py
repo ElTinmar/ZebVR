@@ -75,7 +75,7 @@ class CameraWidget(QWidget):
         self.layout_components()
         self.setWindowTitle('Camera controls')
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.camera_model = QComboBox()
         self.camera_model.addItems([model.name for model in CameraModel])
@@ -147,7 +147,7 @@ class CameraWidget(QWidget):
         pixmap = NDarray_to_QPixmap(image_resized, format = QImage.Format_RGB888)
         self.image.setPixmap(pixmap)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         layout_buttons = QHBoxLayout()
         layout_buttons.addWidget(self.preview_start)

@@ -164,7 +164,7 @@ class MainGui(QMainWindow):
 
         self.close_loop_button.click()
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         top_buttons = QHBoxLayout()
         top_buttons.addWidget(self.close_loop_button)

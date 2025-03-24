@@ -26,11 +26,11 @@ class QueueWidget(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
         self.name_label = QLabel(self.name)
         self.progress_bar = QProgressBar()
 
-    def layout_components(self):
+    def layout_components(self) -> None:
         layout = QHBoxLayout(self)
         layout.addWidget(self.name_label)
         layout.addWidget(self.progress_bar)

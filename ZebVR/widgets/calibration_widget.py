@@ -32,14 +32,14 @@ class CalibrationWidget(QWidget):
     DEFAULT_FILE = 'ZebVR/default/calibration.json'
     PIXMAP_HEIGHT = 192
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs)  -> None:
 
         super().__init__(*args, **kwargs)
         
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.explanation = QLabel('To calibrate, place the calibration target under the camera. Ensure proper illumination with the IR light.')
         self.checkerboard = QLabel()
@@ -122,7 +122,7 @@ class CalibrationWidget(QWidget):
                 pix_per_mm = json.load(f)
             self.pix_per_mm.setValue(pix_per_mm)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.calibration)

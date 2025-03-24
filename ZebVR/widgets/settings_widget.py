@@ -53,7 +53,7 @@ class SettingsWidget(QWidget):
     def set_stim_output_visible(self, visible: bool):
         self.stim_output_widget.setVisible(visible)
         
-    def layout_components(self):
+    def layout_components(self) -> None:
         
         layout = QVBoxLayout(self)
         layout.addWidget(self.experiment_data_widget)

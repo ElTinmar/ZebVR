@@ -20,7 +20,7 @@ class LogOutputWidget(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
         
         self.log_group = QGroupBox('Logs')
 
@@ -34,7 +34,7 @@ class LogOutputWidget(QWidget):
         self.queue_logfile.setText('queues.log')
         self.queue_logfile.textChanged.connect(self.state_changed)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         log_layout = QVBoxLayout()
         log_layout.addWidget(self.worker_logfile)

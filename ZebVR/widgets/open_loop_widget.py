@@ -31,7 +31,7 @@ class OpenLoopWidget(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
         
         self.openloop_group = QGroupBox('open-loop')
 
@@ -78,7 +78,7 @@ class OpenLoopWidget(QWidget):
 
         self.update_table()
 
-    def layout_components(self):
+    def layout_components(self) -> None:
         
         layout_centroid = QHBoxLayout()
         layout_centroid.addWidget(self.centroid_x)

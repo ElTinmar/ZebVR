@@ -28,7 +28,7 @@ class VideoOutputWidget(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
         
         ## video recording ------------------------------------
         self.video_group = QGroupBox('Enable video recording')
@@ -130,7 +130,7 @@ class VideoOutputWidget(QWidget):
         self.video_group.setCheckable(not checked) 
         self.video_group.setChecked(checked)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
         
         select_video = QHBoxLayout()
         select_video.addWidget(self.video_recording_button)

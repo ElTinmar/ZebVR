@@ -26,7 +26,7 @@ class TrackingWidget(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.closedloop_group = QGroupBox('tracking settings')
 
@@ -60,7 +60,7 @@ class TrackingWidget(QWidget):
         self.edt_filename.setText(self.filename)
         self.state_changed.emit()
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         closedloop_layout = QVBoxLayout()
         closedloop_layout.addWidget(self.tracking_settings)

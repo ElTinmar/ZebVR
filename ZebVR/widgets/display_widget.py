@@ -46,13 +46,13 @@ class DisplayWidget(QWidget):
         self.setWindowTitle('Display')
         self.show()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.lbl_index = QLabel()
         self.lbl_timestamp = QLabel()        
         self.lbl_image = QLabel()
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         layout_status = QHBoxLayout()
         layout_status.addWidget(QLabel('index:'))
@@ -103,7 +103,7 @@ class TrackingDisplayWidget(QWidget):
         self.setWindowTitle('Tracking display')
         self.show()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.animal_identity = LabeledSpinBox()
         self.animal_identity.setText('#animals')
@@ -156,7 +156,7 @@ class TrackingDisplayWidget(QWidget):
         self.bg_display_type.addButton(self.btn_mask, id=DisplayType.MASK)
         self.btn_processed.setChecked(True)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         layout_tracker_btn = QHBoxLayout()
         layout_tracker_btn.addWidget(self.btn_multi)

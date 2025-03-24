@@ -24,7 +24,7 @@ class ExperimentDataWidget(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
            
         ## data recording -----------------------------------
         self.data_group = QGroupBox('experiment data')
@@ -49,7 +49,7 @@ class ExperimentDataWidget(QWidget):
         self.comments.setFixedHeight(75)
         self.comments.textChanged.connect(self.state_changed)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         data_layout = QVBoxLayout()
         data_layout.addWidget(self.experiment_id)

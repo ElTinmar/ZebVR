@@ -24,7 +24,7 @@ class StimOutputWidget(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.stim_output_group = QGroupBox('stimulus data')
 
@@ -39,7 +39,7 @@ class StimOutputWidget(QWidget):
         self.edt_filename.setText(self.filename)
         self.state_changed.emit()
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         layout = QVBoxLayout()
         layout.addWidget(self.edt_filename)

@@ -39,7 +39,7 @@ class RegistrationWidget(QWidget):
         self.layout_components()
 
     
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.explanation = QLabel(
             "The projector light must be visible on camera. \n"
@@ -178,7 +178,7 @@ class RegistrationWidget(QWidget):
             for j in range(3):
                 self.transformation_matrix_table.setItem(i,j,QTableWidgetItem(f'{self.transformation_matrix[i][j]:2f}'))
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.registration)

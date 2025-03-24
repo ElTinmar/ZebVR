@@ -31,7 +31,7 @@ class Animal(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.animal_num_animals = LabeledSpinBox()
         self.animal_num_animals.setText('#animals')
@@ -160,7 +160,7 @@ class Animal(QWidget):
         self.animal_downsample_factor.setValue(0.25)
         self.animal_downsample_factor.valueChanged.connect(self.state_changed)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         animal = QVBoxLayout(self)
         animal.addWidget(self.animal_num_animals)
@@ -249,7 +249,7 @@ class Body(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.body_pix_per_mm = LabeledDoubleSpinBox()
         self.body_pix_per_mm.setText('pix/mm')
@@ -363,7 +363,7 @@ class Body(QWidget):
         self.body_median_filter_sz_mm.setValue(0.0)
         self.body_median_filter_sz_mm.valueChanged.connect(self.state_changed)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         body = QVBoxLayout(self)
         body.addWidget(self.body_pix_per_mm)
@@ -446,7 +446,7 @@ class Eyes(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.eyes_pix_per_mm = LabeledDoubleSpinBox()
         self.eyes_pix_per_mm.setText('pix/mm')
@@ -546,7 +546,7 @@ class Eyes(QWidget):
         self.eyes_median_filter_sz_mm.setValue(0.0)
         self.eyes_median_filter_sz_mm.valueChanged.connect(self.state_changed)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         eyes = QVBoxLayout(self)
         eyes.addWidget(self.eyes_pix_per_mm)
@@ -623,7 +623,7 @@ class Tail(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.tail_pix_per_mm = LabeledDoubleSpinBox()
         self.tail_pix_per_mm.setText('pix/mm')
@@ -731,7 +731,7 @@ class Tail(QWidget):
         self.tail_median_filter_sz_mm.setValue(0.1)
         self.tail_median_filter_sz_mm.valueChanged.connect(self.state_changed)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         tail = QVBoxLayout(self)
         tail.addWidget(self.tail_pix_per_mm)
@@ -818,7 +818,7 @@ class TrackerWidget(QWidget):
         if settings_file.exists():
             self.load_from_file(settings_file)
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.assignment_choice = LabeledComboBox()
         self.assignment_choice.setText('Assignment:')
@@ -845,7 +845,7 @@ class TrackerWidget(QWidget):
         self.btn_save = QPushButton('save')
         self.btn_save.clicked.connect(self.save)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         animal = QHBoxLayout()
         animal.addWidget(self.animal)

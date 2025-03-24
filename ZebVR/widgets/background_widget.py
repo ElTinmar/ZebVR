@@ -37,7 +37,7 @@ class BackgroundWidget(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         # inpaint background
         self.parameters_inpaint = QWidget()
@@ -100,11 +100,11 @@ class BackgroundWidget(QWidget):
         else:
             self.set_image(np.zeros((512,512), dtype=np.uint8))
 
-    def method_change(self, index: int):
+    def method_change(self, index: int) -> None:
         self.bckgsub_parameter_stack.setCurrentIndex(index)
         self.state_changed.emit()
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         inpaint_layout = QVBoxLayout(self.parameters_inpaint)
         inpaint_layout.addWidget(self.inpaint_radius)
@@ -131,7 +131,7 @@ class BackgroundWidget(QWidget):
         main_layout.addLayout(image_layout)
         main_layout.addStretch()
     
-    def set_image(self, image: NDArray):
+    def set_image(self, image: NDArray) -> None:
         # TODO maybe check that image is uint8
         h, w = image.shape[:2]
         preview_width = int(w * self.PREVIEW_HEIGHT/h)

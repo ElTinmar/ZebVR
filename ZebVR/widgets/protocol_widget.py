@@ -65,7 +65,7 @@ class StopWidget(QWidget):
         self.trigger_changed()
         self.policy_changed()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.cmb_policy_select = QComboBox()
         for policy in StopPolicy:
@@ -97,7 +97,7 @@ class StopWidget(QWidget):
 
         self.mask_image = QLabel() 
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         software_trigger_layout = QVBoxLayout()
         software_trigger_layout.addStretch()
@@ -317,7 +317,7 @@ class StimWidget(QWidget):
 
         self.stim_changed()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
         
         # TODO add stuff for acoustic and other types of stim 
 
@@ -481,7 +481,7 @@ class StimWidget(QWidget):
         self.stop_condition_widget = StopWidget(self.debouncer, self.background_image)
         self.stop_condition_widget.size_changed.connect(self.on_size_changed)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         foreground_color_layout = QHBoxLayout()
         foreground_color_layout.addWidget(self.lbl_foreground_color)

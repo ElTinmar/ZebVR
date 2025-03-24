@@ -43,7 +43,7 @@ class IdentityWidget(QWidget):
         self.declare_components()
         self.layout_components()
 
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.row = LabeledSpinBox()
         self.row.setText('row')
@@ -104,7 +104,7 @@ class IdentityWidget(QWidget):
         self.image_label = QLabel()
         self.set_image(self.image)
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         image_layout = QHBoxLayout()
         image_layout.addStretch()
@@ -140,12 +140,12 @@ class IdentityWidget(QWidget):
         main_layout.addLayout(image_layout)
         main_layout.addStretch()
 
-    def on_change(self):
+    def on_change(self) -> None:
         
         self.set_image(self.image)
         self.state_changed.emit()
     
-    def set_image(self, image: NDArray):
+    def set_image(self, image: NDArray) -> None:
 
         self.image = image
 
@@ -163,7 +163,6 @@ class IdentityWidget(QWidget):
         offset_x, offset_y = self.offsetX.value(), self.offsetY.value()
         margin_x, margin_y = self.marginX.value(), self.marginY.value()
         box_width, box_height = (self.width.value() - 2*cols*margin_x)//cols, (self.height.value() - 2*rows*margin_y)//rows
-
 
         # Draw grid
         count = 0

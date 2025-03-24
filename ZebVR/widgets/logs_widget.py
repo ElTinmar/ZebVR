@@ -30,7 +30,7 @@ class LogsWidget(QWidget):
         self.queue_refresh_time_microsec.setValue(100)
         self.queue_refresh_time_microsec.valueChanged.connect(self.state_changed)
         
-    def layout_components(self):
+    def layout_components(self) -> None:
         
         layout = QVBoxLayout(self)
         layout.addWidget(self.log_widget)

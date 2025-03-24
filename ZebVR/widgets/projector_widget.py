@@ -21,7 +21,7 @@ class ProjectorWidget(QWidget):
         self.declare_components()
         self.layout_components()
     
-    def declare_components(self):
+    def declare_components(self) -> None:
 
         self.proj_height = LabeledSpinBox()
         self.proj_height.setText('height:')
@@ -87,7 +87,7 @@ class ProjectorWidget(QWidget):
         self.temperature = QLabel(u'Temperature (\N{DEGREE SIGN}C)')
         self.last_refresh_time = QLabel('Last refresh:')
 
-    def layout_components(self):
+    def layout_components(self) -> None:
 
         resolution_layout = QHBoxLayout() 
         resolution_layout.addWidget(self.proj_width)
