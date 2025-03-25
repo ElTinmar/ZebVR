@@ -34,6 +34,8 @@ class SharedStimParameters:
     default_omr_spatial_period_mm: float
     default_omr_angle_deg: float
     default_omr_speed_mm_per_sec: float
+    default_concentric_spatial_period_mm: float
+    default_concentric_speed_mm_per_sec: float
     default_okr_spatial_frequency_deg: float
     default_okr_speed_deg_per_sec: float
     default_looming_center_mm: Tuple[int, int]
@@ -52,6 +54,8 @@ class SharedStimParameters:
         self.omr_spatial_period_mm = RawValue('d', self.default_omr_spatial_period_mm)
         self.omr_angle_deg = RawValue('d', self.default_omr_angle_deg)
         self.omr_speed_mm_per_sec = RawValue('d', self.default_omr_speed_mm_per_sec)
+        self.concentric_spatial_period_mm = RawValue('d', self.default_concentric_spatial_period_mm)
+        self.concentric_speed_mm_per_sec = RawValue('d', self.default_concentric_speed_mm_per_sec)
         self.okr_spatial_frequency_deg = RawValue('d', self.default_okr_spatial_frequency_deg)
         self.okr_speed_deg_per_sec = RawValue('d', self.default_okr_speed_deg_per_sec)
         self.looming_center_mm = RawArray('d', self.default_looming_center_mm)
@@ -100,6 +104,8 @@ class GeneralStim(VisualStim):
             omr_spatial_period_mm: float = 20,
             omr_angle_deg: float = 0,
             omr_speed_mm_per_sec: float = 360,
+            concentric_spatial_period_mm: float = 20,
+            concentric_speed_mm_per_sec: float = 360,
             okr_spatial_frequency_deg: float = 45,
             okr_speed_deg_per_sec: float = 60,
             looming_center_mm: Tuple = (1,1),
@@ -148,6 +154,8 @@ class GeneralStim(VisualStim):
         uniform float u_omr_spatial_period_mm;
         uniform float u_omr_angle_deg;
         uniform float u_omr_speed_mm_per_sec;
+        uniform float u_concentric_spatial_period_mm;
+        uniform float u_concentric_speed_mm_per_sec;
         uniform float u_okr_spatial_frequency_deg;
         uniform float u_okr_speed_deg_per_sec;
         uniform vec2 u_looming_center_mm;
@@ -173,6 +181,7 @@ class GeneralStim(VisualStim):
         const int FOLLOWING_LOOMING = 5;
         const int PREY_CAPTURE = 6;
         const int LOOMING = 7;
+        const int CONCENTRIC_GRATING = 8;
 
         const float PI = radians(180.0);
 
@@ -286,6 +295,18 @@ class GeneralStim(VisualStim):
                     }
                 }
 
+                if (u_stim_select == CONCENTRIC_GRATING) {
+                    float distance_to_center_mm = distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.wz/2.0);
+                    float spatial_freq = 1/u_concentric_spatial_period_mm;
+                    float temporal_freq = u_concentric_speed_mm_per_sec/u_concentric_spatial_period_mm;
+                    float angle = spatial_freq * distance_to_center_mm;
+                    float phase = temporal_freq * u_time_s;
+                    if ( sin(2*PI*(angle+phase)) > 0.0 ) 
+                    {
+                        gl_FragColor = u_foreground_color;
+                    }
+                }
+
                 if (u_stim_select == PREY_CAPTURE) {
                     for (int i = 0; i < u_n_preys; i++) {
                         vec2 pos_camera_px =  camera_bbox_px.xy + mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_pix_per_mm * u_prey_direction[i], camera_bbox_px.wz);
@@ -321,6 +342,8 @@ class GeneralStim(VisualStim):
             default_omr_spatial_period_mm = omr_spatial_period_mm,
             default_omr_angle_deg = omr_angle_deg,
             default_omr_speed_mm_per_sec = omr_speed_mm_per_sec,
+            default_concentric_spatial_period_mm = concentric_spatial_period_mm,
+            default_concentric_speed_mm_per_sec = concentric_speed_mm_per_sec,
             default_okr_spatial_frequency_deg = okr_spatial_frequency_deg,
             default_okr_speed_deg_per_sec = okr_speed_deg_per_sec,
             default_looming_center_mm = looming_center_mm,
@@ -367,6 +390,8 @@ class GeneralStim(VisualStim):
         self.program['u_omr_spatial_period_mm'] = self.shared_stim_parameters.omr_spatial_period_mm.value
         self.program['u_omr_angle_deg'] = self.shared_stim_parameters.omr_angle_deg.value
         self.program['u_omr_speed_mm_per_sec'] = self.shared_stim_parameters.omr_speed_mm_per_sec.value
+        self.program['u_concentric_spatial_period_mm'] = self.shared_stim_parameters.concentric_spatial_period_mm.value
+        self.program['u_concentric_speed_mm_per_sec'] = self.shared_stim_parameters.concentric_speed_mm_per_sec.value
         self.program['u_okr_spatial_frequency_deg'] = self.shared_stim_parameters.okr_spatial_frequency_deg.value
         self.program['u_okr_speed_deg_per_sec'] = self.shared_stim_parameters.okr_speed_deg_per_sec.value
         self.program['u_looming_center_mm'] = self.shared_stim_parameters.looming_center_mm[:]
@@ -402,6 +427,8 @@ class GeneralStim(VisualStim):
             'omr_spatial_period_mm',
             'omr_angle_deg',
             'omr_speed_mm_per_sec',
+            'concentric_spatial_period_mm',
+            'concentric_speed_mm_per_sec',
             'okr_spatial_frequency_deg',
             'okr_speed_deg_per_sec',
             'looming_center_mm_x',
@@ -461,6 +488,8 @@ class GeneralStim(VisualStim):
             f'{self.shared_stim_parameters.omr_spatial_period_mm.value}',
             f'{self.shared_stim_parameters.omr_angle_deg.value}',
             f'{self.shared_stim_parameters.omr_speed_mm_per_sec.value}',
+            f'{self.shared_stim_parameters.concentric_spatial_period_mm.value}',
+            f'{self.shared_stim_parameters.concentric_speed_mm_per_sec.value}',
             f'{self.shared_stim_parameters.okr_spatial_frequency_deg.value}',
             f'{self.shared_stim_parameters.okr_speed_deg_per_sec.value}',
             f'{self.shared_stim_parameters.looming_center_mm[0]}',
@@ -545,6 +574,8 @@ class GeneralStim(VisualStim):
         self.shared_stim_parameters.omr_spatial_period_mm.value = control['omr_spatial_period_mm']
         self.shared_stim_parameters.omr_angle_deg.value = control['omr_angle_deg']
         self.shared_stim_parameters.omr_speed_mm_per_sec.value = control['omr_speed_mm_per_sec']
+        self.shared_stim_parameters.concentric_spatial_period_mm.value = control['concentric_spatial_period_mm']
+        self.shared_stim_parameters.concentric_speed_mm_per_sec.value = control['concentric_speed_mm_per_sec']
         self.shared_stim_parameters.okr_spatial_frequency_deg.value = control['okr_spatial_frequency_deg']
         self.shared_stim_parameters.okr_speed_deg_per_sec.value = control['okr_speed_deg_per_sec']
         self.shared_stim_parameters.looming_center_mm[:] = control['looming_center_mm']

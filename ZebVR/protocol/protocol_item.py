@@ -14,6 +14,7 @@ class Stim:
         FOLLOWING_LOOMING = 5
         PREY_CAPTURE = 6
         LOOMING = 7
+        CONCENTRIC_GRATING = 8
 
         def __str__(self):
             return self.name
@@ -114,6 +115,40 @@ class OKR(ProtocolItem):
         })
         return command
 
+class ConcentricGrating(ProtocolItem):
+
+    STIM_SELECT = Stim.Visual.CONCENTRIC_GRATING
+
+    def __init__(
+            self, 
+            spatial_period_deg: float,
+            speed_mm_per_sec: float,
+            foreground_color: Tuple[float, float, float, float],
+            background_color: Tuple[float, float, float, float],
+            *args,
+            **kwargs
+        ) -> None:
+
+        super().__init__(*args, **kwargs)
+        self.spatial_period_deg = spatial_period_deg
+        self.speed_mm_per_sec = speed_mm_per_sec
+        self.foreground_color = foreground_color
+        self.background_color = background_color 
+
+    def start(self) -> DefaultDict:
+
+        super().start()
+
+        command = defaultdict(float, {
+            'stim_select': self.STIM_SELECT,
+            'spatial_period_deg': self.spatial_period_deg,
+            'speed_mm_per_sec': self.speed_mm_per_sec,
+            'foreground_color': self.foreground_color,
+            'background_color': self.background_color,
+            'looming_center_mm': (0, 0)
+        })
+        return command
+    
 class OMR(ProtocolItem):
     
     STIM_SELECT = Stim.Visual.OMR

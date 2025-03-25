@@ -29,6 +29,7 @@ from ..protocol import (
     Phototaxis,
     OKR,
     OMR,
+    ConcentricGrating,
     Dark,
     Bright,
     FollowingLooming,
@@ -276,6 +277,8 @@ class StimWidget(QWidget):
             omr_spatial_period_mm: float = 5,
             omr_angle_deg: float = 0,
             omr_speed_mm_per_sec: float = 10,
+            concentric_spatial_period_mm: float = 5,
+            concentric_speed_mm_per_sec: float = 10,
             okr_spatial_frequency_deg: float = 20,
             okr_speed_deg_per_sec: float = 36,
             looming_center_mm: Tuple = (0,0),
@@ -299,6 +302,8 @@ class StimWidget(QWidget):
         self.omr_spatial_period_mm = omr_spatial_period_mm
         self.omr_angle_deg = omr_angle_deg
         self.omr_speed_mm_per_sec = omr_speed_mm_per_sec
+        self.concentric_spatial_period_mm = concentric_spatial_period_mm
+        self.concentric_speed_mm_per_sec = concentric_speed_mm_per_sec
         self.okr_spatial_frequency_deg = okr_spatial_frequency_deg
         self.okr_speed_deg_per_sec = okr_speed_deg_per_sec
         self.looming_center_mm = looming_center_mm
@@ -411,6 +416,19 @@ class StimWidget(QWidget):
         self.sb_omr_speed.setRange(-10_000,10_000)
         self.sb_omr_speed.setValue(self.omr_speed_mm_per_sec)
         self.sb_omr_speed.valueChanged.connect(self.on_change)
+
+        # CONCENTRIC GRATING
+        self.sb_concentric_spatial_freq = LabeledDoubleSpinBox()
+        self.sb_concentric_spatial_freq.setText('Spatial period (mm)')
+        self.sb_concentric_spatial_freq.setRange(0,10_000)
+        self.sb_concentric_spatial_freq.setValue(self.concentric_spatial_period_mm)
+        self.sb_concentric_spatial_freq.valueChanged.connect(self.on_change)
+
+        self.sb_concentric_speed = LabeledDoubleSpinBox()
+        self.sb_concentric_speed.setText('Grating speed (mm/s)')
+        self.sb_concentric_speed.setRange(-10_000,10_000)
+        self.sb_concentric_speed.setValue(self.concentric_speed_mm_per_sec)
+        self.sb_concentric_speed.valueChanged.connect(self.on_change)
 
         # OKR
         self.sb_okr_spatial_freq = LabeledDoubleSpinBox()
@@ -545,6 +563,13 @@ class StimWidget(QWidget):
         self.omr_group = QGroupBox('OMR parameters')
         self.omr_group.setLayout(omr_layout)
 
+        concentric_layout = QVBoxLayout()
+        concentric_layout.addWidget(self.sb_concentric_spatial_freq)
+        concentric_layout.addWidget(self.sb_concentric_speed)
+        concentric_layout.addStretch()
+        self.concentric_group = QGroupBox('Concentric grating parameters')
+        self.concentric_group.setLayout(concentric_layout)
+
         okr_layout = QVBoxLayout()
         okr_layout.addWidget(self.sb_okr_spatial_freq)
         okr_layout.addWidget(self.sb_okr_speed)
@@ -589,6 +614,7 @@ class StimWidget(QWidget):
         self.stack.addWidget(self.following_looming_group) # following looming
         self.stack.addWidget(self.preycapture_group)
         self.stack.addWidget(self.looming_group) # regular looming
+        self.stack.addWidget(self.concentric_group)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.cmb_stim_select)
@@ -633,6 +659,8 @@ class StimWidget(QWidget):
         state['omr_spatial_period_mm'] = self.sb_omr_spatial_freq.value()
         state['omr_angle_deg'] = self.sb_omr_angle.value()
         state['omr_speed_mm_per_sec'] = self.sb_omr_speed.value() 
+        state['concentric_spatial_period_mm'] = self.sb_concentric_spatial_freq.value()
+        state['concentric_speed_mm_per_sec'] = self.sb_concentric_speed.value() 
         state['okr_spatial_frequency_deg'] = self.sb_okr_spatial_freq.value()
         state['okr_speed_deg_per_sec'] = self.sb_okr_speed.value()
         state['looming_center_mm'] = (
@@ -673,6 +701,8 @@ class StimWidget(QWidget):
         self.sb_omr_spatial_freq.setValue(state['omr_spatial_period_mm'])
         self.sb_omr_angle.setValue(state['omr_angle_deg'])
         self.sb_omr_speed.setValue(state['omr_speed_mm_per_sec']) 
+        self.sb_concentric_spatial_freq.setValue(state['concentric_spatial_period_mm'])
+        self.sb_concentric_speed.setValue(state['concentric_speed_mm_per_sec']) 
         self.sb_okr_spatial_freq.setValue(state['okr_spatial_frequency_deg'])
         self.sb_okr_speed.setValue(state['okr_speed_deg_per_sec'])
         self.sb_following_looming_center_mm_x.setValue(state['following_looming_center_mm'][0])
@@ -725,7 +755,12 @@ class StimWidget(QWidget):
             self.sb_omr_spatial_freq.setValue(protocol_item.omr_spatial_period_mm)
             self.sb_omr_angle.setValue(protocol_item.omr_angle_deg)
             self.sb_omr_speed.setValue(protocol_item.omr_speed_mm_per_sec)  
-    
+
+        elif isinstance(protocol_item, ConcentricGrating):
+            self.cmb_stim_select.setCurrentText(str(Stim.Visual.CONCENTRIC_GRATING))
+            self.sb_concentric_spatial_freq.setValue(protocol_item.concentric_spatial_period_mm)
+            self.sb_concentric_speed.setValue(protocol_item.concentric_speed_mm_per_sec)  
+
         elif isinstance(protocol_item, OKR):
             self.cmb_stim_select.setCurrentText(str(Stim.Visual.OKR))
             self.sb_okr_spatial_freq.setValue(protocol_item.okr_spatial_frequency_deg)
@@ -806,6 +841,16 @@ class StimWidget(QWidget):
                 omr_speed_mm_per_sec = self.sb_omr_speed.value(),
                 stop_condition = stop_condition
             )
+
+        if state['stim_select'] == Stim.Visual.CONCENTRIC_GRATING:
+            protocol = ConcentricGrating(
+                foreground_color = foreground_color,
+                background_color = background_color,
+                concentric_spatial_period_mm = self.sb_concentric_spatial_freq.value(),
+                concentric_speed_mm_per_sec = self.sb_concentric_speed.value(),
+                stop_condition = stop_condition
+            )
+
 
         if state['stim_select'] == Stim.Visual.OKR:
             protocol = OKR(
