@@ -91,3 +91,15 @@ error 11 unable to open XIMEA cameras: add user to the plugdev group
 ```bash
 sudo usermod -a -G plugdev <user>
 ```
+
+### Check number of uniforms
+
+```
+from vispy import app, gloo
+canvas = app.Canvas()
+canvas.show()
+app.process_events()
+info = gloo.gl.glGetParameter(gloo.gl.GL_MAX_FRAGMENT_UNIFORM_VECTORS)
+print("Max Fragment Uniform Vectors:", info)
+canvas.close()
+```
