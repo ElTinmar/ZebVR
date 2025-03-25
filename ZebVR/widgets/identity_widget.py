@@ -32,8 +32,8 @@ class IdentityWidget(QWidget):
     fontsize = 1.5
     color = (0, 255, 0) 
     line_thickness = 2
-    axis_y_color = (0, 0, 255)
-    axis_x_color = (0, 255, 255) 
+    axis_y_color = (0, 255, 255) 
+    axis_x_color = (0, 0, 255)
 
     def __init__(self, *args, **kwargs):
 
@@ -225,8 +225,8 @@ class IdentityWidget(QWidget):
                 textsize = cv2.getTextSize(text, self.font, self.fontsize, self.fontweight)[0]
                 centroid_x = x1+box_width//2
                 centroid_y = y1+box_height//2
-                scale_x = box_width//8
-                scale_y = box_height//4
+                scale_x = box_width//4
+                scale_y = box_height//8
                 
                 cv2.rectangle(
                     grid_image, 
