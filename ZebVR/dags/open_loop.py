@@ -4,7 +4,6 @@ import json
 
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
-from video_tools import BackgroundImage, Polarity
 from dagline import ProcessingDAG, receive_strategy, send_strategy
 from geometry import AffineTransform2D
 from tracker import (
