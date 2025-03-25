@@ -482,6 +482,7 @@ class GeneralStim(VisualStim):
     def process_data(self, data) -> None:
         # this runs in the worker process
 
+        # TODO use get instead of try except ?
         if data is None:
             return
 
