@@ -211,10 +211,10 @@ class GeneralStim(VisualStim):
                     continue;
                 } 
 
-                vec3 bbox_origin_proj = u_proj_to_cam * vec3(camera_bbox_px.xy, 1.0);
-                vec3 bbox_size_proj = u_proj_to_cam * vec3(camera_bbox_px.wz, 0.0);
-                camera_bbox_px = vec4(bbox_origin_proj.xy, bbox_size_proj.xy);
-                camera_bbox_mm = vec4(bbox_origin_proj.xy / u_pix_per_mm_proj, bbox_size_proj.xy/ u_pix_per_mm_proj);
+                vec3 proj_bbox_origin = u_cam_to_proj * vec3(camera_bbox_px.xy, 1.0);
+                vec3 proj_bbox_size = u_cam_to_proj * vec3(camera_bbox_px.wz, 0.0);
+                proj_bbox_px = vec4(proj_bbox_origin.xy, proj_bbox_size.xy);
+                proj_bbox_mm = vec4(proj_bbox_origin.xy / u_pix_per_mm_proj, proj_bbox_size.xy/ u_pix_per_mm_proj);
                 
                 // compute pixel coordinates in fish egocentric coordinates (mm)
                 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
@@ -279,7 +279,7 @@ class GeneralStim(VisualStim):
                     float rel_time = mod(u_time_s, u_looming_period_sec); 
                     float looming_on = float(rel_time<=u_looming_expansion_time_sec);
                     if ( rel_time <= u_looming_period_sec/2 ) { 
-                        if ( distance(coordinates_mm, camera_bbox_mm.xy + camera_bbox_mm.wz/2.0 + u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
+                        if ( distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.wz/2.0 + u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
                         {
                             gl_FragColor = u_foreground_color;
                         }
