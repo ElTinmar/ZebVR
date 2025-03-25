@@ -92,14 +92,17 @@ class ProjectorWidget(QWidget):
         resolution_layout = QHBoxLayout() 
         resolution_layout.addWidget(self.proj_width)
         resolution_layout.addWidget(self.proj_height)
+        resolution_layout.setSpacing(50)
 
         offset_layout = QHBoxLayout() 
         offset_layout.addWidget(self.offset_x)
         offset_layout.addWidget(self.offset_y)
+        offset_layout.setSpacing(50)
 
         scale_layout = QHBoxLayout()
         scale_layout.addWidget(self.scale_x)
         scale_layout.addWidget(self.scale_y)
+        scale_layout.setSpacing(50)
 
         power_layout = QHBoxLayout()
         power_layout.addWidget(self.power_on)

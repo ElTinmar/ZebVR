@@ -131,6 +131,7 @@ class CalibrationWidget(QWidget):
         layout_grid_size = QHBoxLayout()
         layout_grid_size.addWidget(self.checkerboard_grid_size_x)
         layout_grid_size.addWidget(self.checkerboard_grid_size_y)
+        layout_grid_size.setSpacing(50)
 
         layout_checkerboard = QHBoxLayout()
         layout_checkerboard.addStretch()
@@ -145,6 +146,7 @@ class CalibrationWidget(QWidget):
         layout_reticle_center = QHBoxLayout()
         layout_reticle_center.addWidget(self.reticle_center_x)
         layout_reticle_center.addWidget(self.reticle_center_y)
+        layout_reticle_center.setSpacing(50)
 
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.explanation)
