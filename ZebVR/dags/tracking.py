@@ -34,11 +34,14 @@ from ..workers import (
     BackgroundSubWorker, 
     CameraWorker, 
     TrackerWorker, 
+    CropWorker,
     TrackerGui, 
     TrackingDisplay,
     QueueMonitor,
     TrackingSaver
 )
+
+DEFAULT_QUEUE_SIZE_MB = 100
 
 def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     
@@ -51,41 +54,65 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     queue_logger = Logger(settings['logs']['log']['queue_logfile'], Logger.INFO)
 
     # create queues -----------------------------------------------------------------------            
-    queue_cam = MonitoredQueue(
-        ModifiableRingBuffer(
-            num_bytes = 500*1024**2, # TODO add a widget for that?
-            logger = queue_logger,
-            name = 'camera_to_background',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
-    )
+    queue_cam_to_background = MonitoredQueue(ModifiableRingBuffer(
+        num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+        #copy=False, # you probably don't need to copy if processing is fast enough
+        logger = queue_logger,
+        name = 'background_to_crop',
+        t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+    ))
 
-    queue_background = MonitoredQueue(
-        ModifiableRingBuffer(
-            num_bytes = 500*1024**2,
-            logger = queue_logger,
-            name = 'background_to_trackers',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
-    )
+    queue_background_to_cropper = MonitoredQueue(ModifiableRingBuffer(
+        num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+        #copy=False, # you probably don't need to copy if processing is fast enough
+        logger = queue_logger,
+        name = 'background_to_crop',
+        t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+    ))
 
-    queue_tracking = MonitoredQueue(
-        ModifiableRingBuffer(
-            num_bytes = 500*1024**2,
-            logger = queue_logger,
-            name = 'tracker_to_stim',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
-    )
+    queue_crop_to_tracker = []
+    queue_tracking_to_stim = []
+    queue_tracking_to_overlay = []
+    queue_tracking_to_saver = []
 
-    queue_overlay = MonitoredQueue(
-        ModifiableRingBuffer(
-            num_bytes = 500*1024**2,
-            logger = queue_logger,
-            name = 'tracker_to_overlay',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+    for i in range(settings['identity']['n_animals']):
+
+        queue_crop_to_tracker.append(
+            MonitoredQueue(ModifiableRingBuffer(
+                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+                #copy=False, # you probably don't need to copy if processing is fast enough
+                logger = queue_logger,
+                name = 'background_to_trackers',
+                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+            ))
         )
-    )
+        
+        queue_tracking_to_stim.append(
+            MonitoredQueue(ModifiableRingBuffer(
+                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+                logger = queue_logger,
+                name = 'tracker_to_stim',
+                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+            ))
+        )
+
+        queue_tracking_to_overlay.append(
+            MonitoredQueue(ModifiableRingBuffer(
+                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+                logger = queue_logger,
+                name = 'tracker_to_overlay',
+                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+            ))
+        )
+
+        queue_tracking_to_saver.append(
+            MonitoredQueue(ModifiableRingBuffer(
+                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+                logger = queue_logger,
+                name = 'tracker_to_overlay',
+                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+            ))
+        )
 
     # create workers -----------------------------------------------------------------------
     camera_worker = CameraWorker(
@@ -105,13 +132,17 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         receive_data_timeout = 1.0,
     )
 
+    queues = {
+        queue_cam_to_background: 'camera to background',
+        queue_background_to_cropper: 'backgroud_to_cropper',
+    }
+    queues.update({q: f'tracking to stim {n}' for n,q in enumerate(queue_tracking_to_stim)})
+    queues.update({q: f'crop to tracker {n}' for n,q in enumerate(queue_crop_to_tracker)})
+    queues.update({q: f'tracking to overlay {n}' for n,q in enumerate(queue_tracking_to_overlay)})
+    queues.update({q: f'tracking to saver {n}' for n,q in enumerate(queue_tracking_to_saver)})
+
     queue_monitor_worker = QueueMonitor(
-        queues = {
-            queue_cam: 'camera to background',
-            queue_background: 'background to trackers',
-            queue_tracking: 'tracking to stim',
-            queue_overlay: 'tracking to overlay',
-        },
+        queues = queues,
         name = 'queue_monitor',
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -130,17 +161,22 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         use_gpu = settings['settings']['tracking']['background_gpu']
     )
 
-    background_worker_list = []
-    for i in range(settings['settings']['tracking']['n_background_workers']):
-        background_worker_list.append(
-            BackgroundSubWorker(
-                background, 
-                name = f'background{i}', 
-                logger = worker_logger, 
-                logger_queues = queue_logger,
-                receive_data_timeout = 1.0, 
-            )
-        )
+    background_worker = BackgroundSubWorker(
+        background, 
+        name = f'background{i}', 
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        receive_data_timeout = 1.0, 
+    )
+
+    cropper = CropWorker(
+        ROI_identities = settings['identity']['ROIs'],
+        name = f'crop', 
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        receive_data_timeout = 1.0, 
+        send_data_strategy = send_strategy.BROADCAST,
+    )
 
     # tracking --------------------------------------------------
     # TODO fix that, add a ROI selection tool
@@ -189,23 +225,23 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     )
 
     tracker_worker_list = []
-    for i in range(settings['settings']['tracking']['n_tracker_workers']):
+    for i in range(settings['identity']['n_animals']):
         tracker_worker_list.append(
             TrackerWorker(
                 tracker, 
                 cam_width = settings['camera']['width_value'],
                 cam_height = settings['camera']['height_value'],
-                n_tracker_workers = settings['settings']['tracking']['n_tracker_workers'],
+                n_tracker_workers = settings['identity']['n_animals'],
                 name = f'tracker{i}', 
                 logger = worker_logger, 
                 logger_queues = queue_logger,
                 send_data_strategy = send_strategy.BROADCAST, 
                 receive_data_timeout = 1.0, 
-                        )
+            )
         )
     
     tracker_control_worker = TrackerGui(
-        n_tracker_workers = settings['settings']['tracking']['n_tracker_workers'],
+        n_tracker_workers = settings['identity']['n_animals'],
         settings_file = settings['settings']['tracking']['tracker_settings_file'],
         name = 'tracker_gui',  
         logger = worker_logger, 
@@ -227,6 +263,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     tracking_display_worker = TrackingDisplay(
         overlay = overlay, 
         fps = settings['settings']['tracking']['display_fps'], 
+        n_animals = settings['identity']['n_animals'],
         name = "tracking_display", 
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -245,41 +282,44 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
 
     # connect DAG -----------------------------------------------------------------------
     # data
-    for i in range(settings['settings']['tracking']['n_background_workers']):   
+    dag.connect_data(
+        sender = camera_worker, 
+        receiver = background_worker, 
+        queue = queue_cam_to_background, 
+        name = 'cam_output1'
+    )
+
+    dag.connect_data(
+        sender = background_worker, 
+        receiver = cropper, 
+        queue = queue_background_to_cropper, 
+        name = 'background_to_crop'
+    )
+
+    for i in range(settings['identity']['n_animals']):
         dag.connect_data(
-            sender = camera_worker, 
-            receiver = background_worker_list[i], 
-            queue = queue_cam, 
-            name = 'cam_output1'
+            sender = cropper, 
+            receiver = tracker_worker_list[i], 
+            queue = queue_crop_to_tracker[i], 
+            name = f'background_output_{i}'
         )
 
-    for i in range(settings['settings']['tracking']['n_background_workers']):
-        for j in range(settings['settings']['tracking']['n_tracker_workers']):
-            dag.connect_data(
-                sender = background_worker_list[i], 
-                receiver = tracker_worker_list[j], 
-                queue = queue_background, 
-                name = 'background_subtracted'
-            )
-
-    for i in range(settings['settings']['tracking']['n_tracker_workers']):
         dag.connect_data(
             sender = tracker_worker_list[i], 
             receiver = tracking_display_worker, 
-            queue = queue_overlay, 
-            name = 'tracker_output2'
+            queue = queue_tracking_to_overlay[i], 
+            name = 'tracker_output_overlay'
         )
 
-    for i in range(settings['settings']['tracking']['n_tracker_workers']):
         dag.connect_data(
             sender = tracker_worker_list[i], 
             receiver = tracking_saver_worker, 
-            queue = queue_tracking, 
-            name = 'tracker_output1'
+            queue = queue_tracking_to_saver[i], 
+            name = 'tracker_output_saver'
         )
 
     # metadata
-    for i in range(settings['settings']['tracking']['n_tracker_workers']):
+    for i in range(settings['identity']['n_animals']):
         dag.connect_metadata(
             sender = tracker_control_worker, 
             receiver = tracker_worker_list[i], 
