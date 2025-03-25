@@ -1,3 +1,8 @@
+from typing import Any, Dict, Optional, List, Tuple
+import numpy as np
+from numpy.typing import NDArray
+
+import time
 from tracker import (
     GridAssignment, LinearSumAssignment,
     MultiFishTracker, 
@@ -13,10 +18,6 @@ from tracker import (
     TailTrackerParamTracking,
 )
 from dagline import WorkerNode
-import numpy as np
-from numpy.typing import NDArray
-from typing import Any, Dict, Optional
-import time
 from geometry import SimilarityTransform2D
 
 # TODO fix that
@@ -72,9 +73,9 @@ class TrackerWorker(WorkerNode):
     def __init__(
             self, 
             tracker: MultiFishTracker, 
+            ROI_identities: List[Tuple[int,int,int,int]],
             cam_width: int,
             cam_height: int,
-            n_tracker_workers: int,
             *args, 
             **kwargs
         ):
@@ -83,8 +84,9 @@ class TrackerWorker(WorkerNode):
         self.tracker = tracker
         self.cam_width = cam_width 
         self.cam_height = cam_height
-        self.n_tracker_workers = n_tracker_workers
+        self.n_tracker_workers = len(ROI_identities)
         self.current_tracking = None
+        self.ROI_identities = ROI_identities
         
     def initialize(self) -> None:
         super().initialize()
