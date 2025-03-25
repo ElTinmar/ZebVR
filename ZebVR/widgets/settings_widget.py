@@ -6,7 +6,6 @@ from PyQt5.QtCore import pyqtSignal
 from typing import Dict
 
 from .tracking_widget import TrackingWidget
-from .open_loop_widget import OpenLoopWidget
 from .video_recording_widget import VideoOutputWidget
 from .experiment_data_widget import ExperimentDataWidget
 from .stim_output_widget import StimOutputWidget
@@ -14,7 +13,6 @@ from .stim_output_widget import StimOutputWidget
 class SettingsWidget(QWidget):
 
     state_changed = pyqtSignal()
-    openloop_coords_signal = pyqtSignal()
 
     def __init__(self, *args, **kwargs):
 
@@ -26,13 +24,10 @@ class SettingsWidget(QWidget):
 
         self.experiment_data_widget = ExperimentDataWidget()
         self.tracking_widget = TrackingWidget()
-        self.open_loop_widget = OpenLoopWidget()
         self.video_recording_widget = VideoOutputWidget()
         self.stim_output_widget = StimOutputWidget()
 
         self.tracking_widget.state_changed.connect(self.state_changed)
-        self.open_loop_widget.state_changed.connect(self.state_changed)
-        self.open_loop_widget.openloop_coords_signal.connect(self.openloop_coords_signal)
         self.video_recording_widget.state_changed.connect(self.state_changed)
 
         self.experiment_data_widget.prefix_changed.connect(self.tracking_widget.update_prefix)
@@ -47,9 +42,6 @@ class SettingsWidget(QWidget):
     def set_tracking_visible(self, visible: bool):
         self.tracking_widget.setVisible(visible)
 
-    def set_open_loop_visible(self, visible: bool):
-        self.open_loop_widget.setVisible(visible)
-
     def set_stim_output_visible(self, visible: bool):
         self.stim_output_widget.setVisible(visible)
         
@@ -58,7 +50,6 @@ class SettingsWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.addWidget(self.experiment_data_widget)
         layout.addWidget(self.tracking_widget)
-        layout.addWidget(self.open_loop_widget)
         layout.addWidget(self.video_recording_widget)
         layout.addWidget(self.stim_output_widget)
         layout.addStretch()
@@ -68,7 +59,6 @@ class SettingsWidget(QWidget):
         state = {}
         state['experiment_data'] = self.experiment_data_widget.get_state()
         state['tracking'] = self.tracking_widget.get_state()
-        state['openloop'] = self.open_loop_widget.get_state()
         state['videorecording'] = self.video_recording_widget.get_state()
         state['stim_output'] = self.stim_output_widget.get_state()
         return state
@@ -78,7 +68,6 @@ class SettingsWidget(QWidget):
         setters = {
             'experiment_data': self.experiment_data_widget.set_state,
             'tracking': self.tracking_widget.set_state,
-            'openloop': self.open_loop_widget.set_state,
             'videorecording': self.video_recording_widget.set_state,
             'stim_output': self.stim_output_widget.set_state
         }

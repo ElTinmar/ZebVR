@@ -37,6 +37,8 @@ from ..workers import (
 )
 from ..stimulus import VisualStimWorker, GeneralStim
 
+DEFAULT_QUEUE_SIZE_MB = 100
+
 def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     
     # create DAG
@@ -50,7 +52,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
     # create queues -----------------------------------------------------------------------            
     queue_cam = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 500*1024**2, # TODO add a widget for that?
+            num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2, # TODO add a widget for that?
             logger = queue_logger,
             name = 'camera_to_tracker',
             t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
@@ -59,7 +61,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     queue_camera_to_converter = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 500*1024**2,
+            num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
             logger = queue_logger,
             name = 'camera_to_converter',
             t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
@@ -68,7 +70,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     queue_converter_to_saver = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 500*1024**2,
+            num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
             logger = queue_logger,
             name = 'converter_to_saver',
             t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
@@ -77,7 +79,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     queue_save_image = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 500*1024**2,
+            num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
             logger = queue_logger,
             name = 'camera_to_image_saver',
             t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
@@ -86,21 +88,23 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     queue_display_image = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = 500*1024**2,
+            num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
             logger = queue_logger,
             name = 'image_saver_to_display',
             t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
         )
     )
 
-    queue_tracking = MonitoredQueue(
-        ModifiableRingBuffer(
-            num_bytes = 500*1024**2,
-            logger = queue_logger,
-            name = 'tracker_to_stim',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+    queue_tracking_to_stim = []
+    for i in range(settings['identity']['n_animals']):
+        queue_tracking_to_stim.append(
+            MonitoredQueue(ModifiableRingBuffer(
+                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+                logger = queue_logger,
+                name = 'tracker_to_stim',
+                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
+            ))
         )
-    )
 
     # create workers -----------------------------------------------------------------------
     camera_worker = CameraWorker(
@@ -166,44 +170,22 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         receive_data_timeout = 1.0,
     )
 
+    queues = {
+        queue_cam: 'camera to tarcker',
+        queue_display_image: 'display',
+        queue_save_image: 'direct video recording',
+        queue_camera_to_converter: 'pixel format conversion',
+        queue_converter_to_saver: 'converted video recording',
+    }
+    queues.update({q: f'tracking to stim {n}' for n,q in enumerate(queue_tracking_to_stim)})
+
     queue_monitor_worker = QueueMonitor(
-        queues = {
-            queue_cam: 'camera to tarcker',
-            queue_display_image: 'display',
-            queue_tracking: 'tracking to stim',
-            queue_save_image: 'direct video recording',
-            queue_camera_to_converter: 'pixel format conversion',
-            queue_converter_to_saver: 'converted video recording',
-        },
+        queues = queues,
         name = 'queue_monitor',
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0,
     )
-
-    # background subtraction ------------------------------------
-    if settings['background']['bckgsub_polarity'] == 'dark on bright':
-        background_polarity = Polarity.DARK_ON_BRIGHT  
-    else:
-        background_polarity = Polarity.BRIGHT_ON_DARK
-
-    background = BackgroundImage(
-        image_file_name = settings['background']['background_file'],
-        polarity = background_polarity,
-        use_gpu = settings['settings']['tracking']['background_gpu']
-    )
-
-    background_worker_list = []
-    for i in range(settings['settings']['tracking']['n_background_workers']):
-        background_worker_list.append(
-            BackgroundSubWorker(
-                background, 
-                name = f'background{i}', 
-                logger = worker_logger, 
-                logger_queues = queue_logger,
-                receive_data_timeout = 1.0, 
-                    )
-        )
 
     # tracking --------------------------------------------------
     # TODO fix that, add a ROI selection tool
@@ -252,15 +234,17 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
     )
 
     tracker_worker_list = []
-    for i in range(settings['settings']['tracking']['n_tracker_workers']):
+    for i in range(settings['identity']['n_animals']):
         tracker_worker_list.append(
             DummyTrackerWorker(
                 tracker,
                 centroid = np.array([
-                    settings['settings']['openloop']['centroid_x'],
-                    settings['settings']['openloop']['centroid_y']
+                    settings['identity']['open_loop_x_offset'],
+                    settings['identity']['open_loop_y_offset']
                 ]),
-                heading = np.array(settings['settings']['openloop']['heading']), 
+                heading = np.array(settings['identity']['open_loop_axes']), 
+                roi = np.array(settings['identity']['ROIs'][i]),
+                identity = i,
                 name = f'tracker{i}', 
                 logger = worker_logger, 
                 logger_queues = queue_logger,
@@ -289,6 +273,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     # visual stim ----------------------------------------------
     stim = GeneralStim(
+        ROI_identities = settings['identity']['ROIs'],
         window_size = settings['projector']['resolution'],
         window_position = settings['projector']['offset'],
         window_decoration = False,
@@ -322,17 +307,18 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     # connect DAG -----------------------------------------------------------------------
 
-    for i in range(settings['settings']['tracking']['n_tracker_workers']):
+    for i in range(settings['identity']['n_animals']):
         dag.connect_data(
             sender = tracker_worker_list[i], 
             receiver = stim_worker, 
-            queue = queue_tracking, 
-            name = 'tracker_output1'
+            queue = queue_tracking_to_stim[i], 
+            name = 'tracker_output_stim'
         )
 
     if settings['settings']['videorecording']['video_recording']:
 
-        for i in range(settings['settings']['tracking']['n_tracker_workers']):
+        # NOTE: can I get rid of that?
+        for i in range(settings['identity']['n_animals']):
             dag.connect_data(
                 sender = camera_worker, 
                 receiver = tracker_worker_list[i], 

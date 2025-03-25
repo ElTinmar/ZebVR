@@ -21,7 +21,6 @@ from PyQt5.QtGui import QIcon
 from .calibration import (
     check_pix_per_mm, 
     check_registration, 
-    open_loop_coords, 
     pix_per_mm, 
     registration
 )
@@ -92,7 +91,6 @@ class MainGui(QMainWindow):
 
         self.settings_widget = SettingsWidget()
         self.settings_widget.state_changed.connect(self.update_settings)
-        self.settings_widget.openloop_coords_signal.connect(self.openloop_coords_callback)
 
         self.logs_widget = LogsWidget()
         self.logs_widget.state_changed.connect(self.update_logs)
@@ -217,9 +215,9 @@ class MainGui(QMainWindow):
 
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
             self.settings_widget.set_tracking_visible(True)
-            self.settings_widget.set_open_loop_visible(False)
             self.settings_widget.force_videorecording(False)
             self.settings_widget.set_stim_output_visible(True)
+            self.identity_widget.set_open_loop_visible(False)
 
         elif self.open_loop_button.isChecked():
 
@@ -238,9 +236,9 @@ class MainGui(QMainWindow):
 
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
             self.settings_widget.set_tracking_visible(False)
-            self.settings_widget.set_open_loop_visible(True)
             self.settings_widget.force_videorecording(False)
             self.settings_widget.set_stim_output_visible(True)
+            self.identity_widget.set_open_loop_visible(True)
 
         elif self.video_recording_button.isChecked():
 
@@ -260,9 +258,9 @@ class MainGui(QMainWindow):
 
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
             self.settings_widget.set_tracking_visible(False)
-            self.settings_widget.set_open_loop_visible(False)
             self.settings_widget.force_videorecording(True)
             self.settings_widget.set_stim_output_visible(False)
+            self.identity_widget.set_open_loop_visible(False)
 
         elif self.tracking_button.isChecked():
             
@@ -282,9 +280,9 @@ class MainGui(QMainWindow):
 
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
             self.settings_widget.set_tracking_visible(True)
-            self.settings_widget.set_open_loop_visible(False)
             self.settings_widget.force_videorecording(False)
             self.settings_widget.set_stim_output_visible(False)
+            self.identity_widget.set_open_loop_visible(False)
 
         else:
             raise RuntimeError       
@@ -537,33 +535,6 @@ class MainGui(QMainWindow):
         )
         p.start()
         p.join()
-
-    def openloop_coords_callback(self):
-
-        p = Process(
-            target = open_loop_coords,
-            kwargs = {
-                "camera_constructor": self.settings['camera']['camera_constructor'],
-                "exposure_microsec": self.settings['camera']['exposure_value'],
-                "cam_gain": self.settings['camera']['gain_value'],
-                "cam_fps": self.settings['camera']['framerate_value'],
-                "cam_height": self.settings['camera']['height_value'],
-                "cam_width": self.settings['camera']['width_value'],
-                "cam_offset_x": self.settings['camera']['offsetX_value'],
-                "cam_offset_y": self.settings['camera']['offsetY_value'],
-                "openloop_file": self.settings['settings']['openloop']['openloop_coords_file']
-            }
-        )   
-        p.start()
-        p.join() 
-
-        with open(self.settings['settings']['openloop']['openloop_coords_file'],  'r') as f:
-            data = json.load(f)
-            state = self.settings['settings']
-            state['openloop']['centroid_x'] = data['centroid'][0]
-            state['openloop']['centroid_y'] = data['centroid'][1]
-            state['openloop']['heading'] = data['heading']
-            self.settings_widget.set_state(state)
 
     def start(self):
         self.camera_controller.set_preview(False)

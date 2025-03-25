@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QLabel,
+    QGroupBox
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
@@ -11,9 +12,11 @@ from numpy.typing import NDArray
 import numpy as np
 import cv2
 import os
+from geometry import SimilarityTransform2D
 
 from qt_widgets import (
     LabeledSpinBox, 
+    LabeledDoubleSpinBox,
     NDarray_to_QPixmap
 )
 import numpy as np
@@ -29,6 +32,8 @@ class IdentityWidget(QWidget):
     fontsize = 1.5
     color = (0, 255, 0) 
     line_thickness = 2
+    axis_y_color = (0, 0, 255)
+    axis_x_color = (0, 255, 255) 
 
     def __init__(self, *args, **kwargs):
 
@@ -39,6 +44,8 @@ class IdentityWidget(QWidget):
         else:
             self.image = np.zeros((512,512), dtype=np.uint8)
         self.ROIs = []
+        self.open_loop_visible = False
+        self.axes = [[1.0, 0.0], [0.0, 1.0]] 
 
         self.declare_components()
         self.layout_components()
@@ -101,6 +108,29 @@ class IdentityWidget(QWidget):
         self.marginY.setValue(0)
         self.marginY.valueChanged.connect(self.on_change)
 
+        self.centroid_X = LabeledSpinBox()
+        self.centroid_X.setText('open-loop centroid offset X')
+        self.centroid_X.setRange(0,self.image.shape[1]-1)
+        self.centroid_X.setSingleStep(1)
+        self.centroid_X.setValue(0)
+        self.centroid_X.valueChanged.connect(self.on_change)
+
+        self.centroid_Y = LabeledSpinBox()
+        self.centroid_Y.setText('open-loop centroid offset Y')
+        self.centroid_Y.setRange(0,self.image.shape[0]-1)
+        self.centroid_Y.setSingleStep(1)
+        self.centroid_Y.setValue(0)
+        self.centroid_Y.valueChanged.connect(self.on_change)
+
+        self.open_loop_group = QGroupBox('Open-loop coordinate system')
+
+        self.rotation = LabeledDoubleSpinBox()
+        self.rotation.setText(u'axes rotation (\N{DEGREE SIGN})')
+        self.rotation.setRange(0,360)
+        self.rotation.setSingleStep(0.5)
+        self.rotation.setValue(0)
+        self.rotation.valueChanged.connect(self.on_change)
+
         self.image_label = QLabel()
         self.set_image(self.image)
 
@@ -130,12 +160,24 @@ class IdentityWidget(QWidget):
         margin_layout.addWidget(self.marginX)
         margin_layout.addWidget(self.marginY)
         margin_layout.setSpacing(50)
+
+        centroid_offset_layout = QHBoxLayout()
+        centroid_offset_layout.addWidget(self.centroid_X)
+        centroid_offset_layout.addWidget(self.centroid_Y)
+        centroid_offset_layout.setSpacing(50)
+
+        open_loop_layout = QVBoxLayout()
+        open_loop_layout.addLayout(centroid_offset_layout)
+        open_loop_layout.addWidget(self.rotation)
+        self.open_loop_group.setLayout(open_loop_layout)
         
         main_layout = QVBoxLayout(self)
         main_layout.addLayout(grid_layout)
         main_layout.addLayout(size_layout)
         main_layout.addLayout(offset_layout)
         main_layout.addLayout(margin_layout)
+        main_layout.addStretch()
+        main_layout.addWidget(self.open_loop_group)
         main_layout.addStretch()
         main_layout.addLayout(image_layout)
         main_layout.addStretch()
@@ -163,6 +205,13 @@ class IdentityWidget(QWidget):
         offset_x, offset_y = self.offsetX.value(), self.offsetY.value()
         margin_x, margin_y = self.marginX.value(), self.marginY.value()
         box_width, box_height = (self.width.value() - 2*cols*margin_x)//cols, (self.height.value() - 2*rows*margin_y)//rows
+        
+        self.centroid_X.setRange(int(-box_width//2),int(box_width//2))
+        self.centroid_Y.setRange(int(-box_height//2),int(box_height//2))
+        
+        self.axes = SimilarityTransform2D.rotation(np.deg2rad(self.rotation.value()))[:2,:2]
+        centroid_offset_x = self.centroid_X.value()
+        centroid_offset_y = self.centroid_Y.value()
 
         # Draw grid
         count = 0
@@ -174,6 +223,10 @@ class IdentityWidget(QWidget):
                 y2 = min(y1 + box_height, image.shape[0])
                 text = str(count)
                 textsize = cv2.getTextSize(text, self.font, self.fontsize, self.fontweight)[0]
+                centroid_x = x1+box_width//2
+                centroid_y = y1+box_height//2
+                scale_x = box_width//8
+                scale_y = box_height//4
                 
                 cv2.rectangle(
                     grid_image, 
@@ -184,12 +237,29 @@ class IdentityWidget(QWidget):
                 cv2.putText(
                     grid_image, 
                     str(count), 
-                    (x1+box_width//2-textsize[0]//2, y1+box_height//2+textsize[1]//2), 
+                    (centroid_x-textsize[0]//2, centroid_y+textsize[1]//2), 
                     self.font, self.fontsize, 
                     self.color, 
                     self.fontweight, 
                     cv2.LINE_AA
                 )
+
+                if self.open_loop_visible:
+                    cv2.line(
+                        grid_image, 
+                        (int(centroid_x+centroid_offset_x), int(centroid_y+centroid_offset_y)), 
+                        (int(centroid_x+centroid_offset_x+scale_y*self.axes[0,1]), int(centroid_y+centroid_offset_y+scale_y*self.axes[1,1])), 
+                        self.axis_y_color, 
+                        self.line_thickness
+                    )
+                    cv2.line(
+                        grid_image, 
+                        (int(centroid_x+centroid_offset_x), int(centroid_y+centroid_offset_y)), 
+                        (int(centroid_x+centroid_offset_x+scale_x*self.axes[0,0]), int(centroid_y+centroid_offset_y+scale_x*self.axes[1,0])), 
+                        self.axis_x_color, 
+                        self.line_thickness
+                    )
+
                 self.ROIs.append((x1,y1,x2-x1,y2-y1))
                 count += 1
 
@@ -198,6 +268,11 @@ class IdentityWidget(QWidget):
         preview_width = int(w * self.PREVIEW_HEIGHT/h)
         image_resized = cv2.resize(grid_image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
         self.image_label.setPixmap(NDarray_to_QPixmap(image_resized))
+
+    def set_open_loop_visible(self, visible: bool) -> None:
+        self.open_loop_group.setVisible(visible)
+        self.open_loop_visible = visible
+        self.on_change()
 
     def get_state(self) -> Dict:
 
@@ -211,8 +286,12 @@ class IdentityWidget(QWidget):
             'marginX': self.marginX.value(),
             'marginY': self.marginY.value(),
             'ROIs': self.ROIs,
-            'n_animals': len(self.ROIs)
+            'n_animals': len(self.ROIs),
+            'open_loop_x_offset': self.centroid_X.value(),
+            'open_loop_y_offset': self.centroid_X.value(),
+            'open_loop_axes': self.axes
         }
+
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -226,11 +305,15 @@ class IdentityWidget(QWidget):
             'offsetY': self.offsetY.setValue,
             'marginX': self.marginX.setValue,
             'marginY': self.marginY.setValue,
+            'open_loop_x_offset':  self.centroid_X.setValue,
+            'open_loop_y_offset':  self.centroid_Y.setValue,
         }
 
         for key, setter in setters.items():
             if key in state:
                 setter(state[key])
+
+        self.axes = state.get('axes', [[1.0, 0.0], [0.0, 1.0]])
         
 if __name__ == "__main__":
     

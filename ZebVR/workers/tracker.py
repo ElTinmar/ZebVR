@@ -28,14 +28,19 @@ class DummyTrackerWorker(WorkerNode):
             tracker: MultiFishTracker, 
             centroid: NDArray,
             heading: NDArray,
+            roi: NDArray,
+            identity: int,
             *args, 
             **kwargs
         ):
         super().__init__(*args, **kwargs)
 
-        self.tracking = np.zeros(1, tracker.tracking_param.dtype())
-        self.tracking['body'][0]['centroid_global'] = centroid
+        self.origin = roi[:2]
+        self.shape = roi[2:] 
+        self.tracking = np.zeros(1, tracker.tracking_param.dtype)
+        self.tracking['body'][0]['centroid_global'] = centroid + self.origin
         self.tracking['body'][0]['body_axes_global'] = heading
+        self.indentity = identity
 
     def initialize(self) -> None:
         super().initialize()
@@ -52,7 +57,7 @@ class DummyTrackerWorker(WorkerNode):
         
         res = {}
         msg = np.array(
-            (index, timestamp, self.tracking, data['origin'], data['shape'], data['identity']),
+            (index, timestamp, self.tracking, self.origin, self.shape, self.indentity),
             dtype=np.dtype([
                 ('index', int),
                 ('timestamp', np.float64),
@@ -62,7 +67,7 @@ class DummyTrackerWorker(WorkerNode):
                 ('identity', np.int32)
             ])
         )
-        res['tracker_output1'] = msg
+        res['tracker_output_stim'] = msg
         return res
         
     def process_metadata(self, metadata) -> Any:
