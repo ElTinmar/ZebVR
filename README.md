@@ -99,7 +99,25 @@ from vispy import app, gloo
 canvas = app.Canvas()
 canvas.show()
 app.process_events()
-info = gloo.gl.glGetParameter(gloo.gl.GL_MAX_FRAGMENT_UNIFORM_VECTORS)
-print("Max Fragment Uniform Vectors:", info)
+
+gpu_info = {
+    "Renderer": gloo.gl.glGetParameter(gloo.gl.GL_RENDERER),
+    "Vendor": gloo.gl.glGetParameter(gloo.gl.GL_VENDOR),
+    "OpenGL Version": gloo.gl.glGetParameter(gloo.gl.GL_VERSION),
+    "Shading Language Version": gloo.gl.glGetParameter(gloo.gl.GL_SHADING_LANGUAGE_VERSION),
+    "Max Vertex Uniform Vectors": gloo.gl.glGetParameter(gloo.gl.GL_MAX_VERTEX_UNIFORM_VECTORS),
+    "Max Fragment Uniform Vectors": gloo.gl.glGetParameter(gloo.gl.GL_MAX_FRAGMENT_UNIFORM_VECTORS),
+    "Max Varying Vectors": gloo.gl.glGetParameter(gloo.gl.GL_MAX_VARYING_VECTORS),
+    "Max Texture Size": gloo.gl.glGetParameter(gloo.gl.GL_MAX_TEXTURE_SIZE),
+    "Max Cube Map Texture Size": gloo.gl.glGetParameter(gloo.gl.GL_MAX_CUBE_MAP_TEXTURE_SIZE),
+    "Max Combined Texture Image Units": gloo.gl.glGetParameter(gloo.gl.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS),
+    "Max Vertex Attributes": gloo.gl.glGetParameter(gloo.gl.GL_MAX_VERTEX_ATTRIBS),
+    "Max Vertex Texture Image Units": gloo.gl.glGetParameter(gloo.gl.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS),
+    "Max Renderbuffer Size": gloo.gl.glGetParameter(gloo.gl.GL_MAX_RENDERBUFFER_SIZE),
+}
+
+for key, value in gpu_info.items():
+    print(f"{key}: {value}")
+
 canvas.close()
 ```
