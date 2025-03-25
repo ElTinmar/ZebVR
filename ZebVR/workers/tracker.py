@@ -35,10 +35,11 @@ class DummyTrackerWorker(WorkerNode):
         ):
         super().__init__(*args, **kwargs)
 
-        self.origin = roi[:2]
-        self.shape = roi[2:] 
+        x,y,w,h = roi
+        self.origin = np.array((x,y))
+        self.shape = (h,w)
         self.tracking = np.zeros(1, tracker.tracking_param.dtype)
-        self.tracking['body'][0]['centroid_global'] = centroid + self.origin
+        self.tracking['body'][0]['centroid_global'] = centroid + self.origin + np.array((w//2, h//2)) 
         self.tracking['body'][0]['body_axes_global'] = heading
         self.indentity = identity
 
