@@ -58,6 +58,10 @@ class SharedStimParameters:
         self.looming_period_sec = RawValue('d', self.default_looming_period_sec)
         self.looming_expansion_time_sec = RawValue('d', self.default_looming_expansion_time_sec)
         self.looming_expansion_speed_mm_per_sec = RawValue('d', self.default_looming_expansion_speed_mm_per_sec)
+        self.following_looming_center_mm = RawArray('d', self.default_looming_center_mm)
+        self.following_looming_period_sec = RawValue('d', self.default_looming_period_sec)
+        self.following_looming_expansion_time_sec = RawValue('d', self.default_looming_expansion_time_sec)
+        self.following_looming_expansion_speed_mm_per_sec = RawValue('d', self.default_looming_expansion_speed_mm_per_sec)
         self.n_preys = RawValue('L', self.default_n_preys)
         self.prey_speed_mm_s = RawValue('d', self.default_prey_speed_mm_s)
         self.prey_radius_mm = RawValue('d', self.default_prey_radius_mm)
@@ -150,6 +154,10 @@ class GeneralStim(VisualStim):
         uniform float u_looming_period_sec;
         uniform float u_looming_expansion_time_sec;
         uniform float u_looming_expansion_speed_mm_per_sec;
+        uniform vec2 u_following_looming_center_mm;
+        uniform float u_following_looming_period_sec;
+        uniform float u_following_looming_expansion_time_sec;
+        uniform float u_following_looming_expansion_speed_mm_per_sec;
         uniform float u_n_preys;
         uniform float u_prey_radius_mm;
         uniform float u_prey_speed_mm_s;
@@ -162,8 +170,9 @@ class GeneralStim(VisualStim):
         const int PHOTOTAXIS = 2;
         const int OMR = 3;
         const int OKR = 4;
-        const int LOOMING = 5;
+        const int FOLLOWING_LOOMING = 5;
         const int PREY_CAPTURE = 6;
+        const int LOOMING = 7;
 
         const float PI = radians(180.0);
 
@@ -185,19 +194,27 @@ class GeneralStim(VisualStim):
             mat2 change_of_basis;
             vec2 fish_ego_coords_px;
             vec2 fish_ego_coords_mm;
-            vec4 bbox;
+            vec4 camera_bbox_px;
+            vec4 camera_bbox_mm;
 
             vec2 coordinates_px = gl_FragCoord.xy * u_pixel_scaling;
+            vec2 coordinates_mm = coordinates_px / u_pix_per_mm_proj;
             vec3 camera_coordinates_px = u_proj_to_cam * vec3(coordinates_px, 1.0);
+            vec2 camera_coordinates_mm = camera_coordinates_px.xy / u_pix_per_mm;
 
             gl_FragColor = u_background_color;
 
             for (int animal = 0; animal < u_n_animals; animal++) {
 
-                bbox = u_bounding_box[animal];
-                if ( !is_point_in_bbox(camera_coordinates_px.xy, bbox.xy, bbox.xy+bbox.wz) ) {
+                camera_bbox_px = u_bounding_box[animal];
+                if ( !is_point_in_bbox(camera_coordinates_px.xy, camera_bbox_px.xy, camera_bbox_px.xy+camera_bbox_px.wz) ) {
                     continue;
                 } 
+
+                vec3 bbox_origin_proj = u_proj_to_cam * vec3(camera_bbox_px.xy, 1.0);
+                vec3 bbox_size_proj = u_proj_to_cam * vec3(camera_bbox_px.wz, 0.0);
+                camera_bbox_px = vec4(bbox_origin_proj.xy, bbox_size_proj.xy);
+                camera_bbox_mm = vec4(bbox_origin_proj.xy / u_pix_per_mm_proj, bbox_size_proj.xy/ u_pix_per_mm_proj);
                 
                 // compute pixel coordinates in fish egocentric coordinates (mm)
                 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
@@ -247,22 +264,33 @@ class GeneralStim(VisualStim):
                     } 
                 }
 
-                if (u_stim_select == LOOMING) {
-                    float rel_time = mod(u_time_s, u_looming_period_sec); 
-                    float looming_on = float(rel_time<=u_looming_expansion_time_sec);
-                    if ( rel_time <= u_looming_period_sec/2 ) { 
-                        if ( distance(fish_ego_coords_mm, u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
+                if (u_stim_select == FOLLOWING_LOOMING) {
+                    float rel_time = mod(u_time_s, u_following_looming_period_sec); 
+                    float looming_on = float(rel_time<=u_following_looming_expansion_time_sec);
+                    if ( rel_time <= u_following_looming_period_sec/2 ) { 
+                        if ( distance(fish_ego_coords_mm, u_following_looming_center_mm) <= u_following_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
                         {
                             gl_FragColor = u_foreground_color;
                         }
                     }
                 } 
 
+                if (u_stim_select == LOOMING) {
+                    float rel_time = mod(u_time_s, u_looming_period_sec); 
+                    float looming_on = float(rel_time<=u_looming_expansion_time_sec);
+                    if ( rel_time <= u_looming_period_sec/2 ) { 
+                        if ( distance(coordinates_mm, camera_bbox_mm.xy + camera_bbox_mm.wz/2.0 + u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
+                        {
+                            gl_FragColor = u_foreground_color;
+                        }
+                    }
+                }
+
                 if (u_stim_select == PREY_CAPTURE) {
                     for (int i = 0; i < u_n_preys; i++) {
-                        vec2 pos_camera_px =  bbox.xy + mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_pix_per_mm * u_prey_direction[i], bbox.wz);
+                        vec2 pos_camera_px =  camera_bbox_px.xy + mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_pix_per_mm * u_prey_direction[i], camera_bbox_px.wz);
                         vec3 pos_proj_px = u_cam_to_proj * vec3(pos_camera_px, 1.0);
-                        if ( distance(pos_proj_px.xy/u_pix_per_mm_proj, coordinates_px/u_pix_per_mm_proj) <= u_prey_radius_mm ) {
+                        if ( distance(pos_proj_px.xy/u_pix_per_mm_proj, coordinates_mm) <= u_prey_radius_mm ) {
                             gl_FragColor = u_foreground_color;
                         }
                     }
@@ -345,6 +373,10 @@ class GeneralStim(VisualStim):
         self.program['u_looming_period_sec'] = self.shared_stim_parameters.looming_period_sec.value
         self.program['u_looming_expansion_time_sec'] = self.shared_stim_parameters.looming_expansion_time_sec.value
         self.program['u_looming_expansion_speed_mm_per_sec'] = self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value
+        self.program['u_following_looming_center_mm'] = self.shared_stim_parameters.following_looming_center_mm[:]
+        self.program['u_following_looming_period_sec'] = self.shared_stim_parameters.following_looming_period_sec.value
+        self.program['u_following_looming_expansion_time_sec'] = self.shared_stim_parameters.following_looming_expansion_time_sec.value
+        self.program['u_following_looming_expansion_speed_mm_per_sec'] = self.shared_stim_parameters.following_looming_expansion_speed_mm_per_sec.value
         self.program['u_prey_speed_mm_s'] = self.shared_stim_parameters.prey_speed_mm_s.value
         self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
@@ -377,6 +409,11 @@ class GeneralStim(VisualStim):
             'looming_period_sec',
             'looming_expansion_time_sec',
             'looming_expansion_speed_mm_per_sec',
+            'following_looming_center_mm_x',
+            'following_looming_center_mm_y',
+            'following_looming_period_sec',
+            'following_looming_expansion_time_sec',
+            'following_looming_expansion_speed_mm_per_sec',
             'n_prey',
             'prey_speed_mm_s',
             'prey_radius_mm'
@@ -431,6 +468,11 @@ class GeneralStim(VisualStim):
             f'{self.shared_stim_parameters.looming_period_sec.value}',
             f'{self.shared_stim_parameters.looming_expansion_time_sec.value}',
             f'{self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value}',
+            f'{self.shared_stim_parameters.following_looming_center_mm[0]}',
+            f'{self.shared_stim_parameters.following_looming_center_mm[1]}',
+            f'{self.shared_stim_parameters.following_looming_period_sec.value}',
+            f'{self.shared_stim_parameters.following_looming_expansion_time_sec.value}',
+            f'{self.shared_stim_parameters.following_looming_expansion_speed_mm_per_sec.value}',
             f'{self.shared_stim_parameters.n_preys.value}',
             f'{self.shared_stim_parameters.prey_speed_mm_s.value}',
             f'{self.shared_stim_parameters.prey_radius_mm.value}'
@@ -508,6 +550,10 @@ class GeneralStim(VisualStim):
         self.shared_stim_parameters.looming_period_sec.value = control['looming_period_sec']
         self.shared_stim_parameters.looming_expansion_time_sec.value = control['looming_expansion_time_sec']
         self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value = control['looming_expansion_speed_mm_per_sec']
+        self.shared_stim_parameters.following_looming_center_mm[:] = control['following_looming_center_mm']
+        self.shared_stim_parameters.following_looming_period_sec.value = control['following_looming_period_sec']
+        self.shared_stim_parameters.following_looming_expansion_time_sec.value = control['following_looming_expansion_time_sec']
+        self.shared_stim_parameters.following_looming_expansion_speed_mm_per_sec.value = control['following_looming_expansion_speed_mm_per_sec']
         self.shared_stim_parameters.foreground_color[:] = control['foreground_color']
         self.shared_stim_parameters.background_color[:] = control['background_color']
         self.shared_stim_parameters.n_preys.value = int(control['n_preys'])

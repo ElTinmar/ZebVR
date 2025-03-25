@@ -31,6 +31,7 @@ from ..protocol import (
     OMR,
     Dark,
     Bright,
+    FollowingLooming,
     Looming,
     PreyCapture,
     Pause,
@@ -277,8 +278,8 @@ class StimWidget(QWidget):
             omr_speed_mm_per_sec: float = 10,
             okr_spatial_frequency_deg: float = 20,
             okr_speed_deg_per_sec: float = 36,
-            looming_center_mm: Tuple = (15,15),
-            looming_period_sec: float = 30,
+            looming_center_mm: Tuple = (0,0),
+            looming_period_sec: float = 10,
             looming_expansion_time_sec: float = 10,
             looming_expansion_speed_mm_per_sec: float = 10,
             foreground_color: Tuple = (0.2, 0.2, 0.2, 1.0),
@@ -425,6 +426,37 @@ class StimWidget(QWidget):
         self.sb_okr_speed.valueChanged.connect(self.on_change)
 
         # Looming
+        self.sb_following_looming_center_mm_x = LabeledDoubleSpinBox()
+        self.sb_following_looming_center_mm_x.setText('X (mm)')
+        self.sb_following_looming_center_mm_x.setRange(-10_000,10_000)
+        self.sb_following_looming_center_mm_x.setValue(self.looming_center_mm[0])
+        self.sb_following_looming_center_mm_x.valueChanged.connect(self.on_change)
+
+        self.sb_following_looming_center_mm_y = LabeledDoubleSpinBox()
+        self.sb_following_looming_center_mm_y.setText('Y (mm)')
+        self.sb_following_looming_center_mm_y.setRange(-10_000,10_000)
+        self.sb_following_looming_center_mm_y.setValue(self.looming_center_mm[1])
+        self.sb_following_looming_center_mm_y.valueChanged.connect(self.on_change)
+
+        self.sb_following_looming_period_sec = LabeledDoubleSpinBox()
+        self.sb_following_looming_period_sec.setText('period (s)')
+        self.sb_following_looming_period_sec.setRange(0,100_000)
+        self.sb_following_looming_period_sec.setValue(self.looming_period_sec)
+        self.sb_following_looming_period_sec.valueChanged.connect(self.on_change)
+
+        self.sb_following_looming_expansion_time_sec = LabeledDoubleSpinBox()
+        self.sb_following_looming_expansion_time_sec.setText('expansion time (s)')
+        self.sb_following_looming_expansion_time_sec.setRange(0,100_000)
+        self.sb_following_looming_expansion_time_sec.setValue(self.looming_expansion_time_sec)
+        self.sb_following_looming_expansion_time_sec.valueChanged.connect(self.on_change)
+
+        self.sb_following_looming_expansion_speed_mm_per_sec = LabeledDoubleSpinBox()
+        self.sb_following_looming_expansion_speed_mm_per_sec.setText('expansion speed (mm/s)')
+        self.sb_following_looming_expansion_speed_mm_per_sec.setRange(0,100_000)
+        self.sb_following_looming_expansion_speed_mm_per_sec.setValue(self.looming_expansion_speed_mm_per_sec)
+        self.sb_following_looming_expansion_speed_mm_per_sec.valueChanged.connect(self.on_change)
+
+        # Looming
         self.sb_looming_center_mm_x = LabeledDoubleSpinBox()
         self.sb_looming_center_mm_x.setText('X (mm)')
         self.sb_looming_center_mm_x.setRange(-10_000,10_000)
@@ -530,6 +562,16 @@ class StimWidget(QWidget):
         self.looming_group = QGroupBox('Looming parameters')
         self.looming_group.setLayout(looming_layout)
 
+        following_looming_layout = QVBoxLayout()
+        following_looming_layout.addWidget(self.sb_following_looming_center_mm_x)
+        following_looming_layout.addWidget(self.sb_following_looming_center_mm_y)
+        following_looming_layout.addWidget(self.sb_following_looming_period_sec)
+        following_looming_layout.addWidget(self.sb_following_looming_expansion_time_sec)
+        following_looming_layout.addWidget(self.sb_following_looming_expansion_speed_mm_per_sec)
+        following_looming_layout.addStretch()
+        self.following_looming_group = QGroupBox('Following Looming parameters')
+        self.following_looming_group.setLayout(following_looming_layout)
+
         preycapture_layout = QVBoxLayout()
         preycapture_layout.addWidget(self.sb_n_preys)
         preycapture_layout.addWidget(self.sb_prey_speed_mm_s)
@@ -544,8 +586,9 @@ class StimWidget(QWidget):
         self.stack.addWidget(self.phototaxis_group)
         self.stack.addWidget(self.omr_group)
         self.stack.addWidget(self.okr_group)
-        self.stack.addWidget(self.looming_group)
+        self.stack.addWidget(self.following_looming_group) # following looming
         self.stack.addWidget(self.preycapture_group)
+        self.stack.addWidget(self.looming_group) # regular looming
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.cmb_stim_select)
@@ -599,6 +642,13 @@ class StimWidget(QWidget):
         state['looming_period_sec'] = self.sb_looming_period_sec.value()
         state['looming_expansion_time_sec'] = self.sb_looming_expansion_time_sec.value()
         state['looming_expansion_speed_mm_per_sec'] = self.sb_looming_expansion_speed_mm_per_sec.value()
+        state['following_looming_center_mm'] = (
+            self.sb_following_looming_center_mm_x.value(),
+            self.sb_following_looming_center_mm_y.value()
+        )
+        state['following_looming_period_sec'] = self.sb_following_looming_period_sec.value()
+        state['following_looming_expansion_time_sec'] = self.sb_following_looming_expansion_time_sec.value()
+        state['following_looming_expansion_speed_mm_per_sec'] = self.sb_following_looming_expansion_speed_mm_per_sec.value()
         state['foreground_color'] = (
             self.sb_foreground_color_R.value(),
             self.sb_foreground_color_G.value(),
@@ -625,6 +675,11 @@ class StimWidget(QWidget):
         self.sb_omr_speed.setValue(state['omr_speed_mm_per_sec']) 
         self.sb_okr_spatial_freq.setValue(state['okr_spatial_frequency_deg'])
         self.sb_okr_speed.setValue(state['okr_speed_deg_per_sec'])
+        self.sb_following_looming_center_mm_x.setValue(state['following_looming_center_mm'][0])
+        self.sb_following_looming_center_mm_y.setValue(state['following_looming_center_mm'][1])
+        self.sb_following_looming_period_sec.setValue(state['following_looming_period_sec'])
+        self.sb_following_looming_expansion_time_sec.setValue(state['following_looming_expansion_time_sec'])
+        self.sb_following_looming_expansion_speed_mm_per_sec.setValue(state['following_looming_expansion_speed_mm_per_sec'])
         self.sb_looming_center_mm_x.setValue(state['looming_center_mm'][0])
         self.sb_looming_center_mm_y.setValue(state['looming_center_mm'][1])
         self.sb_looming_period_sec.setValue(state['looming_period_sec'])
@@ -676,6 +731,14 @@ class StimWidget(QWidget):
             self.sb_okr_spatial_freq.setValue(protocol_item.okr_spatial_frequency_deg)
             self.sb_okr_speed.setValue(protocol_item.okr_speed_deg_per_sec) 
     
+        elif isinstance(protocol_item, FollowingLooming):
+            self.cmb_stim_select.setCurrentText(str(Stim.Visual.FOLLOWING_LOOMING))
+            self.sb_following_looming_center_mm_x.setValue(protocol_item.looming_center_mm[0])
+            self.sb_following_looming_center_mm_y.setValue(protocol_item.looming_center_mm[1])
+            self.sb_following_looming_period_sec.setValue(protocol_item.looming_period_sec)
+            self.sb_following_looming_expansion_time_sec.setValue(protocol_item.looming_expansion_time_sec)
+            self.sb_following_looming_expansion_speed_mm_per_sec.setValue(protocol_item.looming_expansion_speed_mm_per_sec)
+
         elif isinstance(protocol_item, Looming):
             self.cmb_stim_select.setCurrentText(str(Stim.Visual.LOOMING))
             self.sb_looming_center_mm_x.setValue(protocol_item.looming_center_mm[0])
@@ -753,6 +816,20 @@ class StimWidget(QWidget):
                 stop_condition = stop_condition
             )
 
+        if state['stim_select'] == Stim.Visual.FOLLOWING_LOOMING:
+            protocol = FollowingLooming(
+                foreground_color = foreground_color,
+                background_color = background_color,
+                looming_center_mm = (
+                    self.sb_following_looming_center_mm_x.value(),
+                    self.sb_following_looming_center_mm_y.value()
+                ),
+                looming_period_sec = self.sb_following_looming_period_sec.value(),
+                looming_expansion_time_sec = self.sb_following_looming_expansion_time_sec.value(),
+                looming_expansion_speed_mm_per_sec = self.sb_following_looming_expansion_speed_mm_per_sec.value(),
+                stop_condition = stop_condition
+            )
+
         if state['stim_select'] == Stim.Visual.LOOMING:
             protocol = Looming(
                 foreground_color = foreground_color,
@@ -766,7 +843,7 @@ class StimWidget(QWidget):
                 looming_expansion_speed_mm_per_sec = self.sb_looming_expansion_speed_mm_per_sec.value(),
                 stop_condition = stop_condition
             )
-        
+
         if state['stim_select'] == Stim.Visual.PREY_CAPTURE:
             protocol = PreyCapture(
                 foreground_color = foreground_color,
