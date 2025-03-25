@@ -213,8 +213,8 @@ class GeneralStim(VisualStim):
 
                 vec3 proj_bbox_origin = u_cam_to_proj * vec3(camera_bbox_px.xy, 1.0);
                 vec3 proj_bbox_size = u_cam_to_proj * vec3(camera_bbox_px.wz, 0.0);
-                proj_bbox_px = vec4(proj_bbox_origin.xy, proj_bbox_size.xy);
-                proj_bbox_mm = vec4(proj_bbox_origin.xy / u_pix_per_mm_proj, proj_bbox_size.xy/ u_pix_per_mm_proj);
+                vec4 proj_bbox_px = vec4(proj_bbox_origin.xy, proj_bbox_size.xy);
+                vec4 proj_bbox_mm = vec4(proj_bbox_origin.xy / u_pix_per_mm_proj, proj_bbox_size.xy/ u_pix_per_mm_proj);
                 
                 // compute pixel coordinates in fish egocentric coordinates (mm)
                 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
