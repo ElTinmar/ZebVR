@@ -1,5 +1,4 @@
 from image_tools import FishInfo
-import cv2
 import json
 from PyQt5.QtWidgets import QApplication
 from typing import Callable

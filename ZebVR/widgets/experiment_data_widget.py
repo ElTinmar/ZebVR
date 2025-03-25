@@ -4,7 +4,8 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QGroupBox,
     QPlainTextEdit,
-    QLabel
+    QLabel,
+    QApplication
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
@@ -46,7 +47,7 @@ class ExperimentDataWidget(QWidget):
 
         self.label_comment = QLabel('comments')
         self.comments = QPlainTextEdit()
-        self.comments.setFixedHeight(75)
+        self.comments.setFixedHeight(50)
         self.comments.textChanged.connect(self.state_changed)
 
     def layout_components(self) -> None:
@@ -90,25 +91,8 @@ class ExperimentDataWidget(QWidget):
                 setter(state[key])
 
 if __name__ == "__main__":
-
-    from PyQt5.QtWidgets import QApplication, QMainWindow
-
-    class Window(QMainWindow):
-
-        def __init__(self,*args,**kwargs):
-
-            super().__init__(*args, **kwargs)
-            self.closeloop_widget = TrackingWidget()
-            self.setCentralWidget(self.closeloop_widget)
-            self.closeloop_widget.state_changed.connect(self.state_changed)
-
-        def state_changed(self):
-            print(self.closeloop_widget.get_state())
-
-        def openloop(self):
-            print('openloop coords clicked')
     
     app = QApplication([])
-    window = Window()
+    window = ExperimentDataWidget()
     window.show()
     app.exec()
