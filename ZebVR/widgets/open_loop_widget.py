@@ -7,7 +7,8 @@ from PyQt5.QtWidgets import (
     QTableWidget,
     QHeaderView,
     QFrame,
-    QTableWidgetItem
+    QTableWidgetItem,
+    QApplication
 )
 from PyQt5.QtCore import pyqtSignal, Qt
 from typing import Dict
@@ -44,13 +45,13 @@ class OpenLoopWidget(QWidget):
         self.openloop_coords.clicked.connect(self.openloop_coords_signal)
 
         self.centroid_x = LabeledDoubleSpinBox()
-        self.centroid_x.setText('centroid X:')
+        self.centroid_x.setText('offset X:')
         self.centroid_x.setRange(0,10_000)
         self.centroid_x.setValue(0)
         self.centroid_x.valueChanged.connect(self.state_changed)
 
         self.centroid_y = LabeledDoubleSpinBox()
-        self.centroid_y.setText('centroid Y:')
+        self.centroid_y.setText('offset Y:')
         self.centroid_y.setRange(0,10_000)
         self.centroid_y.setValue(0)
         self.centroid_y.valueChanged.connect(self.state_changed)
@@ -135,25 +136,7 @@ class OpenLoopWidget(QWidget):
 
 if __name__ == "__main__":
 
-    from PyQt5.QtWidgets import QApplication, QMainWindow
-
-    class Window(QMainWindow):
-
-        def __init__(self,*args,**kwargs):
-
-            super().__init__(*args, **kwargs)
-            self.openloop_widget = OpenLoopWidget()
-            self.setCentralWidget(self.openloop_widget)
-            self.openloop_widget.state_changed.connect(self.state_changed)
-            self.openloop_widget.openloop_coords_signal.connect(self.openloop)
-
-        def state_changed(self):
-            print(self.openloop_widget.get_state())
-
-        def openloop(self):
-            print('openloop coords clicked')
-    
     app = QApplication([])
-    window = Window()
+    window = OpenLoopWidget()
     window.show()
     app.exec()
