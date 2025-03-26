@@ -106,7 +106,7 @@ class TrackingDisplayWidget(QWidget):
     def declare_components(self) -> None:
 
         self.animal_identity = LabeledSpinBox()
-        self.animal_identity.setText('#animals')
+        self.animal_identity.setText('#animal')
         self.animal_identity.setRange(0,self.n_animals-1)
         self.animal_identity.setSingleStep(1)
         self.animal_identity.setValue(0)

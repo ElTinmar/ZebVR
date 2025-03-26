@@ -11,21 +11,24 @@ class TrackerGui(WorkerNode):
 
     def __init__(
             self,
-            n_tracker_workers: int,
+            n_animals: int,
             settings_file: Union[Path, str] = Path('tracking.json'),
             *args,
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
-        self.n_tracker_workers = n_tracker_workers 
+        self.n_animals = n_animals 
         self.settings_file = Path(settings_file)
 
     def initialize(self) -> None:
         super().initialize()
         
         self.app = QApplication([])
-        self.window = TrackerWidget(settings_file = self.settings_file)
+        self.window = TrackerWidget(
+            settings_file = self.settings_file,
+            n_animals = self.n_animals
+        )
         self.window.show()
 
     def process_data(self, data: None) -> NDArray:
@@ -36,8 +39,14 @@ class TrackerGui(WorkerNode):
     def process_metadata(self, metadata: Dict) -> Optional[Dict]:
         # send tracking controls
         if self.window.is_updated():
+            
+            state = self.window.get_state()
             res = {}
-            for i in range(self.n_tracker_workers):
-                res[f'tracker_control_{i}'] = self.window.get_state()
+            if state['apply_to_all']:
+                for i in range(self.n_animals):
+                    res[f'tracker_control_{i}'] = state
+            else:
+                res[f"tracker_control_{state['animal_identity']}"] = state
+
             self.window.set_updated(False)
             return res

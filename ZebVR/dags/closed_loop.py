@@ -352,7 +352,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         )
     
     tracker_control_worker = TrackerGui(
-        n_tracker_workers = settings['identity']['n_animals'],
+        n_animals = settings['identity']['n_animals'],
         settings_file = settings['settings']['tracking']['tracker_settings_file'],
         name = 'tracker_gui',  
         logger = worker_logger, 

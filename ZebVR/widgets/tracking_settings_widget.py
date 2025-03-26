@@ -6,7 +6,8 @@ from PyQt5.QtWidgets import (
     QHBoxLayout, 
     QGroupBox,
     QFileDialog,
-    QPushButton
+    QPushButton,
+    QCheckBox
 )
 from PyQt5.QtCore import pyqtSignal
 from qt_widgets import (
@@ -804,6 +805,7 @@ class TrackerWidget(QWidget):
     def __init__(
             self,
             settings_file: Path = Path('tracking.json'),
+            n_animals: int = 1,
             *args,
             **kwargs
         ):
@@ -811,6 +813,11 @@ class TrackerWidget(QWidget):
         super().__init__(*args, **kwargs)
         self.updated = False
         self.settings_file = settings_file
+        self.n_animals = n_animals
+        
+        self.current_animal = 0
+        self.substate = {}
+
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Tracking controls')
@@ -826,6 +833,16 @@ class TrackerWidget(QWidget):
         self.assignment_choice.addItem('Hungarian')
         self.assignment_choice.currentIndexChanged.connect(self.on_change)      
         self.assignment_choice.setEnabled(False)
+
+        self.animal_identity = LabeledSpinBox()
+        self.animal_identity.setText('#animal')
+        self.animal_identity.setRange(0,self.n_animals-1)
+        self.animal_identity.setSingleStep(1)
+        self.animal_identity.setValue(0)
+        self.animal_identity.valueChanged.connect(self.animal_changed)
+
+        self.apply_to_all = QCheckBox('Apply to all animals')
+        self.apply_to_all.stateChanged.connect(self.apply_to_all_changed)
 
         self.animal = Animal()
         self.animal.state_changed.connect(self.on_change)
@@ -846,6 +863,10 @@ class TrackerWidget(QWidget):
         self.btn_save.clicked.connect(self.save)
 
     def layout_components(self) -> None:
+
+        identity = QHBoxLayout()
+        identity.addWidget(self.apply_to_all)
+        identity.addWidget(self.animal_identity)
 
         animal = QHBoxLayout()
         animal.addWidget(self.animal)
@@ -888,9 +909,21 @@ class TrackerWidget(QWidget):
         groups.addWidget(self.group_tail)
         
         final = QVBoxLayout(self)
+        final.addLayout(identity)
         final.addWidget(self.assignment_choice)
         final.addLayout(groups)
         final.addLayout(io_layout)
+
+    def apply_to_all_changed(self):
+
+        if self.apply_to_all.isChecked():
+            self.animal_identity.setEnabled(False)
+        else:
+            self.animal_identity.setEnabled(True)
+            for i in range(self.n_animals):
+                self.substate[i] = self._get_substate()
+
+        self.on_change()
 
     def on_change(self):
         
@@ -901,6 +934,18 @@ class TrackerWidget(QWidget):
         self.updated = True
         self.state_changed.emit()
 
+    def block_all_signals(self, block: bool):
+        for child in self.findChildren(QWidget): 
+            child.blockSignals(block)
+
+    def animal_changed(self, next_animal):
+        self.substate[self.current_animal] =  self._get_substate()
+        self.block_all_signals(True)
+        self._set_substate(self.substate[next_animal])
+        self.block_all_signals(False)
+        self.current_animal = next_animal
+        self.state_changed.emit()
+        
     def is_updated(self) -> bool:
         return self.updated
     
@@ -935,22 +980,34 @@ class TrackerWidget(QWidget):
             state = json.load(fp)
 
         self.set_state(state)
+
+        for i in range(self.n_animals):
+            self.substate[i] = self._get_substate() 
+
         self.updated = True
 
-    def get_state(self) -> Dict:
+    def _get_substate(self)-> Dict:
 
         state = {}
-        state['assignment']=self.assignment_choice.currentText()
-        state['body_tracking_enabled']=self.group_body.isChecked()
-        state['eyes_tracking_enabled']=self.group_eyes.isChecked()
-        state['tail_tracking_enabled']=self.group_tail.isChecked()
+        state['assignment'] = self.assignment_choice.currentText()
+        state['body_tracking_enabled'] = self.group_body.isChecked()
+        state['eyes_tracking_enabled'] = self.group_eyes.isChecked()
+        state['tail_tracking_enabled'] = self.group_tail.isChecked()
         state['animal_tracking'] = self.animal.get_state()
         state['body_tracking'] = self.body.get_state()
         state['eyes_tracking'] = self.eyes.get_state()
         state['tail_tracking'] = self.tail.get_state()
         return state
 
-    def set_state(self, state:Dict) -> None:
+    def get_state(self) -> Dict:
+
+        state = {}
+        state['apply_to_all'] = self.apply_to_all.isChecked()
+        state['animal_identity'] = self.animal_identity.value()
+        state.update(self._get_substate())
+        return state
+
+    def _set_substate(self, state:Dict) -> None:
 
         setters = {
             'assignment': self.assignment_choice.setCurrentText,
@@ -966,6 +1023,22 @@ class TrackerWidget(QWidget):
         for key, setter in setters.items():
             if key in state:
                 setter(state[key])
+
+    def set_state(self, state: Dict) -> None:
+
+        setters = {
+            'apply_to_all': self.apply_to_all.setChecked,
+            'animal_identity': self.animal_identity.setValue,
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
+
+        self._set_substate(state)
+
+        id = state.get('animal_identity', 0)
+        self.substate[id] = self._get_substate() 
 
 if __name__ == "__main__":
 
