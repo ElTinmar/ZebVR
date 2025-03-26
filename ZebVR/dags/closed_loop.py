@@ -9,27 +9,17 @@ from dagline import ProcessingDAG, receive_strategy, send_strategy
 from geometry import AffineTransform2D
 
 from tracker import (
-    GridAssignment, 
-    LinearSumAssignment,
-    MultiFishTracker_CPU,
-    MultiFishOverlay_opencv, 
-    MultiFishTrackerParamTracking,
-    MultiFishTrackerParamOverlay,
+    SingleFishTracker_CPU,
+    SingleFishOverlay_opencv, 
+    SingleFishTrackerParamTracking,
+    SingleFishTrackerParamOverlay,
     AnimalTracker_CPU, 
-    AnimalOverlay_opencv, 
     AnimalTrackerParamTracking, 
-    AnimalTrackerParamOverlay, 
     BodyTracker_CPU,
-    BodyOverlay_opencv, 
-    BodyTrackerParamOverlay,
     BodyTrackerParamTracking,
     EyesTracker_CPU,  
-    EyesOverlay_opencv,
-    EyesTrackerParamOverlay,
     EyesTrackerParamTracking,
     TailTracker_CPU,
-    TailOverlay_opencv,
-    TailTrackerParamOverlay,
     TailTrackerParamTracking
 )
 from ..workers import (
@@ -287,58 +277,11 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         
     # tracking --------------------------------------------------
 
-    # TODO fix that, add a ROI selection tool
-    LUT = np.zeros(
-        (settings['camera']['height_value'], settings['camera']['width_value']), 
-        dtype=np.int_
-    )
-
-    with open(settings['settings']['tracking']['tracker_settings_file'],'r') as fp:
-        # NOTE if this has wrong keys, ParamTracking will create an error.  
-        # maybe writ ea proper function with sane default values.
-        tracker_settings = json.load(fp)
-
-    if tracker_settings['assignment'] == 'ROI':
-        assignment = GridAssignment(
-            LUT=LUT, # TODO fix that, add a ROI selection tool
-            num_animals = tracker_settings['animal_tracking']['num_animals']
-        )
-    elif tracker_settings['assignment'] == 'Hungarian':
-        assignment = LinearSumAssignment(
-            distance_threshold = 20, # TODO fix that, add a widget
-            num_animals = tracker_settings['animal_tracking']['num_animals']
-        )
-    else:
-        raise ValueError('incorrect assignment method')
-
-    body = eyes = tail = None
-    if tracker_settings['body_tracking_enabled']:
-        body = BodyTracker_CPU(BodyTrackerParamTracking(**tracker_settings['body_tracking']))
-
-    if tracker_settings['eyes_tracking_enabled']:
-        eyes = EyesTracker_CPU(EyesTrackerParamTracking(**tracker_settings['eyes_tracking']))
-
-    if tracker_settings['tail_tracking_enabled']:
-        tail = TailTracker_CPU(TailTrackerParamTracking(**tracker_settings['tail_tracking']))
-
-    tracker = MultiFishTracker_CPU(
-        MultiFishTrackerParamTracking(
-            accumulator = None,
-            animal = AnimalTracker_CPU(
-                assignment = assignment, 
-                tracking_param = AnimalTrackerParamTracking(**tracker_settings['animal_tracking'])
-            ),
-            body = body, 
-            eyes = eyes, 
-            tail = tail
-        )
-    )
-
     tracker_worker_list = []
     for i in range(settings['identity']['n_animals']):
         tracker_worker_list.append(
             TrackerWorker(
-                tracker, 
+                SingleFishTracker_CPU(), 
                 cam_width = settings['camera']['width_value'],
                 cam_height = settings['camera']['height_value'],
                 n_tracker_workers = settings['identity']['n_animals'],
@@ -371,14 +314,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     )
 
     # tracking display -----------------------------------------
-    overlay = MultiFishOverlay_opencv(
-        MultiFishTrackerParamOverlay(
-            AnimalOverlay_opencv(AnimalTrackerParamOverlay()),
-            BodyOverlay_opencv(BodyTrackerParamOverlay()),
-            EyesOverlay_opencv(EyesTrackerParamOverlay()),
-            TailOverlay_opencv(TailTrackerParamOverlay())
-        )
-    )
+    overlay = SingleFishOverlay_opencv()
 
     tracking_display_worker = TrackingDisplay(
         overlay = overlay, 

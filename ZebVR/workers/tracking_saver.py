@@ -75,32 +75,29 @@ class TrackingSaver(WorkerNode):
         right_eye_angle = 0
 
         try:
-            # TODO choose animal
-            k = 0
-
-            if data['tracking']['body'][k] is not None:
-                fish_centroid[:] = data['tracking']['body'][k]['centroid_global']
-                body_axes = data['tracking']['body'][k]['body_axes_global']
+            if data['tracking']['body'] is not None:
+                fish_centroid[:] = data['tracking']['body']['centroid_global']
+                body_axes = data['tracking']['body']['body_axes_global']
                 fish_caudorostral_axis[:] = body_axes[:,0]
                 fish_mediolateral_axis[:] = body_axes[:,1]
             else:
-                fish_centroid[:] = data['tracking']['animals']['centroid_global'][k,:]
+                fish_centroid[:] = data['tracking']['animals']['centroid_global']
 
             # TODO use eyes heading vector if present?
             # eyes
-            if data['tracking']['eyes'][k] is not None:
+            if data['tracking']['eyes'] is not None:
 
-                if data['tracking']['eyes'][k]['left_eye'] is not None:
-                    left_eye_centroid[:] = data['tracking']['eyes'][k]['left_eye']['centroid_cropped'] 
-                    left_eye_angle = data['tracking']['eyes'][k]['left_eye']['angle']
+                if data['tracking']['eyes']['left_eye'] is not None:
+                    left_eye_centroid[:] = data['tracking']['eyes']['left_eye']['centroid_cropped'] 
+                    left_eye_angle = data['tracking']['eyes']['left_eye']['angle']
 
-                if data['tracking']['eyes'][k]['right_eye'] is not None:
-                    right_eye_centroid[:] = data['tracking']['eyes'][k]['right_eye']['centroid_cropped']
-                    right_eye_angle = data['tracking']['eyes'][k]['right_eye']['angle']
+                if data['tracking']['eyes']['right_eye'] is not None:
+                    right_eye_centroid[:] = data['tracking']['eyes']['right_eye']['centroid_cropped']
+                    right_eye_angle = data['tracking']['eyes']['right_eye']['angle']
 
             # tail
-            if data['tracking']['tail'][k] is not None:
-                skeleton_interp = data['tracking']['tail'][k]['skeleton_interp_cropped']  
+            if data['tracking']['tail'] is not None:
+                skeleton_interp = data['tracking']['tail']['skeleton_interp_cropped']  
 
         except KeyError as err:
             print(f'KeyError: {err}')

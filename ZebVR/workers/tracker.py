@@ -1,13 +1,12 @@
-from typing import Any, Dict, Optional, List, Tuple
+from typing import Any, Dict, Optional
 import numpy as np
 from numpy.typing import NDArray
 
 import time
 from tracker import (
-    GridAssignment, LinearSumAssignment,
-    MultiFishTracker, 
-    MultiFishTracker_CPU,
-    MultiFishTrackerParamTracking,
+    SingleFishTracker, 
+    SingleFishTracker_CPU,
+    SingleFishTrackerParamTracking,
     AnimalTracker_CPU,  
     AnimalTrackerParamTracking,
     BodyTracker_CPU, 
@@ -25,7 +24,7 @@ class DummyTrackerWorker(WorkerNode):
     '''For open loop tracking, sends the centroid / main direction'''
     def __init__(
             self,
-            tracker: MultiFishTracker, 
+            tracker: SingleFishTracker, 
             centroid: NDArray,
             heading: NDArray,
             roi: NDArray,
@@ -39,8 +38,8 @@ class DummyTrackerWorker(WorkerNode):
         self.origin = np.array((x,y))
         self.shape = (h,w)
         self.tracking = np.zeros(1, tracker.tracking_param.dtype)
-        self.tracking['body'][0]['centroid_global'] = centroid + self.origin + np.array((w//2, h//2)) 
-        self.tracking['body'][0]['body_axes_global'] = heading
+        self.tracking['body']['centroid_global'] = centroid + self.origin + np.array((w//2, h//2)) 
+        self.tracking['body']['body_axes_global'] = heading
         self.indentity = identity
 
     def initialize(self) -> None:
@@ -78,7 +77,7 @@ class TrackerWorker(WorkerNode):
     
     def __init__(
             self, 
-            tracker: MultiFishTracker, 
+            tracker: SingleFishTracker, 
             cam_width: int,
             cam_height: int,
             n_tracker_workers: int,
@@ -144,42 +143,23 @@ class TrackerWorker(WorkerNode):
             if control is None:
                 continue
             
-            if control['assignment'] == 'ROI':
-                assignment = GridAssignment(
-                    LUT=np.zeros((self.cam_height, self.cam_width), dtype=np.int_), # TODO fix that, add a ROI selection tool
-                    num_animals = control['animal_tracking']['num_animals']
-                )
-            elif control['assignment'] == 'Hungarian':
-                assignment = LinearSumAssignment(
-                    distance_threshold = 20, # TODO fix that, add a widget
-                    num_animals = control['animal_tracking']['num_animals']
-                )
-            else:
-                break
-            
             animal = AnimalTracker_CPU(
-                assignment=assignment, 
                 tracking_param=AnimalTrackerParamTracking(**control['animal_tracking'])
             )
             
+            body = eyes = tail = None
+
             if control['body_tracking_enabled']:
                 body = BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**control['body_tracking']))
-            else:
-                body = None
 
             if control['eyes_tracking_enabled']:
                 eyes = EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**control['eyes_tracking']))
-            else:
-                eyes = None
 
             if control['tail_tracking_enabled']:
                 tail = TailTracker_CPU(tracking_param=TailTrackerParamTracking(**control['tail_tracking']))
-            else:
-                tail = None  
             
-            self.tracker = MultiFishTracker_CPU(
-                MultiFishTrackerParamTracking(
-                    accumulator=None,
+            self.tracker = SingleFishTracker_CPU(
+                SingleFishTrackerParamTracking(
                     animal=animal,
                     body=body,
                     eyes=eyes,
@@ -196,13 +176,10 @@ class TrackerWorker(WorkerNode):
         try:
             tracking = self.current_tracking['tracking']
 
-            # TODO choose animal
-            k = 0
-
-            if tracking['body'][k] is not None:
-                fish_centroid[:] = tracking['body'][k]['centroid_global']
+            if tracking['body'] is not None:
+                fish_centroid[:] = tracking['body']['centroid_global']
             else:
-                fish_centroid[:] = tracking['animals']['centroid_global'][k,:]
+                fish_centroid[:] = tracking['animals']['centroid_global']
 
         except KeyError:
             return None

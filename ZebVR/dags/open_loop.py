@@ -7,10 +7,8 @@ from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
 from dagline import ProcessingDAG, receive_strategy, send_strategy
 from geometry import AffineTransform2D
 from tracker import (
-    GridAssignment, 
-    LinearSumAssignment,
-    MultiFishTracker_CPU,
-    MultiFishTrackerParamTracking,
+    SingleFishTracker_CPU,
+    SingleFishTrackerParamTracking,
     AnimalTracker_CPU, 
     AnimalTrackerParamTracking, 
     BodyTracker_CPU,
@@ -21,7 +19,6 @@ from tracker import (
     TailTrackerParamTracking
 )
 from ..workers import (
-    BackgroundSubWorker, 
     CameraWorker, 
     DummyTrackerWorker,
     ImageSaverWorker, 
@@ -187,56 +184,11 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
     )
 
     # tracking --------------------------------------------------
-    # TODO fix that, add a ROI selection tool
-    LUT = np.zeros(
-        (settings['camera']['height_value'], settings['camera']['width_value']), 
-        dtype=np.int_
-    )
-
-    with open(settings['settings']['tracking']['tracker_settings_file'],'r') as fp:
-        tracker_settings = json.load(fp)
-
-    if tracker_settings['assignment'] == 'ROI':
-        assignment = GridAssignment(
-            LUT=LUT, # TODO fix that, add a ROI selection tool
-            num_animals = tracker_settings['animal_tracking']['num_animals']
-        )
-    elif tracker_settings['assignment'] == 'Hungarian':
-        assignment = LinearSumAssignment(
-            distance_threshold = 20, # TODO fix that, add a widget
-            num_animals = tracker_settings['animal_tracking']['num_animals']
-        )
-    else:
-        raise ValueError('incorrect assignment method')
-
-    body = eyes = tail = None
-    if tracker_settings['body_tracking_enabled']:
-        body = BodyTracker_CPU(BodyTrackerParamTracking(**tracker_settings['body_tracking']))
-
-    if tracker_settings['eyes_tracking_enabled']:
-        eyes = EyesTracker_CPU(EyesTrackerParamTracking(**tracker_settings['eyes_tracking']))
-
-    if tracker_settings['tail_tracking_enabled']:
-        tail = TailTracker_CPU(TailTrackerParamTracking(**tracker_settings['tail_tracking']))
-
-    tracker = MultiFishTracker_CPU(
-        MultiFishTrackerParamTracking(
-            accumulator = None,
-            animal = AnimalTracker_CPU(
-                assignment = assignment, 
-                tracking_param = AnimalTrackerParamTracking(**tracker_settings['animal_tracking'])
-            ),
-            body = body, 
-            eyes = eyes, 
-            tail = tail
-        )
-    )
-
     tracker_worker_list = []
     for i in range(settings['identity']['n_animals']):
         tracker_worker_list.append(
             DummyTrackerWorker(
-                tracker,
+                SingleFishTracker_CPU(),
                 centroid = np.array([
                     settings['identity']['open_loop_x_offset'],
                     settings['identity']['open_loop_y_offset']

@@ -814,13 +814,15 @@ class TrackerWidget(QWidget):
         self.updated = False
         self.settings_file = settings_file
         self.n_animals = n_animals
-        
-        self.current_animal = 0
-        self.substate = {}
-
+            
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Tracking controls')
+        
+        self.current_animal = 0
+        self.substate = {}
+        for i in range(self.n_animals):
+            self.substate[i] = self._get_substate()
 
         if settings_file.exists():
             self.load_from_file(settings_file)
@@ -981,9 +983,6 @@ class TrackerWidget(QWidget):
 
         self.set_state(state)
 
-        for i in range(self.n_animals):
-            self.substate[i] = self._get_substate() 
-
         self.updated = True
 
     def _get_substate(self)-> Dict:
@@ -1004,10 +1003,10 @@ class TrackerWidget(QWidget):
         state = {}
         state['apply_to_all'] = self.apply_to_all.isChecked()
         state['animal_identity'] = self.animal_identity.value()
-        state.update(self._get_substate())
+        state['substate'] = self.substate
         return state
 
-    def _set_substate(self, state:Dict) -> None:
+    def _set_substate(self, id: int, substate: Dict) -> None:
 
         setters = {
             'assignment': self.assignment_choice.setCurrentText,
@@ -1021,24 +1020,33 @@ class TrackerWidget(QWidget):
         }
 
         for key, setter in setters.items():
-            if key in state:
-                setter(state[key])
+            if key in substate:
+                setter(substate[key])
+
+        self.substate[id] = substate
+    
+    def _apply_substate(self, substates: Dict):
+
+        for key, substate in substates.items():
+            self._set_substate(key, substate)
 
     def set_state(self, state: Dict) -> None:
+        
+        defaults = {
+            'apply_to_all': False,
+            'animal_identity': 0,
+            'substate': {}
+        }
+        for key, value in defaults.items():
+            state.setdefault(key, value)
 
         setters = {
             'apply_to_all': self.apply_to_all.setChecked,
             'animal_identity': self.animal_identity.setValue,
+            'substate': self._apply_substate
         }
-
         for key, setter in setters.items():
-            if key in state:
-                setter(state[key])
-
-        self._set_substate(state)
-
-        id = state.get('animal_identity', 0)
-        self.substate[id] = self._get_substate() 
+            setter(state[key])
 
 if __name__ == "__main__":
 

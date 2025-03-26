@@ -520,32 +520,29 @@ class GeneralStim(VisualStim):
             print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
             ID = data['identity']
 
-            # TODO maybe create a single fish tracker
-            k = 0
-
-            if data['tracking']['body'][k] is not None:
-                self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body'][k]['centroid_global']).squeeze()
-                body_axes = data['tracking']['body'][k]['body_axes_global']                
+            if data['tracking']['body'] is not None:
+                self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body']['centroid_global']).squeeze()
+                body_axes = data['tracking']['body']['body_axes_global']                
                 self.shared_fish_state[ID].fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
                 self.shared_fish_state[ID].fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
             else:
-                self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroid_global'][k,:]).squeeze()
+                self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroid_global']).squeeze()
 
             # TODO use eyes heading vector if present?
             # eyes
-            if data['tracking']['eyes'][k] is not None:
+            if data['tracking']['eyes'] is not None:
 
-                if data['tracking']['eyes'][k]['left_eye'] is not None:
-                    self.shared_fish_state[ID].left_eye_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['eyes'][k]['left_eye']['centroid_cropped']).squeeze()
-                    self.shared_fish_state[ID].left_eye_angle.value = data['tracking']['eyes'][k]['left_eye']['angle']
+                if data['tracking']['eyes']['left_eye'] is not None:
+                    self.shared_fish_state[ID].left_eye_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['eyes']['left_eye']['centroid_cropped']).squeeze()
+                    self.shared_fish_state[ID].left_eye_angle.value = data['tracking']['eyes']['left_eye']['angle']
 
-                if data['tracking']['eyes'][k]['right_eye'] is not None:
-                    self.shared_fish_state[ID].right_eye_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['eyes'][k]['right_eye']['centroid_cropped']).squeeze()
-                    self.shared_fish_state[ID].right_eye_angle.value = data['tracking']['eyes'][k]['right_eye']['angle']
+                if data['tracking']['eyes']['right_eye'] is not None:
+                    self.shared_fish_state[ID].right_eye_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['eyes']['right_eye']['centroid_cropped']).squeeze()
+                    self.shared_fish_state[ID].right_eye_angle.value = data['tracking']['eyes']['right_eye']['angle']
 
             # tail
-            if data['tracking']['tail'][k] is not None:
-                skeleton_interp = self.transformation_matrix.transform_points(data['tracking']['tail'][k]['skeleton_interp_cropped'])
+            if data['tracking']['tail'] is not None:
+                skeleton_interp = self.transformation_matrix.transform_points(data['tracking']['tail']['skeleton_interp_cropped'])
                 self.shared_fish_state[ID].tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
                 self.shared_fish_state[ID].tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
 

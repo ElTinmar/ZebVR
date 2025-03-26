@@ -44,9 +44,10 @@ class TrackerGui(WorkerNode):
             res = {}
             if state['apply_to_all']:
                 for i in range(self.n_animals):
-                    res[f'tracker_control_{i}'] = state
+                    res[f'tracker_control_{i}'] = state['substate'][i]
             else:
-                res[f"tracker_control_{state['animal_identity']}"] = state
+                id = state['animal_identity']
+                res[f'tracker_control_{id}'] = state['substate'][id]
 
             self.window.set_updated(False)
             return res

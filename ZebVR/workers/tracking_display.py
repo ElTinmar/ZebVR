@@ -4,7 +4,7 @@ from typing import Dict, Optional
 import time
 #import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication
-from tracker import MultiFishOverlay
+from tracker import SingleFishOverlay
 from image_tools import im2uint8
 from geometry import SimilarityTransform2D
 from ..widgets import TrackingDisplayWidget, TrackerType, DisplayType
@@ -13,7 +13,7 @@ class TrackingDisplay(WorkerNode):
 
     def __init__(
             self, 
-            overlay: MultiFishOverlay,
+            overlay: SingleFishOverlay,
             n_animals: int = 1, 
             fps: int = 30,
             *args, 
@@ -66,13 +66,13 @@ class TrackingDisplay(WorkerNode):
                         image_to_display = im2uint8(data['tracking']['animals']['image_processed'])
 
                     if state['tracker_type'] == TrackerType.BODY:
-                        image_to_display = im2uint8(data['tracking']['body'][0]['image_processed'])
+                        image_to_display = im2uint8(data['tracking']['body']['image_processed'])
 
                     if state['tracker_type'] == TrackerType.EYES:
-                        image_to_display = im2uint8(data['tracking']['eyes'][0]['image_processed'])
+                        image_to_display = im2uint8(data['tracking']['eyes']['image_processed'])
 
                     if state['tracker_type'] == TrackerType.TAIL:
-                        image_to_display = im2uint8(data['tracking']['tail'][0]['image_processed'])
+                        image_to_display = im2uint8(data['tracking']['tail']['image_processed'])
                 
                 if state['display_type'] == DisplayType.OVERLAY:
                         
@@ -96,17 +96,17 @@ class TrackingDisplay(WorkerNode):
 
                     if state['tracker_type'] == TrackerType.BODY:
                         image_to_display = self.overlay.overlay_param.body.overlay_cropped(
-                            data['tracking']['body'][0]
+                            data['tracking']['body']
                         )
 
                     if state['tracker_type'] == TrackerType.EYES:
                         image_to_display = self.overlay.overlay_param.eyes.overlay_cropped(
-                            data['tracking']['eyes'][0]
+                            data['tracking']['eyes']
                         )
 
                     if state['tracker_type'] == TrackerType.TAIL:
                         image_to_display = self.overlay.overlay_param.tail.overlay_cropped(
-                            data['tracking']['tail'][0]
+                            data['tracking']['tail']
                         )
 
                 if state['display_type'] == DisplayType.MASK:
@@ -119,14 +119,14 @@ class TrackingDisplay(WorkerNode):
                         image_to_display = im2uint8(data['tracking']['animals']['mask'])
 
                     if state['tracker_type'] == TrackerType.BODY:
-                        image_to_display = im2uint8(data['tracking']['body'][0]['mask'])
+                        image_to_display = im2uint8(data['tracking']['body']['mask'])
 
                     if state['tracker_type'] == TrackerType.EYES:
-                        image_to_display = im2uint8(data['tracking']['eyes'][0]['mask'])
+                        image_to_display = im2uint8(data['tracking']['eyes']['mask'])
 
                     if state['tracker_type'] == TrackerType.TAIL:
                         # there is no mask for the tail, show image instead
-                        image_to_display = im2uint8(data['tracking']['tail'][0]['image_processed'])
+                        image_to_display = im2uint8(data['tracking']['tail']['image_processed'])
             except:
                 pass
             
