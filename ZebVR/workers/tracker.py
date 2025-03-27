@@ -1,8 +1,8 @@
 from typing import Any, Dict, Optional
 import numpy as np
 from numpy.typing import NDArray
-
 import time
+
 from tracker import (
     SingleFishTracker, 
     SingleFishTracker_CPU,
@@ -103,11 +103,10 @@ class TrackerWorker(WorkerNode):
         if data is None:
             return None
 
-        T = SimilarityTransform2D.translation(data['origin'][0],data['origin'][1])
+        T = SimilarityTransform2D.translation(data['origin'][0], data['origin'][1])
 
-        tracking = self.tracker.track(data['image'], None, T)
-
-        if tracking is None:
+        success, tracking = self.tracker.track(data['image'], None, T)
+        if not success:
             return None
         
         msg = np.array(
@@ -142,7 +141,7 @@ class TrackerWorker(WorkerNode):
 
             if control is None:
                 continue
-            
+
             animal = AnimalTracker_CPU(
                 tracking_param=AnimalTrackerParamTracking(**control['animal_tracking'])
             )
@@ -160,10 +159,10 @@ class TrackerWorker(WorkerNode):
             
             self.tracker = SingleFishTracker_CPU(
                 SingleFishTrackerParamTracking(
-                    animal=animal,
-                    body=body,
-                    eyes=eyes,
-                    tail=tail
+                    animal = animal,
+                    body = body,
+                    eyes = eyes,
+                    tail = tail
                 )
             )
         
