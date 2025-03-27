@@ -975,6 +975,7 @@ class TrackerWidget(QWidget):
             "JSON file (*.json)"
         )
         self.load_from_file(filename)
+        self.state_changed.emit()
         
     def load_from_file(self, filename):
 
@@ -982,7 +983,6 @@ class TrackerWidget(QWidget):
             state = json.load(fp)
 
         self.set_state(state)
-
         self.updated = True
 
     def _get_substate(self)-> Dict:
