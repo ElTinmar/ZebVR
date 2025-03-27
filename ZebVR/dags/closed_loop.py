@@ -276,7 +276,6 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     )
         
     # tracking --------------------------------------------------
-
     tracker_worker_list = []
     for i in range(settings['identity']['n_animals']):
         tracker_worker_list.append(
