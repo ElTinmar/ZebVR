@@ -183,8 +183,10 @@ class TrackerWorker(WorkerNode):
 
         except KeyError:
             return None
+        
         except TypeError:
             return None
+        
         except ValueError:
             return None
         
