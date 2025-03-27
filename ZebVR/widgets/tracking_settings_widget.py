@@ -933,6 +933,9 @@ class TrackerWidget(QWidget):
             self.group_eyes.setChecked(False)
             self.group_tail.setChecked(False)
 
+        id = self.animal_identity.value()
+        self.substate[id] = self._get_substate()
+
         self.updated = True
         self.state_changed.emit()
 
@@ -941,7 +944,7 @@ class TrackerWidget(QWidget):
             child.blockSignals(block)
 
     def animal_changed(self, next_animal):
-        self.substate[self.current_animal] =  self._get_substate()
+        self.substate[self.current_animal] = self._get_substate()
         self.block_all_signals(True)
         self._set_substate(self.substate[next_animal])
         self.block_all_signals(False)

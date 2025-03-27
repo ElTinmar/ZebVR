@@ -140,6 +140,8 @@ class TrackerWorker(WorkerNode):
             if control is None:
                 continue
 
+            print(i, control)
+
             animal = AnimalTracker_CPU(
                 tracking_param=AnimalTrackerParamTracking(**control['animal_tracking'])
             )
