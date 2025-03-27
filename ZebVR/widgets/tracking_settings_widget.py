@@ -811,7 +811,7 @@ class TrackerWidget(QWidget):
         ):
 
         super().__init__(*args, **kwargs)
-        self.updated = False
+        self.updated = True
         self.settings_file = settings_file
         self.n_animals = n_animals
             
