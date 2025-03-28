@@ -920,12 +920,13 @@ class TrackerWidget(QWidget):
 
         if self.apply_to_all.isChecked():
             self.animal_identity.setEnabled(False)
-        else:
-            self.animal_identity.setEnabled(True)
             for i in range(self.n_animals):
                 self.substate[i] = self._get_substate()
-
-        self.on_change()
+        else:
+            self.animal_identity.setEnabled(True)
+            
+        self.updated = True
+        self.state_changed.emit()
 
     def on_change(self):
         
@@ -933,8 +934,12 @@ class TrackerWidget(QWidget):
             self.group_eyes.setChecked(False)
             self.group_tail.setChecked(False)
 
-        id = self.animal_identity.value()
-        self.substate[id] = self._get_substate()
+        if self.apply_to_all.isChecked():
+            for i in range(self.n_animals):
+                self.substate[i] = self._get_substate()
+        else:
+            id = self.animal_identity.value()
+            self.substate[id] = self._get_substate()
 
         self.updated = True
         self.state_changed.emit()
