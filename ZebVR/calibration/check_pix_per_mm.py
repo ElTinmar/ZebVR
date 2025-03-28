@@ -128,11 +128,12 @@ def check_pix_per_mm(
     # create a circle with given radius. Measure that it's the right size in the real world 
     mask_cam = np.zeros((cam_height,cam_width), dtype=np.float32) 
     y,x = np.mgrid[0:cam_height,0:cam_width]
+    center = np.array([cam_width//2, cam_height//2]) + np.array(reticle_center)
     for d in size_to_check:
         # concentric rings of different diameters centered on camera FOV
         radius = d/2 * pix_per_mm
-        ring_ind = disk([x,y],reticle_center,radius+thickness/2) & \
-                  ~disk([x,y],reticle_center,radius-thickness/2)
+        ring_ind = disk([x,y],center,radius+thickness/2) & \
+                  ~disk([x,y],center,radius-thickness/2)
         mask_cam[ring_ind] = 1.0
 
     # transform to proj space and measure if accurate
