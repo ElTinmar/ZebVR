@@ -1,6 +1,4 @@
 from typing import Dict, Optional, Tuple
-import numpy as np
-import json
 
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
@@ -8,16 +6,7 @@ from video_tools import BackgroundImage, Polarity
 from dagline import ProcessingDAG, receive_strategy, send_strategy
 from tracker import (
     SingleFishTracker_CPU,
-    SingleFishOverlay_opencv, 
-    SingleFishTrackerParamTracking,
-    AnimalTracker_CPU, 
-    AnimalTrackerParamTracking, 
-    BodyTracker_CPU,
-    BodyTrackerParamTracking,
-    EyesTracker_CPU,  
-    EyesTrackerParamTracking,
-    TailTracker_CPU,
-    TailTrackerParamTracking
+    SingleFishOverlay_opencv
 )
 from ..workers import (
     BackgroundSubWorker, 

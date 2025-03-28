@@ -1,6 +1,5 @@
 from typing import Dict, Optional, Tuple
 import numpy as np
-import json
 
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
@@ -11,16 +10,6 @@ from geometry import AffineTransform2D
 from tracker import (
     SingleFishTracker_CPU,
     SingleFishOverlay_opencv, 
-    SingleFishTrackerParamTracking,
-    SingleFishTrackerParamOverlay,
-    AnimalTracker_CPU, 
-    AnimalTrackerParamTracking, 
-    BodyTracker_CPU,
-    BodyTrackerParamTracking,
-    EyesTracker_CPU,  
-    EyesTrackerParamTracking,
-    TailTracker_CPU,
-    TailTrackerParamTracking
 )
 from ..workers import (
     BackgroundSubWorker,

@@ -1,6 +1,5 @@
 from typing import Dict, Optional, Tuple
 import numpy as np
-import json
 
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
@@ -8,15 +7,6 @@ from dagline import ProcessingDAG, receive_strategy, send_strategy
 from geometry import AffineTransform2D
 from tracker import (
     SingleFishTracker_CPU,
-    SingleFishTrackerParamTracking,
-    AnimalTracker_CPU, 
-    AnimalTrackerParamTracking, 
-    BodyTracker_CPU,
-    BodyTrackerParamTracking,
-    EyesTracker_CPU,  
-    EyesTrackerParamTracking,
-    TailTracker_CPU,
-    TailTrackerParamTracking
 )
 from ..workers import (
     CameraWorker, 
