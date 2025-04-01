@@ -543,6 +543,9 @@ class MainGui(QMainWindow):
         #self.projector_controller.set_checker(False)
 
         pprint.pprint(self.settings)
+        filename = self.settings['settings']['prefix'] + '.metadata'
+        with open(filename,'w') as fp:
+            pprint.pprint(self.settings, fp) 
 
         if self.open_loop_button.isChecked():
             self.dag, self.worker_logger, self.queue_logger = open_loop(self.settings)
