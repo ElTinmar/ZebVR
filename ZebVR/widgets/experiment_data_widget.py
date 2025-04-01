@@ -47,6 +47,7 @@ class ExperimentDataWidget(QWidget):
 
         self.label_comment = QLabel('comments')
         self.comments = QPlainTextEdit()
+        self.comments.setPlaceholderText('write a comment here...')
         self.comments.setFixedHeight(50)
         self.comments.textChanged.connect(self.state_changed)
 
