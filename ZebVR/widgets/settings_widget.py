@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import (
     QWidget, 
-    QVBoxLayout
+    QVBoxLayout,
+    QScrollArea,
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
@@ -54,12 +55,21 @@ class SettingsWidget(QWidget):
         
     def layout_components(self) -> None:
         
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout()
         layout.addWidget(self.experiment_data_widget)
         layout.addWidget(self.tracking_widget)
         layout.addWidget(self.video_recording_widget)
         layout.addWidget(self.stim_output_widget)
         layout.addStretch()
+
+        container = QWidget()
+        container.setLayout(layout)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidget(container)
+
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(scroll_area)
 
     def get_state(self) -> Dict:
 
