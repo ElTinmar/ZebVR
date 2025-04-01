@@ -31,8 +31,10 @@ class SettingsWidget(QWidget):
         self.video_recording_widget = VideoOutputWidget()
         self.stim_output_widget = StimOutputWidget()
 
+        self.experiment_data_widget.state_changed.connect(self.state_changed)
         self.tracking_widget.state_changed.connect(self.state_changed)
         self.video_recording_widget.state_changed.connect(self.state_changed)
+        self.stim_output_widget.state_changed.connect(self.state_changed)
 
         self.experiment_data_widget.prefix_changed.connect(self.tracking_widget.update_prefix)
         self.experiment_data_widget.prefix_changed.connect(self.video_recording_widget.update_prefix)
