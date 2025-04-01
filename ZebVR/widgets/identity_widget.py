@@ -183,9 +183,7 @@ class IdentityWidget(QWidget):
         main_layout.addStretch()
 
     def on_change(self) -> None:
-        
         self.set_image(self.image)
-        self.state_changed.emit()
     
     def set_image(self, image: NDArray) -> None:
 
@@ -268,6 +266,8 @@ class IdentityWidget(QWidget):
         preview_width = int(w * self.PREVIEW_HEIGHT/h)
         image_resized = cv2.resize(grid_image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
         self.image_label.setPixmap(NDarray_to_QPixmap(image_resized))
+
+        self.state_changed.emit()
 
     def set_open_loop_visible(self, visible: bool) -> None:
         self.open_loop_group.setVisible(visible)
