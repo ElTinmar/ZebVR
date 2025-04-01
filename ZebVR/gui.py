@@ -289,9 +289,12 @@ class MainGui(QMainWindow):
 
     def load_settings(self):
         filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr)')
-        with open(filename, 'rb') as fp:
-            state = pickle.load(fp)
-        self.set_state(state)
+        try:
+            with open(filename, 'rb') as fp:
+                state = pickle.load(fp)
+            self.set_state(state)
+        except FileNotFoundError:
+            print(f"Error: The file '{filename}' does not exist.")
 
     def save_settings(self):
         state = self.get_state()
