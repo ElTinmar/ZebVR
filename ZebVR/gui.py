@@ -111,7 +111,6 @@ class MainGui(QMainWindow):
         self.top_buttons.setExclusive(True)
         self.top_buttons.buttonClicked.connect(self.top_button_changed)
 
-
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.West)
         self.tabs.addTab(self.camera_widget, "Camera")
