@@ -45,7 +45,7 @@ class Animal(QWidget):
         self.animal_pix_per_mm = LabeledDoubleSpinBox()
         self.animal_pix_per_mm.setText('pix/mm')
         self.animal_pix_per_mm.setRange(1,200)
-        self.animal_pix_per_mm.setValue(50)
+        self.animal_pix_per_mm.setValue(30)
         self.animal_pix_per_mm.setSingleStep(0.25)
         self.animal_pix_per_mm.valueChanged.connect(self.state_changed)
 
@@ -81,7 +81,7 @@ class Animal(QWidget):
         self.animal_min_size_mm.setText('min area (mm2)')
         self.animal_min_size_mm.setRange(0,100_000)
         self.animal_min_size_mm.setSingleStep(1.0)
-        self.animal_min_size_mm.setValue(2.0)
+        self.animal_min_size_mm.setValue(0.0)
         self.animal_min_size_mm.valueChanged.connect(self.state_changed)
 
         self.animal_max_size_mm = LabeledDoubleSpinBox()
@@ -256,7 +256,7 @@ class Body(QWidget):
         self.body_pix_per_mm.setText('pix/mm')
         self.body_pix_per_mm.setRange(1,200)
         self.body_pix_per_mm.setSingleStep(0.25)
-        self.body_pix_per_mm.setValue(50)
+        self.body_pix_per_mm.setValue(30)
         self.body_pix_per_mm.valueChanged.connect(self.state_changed)
         
         self.body_target_pix_per_mm = LabeledDoubleSpinBox()
@@ -291,7 +291,7 @@ class Body(QWidget):
         self.body_min_size_mm.setText('min area (mm2)')
         self.body_min_size_mm.setRange(0,100_000)
         self.body_min_size_mm.setSingleStep(1.0)
-        self.body_min_size_mm.setValue(2.0)
+        self.body_min_size_mm.setValue(0.0)
         self.body_min_size_mm.valueChanged.connect(self.state_changed)
 
         self.body_max_size_mm = LabeledDoubleSpinBox()
@@ -453,14 +453,14 @@ class Eyes(QWidget):
         self.eyes_pix_per_mm.setText('pix/mm')
         self.eyes_pix_per_mm.setRange(1,200)
         self.eyes_pix_per_mm.setSingleStep(0.25)
-        self.eyes_pix_per_mm.setValue(50)
+        self.eyes_pix_per_mm.setValue(30)
         self.eyes_pix_per_mm.valueChanged.connect(self.state_changed)
 
         self.eyes_target_pix_per_mm = LabeledDoubleSpinBox()
         self.eyes_target_pix_per_mm.setText('target pix/mm')
         self.eyes_target_pix_per_mm.setRange(1,200)
         self.eyes_target_pix_per_mm.setSingleStep(0.25)
-        self.eyes_target_pix_per_mm.setValue(40)
+        self.eyes_target_pix_per_mm.setValue(30)
         self.eyes_target_pix_per_mm.valueChanged.connect(self.state_changed)
         
         self.eyes_intensity_lo = LabeledDoubleSpinBox()
@@ -474,14 +474,14 @@ class Eyes(QWidget):
         self.eyes_intensity_hi.setText('thresh high')
         self.eyes_intensity_hi.setRange(0,1)
         self.eyes_intensity_hi.setSingleStep(0.025)
-        self.eyes_intensity_hi.setValue(0.8)
+        self.eyes_intensity_hi.setValue(1.0)
         self.eyes_intensity_hi.valueChanged.connect(self.state_changed)
 
         self.eyes_thresh_resolution = LabeledSpinBox()
         self.eyes_thresh_resolution.setText('thresh steps')
         self.eyes_thresh_resolution.setSingleStep(1)
         self.eyes_thresh_resolution.setRange(1,100)
-        self.eyes_thresh_resolution.setValue(10)
+        self.eyes_thresh_resolution.setValue(5)
         self.eyes_thresh_resolution.valueChanged.connect(self.state_changed)
 
         self.eyes_gamma = LabeledDoubleSpinBox()
@@ -502,7 +502,7 @@ class Eyes(QWidget):
         self.eyes_min_size_mm.setText('min area (mm2)')
         self.eyes_min_size_mm.setRange(0,1000)
         self.eyes_min_size_mm.setSingleStep(1.0)
-        self.eyes_min_size_mm.setValue(2.0)
+        self.eyes_min_size_mm.setValue(0.0)
         self.eyes_min_size_mm.valueChanged.connect(self.state_changed)
 
         self.eyes_max_size_mm = LabeledDoubleSpinBox()
@@ -630,7 +630,7 @@ class Tail(QWidget):
         self.tail_pix_per_mm.setText('pix/mm')
         self.tail_pix_per_mm.setRange(1,200)
         self.tail_pix_per_mm.setSingleStep(0.25)
-        self.tail_pix_per_mm.setValue(50)
+        self.tail_pix_per_mm.setValue(30)
         self.tail_pix_per_mm.valueChanged.connect(self.state_changed)
         
         self.tail_target_pix_per_mm = LabeledDoubleSpinBox()
@@ -694,14 +694,14 @@ class Tail(QWidget):
         self.tail_length_mm.setText('tail length (mm)')
         self.tail_length_mm.setRange(0.5,10)
         self.tail_length_mm.setSingleStep(0.05)
-        self.tail_length_mm.setValue(3.5)
+        self.tail_length_mm.setValue(3.75)
         self.tail_length_mm.valueChanged.connect(self.state_changed)
 
         self.tail_crop_offset_y_mm = LabeledDoubleSpinBox()
         self.tail_crop_offset_y_mm.setText('vertical offset (mm)')
         self.tail_crop_offset_y_mm.setRange(0,10)
         self.tail_crop_offset_y_mm.setSingleStep(0.025)
-        self.tail_crop_offset_y_mm.setValue(2.0)
+        self.tail_crop_offset_y_mm.setValue(4.0)
         self.tail_crop_offset_y_mm.valueChanged.connect(self.state_changed)
 
         self.tail_crop_width_mm = LabeledDoubleSpinBox()
