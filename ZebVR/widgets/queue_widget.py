@@ -47,6 +47,7 @@ class QueueMonitorWidget(QWidget):
 
     MAX_ROWS = 10
     FIXED_HEIGHT = 480
+    FIXED_WIDTH = 1024
 
     def __init__(
             self,
@@ -63,6 +64,7 @@ class QueueMonitorWidget(QWidget):
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll_area.setFixedHeight(self.FIXED_HEIGHT)
+        self.scroll_area.setFixedWidth(self.FIXED_WIDTH)
         self.layout.addWidget(self.scroll_area)
 
         self.container = QWidget()
