@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QLabel
 )
+from PyQt5.QtCore import Qt
 from typing import Optional
 
 #TODO add dropped frames and fps
@@ -45,6 +46,7 @@ class QueueWidget(QWidget):
 class QueueMonitorWidget(QWidget):
 
     MAX_ROWS = 10
+    FIXED_HEIGHT = 480
 
     def __init__(
             self,
@@ -59,10 +61,14 @@ class QueueMonitorWidget(QWidget):
 
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scroll_area.setFixedHeight(self.FIXED_HEIGHT)
         self.layout.addWidget(self.scroll_area)
 
         self.container = QWidget()
         self.grid = QGridLayout(self.container)
+        self.grid.setSpacing(0)
+        self.grid.setContentsMargins(0, 0, 0, 0) 
         self.scroll_area.setWidget(self.container) 
         
         self.setWindowTitle('Queue Monitor')
