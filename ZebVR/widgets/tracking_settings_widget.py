@@ -844,6 +844,7 @@ class TrackerWidget(QWidget):
         self.animal_identity.valueChanged.connect(self.animal_changed)
 
         self.apply_to_all = QCheckBox('Apply to all animals')
+        self.apply_to_all.setChecked(True)
         self.apply_to_all.stateChanged.connect(self.apply_to_all_changed)
 
         self.animal = Animal()
@@ -951,7 +952,7 @@ class TrackerWidget(QWidget):
     def animal_changed(self, next_animal):
         self.substate[self.current_animal] = self._get_substate()
         self.block_all_signals(True)
-        self._set_substate(self.substate[next_animal])
+        self._set_substate(next_animal, self.substate[next_animal])
         self.block_all_signals(False)
         self.current_animal = next_animal
         self.state_changed.emit()
