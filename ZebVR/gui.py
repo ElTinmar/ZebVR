@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (
     QAction,
     QButtonGroup,
     QFileDialog,
+    QSizePolicy
 )
 from PyQt5.QtGui import QIcon
 from .calibration import (
@@ -122,6 +123,7 @@ class MainGui(QMainWindow):
         self.tabs.addTab(self.sequencer_widget, "Protocol")
         self.tabs.addTab(self.settings_widget, "Settings")
         self.tabs.addTab(self.logs_widget, "Logs") 
+        self.tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding) 
 
         self.start_button = QPushButton()
         self.start_button.setText('start')
@@ -182,7 +184,6 @@ class MainGui(QMainWindow):
         layout.addWidget(self.tabs)
         layout.addLayout(controls)
         layout.addLayout(record)
-        layout.addStretch()
 
     def set_tab_visibililty(self, widgets_to_show, widgets_to_hide):
 
