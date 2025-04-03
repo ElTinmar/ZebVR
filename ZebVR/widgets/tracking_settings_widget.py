@@ -455,14 +455,14 @@ class Eyes(QWidget):
         self.eyes_pix_per_mm.setText('pix/mm')
         self.eyes_pix_per_mm.setRange(1,200)
         self.eyes_pix_per_mm.setSingleStep(0.25)
-        self.eyes_pix_per_mm.setValue(30)
+        self.eyes_pix_per_mm.setValue(self.pix_per_mm)
         self.eyes_pix_per_mm.valueChanged.connect(self.state_changed)
 
         self.eyes_target_pix_per_mm = LabeledDoubleSpinBox()
         self.eyes_target_pix_per_mm.setText('target pix/mm')
         self.eyes_target_pix_per_mm.setRange(1,200)
         self.eyes_target_pix_per_mm.setSingleStep(0.25)
-        self.eyes_target_pix_per_mm.setValue(self.pix_per_mm)
+        self.eyes_target_pix_per_mm.setValue(30)
         self.eyes_target_pix_per_mm.valueChanged.connect(self.state_changed)
         
         self.eyes_intensity_lo = LabeledDoubleSpinBox()
