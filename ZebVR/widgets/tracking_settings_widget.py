@@ -24,11 +24,13 @@ class Animal(QWidget):
 
     def __init__(
             self,
+            pix_per_mm: float = 30,
             *args,
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
+        self.pix_per_mm = pix_per_mm
         self.declare_components()
         self.layout_components()
 
@@ -45,7 +47,7 @@ class Animal(QWidget):
         self.animal_pix_per_mm = LabeledDoubleSpinBox()
         self.animal_pix_per_mm.setText('pix/mm')
         self.animal_pix_per_mm.setRange(1,200)
-        self.animal_pix_per_mm.setValue(30)
+        self.animal_pix_per_mm.setValue(self.pix_per_mm)
         self.animal_pix_per_mm.setSingleStep(0.25)
         self.animal_pix_per_mm.valueChanged.connect(self.state_changed)
 
@@ -242,11 +244,13 @@ class Body(QWidget):
 
     def __init__(
             self,
+            pix_per_mm: float = 30,
             *args,
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
+        self.pix_per_mm = pix_per_mm
         self.declare_components()
         self.layout_components()
 
@@ -256,7 +260,7 @@ class Body(QWidget):
         self.body_pix_per_mm.setText('pix/mm')
         self.body_pix_per_mm.setRange(1,200)
         self.body_pix_per_mm.setSingleStep(0.25)
-        self.body_pix_per_mm.setValue(30)
+        self.body_pix_per_mm.setValue(self.pix_per_mm)
         self.body_pix_per_mm.valueChanged.connect(self.state_changed)
         
         self.body_target_pix_per_mm = LabeledDoubleSpinBox()
@@ -439,11 +443,13 @@ class Eyes(QWidget):
     
     def __init__(
             self,
+            pix_per_mm: float = 30,
             *args,
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
+        self.pix_per_mm = pix_per_mm
         self.declare_components()
         self.layout_components()
 
@@ -460,7 +466,7 @@ class Eyes(QWidget):
         self.eyes_target_pix_per_mm.setText('target pix/mm')
         self.eyes_target_pix_per_mm.setRange(1,200)
         self.eyes_target_pix_per_mm.setSingleStep(0.25)
-        self.eyes_target_pix_per_mm.setValue(30)
+        self.eyes_target_pix_per_mm.setValue(self.pix_per_mm)
         self.eyes_target_pix_per_mm.valueChanged.connect(self.state_changed)
         
         self.eyes_intensity_lo = LabeledDoubleSpinBox()
@@ -616,11 +622,13 @@ class Tail(QWidget):
 
     def __init__(
             self,
+            pix_per_mm: float = 30,
             *args,
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
+        self.pix_per_mm = pix_per_mm
         self.declare_components()
         self.layout_components()
 
@@ -630,7 +638,7 @@ class Tail(QWidget):
         self.tail_pix_per_mm.setText('pix/mm')
         self.tail_pix_per_mm.setRange(1,200)
         self.tail_pix_per_mm.setSingleStep(0.25)
-        self.tail_pix_per_mm.setValue(30)
+        self.tail_pix_per_mm.setValue(self.pix_per_mm)
         self.tail_pix_per_mm.valueChanged.connect(self.state_changed)
         
         self.tail_target_pix_per_mm = LabeledDoubleSpinBox()
@@ -806,6 +814,7 @@ class TrackerWidget(QWidget):
             self,
             settings_file: Path = Path('tracking.json'),
             n_animals: int = 1,
+            pix_per_mm: float = 30,
             *args,
             **kwargs
         ):
@@ -814,6 +823,7 @@ class TrackerWidget(QWidget):
         self.updated = True
         self.settings_file = settings_file
         self.n_animals = n_animals
+        self.pix_per_mm = pix_per_mm 
             
         self.declare_components()
         self.layout_components()
@@ -847,16 +857,16 @@ class TrackerWidget(QWidget):
         self.apply_to_all.setChecked(True)
         self.apply_to_all.stateChanged.connect(self.apply_to_all_changed)
 
-        self.animal = Animal()
+        self.animal = Animal(pix_per_mm=self.pix_per_mm)
         self.animal.state_changed.connect(self.on_change)
 
-        self.body = Body()
+        self.body = Body(pix_per_mm=self.pix_per_mm)
         self.body.state_changed.connect(self.on_change)
 
-        self.eyes = Eyes()
+        self.eyes = Eyes(pix_per_mm=self.pix_per_mm)
         self.eyes.state_changed.connect(self.on_change)
 
-        self.tail = Tail()
+        self.tail = Tail(pix_per_mm=self.pix_per_mm)
         self.tail.state_changed.connect(self.on_change)
 
         self.btn_load = QPushButton('load')

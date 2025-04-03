@@ -12,6 +12,7 @@ class TrackerGui(WorkerNode):
     def __init__(
             self,
             n_animals: int,
+            pix_per_mm: float = 30,
             settings_file: Union[Path, str] = Path('tracking.json'),
             *args,
             **kwargs
@@ -19,6 +20,7 @@ class TrackerGui(WorkerNode):
 
         super().__init__(*args, **kwargs)
         self.n_animals = n_animals 
+        self.pix_per_mm = pix_per_mm
         self.settings_file = Path(settings_file)
 
     def initialize(self) -> None:
@@ -27,6 +29,7 @@ class TrackerGui(WorkerNode):
         self.app = QApplication([])
         self.window = TrackerWidget(
             settings_file = self.settings_file,
+            pix_per_mm = self.pix_per_mm,
             n_animals = self.n_animals
         )
         self.window.show()
