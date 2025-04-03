@@ -189,6 +189,7 @@ class Animal(QWidget):
     def get_state(self) -> Dict:
         
         state = {}
+        state['pix_per_mm'] = self.animal_pix_per_mm.value()
         state['target_pix_per_mm'] = self.animal_target_pix_per_mm.value()
         state['intensity'] = self.animal_intensity.value()
         state['gamma'] = self.animal_gamma.value()
@@ -390,6 +391,7 @@ class Body(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
+        state['pix_per_mm'] = self.body_pix_per_mm.value()
         state['target_pix_per_mm']=self.body_target_pix_per_mm.value()
         state['intensity']=self.body_intensity.value()
         state['gamma']=self.body_gamma.value()
@@ -571,6 +573,7 @@ class Eyes(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
+        state['pix_per_mm'] = self.eyes_pix_per_mm.value()
         state['target_pix_per_mm']=self.eyes_target_pix_per_mm.value()
         state['thresh_lo']=self.eyes_intensity_lo.value()
         state['thresh_hi']=self.eyes_intensity_hi.value()
@@ -757,6 +760,7 @@ class Tail(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
+        state['pix_per_mm'] = self.tail_pix_per_mm.value()
         state['target_pix_per_mm']=self.tail_target_pix_per_mm.value()
         state['gamma']=self.tail_gamma.value()
         state['contrast']=self.tail_contrast.value()
