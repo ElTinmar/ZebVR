@@ -955,7 +955,7 @@ class TrackerWidget(QWidget):
         for child in self.findChildren(QWidget): 
             child.blockSignals(block)
 
-    def animal_changed(self, next_animal):
+    def animal_changed(self, next_animal: int):
         self.substate[self.current_animal] = self._get_substate()
         self.block_all_signals(True)
         self._set_substate(next_animal, self.substate[next_animal])
@@ -971,7 +971,6 @@ class TrackerWidget(QWidget):
 
     def save(self):
         state = self.get_state()
-        
         filename, _ = QFileDialog.getSaveFileName(
             self, 
             "Save file",
@@ -1043,7 +1042,7 @@ class TrackerWidget(QWidget):
     def _apply_substate(self, substates: Dict):
 
         for key, substate in substates.items():
-            self._set_substate(key, substate)
+            self._set_substate(int(key), substate)
 
     def set_state(self, state: Dict) -> None:
         
