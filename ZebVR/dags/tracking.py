@@ -228,7 +228,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
             sender = cropper, 
             receiver = tracker_worker_list[i], 
             queue = queue_crop_to_tracker[i], 
-            name = f'background_output_{i}'
+            name = f'cropper_output_{i}'
         )
 
         dag.connect_data(

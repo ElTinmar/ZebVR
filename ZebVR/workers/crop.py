@@ -25,7 +25,7 @@ class CropWorker(WorkerNode):
             crop = data['image'][y:y+h,x:x+w]
             origin = np.array((x,y), dtype = np.int32)
             shape = np.array((h,w), dtype = np.int32) 
-            res[f'background_output_{n}'] = np.array(
+            res[f'cropper_output_{n}'] = np.array(
                 (data['index'], data['timestamp'], crop, origin, shape, n),
                 dtype=([
                     ('index', int),
