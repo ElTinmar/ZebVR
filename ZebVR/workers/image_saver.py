@@ -89,12 +89,14 @@ class VideoSaverWorker(WorkerNode):
         
         # init file name: add timestamp
         prefix, ext = os.path.splitext(filename)
-        filename = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
-        while os.path.exists(filename):
+        video_filename = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
+        while os.path.exists(video_filename):
             time.sleep(1)
-            filename = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
+            video_filename = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
 
-        self.filename = filename
+        prefix, ext = os.path.splitext(video_filename)
+        self.video_filename = video_filename
+        self.timings_filename = prefix + '.csv'
         self.fps = fps
         self.height = 2*(height//2) # some video_codecs require images with even size
         self.width = 2*(width//2)
@@ -157,10 +159,15 @@ class VideoSaverWorker(WorkerNode):
                 preset = self.video_preset
             )
 
+        self.fd = open(self.timings_filename, 'w')
+        headers = ('index', 'timestamp')
+        self.fd.write(','.join(headers) + '\n')
+
     def cleanup(self) -> None:
 
         super().cleanup()
         self.writer.close()
+        self.fd.close()
 
     def process_data(self, data: NDArray) -> None:
 
@@ -169,14 +176,9 @@ class VideoSaverWorker(WorkerNode):
 
         if data['index'] % self.decimation == 0:
             
-            # TODO: write a resize node to put in between 
-
-            #image_resized = cv2.resize(data['image'], (self.width, self.height), interpolation = cv2.INTER_NEAREST)
-            #self.writer.write_frame(image_resized)
-
-            # TODO write a node to convert images to yuv420p and write video writer that can handle direct yuv420p input 
-
             self.writer.write_frame(data['image'])
+            self.fd.write(f"{data['index']}, {data['timestamp']}\n")
+
             return data
 
     def process_metadata(self, metadata) -> Any:
