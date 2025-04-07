@@ -129,7 +129,7 @@ class VideoSaverWorker(WorkerNode):
                 width = self.width, 
                 fps = self.fps, 
                 q = self.video_quality,
-                filename = self.filename,
+                filename = self.video_filename,
                 codec = self.video_codec,
                 profile = self.video_profile,
                 preset = self.video_preset
@@ -141,7 +141,7 @@ class VideoSaverWorker(WorkerNode):
                 width = self.width, 
                 fps = self.fps, 
                 q = self.video_quality,
-                filename = self.filename,
+                filename = self.video_filename,
                 codec = self.video_codec,
                 profile = self.video_profile,
                 preset = self.video_preset
@@ -153,7 +153,7 @@ class VideoSaverWorker(WorkerNode):
                 width = self.width, 
                 fps = self.fps, 
                 q = self.video_quality,
-                filename = self.filename,
+                filename = self.video_filename,
                 codec = self.video_codec,
                 profile = self.video_profile,
                 preset = self.video_preset
