@@ -18,7 +18,7 @@ class StimGUI(WorkerNode):
             omr_speed_mm_per_sec: float = 10,
             okr_spatial_frequency_deg: float = 20,
             okr_speed_deg_per_sec: float = 36,
-            looming_center_mm: Tuple = (15,15),
+            looming_center_mm: Tuple = (0,0),
             looming_period_sec: float = 30,
             looming_expansion_time_sec: float = 10,
             looming_expansion_speed_mm_per_sec: float = 10,
