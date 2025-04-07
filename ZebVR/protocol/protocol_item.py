@@ -77,7 +77,8 @@ class Phototaxis(ProtocolItem):
             'phototaxis_polarity': self.phototaxis_polarity,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'looming_center_mm': (0, 0)
+            'looming_center_mm': (0, 0),
+            'following_looming_center_mm': (0, 0)
         })
         return command
     
@@ -111,7 +112,8 @@ class OKR(ProtocolItem):
             'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'looming_center_mm': (0, 0)
+            'looming_center_mm': (0, 0),
+            'following_looming_center_mm': (0, 0)
         })
         return command
 
@@ -145,7 +147,8 @@ class ConcentricGrating(ProtocolItem):
             'speed_mm_per_sec': self.speed_mm_per_sec,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'looming_center_mm': (0, 0)
+            'looming_center_mm': (0, 0),
+            'following_looming_center_mm': (0, 0)
         })
         return command
     
@@ -182,7 +185,8 @@ class OMR(ProtocolItem):
             'omr_speed_mm_per_sec': self.omr_speed_mm_per_sec,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'looming_center_mm': (0, 0)
+            'looming_center_mm': (0, 0),
+            'following_looming_center_mm': (0, 0)
         })
         return command
 
@@ -210,7 +214,8 @@ class Dark(ProtocolItem):
             'stim_select': self.STIM_SELECT,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'looming_center_mm': (0, 0)
+            'looming_center_mm': (0, 0),
+            'following_looming_center_mm': (0, 0)
         })
         return command
 
@@ -238,7 +243,8 @@ class Bright(ProtocolItem):
             'stim_select': self.STIM_SELECT,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'looming_center_mm': (0, 0)
+            'looming_center_mm': (0, 0),
+            'following_looming_center_mm': (0, 0)
         })
         return command
 
@@ -272,12 +278,13 @@ class FollowingLooming(ProtocolItem):
         
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
-            'looming_center_mm': self.looming_center_mm,
-            'looming_period_sec': self.looming_period_sec,
-            'looming_expansion_time_sec': self.looming_expansion_time_sec,
-            'looming_expansion_speed_mm_per_sec': self.looming_expansion_speed_mm_per_sec,
+            'following_looming_center_mm': self.looming_center_mm,
+            'following_looming_period_sec': self.looming_period_sec,
+            'following_looming_expansion_time_sec': self.looming_expansion_time_sec,
+            'following_looming_expansion_speed_mm_per_sec': self.looming_expansion_speed_mm_per_sec,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
+            'looming_center_mm': (0, 0),
         })
         return command 
 
@@ -317,6 +324,7 @@ class Looming(ProtocolItem):
             'looming_expansion_speed_mm_per_sec': self.looming_expansion_speed_mm_per_sec,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
+            'following_looming_center_mm': (0, 0)
         })
         return command 
 
@@ -352,6 +360,7 @@ class PreyCapture(ProtocolItem):
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
             'looming_center_mm': (0, 0),
+            'following_looming_center_mm': (0, 0),
             'n_preys': self.n_preys,
             'prey_speed_mm_s': self.prey_speed_mm_s,
             'prey_radius_mm': self.prey_radius_mm,
