@@ -19,9 +19,13 @@ class StimGUI(WorkerNode):
             okr_spatial_frequency_deg: float = 20,
             okr_speed_deg_per_sec: float = 36,
             looming_center_mm: Tuple = (0,0),
-            looming_period_sec: float = 30,
+            looming_period_sec: float = 10,
             looming_expansion_time_sec: float = 10,
             looming_expansion_speed_mm_per_sec: float = 10,
+            following_looming_center_mm: Tuple = (0,0),
+            following_looming_period_sec: float = 10,
+            following_looming_expansion_time_sec: float = 10,
+            following_looming_expansion_speed_mm_per_sec: float = 10,
             foreground_color: Tuple = (0.2, 0.2, 0.2, 1.0),
             background_color: Tuple = (0.0, 0.0, 0.0, 1.0),
             n_preys: int = 50,
@@ -44,6 +48,10 @@ class StimGUI(WorkerNode):
         self.looming_period_sec = looming_period_sec
         self.looming_expansion_time_sec = looming_expansion_time_sec
         self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
+        self.following_looming_center_mm = following_looming_center_mm
+        self.following_looming_period_sec = following_looming_period_sec
+        self.following_looming_expansion_time_sec = following_looming_expansion_time_sec
+        self.following_looming_expansion_speed_mm_per_sec = following_looming_expansion_speed_mm_per_sec
         self.foreground_color = foreground_color
         self.background_color = background_color
         self.n_preys = n_preys
@@ -65,6 +73,10 @@ class StimGUI(WorkerNode):
             looming_period_sec=self.looming_period_sec,
             looming_expansion_time_sec=self.looming_expansion_time_sec,
             looming_expansion_speed_mm_per_sec=self.looming_expansion_speed_mm_per_sec,
+            following_looming_center_mm=self.following_looming_center_mm,
+            following_looming_period_sec=self.following_looming_period_sec,
+            following_looming_expansion_time_sec=self.following_looming_expansion_time_sec,
+            following_looming_expansion_speed_mm_per_sec=self.following_looming_expansion_speed_mm_per_sec,
             foreground_color=self.foreground_color,
             background_color=self.background_color,
             n_preys = self.n_preys,

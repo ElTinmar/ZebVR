@@ -285,6 +285,10 @@ class StimWidget(QWidget):
             looming_period_sec: float = 10,
             looming_expansion_time_sec: float = 10,
             looming_expansion_speed_mm_per_sec: float = 10,
+            following_looming_center_mm: Tuple = (0,0),
+            following_looming_period_sec: float = 10,
+            following_looming_expansion_time_sec: float = 10,
+            following_looming_expansion_speed_mm_per_sec: float = 10,
             foreground_color: Tuple = (0.2, 0.2, 0.2, 1.0),
             background_color: Tuple = (0.0, 0.0, 0.0, 1.0),
             n_preys: int = 50,
@@ -310,6 +314,10 @@ class StimWidget(QWidget):
         self.looming_period_sec = looming_period_sec
         self.looming_expansion_time_sec = looming_expansion_time_sec
         self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
+        self.following_looming_center_mm = following_looming_center_mm
+        self.following_looming_period_sec = following_looming_period_sec
+        self.following_looming_expansion_time_sec = following_looming_expansion_time_sec
+        self.following_looming_expansion_speed_mm_per_sec = following_looming_expansion_speed_mm_per_sec
         self.foreground_color = foreground_color
         self.background_color = background_color
         self.n_preys = n_preys
@@ -447,31 +455,31 @@ class StimWidget(QWidget):
         self.sb_following_looming_center_mm_x = LabeledDoubleSpinBox()
         self.sb_following_looming_center_mm_x.setText('X (mm)')
         self.sb_following_looming_center_mm_x.setRange(-10_000,10_000)
-        self.sb_following_looming_center_mm_x.setValue(self.looming_center_mm[0])
+        self.sb_following_looming_center_mm_x.setValue(self.following_looming_center_mm[0])
         self.sb_following_looming_center_mm_x.valueChanged.connect(self.on_change)
 
         self.sb_following_looming_center_mm_y = LabeledDoubleSpinBox()
         self.sb_following_looming_center_mm_y.setText('Y (mm)')
         self.sb_following_looming_center_mm_y.setRange(-10_000,10_000)
-        self.sb_following_looming_center_mm_y.setValue(self.looming_center_mm[1])
+        self.sb_following_looming_center_mm_y.setValue(self.following_looming_center_mm[1])
         self.sb_following_looming_center_mm_y.valueChanged.connect(self.on_change)
 
         self.sb_following_looming_period_sec = LabeledDoubleSpinBox()
         self.sb_following_looming_period_sec.setText('period (s)')
         self.sb_following_looming_period_sec.setRange(0,100_000)
-        self.sb_following_looming_period_sec.setValue(self.looming_period_sec)
+        self.sb_following_looming_period_sec.setValue(self.following_looming_period_sec)
         self.sb_following_looming_period_sec.valueChanged.connect(self.on_change)
 
         self.sb_following_looming_expansion_time_sec = LabeledDoubleSpinBox()
         self.sb_following_looming_expansion_time_sec.setText('expansion time (s)')
         self.sb_following_looming_expansion_time_sec.setRange(0,100_000)
-        self.sb_following_looming_expansion_time_sec.setValue(self.looming_expansion_time_sec)
+        self.sb_following_looming_expansion_time_sec.setValue(self.following_looming_expansion_time_sec)
         self.sb_following_looming_expansion_time_sec.valueChanged.connect(self.on_change)
 
         self.sb_following_looming_expansion_speed_mm_per_sec = LabeledDoubleSpinBox()
         self.sb_following_looming_expansion_speed_mm_per_sec.setText('expansion speed (mm/s)')
         self.sb_following_looming_expansion_speed_mm_per_sec.setRange(0,100_000)
-        self.sb_following_looming_expansion_speed_mm_per_sec.setValue(self.looming_expansion_speed_mm_per_sec)
+        self.sb_following_looming_expansion_speed_mm_per_sec.setValue(self.following_looming_expansion_speed_mm_per_sec)
         self.sb_following_looming_expansion_speed_mm_per_sec.valueChanged.connect(self.on_change)
 
         # Looming
