@@ -50,6 +50,7 @@ class SharedStimParameters:
         self.foreground_color = RawArray('d', self.default_foreground_color)
         self.background_color = RawArray('d', self.default_background_color)
         self.stim_select = RawValue('d', self.default_stim_select) 
+        self.start_time_sec = RawValue('d', 0)
         self.phototaxis_polarity = RawValue('d', self.default_phototaxis_polarity) 
         self.omr_spatial_period_mm = RawValue('d', self.default_omr_spatial_period_mm)
         self.omr_angle_deg = RawValue('d', self.default_omr_angle_deg)
@@ -145,6 +146,7 @@ class GeneralStim(VisualStim):
         uniform float u_right_eye_angle[{self.n_animals}];
         uniform vec4 u_bounding_box[{self.n_animals}];
         uniform highp float u_time_s;
+        uniform highp float u_start_time_s;
 
         // stim parameters
         uniform vec4 u_foreground_color;
@@ -274,7 +276,7 @@ class GeneralStim(VisualStim):
                 }
 
                 if (u_stim_select == FOLLOWING_LOOMING) {
-                    float rel_time = mod(u_time_s, u_following_looming_period_sec); 
+                    float rel_time = mod(u_time_s-u_start_time_s, u_following_looming_period_sec); 
                     float looming_on = float(rel_time<=u_following_looming_expansion_time_sec);
                     if ( distance(fish_ego_coords_mm, u_following_looming_center_mm) <= u_following_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
                     {
@@ -283,7 +285,7 @@ class GeneralStim(VisualStim):
                 } 
 
                 if (u_stim_select == LOOMING) {
-                    float rel_time = mod(u_time_s, u_looming_period_sec); 
+                    float rel_time = mod(u_time_s-u_start_time_s, u_looming_period_sec); 
                     float looming_on = float(rel_time<=u_looming_expansion_time_sec);
                     if ( distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.wz/2.0 + u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
                     {
@@ -379,6 +381,7 @@ class GeneralStim(VisualStim):
             self.program[f'u_right_eye_angle[{i}]'] = self.shared_fish_state[i].right_eye_angle.value
     
         # stim parameters
+        self.program['u_start_time_s'] = self.shared_stim_parameters.start_time_sec.value
         self.program['u_foreground_color'] = self.shared_stim_parameters.foreground_color[:]
         self.program['u_background_color'] = self.shared_stim_parameters.background_color[:]
         self.program['u_stim_select'] = self.shared_stim_parameters.stim_select.value
@@ -418,7 +421,9 @@ class GeneralStim(VisualStim):
         self.fd = open(timings_file, 'w')
         headers = (
             'timestamp',
-            'stim_id',
+            'time_sec',
+            'stim_id',          
+            'start_time_sec',
             'phototaxis_polarity',
             'omr_spatial_period_mm',
             'omr_angle_deg',
@@ -473,13 +478,16 @@ class GeneralStim(VisualStim):
 
         timestamp = time.perf_counter_ns()
         timestamp_sec = 1e-9*timestamp
+        time_sec = timestamp_sec % self.rollover_time_sec
 
-        self.update_shader_variables(timestamp_sec % self.rollover_time_sec)
+        self.update_shader_variables(time_sec)
         self.update()
 
         row = (
             f'{timestamp}',
+            f'{time_sec}',
             f'{self.shared_stim_parameters.stim_select.value}',
+            f'{self.shared_stim_parameters.start_time_sec.value}',
             f'{self.shared_stim_parameters.phototaxis_polarity.value}',
             f'{self.shared_stim_parameters.omr_spatial_period_mm.value}',
             f'{self.shared_stim_parameters.omr_angle_deg.value}',
@@ -562,6 +570,11 @@ class GeneralStim(VisualStim):
         if control is None:
             return
         
+        timestamp = time.perf_counter_ns()
+        timestamp_sec = 1e-9*timestamp
+        time_sec = timestamp_sec % self.rollover_time_sec
+        
+        self.shared_stim_parameters.start_time_sec.value = time_sec
         self.shared_stim_parameters.stim_select.value = control['stim_select']
         self.shared_stim_parameters.phototaxis_polarity.value = control['phototaxis_polarity']
         self.shared_stim_parameters.omr_spatial_period_mm.value = control['omr_spatial_period_mm']
