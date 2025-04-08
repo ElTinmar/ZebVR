@@ -276,22 +276,18 @@ class GeneralStim(VisualStim):
                 if (u_stim_select == FOLLOWING_LOOMING) {
                     float rel_time = mod(u_time_s, u_following_looming_period_sec); 
                     float looming_on = float(rel_time<=u_following_looming_expansion_time_sec);
-                    if ( rel_time <= u_following_looming_period_sec/2 ) { 
-                        if ( distance(fish_ego_coords_mm, u_following_looming_center_mm) <= u_following_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
-                        {
-                            gl_FragColor = u_foreground_color;
-                        }
+                    if ( distance(fish_ego_coords_mm, u_following_looming_center_mm) <= u_following_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
+                    {
+                        gl_FragColor = u_foreground_color;
                     }
                 } 
 
                 if (u_stim_select == LOOMING) {
                     float rel_time = mod(u_time_s, u_looming_period_sec); 
                     float looming_on = float(rel_time<=u_looming_expansion_time_sec);
-                    if ( rel_time <= u_looming_period_sec/2 ) { 
-                        if ( distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.wz/2.0 + u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
-                        {
-                            gl_FragColor = u_foreground_color;
-                        }
+                    if ( distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.wz/2.0 + u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
+                    {
+                        gl_FragColor = u_foreground_color;
                     }
                 }
 
