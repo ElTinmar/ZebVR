@@ -5,9 +5,7 @@ from typing import Any
 import cv2
 import os
 from video_tools import (
-    FFMPEG_VideoWriter_CPU, 
     FFMPEG_VideoWriter_CPU_YUV420P, 
-    FFMPEG_VideoWriter_GPU, 
     FFMPEG_VideoWriter_GPU_YUV420P,
     FFMPEG_VideoWriter_CPU_Grayscale
 )
