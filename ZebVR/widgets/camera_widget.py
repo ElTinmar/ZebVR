@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QApplication
 )
-from PyQt5.QtCore import pyqtSignal, QRunnable, QThreadPool, QObject
+from PyQt5.QtCore import pyqtSignal, QRunnable, QThreadPool, QObject, QTimer
 from PyQt5.QtGui import QImage
 import numpy as np
 import cv2
@@ -56,6 +56,7 @@ class CameraWidget(QWidget):
     state_changed = pyqtSignal()
     preview = pyqtSignal(bool)
     PREVIEW_HEIGHT: int = 480
+    REFRESH_RATE = 30
 
     def __init__(self,*args,**kwargs):
 
@@ -71,9 +72,14 @@ class CameraWidget(QWidget):
             'gain'
         ]
 
+        self.image = np.zeros((self.PREVIEW_HEIGHT,self.PREVIEW_HEIGHT), dtype=np.uint8)
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Camera controls')
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.set_pixmap)
+        self.timer.start(1000/self.REFRESH_RATE) 
 
     def declare_components(self) -> None:
 
@@ -120,8 +126,7 @@ class CameraWidget(QWidget):
         self.preview_stop = QPushButton('stop preview')
         self.preview_stop.clicked.connect(self.stop)
 
-        self.image = QLabel()
-        self.set_image(np.zeros((self.PREVIEW_HEIGHT,self.PREVIEW_HEIGHT), dtype=np.uint8))
+        self.image_label = QLabel()
 
     def load_file(self):
         filename, _ = QFileDialog.getOpenFileName(
@@ -139,13 +144,16 @@ class CameraWidget(QWidget):
     def stop(self):
         self.preview.emit(False)
 
-    def set_image(self, image_rgb: NDArray):
+    def set_image(self, image: NDArray):
+        self.image = image
+
+    def set_pixmap(self):
         # TODO maybe check that image is uint8
-        h, w = image_rgb.shape[:2]
+        h, w = self.image.shape[:2]
         preview_width = int(w * self.PREVIEW_HEIGHT/h)
-        image_resized = cv2.resize(image_rgb,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
+        image_resized = cv2.resize(self.image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
         pixmap = NDarray_to_QPixmap(image_resized, format = QImage.Format_RGB888)
-        self.image.setPixmap(pixmap)
+        self.image_label.setPixmap(pixmap)
 
     def layout_components(self) -> None:
 
@@ -175,7 +183,7 @@ class CameraWidget(QWidget):
 
         layout_image = QHBoxLayout()
         layout_image.addStretch()
-        layout_image.addWidget(self.image)
+        layout_image.addWidget(self.image_label)
         layout_image.addStretch()
 
         layout_controls.addLayout(layout_channels)
@@ -252,8 +260,8 @@ class CameraWidget(QWidget):
 
 class CameraAcquisition(QRunnable):
 
-    def __init__(self, camera_constructor: Callable[[], Camera], widget: CameraWidget, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, camera_constructor: Callable[[], Camera], widget: CameraWidget):
+        super().__init__()
         self.camera_constructor = camera_constructor
         self.widget = widget
         self.keepgoing = True
