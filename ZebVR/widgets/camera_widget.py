@@ -348,7 +348,12 @@ class CameraController(QObject):
 
         camera = self.camera_constructor()
         self.view.block_signals(True)
-        self.view.set_state(self.get_camera_state(camera))
+        
+        try:
+            self.view.set_state(self.get_camera_state(camera))
+        except Exception as e:
+            print(e)
+
         self.view.block_signals(False)
 
         self.state_changed.emit()
