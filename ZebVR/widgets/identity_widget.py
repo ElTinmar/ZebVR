@@ -182,10 +182,16 @@ class IdentityWidget(QWidget):
         main_layout.addLayout(image_layout)
         main_layout.addStretch()
 
+    def block_all_signals(self, block: bool):
+        for child in self.findChildren(QWidget): 
+            child.blockSignals(block)
+
     def on_change(self) -> None:
         self.set_image(self.image)
     
     def set_image(self, image: NDArray) -> None:
+
+        self.block_all_signals(True)
 
         self.image = image
 
@@ -267,6 +273,8 @@ class IdentityWidget(QWidget):
         image_resized = cv2.resize(grid_image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
         self.image_label.setPixmap(NDarray_to_QPixmap(image_resized))
 
+        self.block_all_signals(False)
+
         self.state_changed.emit()
 
     def set_open_loop_visible(self, visible: bool) -> None:
@@ -285,7 +293,7 @@ class IdentityWidget(QWidget):
             'offsetY': self.offsetY.value(),
             'marginX': self.marginX.value(),
             'marginY': self.marginY.value(),
-            'ROIs': self.ROIs,
+            'ROIs': self.ROIs.copy(),
             'n_animals': len(self.ROIs),
             'open_loop_x_offset': self.centroid_X.value(),
             'open_loop_y_offset': self.centroid_X.value(),
