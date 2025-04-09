@@ -213,7 +213,7 @@ class GeneralStim(VisualStim):
             vec3 camera_coordinates_px = u_proj_to_cam * vec3(coordinates_px, 1.0);
             vec2 camera_coordinates_mm = camera_coordinates_px.xy / u_pix_per_mm;
 
-            gl_FragColor = u_background_color;
+            gl_FragColor = vec4(0,0,0,1);
 
             for (int animal = 0; animal < u_n_animals; animal++) {
 
