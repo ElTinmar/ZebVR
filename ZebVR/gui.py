@@ -1,4 +1,5 @@
 from multiprocessing import Process
+from threading import Thread
 import time
 import json
 import pickle
@@ -38,7 +39,9 @@ from .widgets import (
     SettingsWidget,
     LogsWidget
 )
+from dagline import ProcessingDAG
 from .dags import closed_loop, open_loop, video_recording, tracking
+
         
 class MainGui(QMainWindow):
     
@@ -52,6 +55,7 @@ class MainGui(QMainWindow):
         self.dag = None
         self.worker_logger = None
         self.queue_logger = None
+        self.recording_thread = None
 
         self.create_components()
         self.layout_components()
@@ -578,17 +582,31 @@ class MainGui(QMainWindow):
             self.p_worker_logger.join()
             self.p_queue_logger.join()
 
+        if self.recording_thread is not None:
+            self.recording_thread.join()
+
     def preview(self):
         self.settings['main']['record'] = False
         self.start()
-        
-    def record(self):
-        # TODO make sleep interruptible by stop ? 
+
+    def _record(self, refresh_interval_s: float = 0.1) -> None:
 
         self.settings['main']['record'] = True
+        duration = self.settings['main']['recording_duration']
+        
         self.start() 
-        time.sleep(self.settings['main']['recording_duration']) 
+        elapsed = 0
+        while elapsed < duration:
+            if not self.dag.running:
+                return
+            time.sleep(refresh_interval_s)
+            elapsed += refresh_interval_s
         self.stop()
+
+    def record(self):
+
+        self.recording_thread = Thread(target=self._record)
+        self.recording_thread.start()
 
     def closeEvent(self, event):
         # close all widgets. Ensures that cleanup logic defined in closeEvent 
