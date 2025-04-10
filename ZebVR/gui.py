@@ -55,7 +55,6 @@ class MainGui(QMainWindow):
         self.dag = None
         self.worker_logger = None
         self.queue_logger = None
-        self.recording_thread = None
 
         self.create_components()
         self.layout_components()
@@ -581,9 +580,6 @@ class MainGui(QMainWindow):
             self.queue_logger.stop()
             self.p_worker_logger.join()
             self.p_queue_logger.join()
-
-        if self.recording_thread is not None:
-            self.recording_thread.join()
 
     def preview(self):
         self.settings['main']['record'] = False
