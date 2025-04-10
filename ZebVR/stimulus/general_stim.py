@@ -220,7 +220,9 @@ class GeneralStim(VisualStim):
                 camera_bbox_px = u_bounding_box[animal];
                 if ( !is_point_in_bbox(camera_coordinates_px.xy, camera_bbox_px.xy, camera_bbox_px.xy+camera_bbox_px.wz) ) {
                     continue;
-                } 
+                }
+
+                gl_FragColor = u_background_color; 
 
                 vec3 proj_bbox_origin = u_cam_to_proj * vec3(camera_bbox_px.xy, 1.0);
                 vec3 proj_bbox_size = u_cam_to_proj * vec3(camera_bbox_px.wz, 0.0);
