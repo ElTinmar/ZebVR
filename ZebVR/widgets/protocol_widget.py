@@ -766,8 +766,8 @@ class StimWidget(QWidget):
 
         elif isinstance(protocol_item, ConcentricGrating):
             self.cmb_stim_select.setCurrentText(str(Stim.Visual.CONCENTRIC_GRATING))
-            self.sb_concentric_spatial_freq.setValue(protocol_item.concentric_spatial_period_mm)
-            self.sb_concentric_speed.setValue(protocol_item.concentric_speed_mm_per_sec)  
+            self.sb_concentric_spatial_freq.setValue(protocol_item.spatial_period_mm)
+            self.sb_concentric_speed.setValue(protocol_item.speed_mm_per_sec)  
 
         elif isinstance(protocol_item, OKR):
             self.cmb_stim_select.setCurrentText(str(Stim.Visual.OKR))
@@ -854,8 +854,8 @@ class StimWidget(QWidget):
             protocol = ConcentricGrating(
                 foreground_color = foreground_color,
                 background_color = background_color,
-                concentric_spatial_period_mm = self.sb_concentric_spatial_freq.value(),
-                concentric_speed_mm_per_sec = self.sb_concentric_speed.value(),
+                spatial_period_mm = self.sb_concentric_spatial_freq.value(),
+                speed_mm_per_sec = self.sb_concentric_speed.value(),
                 stop_condition = stop_condition
             )
 

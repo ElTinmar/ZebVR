@@ -123,7 +123,7 @@ class ConcentricGrating(ProtocolItem):
 
     def __init__(
             self, 
-            spatial_period_deg: float,
+            spatial_period_mm: float,
             speed_mm_per_sec: float,
             foreground_color: Tuple[float, float, float, float],
             background_color: Tuple[float, float, float, float],
@@ -132,7 +132,7 @@ class ConcentricGrating(ProtocolItem):
         ) -> None:
 
         super().__init__(*args, **kwargs)
-        self.spatial_period_deg = spatial_period_deg
+        self.spatial_period_mm = spatial_period_mm
         self.speed_mm_per_sec = speed_mm_per_sec
         self.foreground_color = foreground_color
         self.background_color = background_color 
@@ -143,8 +143,8 @@ class ConcentricGrating(ProtocolItem):
 
         command = defaultdict(float, {
             'stim_select': self.STIM_SELECT,
-            'spatial_period_deg': self.spatial_period_deg,
-            'speed_mm_per_sec': self.speed_mm_per_sec,
+            'concentric_spatial_period_mm': self.spatial_period_mm,
+            'concentric_speed_mm_per_sec': self.speed_mm_per_sec,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
             'looming_center_mm': (0, 0),
