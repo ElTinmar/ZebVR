@@ -1,4 +1,4 @@
-from ds18b20 import read_temperature_celsius
+from ds18b20 import read_temperature_celsius, CommunicationError
 from dagline import WorkerNode
 import time
 from typing import Any
@@ -32,7 +32,11 @@ class TemperatureLoggerWorker(WorkerNode):
 
     def process_data(self, data) -> None:
 
-        temperature = read_temperature_celsius()
+        try:
+            temperature = read_temperature_celsius()
+        except CommunicationError:
+            return
+
         timestamp = time.perf_counter_ns()
         self.fd.write(f"{timestamp}, {temperature}\n")
 
