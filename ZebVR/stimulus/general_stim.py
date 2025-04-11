@@ -524,21 +524,23 @@ class GeneralStim(VisualStim):
         try:
             if not data['tracking']['success']:
                 return
+            
+            fields = data['tracking'].dtype.names
 
             print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
             ID = data['identity']
 
-            if data['tracking']['body']['success']:
+            if 'body' in fields and data['tracking']['body']['success']:
                 self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body']['centroid_global']).squeeze()
                 body_axes = data['tracking']['body']['body_axes_global']                
                 self.shared_fish_state[ID].fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
                 self.shared_fish_state[ID].fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
             else:
-                self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroid_global']).squeeze()
+                self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroids_global']).squeeze()
 
             # TODO use eyes heading vector if present?
             # eyes
-            if data['tracking']['eyes']['success']:
+            if 'eyes' in fields and data['tracking']['eyes']['success']:
 
                 if data['tracking']['eyes']['left_eye'] is not None:
                     self.shared_fish_state[ID].left_eye_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['eyes']['left_eye']['centroid_cropped']).squeeze()
@@ -549,21 +551,21 @@ class GeneralStim(VisualStim):
                     self.shared_fish_state[ID].right_eye_angle.value = data['tracking']['eyes']['right_eye']['angle']
 
             # tail
-            if data['tracking']['tail']['success']:
+            if 'tail' in fields and data['tracking']['tail']['success']:
                 skeleton_interp = self.transformation_matrix.transform_points(data['tracking']['tail']['skeleton_interp_cropped'])
                 self.shared_fish_state[ID].tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
                 self.shared_fish_state[ID].tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
 
         except KeyError as err:
-            #print(f'KeyError: {err}')
+            print(f'KeyError: {err}')
             return None 
         
         except TypeError as err:
-            #print(f'TypeError: {err}')
+            print(f'TypeError: {err}')
             return None
         
         except ValueError as err:
-            #print(f'ValueError: {err}')
+            print(f'ValueError: {err}')
             return None
 
     def process_metadata(self, metadata) -> None:

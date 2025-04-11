@@ -75,17 +75,18 @@ class TrackingSaver(WorkerNode):
         right_eye_angle = 0
 
         try:
-            if data['tracking']['body'] is not None:
+            fields = data['tracking'].dtype.names
+
+            if 'body' in fields:
                 fish_centroid[:] = data['tracking']['body']['centroid_global']
                 body_axes = data['tracking']['body']['body_axes_global']
                 fish_caudorostral_axis[:] = body_axes[:,0]
                 fish_mediolateral_axis[:] = body_axes[:,1]
             else:
-                fish_centroid[:] = data['tracking']['animals']['centroid_global']
+                fish_centroid[:] = data['tracking']['animals']['centroids_global']
 
-            # TODO use eyes heading vector if present?
-            # eyes
-            if data['tracking']['eyes'] is not None:
+
+            if 'eyes' in fields:
 
                 if data['tracking']['eyes']['left_eye'] is not None:
                     left_eye_centroid[:] = data['tracking']['eyes']['left_eye']['centroid_cropped'] 
@@ -95,20 +96,19 @@ class TrackingSaver(WorkerNode):
                     right_eye_centroid[:] = data['tracking']['eyes']['right_eye']['centroid_cropped']
                     right_eye_angle = data['tracking']['eyes']['right_eye']['angle']
 
-            # tail
-            if data['tracking']['tail'] is not None:
+            if 'tail' in fields:
                 skeleton_interp = data['tracking']['tail']['skeleton_interp_cropped']  
 
         except KeyError as err:
-            #print(f'KeyError: {err}')
+            print(f'KeyError: {err}')
             return None 
         
         except TypeError as err:
-            #print(f'TypeError: {err}')
+            print(f'TypeError: {err}')
             return None
         
         except ValueError as err:
-            #print(f'ValueError: {err}')
+            print(f'ValueError: {err}')
             return None
 
         row = (
