@@ -7,6 +7,7 @@ from ..workers import (
     Display,
     QueueMonitor,
     ImageFilterWorker, 
+    TemperatureLoggerWorker,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -154,6 +155,12 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
         receive_data_timeout = 1.0,
     )
 
+    temperature_logger = TemperatureLoggerWorker(
+        name = 'temperature_logger',
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+    )
+
     # connect DAG -----------------------------------------------------------------------
     if settings['settings']['videorecording']['video_method'] == 'image sequence':
         dag.connect_data(
@@ -213,5 +220,6 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
     )
 
     dag.add_node(queue_monitor_worker)
+    dag.add_node(temperature_logger)
 
     return (dag, worker_logger, queue_logger)

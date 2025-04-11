@@ -18,6 +18,7 @@ from ..workers import (
     Protocol,
     QueueMonitor,
     ImageFilterWorker, 
+    TemperatureLoggerWorker,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -171,6 +172,12 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0,
+    )
+
+    temperature_logger = TemperatureLoggerWorker(
+        name = 'temperature_logger',
+        logger = worker_logger, 
+        logger_queues = queue_logger,
     )
 
     # tracking --------------------------------------------------
@@ -345,5 +352,6 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         )
 
     dag.add_node(queue_monitor_worker)
+    dag.add_node(temperature_logger)
 
     return (dag, worker_logger, queue_logger)

@@ -26,6 +26,7 @@ from ..workers import (
     QueueMonitor,
     ImageFilterWorker, 
     TrackingSaver,
+    TemperatureLoggerWorker,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -233,6 +234,12 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0,
+    )
+
+    temperature_logger = TemperatureLoggerWorker(
+        name = 'temperature_logger',
+        logger = worker_logger, 
+        logger_queues = queue_logger,
     )
 
     # background subtraction ------------------------------------
@@ -510,5 +517,6 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
     # isolated nodes
     dag.add_node(queue_monitor_worker)
+    dag.add_node(temperature_logger)
 
     return (dag, worker_logger, queue_logger)
