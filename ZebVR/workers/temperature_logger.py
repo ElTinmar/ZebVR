@@ -35,6 +35,7 @@ class TemperatureLoggerWorker(WorkerNode):
         try:
             temperature = read_temperature_celsius()
         except CommunicationError:
+            print('Temperature sensor lost')
             return
 
         timestamp = time.perf_counter_ns()
