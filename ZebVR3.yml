@@ -26,3 +26,4 @@ dependencies:
   - git+https://github.com/ElTinmar/ipc_tools.git@main
   - git+https://github.com/ElTinmar/image_saver.git@main
   - git+https://github.com/ElTinmar/dagline.git@main
+  - git+https://github.com/ElTinmar/TemperatureSensor.git@main
