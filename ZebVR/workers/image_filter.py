@@ -59,10 +59,11 @@ class ImageFilterWorker(WorkerNode):
         
         image_processed = self.image_function(data['image']) 
         output = np.array(
-            (data['index'], data['timestamp'], image_processed),
+            (data['index'], data['timestamp'], data['camera_timestamp'], image_processed),
             dtype=np.dtype([
                 ('index', int),
                 ('timestamp', np.float64),
+                ('camera_timestamp', np.float64),
                 ('image', image_processed.dtype, image_processed.shape)
             ])
         )

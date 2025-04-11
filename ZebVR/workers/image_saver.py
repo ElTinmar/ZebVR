@@ -158,7 +158,7 @@ class VideoSaverWorker(WorkerNode):
             )
 
         self.fd = open(self.timings_filename, 'w')
-        headers = ('index', 'timestamp')
+        headers = ('index', 'timestamp', 'camera_timestamp')
         self.fd.write(','.join(headers) + '\n')
 
     def cleanup(self) -> None:
@@ -175,7 +175,7 @@ class VideoSaverWorker(WorkerNode):
         if data['index'] % self.decimation == 0:
             
             self.writer.write_frame(data['image'])
-            self.fd.write(f"{data['index']}, {data['timestamp']}\n")
+            self.fd.write(f"{data['index']}, {data['timestamp']}, {data['camera_timestamp']}\n")
 
             return data
 
