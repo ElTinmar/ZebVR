@@ -555,15 +555,15 @@ class GeneralStim(VisualStim):
                 self.shared_fish_state[ID].tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
 
         except KeyError as err:
-            print(f'KeyError: {err}')
+            #print(f'KeyError: {err}')
             return None 
         
         except TypeError as err:
-            print(f'TypeError: {err}')
+            #print(f'TypeError: {err}')
             return None
         
         except ValueError as err:
-            print(f'ValueError: {err}')
+            #print(f'ValueError: {err}')
             return None
 
     def process_metadata(self, metadata) -> None:
