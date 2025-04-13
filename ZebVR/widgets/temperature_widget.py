@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QRunnable, QThreadPool, QTimer
 import pyqtgraph as pg
 from collections import deque
-import time
 
 from ..serial_utils import list_serial_devices
 from ds18b20 import read_temperature_celsius
