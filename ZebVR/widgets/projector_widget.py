@@ -1,11 +1,11 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QCheckBox
 from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThreadPool
-from typing import Dict, Optional, Callable
+from typing import Dict, Optional, Callable, List
 from viewsonic_serial import ViewSonicProjector, ConnectionFailed, SourceInput, Bool
 import time
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
 from functools import partial
-from ..serial_utils import list_serial_devices
+from ..serial_utils import list_serial_devices, SerialDevice
 
 class ProjectorWidget(QWidget):
 
@@ -21,7 +21,7 @@ class ProjectorWidget(QWidget):
 
         super().__init__(*args, **kwargs)
 
-        self.serial_devices = list_serial_devices()
+        self.serial_devices: List[SerialDevice] = list_serial_devices()
         self.declare_components()
         self.layout_components()
     
