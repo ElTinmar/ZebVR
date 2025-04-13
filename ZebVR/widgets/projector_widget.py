@@ -5,11 +5,14 @@ from viewsonic_serial import ViewSonicProjector, ConnectionFailed, SourceInput, 
 import time
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
 from functools import partial
+from ..serial_utils import list_serial_devices
+
 class ProjectorWidget(QWidget):
 
     state_changed = pyqtSignal()
     active_signal = pyqtSignal(bool)
     projector_state_changed = pyqtSignal()
+    serial_port_changed = pyqtSignal(str)
     power_on_signal = pyqtSignal()
     power_off_signal = pyqtSignal()
     scale_tooltip = "Used for non-rectangular micromirror arrays (e.g. Lightcrafters)"
@@ -18,6 +21,7 @@ class ProjectorWidget(QWidget):
 
         super().__init__(*args, **kwargs)
 
+        self.serial_devices = list_serial_devices()
         self.declare_components()
         self.layout_components()
     
@@ -68,6 +72,11 @@ class ProjectorWidget(QWidget):
         self.scale_y.setToolTip(self.scale_tooltip)
 
         # Serial communication with the projector
+        self.serial_ports = QComboBox()
+        self.serial_ports.currentIndexChanged.connect(self.serial_changed)
+        for ser_port, description in self.serial_devices:
+            self.serial_ports.addItem(f"{ser_port} - {description}")
+
         self.power_on = QPushButton('Power On')
         self.power_on.clicked.connect(self.power_on_signal.emit)
 
@@ -86,6 +95,9 @@ class ProjectorWidget(QWidget):
         self.power_status = QLabel('Power:')
         self.temperature = QLabel(u'Temperature (\N{DEGREE SIGN}C)')
         self.last_refresh_time = QLabel('Last refresh:')
+
+    def serial_changed(self, index: int):
+        self.serial_port_changed.emit(self.serial_devices[index].device)
 
     def layout_components(self) -> None:
 
@@ -114,6 +126,7 @@ class ProjectorWidget(QWidget):
         main_layout.addLayout(scale_layout)
         main_layout.addWidget(self.proj_fps)
         main_layout.addSpacing(20)
+        main_layout.addWidget(self.serial_ports)
         main_layout.addLayout(power_layout)
         main_layout.addWidget(self.video_source)
         main_layout.addWidget(self.fast_input_mode)
@@ -250,36 +263,43 @@ class ProjectorController(QObject):
         self.projector_checker_started = False
         self.thread_pool = QThreadPool()
         self.checker = None
-
-        self.projector_constructor = partial(ViewSonicProjector, verbose=False) # TODO make a widget selection for this. Add None and gray out panel
+        self.projector_constructor = None
+        
         self.view.state_changed.connect(self.state_changed.emit)
+        self.view.serial_port_changed.connect(self.serial_port_changed)
         self.view.projector_state_changed.connect(self.on_state_changed)
         self.view.power_on_signal.connect(self.power_on)
         self.view.power_off_signal.connect(self.power_off)
         self.view.active_signal.connect(self.set_checker)
 
+    def serial_port_changed(self, port: str):
+        self.set_checker(False)
+        self.projector_constructor = partial(ViewSonicProjector, port=port, verbose=False) 
         self.set_checker(True)
 
     def power_on(self):
+        
+        if self.projector_constructor is None:
+            return
+        
         self.set_checker(False)
-
         try:
             projector = self.projector_constructor()
         except ConnectionFailed:
             return
-        
         projector.power_on()
         self.on_state_changed()
         self.set_checker(True)
 
     def power_off(self):
+        if self.projector_constructor is None:
+            return
+        
         self.set_checker(False)
-
         try:
             projector = self.projector_constructor()
         except ConnectionFailed:
             return
-
         projector.power_off()
         self.set_checker(True)
 
@@ -305,6 +325,9 @@ class ProjectorController(QObject):
                 self.thread_pool.waitForDone(-1)
 
     def on_state_changed(self):
+
+        if self.projector_constructor is None:
+            return
 
         # stop checker
         self.set_checker(False)
