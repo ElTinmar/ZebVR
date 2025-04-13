@@ -13,6 +13,7 @@ dependencies:
 - cupy
 - ffmpeg == 4.4.2 # old version necessary for spinnaker
 - pyserial
+- pyqtgraph
 - pip:
   - psutil
   - git+https://github.com/ElTinmar/video_tools.git@main#egg=video_tools[gpu]
