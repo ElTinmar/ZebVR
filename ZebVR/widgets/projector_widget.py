@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QCheckBox
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QCheckBox
 from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThreadPool
 from typing import Dict, Optional, Callable
 from viewsonic_serial import ViewSonicProjector, ConnectionFailed, SourceInput, Bool
@@ -195,6 +195,7 @@ class ProjectorWidget(QWidget):
         self.active_signal.emit(False)
 
 
+# TODO setting qwidget state from a QRunnable in separate thread is asking for trouble
 class ProjectorChecker(QRunnable):
 
     def __init__(
@@ -368,19 +369,8 @@ class ProjectorController(QObject):
         return state
 
 if __name__ == "__main__":
-
-    from PyQt5.QtWidgets import QApplication, QMainWindow
-    from PyQt5.QtCore import  QRunnable, QThreadPool
-
-    class Window(QMainWindow):
-
-        def __init__(self,*args,**kwargs):
-
-            super().__init__(*args, **kwargs)
-            self.projector_widget = ProjectorWidget()
-            self.setCentralWidget(self.projector_widget)
     
     app = QApplication([])
-    window = Window()
+    window = ProjectorWidget()
     window.show()
     app.exec()
