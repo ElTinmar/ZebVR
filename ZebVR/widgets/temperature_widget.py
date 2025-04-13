@@ -1,15 +1,11 @@
 from PyQt5.QtWidgets import (
     QApplication,
     QWidget, 
-    QListWidget,
-    QListWidgetItem,
-    QPushButton,
-    QHBoxLayout,
     QVBoxLayout,
     QLabel,
     QComboBox
 )
-from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThreadPool, QTimer
+from PyQt5.QtCore import QRunnable, QThreadPool, QTimer
 import pyqtgraph as pg
 from collections import deque
 import time
