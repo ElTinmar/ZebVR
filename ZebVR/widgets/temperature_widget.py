@@ -85,6 +85,7 @@ class TemperatureWidget(QWidget):
         self.temperature_curve_data = self.temperature_curve.plot(pen=pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH))
 
     def serial_changed(self, index) -> None:
+        self.state_changed.emit()
         port = self.serial_devices[index].device
         if port == '':
             self.stop_monitor()
