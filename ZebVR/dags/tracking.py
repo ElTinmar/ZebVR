@@ -16,7 +16,8 @@ from ..workers import (
     TrackerGui, 
     TrackingDisplay,
     QueueMonitor,
-    TrackingSaver
+    TrackingSaver,
+    TemperatureLoggerWorker
 )
 
 DEFAULT_QUEUE_SIZE_MB = 100
@@ -125,6 +126,14 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0,
+    )
+
+    temperature_logger = TemperatureLoggerWorker(
+        filename = settings['temperature']['csv_filename'],
+        serial_port = settings['temperature']['serial_port'],
+        name = 'temperature_logger',
+        logger = worker_logger, 
+        logger_queues = queue_logger,
     )
 
     # background subtraction ------------------------------------
@@ -256,5 +265,6 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
 
     # isolated nodes
     dag.add_node(queue_monitor_worker)
+    dag.add_node(temperature_logger)
 
     return (dag, worker_logger, queue_logger)

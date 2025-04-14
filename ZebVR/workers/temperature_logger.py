@@ -8,6 +8,7 @@ class TemperatureLoggerWorker(WorkerNode):
     def __init__(
             self, 
             filename: str = 'temperature.csv',
+            serial_port: str = '/dev/ttyUSB0',
             *args, 
             **kwargs
         ) -> None:
@@ -15,6 +16,7 @@ class TemperatureLoggerWorker(WorkerNode):
         super().__init__(*args, **kwargs)
 
         self.filename = filename
+        self.serial_port = serial_port
         self.fd = None
 
     def set_filename(self, filename:str):
@@ -33,7 +35,7 @@ class TemperatureLoggerWorker(WorkerNode):
     def process_data(self, data) -> None:
 
         try:
-            temperature = read_temperature_celsius()
+            temperature = read_temperature_celsius(port=self.serial_port)
         except CommunicationError as e:
             print(e)
             return

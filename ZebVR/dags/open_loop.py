@@ -176,6 +176,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     temperature_logger = TemperatureLoggerWorker(
         filename = settings['temperature']['csv_filename'],
+        serial_port = settings['temperature']['serial_port'],
         name = 'temperature_logger',
         logger = worker_logger, 
         logger_queues = queue_logger,

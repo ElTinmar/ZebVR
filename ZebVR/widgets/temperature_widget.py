@@ -129,9 +129,12 @@ class TemperatureWidget(QWidget):
         self.state_changed.emit()
 
     def get_state(self) -> Dict:
+        index = self.serial_ports.currentIndex()
+        port = self.serial_devices[index].device
 
         state = {}
         state['csv_filename'] = self.edt_filename.text()
+        state['serial_port'] = port
         return state
     
     def set_state(self, state: Dict) -> None:
