@@ -35,6 +35,7 @@ class TemperatureLoggerWorker(WorkerNode):
     def process_data(self, data) -> None:
 
         try:
+            # this blocks and takes ~ 1s
             temperature = read_temperature_celsius(port=self.serial_port)
         except CommunicationError as e:
             print(e)
