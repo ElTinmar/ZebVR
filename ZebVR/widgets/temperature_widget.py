@@ -3,7 +3,8 @@ from PyQt5.QtWidgets import (
     QWidget, 
     QVBoxLayout,
     QLabel,
-    QComboBox
+    QComboBox,
+    QPushButton
 )
 from PyQt5.QtCore import QRunnable, QThreadPool, QTimer
 import pyqtgraph as pg
@@ -16,13 +17,17 @@ pg.setConfigOption('background', (251,251,251,255))
 pg.setConfigOption('foreground', 'k')
 pg.setConfigOption('antialias', True)
 
-# TODO add log file?
 class TemperatureWidget(QWidget):
 
-    N_TIME_POINTS = 100
-    REFRESH_RATE = 1  
+    N_TIME_POINTS = 600
+    REFRESH_RATE_TEMPERATURE = 1  
     TARGET_TEMPERATURE = 28.0
     ACCEPTABLE_RANGE = 1.0
+    TEMP_RANGE = (16,34)
+    HEIGHT = 400
+    LINE_COL = (50,50,50,255)
+    LINE_WIDTH = 2
+    TARGET_COL = (0,255,0,100)
 
     def __init__(self,*args,**kwargs):
 
@@ -35,12 +40,15 @@ class TemperatureWidget(QWidget):
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.show_temperature)
-        self.timer.start(int(1000/self.REFRESH_RATE)) 
+        self.timer.start(int(1000/self.REFRESH_RATE_TEMPERATURE)) 
 
         self.declare_components()
         self.layout_components()
     
     def declare_components(self) -> None:
+
+        self.refresh = QPushButton('Refresh serial devices')
+        self.refresh.clicked.connect(self.refresh_serial)
 
         self.serial_ports = QComboBox()
         self.serial_ports.currentIndexChanged.connect(self.serial_changed)
@@ -50,19 +58,19 @@ class TemperatureWidget(QWidget):
         self.temperature_label = QLabel()
 
         self.temperature_curve = pg.plot()
-        self.temperature_curve.setFixedHeight(400)
-        self.temperature_curve.setYRange(15,35)
+        self.temperature_curve.setFixedHeight(self.HEIGHT)
+        self.temperature_curve.setYRange(*self.TEMP_RANGE)
         self.temperature_curve.setXRange(0,self.N_TIME_POINTS)
         self.temperature_curve.setLabel('left', 'Temperature (\N{DEGREE SIGN}C)')
 
         target_temp_zone = pg.LinearRegionItem(
             values = [self.TARGET_TEMPERATURE-self.ACCEPTABLE_RANGE, self.TARGET_TEMPERATURE+self.ACCEPTABLE_RANGE], 
-            pen = (0,255,0,100),
-            brush = (0,255,0,100),
+            pen = self.TARGET_COL,
+            brush = self.TARGET_COL,
             orientation = 'horizontal'
         )
         self.temperature_curve.addItem(target_temp_zone)
-        self.temperature_curve_data = self.temperature_curve.plot(pen=pg.mkPen((50,50,50,255), width=2))
+        self.temperature_curve_data = self.temperature_curve.plot(pen=pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH))
 
     def serial_changed(self, index) -> None:
         port = self.serial_devices[index].device
@@ -75,6 +83,7 @@ class TemperatureWidget(QWidget):
 
     def layout_components(self) -> None:
         layout = QVBoxLayout(self)
+        layout.addWidget(self.refresh)
         layout.addWidget(self.serial_ports)
         layout.addWidget(self.temperature_label)
         layout.addWidget(self.temperature_curve)
@@ -84,14 +93,22 @@ class TemperatureWidget(QWidget):
         if self.monitor is not None: 
             self.monitor.stop()
         self.thread_pool.waitForDone(-1)
+        self.monitor = None
 
     def set_temperature(self, temp: float) -> None:
         self.current_temperature = temp
         self.temperature.append(temp)
         
     def show_temperature(self) -> None:
-        self.temperature_label.setText(f"temprerature: {self.current_temperature:.2f}\N{DEGREE SIGN}C")
+        self.temperature_label.setText(f"temperature: {self.current_temperature:.2f}\N{DEGREE SIGN}C")
         self.temperature_curve_data.setData(self.temperature)
+
+    def refresh_serial(self):
+        self.stop_monitor()
+        self.serial_devices = [SerialDevice()] + list_serial_devices()
+        self.serial_ports.clear()
+        for ser_port, description in self.serial_devices:
+            self.serial_ports.addItem(f"{ser_port} - {description}")
 
     def closeEvent(self, event):
         self.stop_monitor()
@@ -116,9 +133,12 @@ class TemperatureMonitor(QRunnable):
     
     def run(self):
         while self.keepgoing:
-            temperature = read_temperature_celsius(port = self.port)
-            self.widget.set_temperature(temperature)
-
+            try:
+                temperature = read_temperature_celsius(port = self.port)
+                self.widget.set_temperature(temperature)
+            except Exception as e:
+                print(e)
+            
 if __name__ == "__main__":
 
     app = QApplication([])

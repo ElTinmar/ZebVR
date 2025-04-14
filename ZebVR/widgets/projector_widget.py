@@ -86,8 +86,12 @@ class ProjectorWidget(QWidget):
         self.fullscreen.stateChanged.connect(self.state_changed.emit)
 
         # Serial communication with the projector
+
         self.serial_group = QGroupBox('RS232 projector control')
         self.serial_group.setEnabled(False)
+
+        self.refresh = QPushButton('Refresh serial devices')
+        self.refresh.clicked.connect(self.refresh_serial)
 
         self.serial_ports = QComboBox()
         self.serial_ports.currentIndexChanged.connect(self.serial_changed)
@@ -121,6 +125,12 @@ class ProjectorWidget(QWidget):
         
         self.serial_group.setEnabled(True)
         self.serial_port_changed.emit(port)
+
+    def refresh_serial(self):
+        self.serial_devices = [SerialDevice()] + list_serial_devices()
+        self.serial_ports.clear()
+        for ser_port, description in self.serial_devices:
+            self.serial_ports.addItem(f"{ser_port} - {description}")
 
     def layout_components(self) -> None:
 
@@ -160,6 +170,7 @@ class ProjectorWidget(QWidget):
         main_layout.addWidget(self.fullscreen)
         main_layout.addWidget(self.proj_fps)
         main_layout.addSpacing(20)
+        main_layout.addWidget(self.refresh)
         main_layout.addWidget(self.serial_ports)
         main_layout.addWidget(self.serial_group)
         main_layout.addStretch()
