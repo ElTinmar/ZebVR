@@ -548,7 +548,8 @@ class MainGui(QMainWindow):
 
     def start(self):
         self.camera_controller.set_preview(False)
-        #self.projector_controller.set_checker(False)
+        self.temperature_widget.stop_monitor()
+        self.projector_controller.set_checker(False)
 
         pprint.pprint(self.settings)
         filename = self.settings['settings']['prefix'] + '.metadata'

@@ -69,8 +69,7 @@ class TemperatureWidget(QWidget):
     def serial_changed(self, index) -> None:
         port = self.serial_devices[index].device
         if port == '':
-            if self.monitor is not None: 
-                self.monitor.stop()
+            self.stop_monitor()
             return 
         
         self.monitor = TemperatureMonitor(self, port=port)
@@ -83,6 +82,11 @@ class TemperatureWidget(QWidget):
         layout.addWidget(self.temperature_curve)
         layout.addStretch()
 
+    def stop_monitor(self) -> None:
+        if self.monitor is not None: 
+            self.monitor.stop()
+        self.thread_pool.waitForDone(-1)
+
     def set_temperature(self, temp: float) -> None:
         self.current_temperature = temp
         self.temperature.append(temp)
@@ -92,8 +96,7 @@ class TemperatureWidget(QWidget):
         self.temperature_curve_data.setData(self.temperature)
 
     def closeEvent(self, event):
-        self.monitor.stop()
-        self.thread_pool.waitForDone(-1)
+        self.stop_monitor()
 
 class TemperatureMonitor(QRunnable):
 
