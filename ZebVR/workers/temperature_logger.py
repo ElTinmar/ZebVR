@@ -37,7 +37,7 @@ class TemperatureLoggerWorker(WorkerNode):
         try:
             temperature = read_temperature_celsius(port=self.serial_port)
         except CommunicationError as e:
-            print(e)
+            # print(e)
             return
 
         timestamp = time.perf_counter_ns()
