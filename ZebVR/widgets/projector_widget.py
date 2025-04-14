@@ -81,6 +81,10 @@ class ProjectorWidget(QWidget):
         self.scale_y.valueChanged.connect(self.state_changed.emit)
         self.scale_y.setToolTip(self.scale_tooltip)
 
+        self.fullscreen = QCheckBox('fullscreen')
+        self.fullscreen.setChecked(True)
+        self.fullscreen.stateChanged.connect(self.state_changed.emit)
+
         # Serial communication with the projector
         self.serial_group = QGroupBox('RS232 projector control')
         self.serial_group.setEnabled(False)
@@ -135,7 +139,6 @@ class ProjectorWidget(QWidget):
         scale_layout.addWidget(self.scale_y)
         scale_layout.setSpacing(50)
 
-
         power_layout = QHBoxLayout()
         power_layout.addWidget(self.power_on)
         power_layout.addWidget(self.power_off)
@@ -154,6 +157,7 @@ class ProjectorWidget(QWidget):
         main_layout.addLayout(resolution_layout)
         main_layout.addLayout(offset_layout)
         main_layout.addLayout(scale_layout)
+        main_layout.addWidget(self.fullscreen)
         main_layout.addWidget(self.proj_fps)
         main_layout.addSpacing(20)
         main_layout.addWidget(self.serial_ports)
@@ -169,6 +173,7 @@ class ProjectorWidget(QWidget):
         state['resolution'] = (self.proj_width.value(), self.proj_height.value())
         state['offset'] = (self.offset_x.value(), self.offset_y.value())
         state['pixel_scale'] = (self.scale_x.value(), self.scale_y.value())
+        state['fullscreen'] = self.fullscreen.isChecked()
         state['fps'] = self.proj_fps.value()
         
         return state
@@ -188,7 +193,8 @@ class ProjectorWidget(QWidget):
                 self.scale_x.setValue(x[0]),
                 self.scale_y.setValue(x[1])
             ),
-            'fps': self.proj_fps.setValue   
+            'fps': self.proj_fps.setValue,
+            'fullscreen': self.fullscreen.setChecked,   
         }
 
         for key, setter in setters.items():

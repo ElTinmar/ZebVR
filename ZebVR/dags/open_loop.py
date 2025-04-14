@@ -231,6 +231,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         pix_per_mm = settings['calibration']['pix_per_mm'],
         refresh_rate = settings['projector']['fps'],
         vsync = True,
+        fullscreen = settings['projector']['fullscreen'],
         timings_file = settings['settings']['stim_output']['csv_filename'],
         stim_select = 0,
         num_tail_points_interp = settings['settings']['tracking']['n_tail_pts_interp']

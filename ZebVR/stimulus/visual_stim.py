@@ -21,6 +21,7 @@ class VisualStim(app.Canvas):
             transformation_matrix: AffineTransform2D = AffineTransform2D.identity(),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             vsync: bool = False,
+            fullscreen: bool = True,
         ) -> None:
             
             self.vertex_shader = vertex_shader
@@ -33,6 +34,7 @@ class VisualStim(app.Canvas):
             self.pixel_scaling = pixel_scaling
             self.vsync = vsync
             self.pix_per_mm = pix_per_mm
+            self.use_fullscreen = fullscreen
             self.initialized = Event()
 
     def initialize(self):
@@ -45,7 +47,7 @@ class VisualStim(app.Canvas):
             position = self.window_position, 
             keys = 'interactive', 
             vsync = self.vsync,
-            fullscreen = True,
+            fullscreen = self.use_fullscreen,
             always_on_top = True,
         )
 

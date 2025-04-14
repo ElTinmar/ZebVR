@@ -97,7 +97,8 @@ class GeneralStim(VisualStim):
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             pix_per_mm: float = 30,
             refresh_rate: int = 120,
-            vsync: bool = True,
+            vsync: bool = False,
+            fullscreen: bool = True,
             timings_file: str = 'stim.csv',
             num_tail_points_interp: int = 40,
             stim_select: float = 0,
@@ -330,7 +331,8 @@ class GeneralStim(VisualStim):
             window_decoration = window_decoration, 
             transformation_matrix = transformation_matrix, 
             pixel_scaling = pixel_scaling, 
-            vsync = vsync
+            vsync = vsync,
+            fullscreen = fullscreen
         )
 
         self.shared_fish_state = [SharedFishState(num_tail_points_interp) for _ in  ROI_identities]
