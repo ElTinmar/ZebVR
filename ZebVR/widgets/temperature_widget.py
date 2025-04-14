@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import (
     QComboBox
 )
 from PyQt5.QtCore import QRunnable, QThreadPool, QTimer
-from PyQt5 import QtGui
 import pyqtgraph as pg
 from collections import deque
 
@@ -17,8 +16,7 @@ pg.setConfigOption('background', (251,251,251,255))
 pg.setConfigOption('foreground', 'k')
 pg.setConfigOption('antialias', True)
 
-
-# TODO when recording starts you want to stop the monitor ?
+# TODO add log file?
 class TemperatureWidget(QWidget):
 
     N_TIME_POINTS = 100
