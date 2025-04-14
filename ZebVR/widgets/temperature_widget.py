@@ -29,6 +29,8 @@ class TemperatureWidget(QWidget):
         self.current_temperature = 0.0
         self.temperature = deque(maxlen=self.N_TIME_POINTS)
         self.serial_devices = [SerialDevice()] + list_serial_devices()
+        self.thread_pool = QThreadPool()
+        self.monitor = None
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.show_temperature)
@@ -37,9 +39,7 @@ class TemperatureWidget(QWidget):
         self.declare_components()
         self.layout_components()
 
-        self.thread_pool = QThreadPool()
-        self.monitor = TemperatureMonitor(self, '/dev/ttyUSB0')
-        self.thread_pool.start(self.monitor)
+
     
     def declare_components(self) -> None:
 
@@ -69,7 +69,8 @@ class TemperatureWidget(QWidget):
 
         port = self.serial_devices[index].device
         if port == '':
-            self.monitor.stop()
+            if self.monitor is not None: 
+                self.monitor.stop()
             return 
         
         self.monitor = TemperatureMonitor(self, port=port)
@@ -80,6 +81,7 @@ class TemperatureWidget(QWidget):
         layout.addWidget(self.serial_ports)
         layout.addWidget(self.temperature_label)
         layout.addWidget(self.temperature_curve)
+        layout.addStretch()
 
     def set_temperature(self, temp: float) -> None:
         self.current_temperature = temp

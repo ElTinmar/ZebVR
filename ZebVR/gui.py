@@ -37,6 +37,7 @@ from .widgets import (
     IdentityWidget,
     SequencerWidget,
     SettingsWidget,
+    TemperatureWidget,
     LogsWidget
 )
 from dagline import ProcessingDAG
@@ -98,6 +99,8 @@ class MainGui(QMainWindow):
 
         self.logs_widget = LogsWidget()
         self.logs_widget.state_changed.connect(self.update_logs)
+
+        self.temperature_widget = TemperatureWidget()
         
         self.close_loop_button = QPushButton('Close-loop')
         self.close_loop_button.setCheckable(True)
@@ -126,6 +129,7 @@ class MainGui(QMainWindow):
         self.tabs.addTab(self.sequencer_widget, "Protocol")
         self.tabs.addTab(self.settings_widget, "Settings")
         self.tabs.addTab(self.logs_widget, "Logs") 
+        self.tabs.addTab(self.temperature_widget, "T (\N{DEGREE SIGN}C)") 
         self.tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding) 
 
         self.start_button = QPushButton()
