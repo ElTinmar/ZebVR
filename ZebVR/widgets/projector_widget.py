@@ -318,6 +318,7 @@ class ProjectorController(QObject):
 
         if port == '':
             self.set_checker(False)
+            self.projector_constructor = None
             return
         
         self.set_checker(False)
