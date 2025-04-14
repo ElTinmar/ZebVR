@@ -15,6 +15,7 @@ from .stim_output_widget import StimOutputWidget
 class SettingsWidget(QWidget):
 
     state_changed = pyqtSignal()
+    prefix_changed = pyqtSignal(str)
     OUTPUT_FOLDER: str = 'output/data'
 
     def __init__(self, *args, **kwargs):
@@ -45,6 +46,7 @@ class SettingsWidget(QWidget):
 
     def update_prefix(self, prefix) -> None:
         self.prefix = os.path.join(self.OUTPUT_FOLDER, prefix)
+        self.prefix_changed.emit(prefix)
 
     def force_videorecording(self, force: bool):
         self.video_recording_widget.force_checked(force)

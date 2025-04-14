@@ -93,15 +93,18 @@ class MainGui(QMainWindow):
 
         self.sequencer_widget = SequencerWidget()
         self.sequencer_widget.state_changed.connect(self.update_sequencer_settings)
-
+        
+        self.temperature_widget = TemperatureWidget()
+        self.temperature_widget.state_changed.connect(self.update_temperature)
+        
         self.settings_widget = SettingsWidget()
+        self.settings_widget.prefix_changed.connect(self.temperature_widget.set_prefix)
         self.settings_widget.state_changed.connect(self.update_settings)
+        self.settings_widget.experiment_data_widget.experiment_data() # update prefix
 
         self.logs_widget = LogsWidget()
         self.logs_widget.state_changed.connect(self.update_logs)
 
-        self.temperature_widget = TemperatureWidget()
-        
         self.close_loop_button = QPushButton('Close-loop')
         self.close_loop_button.setCheckable(True)
         self.open_loop_button = QPushButton('Open-loop')
@@ -361,6 +364,9 @@ class MainGui(QMainWindow):
     def update_sequencer_settings(self):
         self.settings['sequencer'] = self.sequencer_widget.get_state()
 
+    def update_temperature(self):
+        self.settings['temperature'] = self.temperature_widget.get_state()
+
     def update_main_settings(self):
         self.settings['main']['recording_duration'] = self.recording_duration.value()
 
@@ -374,6 +380,7 @@ class MainGui(QMainWindow):
         self.update_settings()
         self.update_logs()
         self.update_sequencer_settings()
+        self.update_temperature()
         self.update_main_settings()
     
     def registration_callback(self):

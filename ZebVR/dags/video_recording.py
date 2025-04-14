@@ -156,6 +156,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
     )
 
     temperature_logger = TemperatureLoggerWorker(
+        filename = settings['temperature']['csv_filename'],
         name = 'temperature_logger',
         logger = worker_logger, 
         logger_queues = queue_logger,

@@ -6,18 +6,23 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QPushButton
 )
-from PyQt5.QtCore import QRunnable, QThreadPool, QTimer
+from PyQt5.QtCore import QRunnable, QThreadPool, QTimer, pyqtSignal
 import pyqtgraph as pg
 from collections import deque
+import os
+from typing import Dict
 
 from ..serial_utils import list_serial_devices, SerialDevice
 from ds18b20 import read_temperature_celsius
+from qt_widgets import LabeledEditLine
 
 pg.setConfigOption('background', (251,251,251,255))
 pg.setConfigOption('foreground', 'k')
 pg.setConfigOption('antialias', True)
 
 class TemperatureWidget(QWidget):
+
+    state_changed = pyqtSignal()
 
     N_TIME_POINTS = 600
     REFRESH_RATE_TEMPERATURE = 1  
@@ -28,6 +33,7 @@ class TemperatureWidget(QWidget):
     LINE_COL = (50,50,50,255)
     LINE_WIDTH = 2
     TARGET_COL = (0,255,0,100)
+    CSV_FOLDER: str = 'output/data'
 
     def __init__(self,*args,**kwargs):
 
@@ -37,6 +43,7 @@ class TemperatureWidget(QWidget):
         self.serial_devices = [SerialDevice()] + list_serial_devices()
         self.thread_pool = QThreadPool()
         self.monitor = None
+        self.filename = ''
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.show_temperature)
@@ -46,6 +53,11 @@ class TemperatureWidget(QWidget):
         self.layout_components()
     
     def declare_components(self) -> None:
+        
+        self.edt_filename = LabeledEditLine()
+        self.edt_filename.setLabel('temperature file:')
+        self.edt_filename.setText('temperature.csv')
+        self.edt_filename.textChanged.connect(self.state_changed)
 
         self.refresh = QPushButton('Refresh serial devices')
         self.refresh.clicked.connect(self.refresh_serial)
@@ -83,6 +95,7 @@ class TemperatureWidget(QWidget):
 
     def layout_components(self) -> None:
         layout = QVBoxLayout(self)
+        layout.addWidget(self.edt_filename)
         layout.addWidget(self.refresh)
         layout.addWidget(self.serial_ports)
         layout.addWidget(self.temperature_label)
@@ -109,6 +122,27 @@ class TemperatureWidget(QWidget):
         self.serial_ports.clear()
         for ser_port, description in self.serial_devices:
             self.serial_ports.addItem(f"{ser_port} - {description}")
+
+    def set_prefix(self, prefix: str) -> None:
+        self.filename = os.path.join(self.CSV_FOLDER, f'temperature_{prefix}.csv')
+        self.edt_filename.setText(self.filename)
+        self.state_changed.emit()
+
+    def get_state(self) -> Dict:
+
+        state = {}
+        state['csv_filename'] = self.edt_filename.text()
+        return state
+    
+    def set_state(self, state: Dict) -> None:
+
+        setters = {
+            'csv_filename': self.edt_filename.setText
+        }
+        
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
 
     def closeEvent(self, event):
         self.stop_monitor()
