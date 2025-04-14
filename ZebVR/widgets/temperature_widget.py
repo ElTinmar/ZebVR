@@ -88,7 +88,7 @@ class TemperatureWidget(QWidget):
         self.temperature.append(temp)
         
     def show_temperature(self) -> None:
-        self.temperature_label.setText(f"temprerature: {self.current_temperature:2f}\N{DEGREE SIGN}C")
+        self.temperature_label.setText(f"temprerature: {self.current_temperature:.2f}\N{DEGREE SIGN}C")
         self.temperature_curve_data.setData(self.temperature)
 
     def closeEvent(self, event):
