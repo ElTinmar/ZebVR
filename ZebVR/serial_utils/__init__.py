@@ -4,8 +4,8 @@ from serial.tools.list_ports import comports
 ARDUINO_VID = 0x2341
 
 class SerialDevice(NamedTuple):
-    device: str
-    description: str
+    device: str = ''
+    description: str = ''
 
 def list_serial_devices() -> List[SerialDevice]:
     ports = comports()

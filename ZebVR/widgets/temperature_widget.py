@@ -9,12 +9,13 @@ from PyQt5.QtCore import QRunnable, QThreadPool, QTimer
 import pyqtgraph as pg
 from collections import deque
 
-from ..serial_utils import list_serial_devices
+from ..serial_utils import list_serial_devices, SerialDevice
 from ds18b20 import read_temperature_celsius
 
 pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')
 
+# TODO when recording starts you want to stop the monitor ?
 class TemperatureWidget(QWidget):
 
     N_TIME_POINTS = 100
@@ -27,7 +28,7 @@ class TemperatureWidget(QWidget):
         super().__init__(*args, **kwargs)
         self.current_temperature = 0.0
         self.temperature = deque(maxlen=self.N_TIME_POINTS)
-        self.serial_devices = list_serial_devices()
+        self.serial_devices = [SerialDevice()] + list_serial_devices()
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.show_temperature)
@@ -65,8 +66,13 @@ class TemperatureWidget(QWidget):
         self.temperature_curve_data = self.temperature_curve.plot(pen=(30,30,30,255))
 
     def serial_changed(self, index) -> None:
-        self.monitor.stop()
-        self.monitor = TemperatureMonitor(self, port=self.serial_devices[index].device)
+
+        port = self.serial_devices[index].device
+        if port == '':
+            self.monitor.stop()
+            return 
+        
+        self.monitor = TemperatureMonitor(self, port=port)
         self.thread_pool.start(self.monitor)
 
     def layout_components(self) -> None:

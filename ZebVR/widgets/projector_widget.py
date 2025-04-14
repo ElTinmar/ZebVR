@@ -21,7 +21,7 @@ class ProjectorWidget(QWidget):
 
         super().__init__(*args, **kwargs)
 
-        self.serial_devices: List[SerialDevice] = list_serial_devices()
+        self.serial_devices: List[SerialDevice] = [SerialDevice()] + list_serial_devices()
         self.declare_components()
         self.layout_components()
     
@@ -274,6 +274,11 @@ class ProjectorController(QObject):
         self.view.active_signal.connect(self.set_checker)
 
     def serial_port_changed(self, port: str):
+
+        if port == '':
+            self.set_checker(False)
+            return
+        
         self.set_checker(False)
         self.projector_constructor = partial(ViewSonicProjector, port=port, verbose=False) 
         self.set_checker(True)
