@@ -1,4 +1,14 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QCheckBox
+from PyQt5.QtWidgets import (
+    QApplication, 
+    QWidget, 
+    QVBoxLayout, 
+    QHBoxLayout, 
+    QLabel, 
+    QPushButton, 
+    QComboBox, 
+    QCheckBox,
+    QGroupBox
+)
 from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThreadPool
 from typing import Dict, Optional, Callable, List
 from viewsonic_serial import ViewSonicProjector, ConnectionFailed, SourceInput, Bool
@@ -72,6 +82,9 @@ class ProjectorWidget(QWidget):
         self.scale_y.setToolTip(self.scale_tooltip)
 
         # Serial communication with the projector
+        self.serial_group = QGroupBox('RS232 projector control')
+        self.serial_group.setEnabled(False)
+
         self.serial_ports = QComboBox()
         self.serial_ports.currentIndexChanged.connect(self.serial_changed)
         for ser_port, description in self.serial_devices:
@@ -97,7 +110,13 @@ class ProjectorWidget(QWidget):
         self.last_refresh_time = QLabel('Last refresh:')
 
     def serial_changed(self, index: int):
-        self.serial_port_changed.emit(self.serial_devices[index].device)
+        port = self.serial_devices[index].device
+        if port == '':
+            self.serial_group.setEnabled(False)
+            return
+        
+        self.serial_group.setEnabled(True)
+        self.serial_port_changed.emit(port)
 
     def layout_components(self) -> None:
 
@@ -116,9 +135,20 @@ class ProjectorWidget(QWidget):
         scale_layout.addWidget(self.scale_y)
         scale_layout.setSpacing(50)
 
+
         power_layout = QHBoxLayout()
         power_layout.addWidget(self.power_on)
         power_layout.addWidget(self.power_off)
+
+        serial_layout = QVBoxLayout()
+        serial_layout.addLayout(power_layout)
+        serial_layout.addWidget(self.video_source)
+        serial_layout.addWidget(self.fast_input_mode)
+        serial_layout.addWidget(self.power_status)
+        serial_layout.addWidget(self.serial_number)
+        serial_layout.addWidget(self.temperature)
+        serial_layout.addWidget(self.last_refresh_time)
+        self.serial_group.setLayout(serial_layout)
 
         main_layout = QVBoxLayout(self)
         main_layout.addLayout(resolution_layout)
@@ -127,13 +157,7 @@ class ProjectorWidget(QWidget):
         main_layout.addWidget(self.proj_fps)
         main_layout.addSpacing(20)
         main_layout.addWidget(self.serial_ports)
-        main_layout.addLayout(power_layout)
-        main_layout.addWidget(self.video_source)
-        main_layout.addWidget(self.fast_input_mode)
-        main_layout.addWidget(self.power_status)
-        main_layout.addWidget(self.serial_number)
-        main_layout.addWidget(self.temperature)
-        main_layout.addWidget(self.last_refresh_time)
+        main_layout.addWidget(self.serial_group)
         main_layout.addStretch()
 
     def block_signals(self, block):
