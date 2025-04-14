@@ -620,3 +620,4 @@ class MainGui(QMainWindow):
         self.sequencer_widget.close()
         self.settings_widget.close()
         self.logs_widget.close()
+        self.temperature_widget.close()

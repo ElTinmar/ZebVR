@@ -6,14 +6,17 @@ from PyQt5.QtWidgets import (
     QComboBox
 )
 from PyQt5.QtCore import QRunnable, QThreadPool, QTimer
+from PyQt5 import QtGui
 import pyqtgraph as pg
 from collections import deque
 
 from ..serial_utils import list_serial_devices, SerialDevice
 from ds18b20 import read_temperature_celsius
 
-pg.setConfigOption('background', 'w')
+pg.setConfigOption('background', (251,251,251,255))
 pg.setConfigOption('foreground', 'k')
+pg.setConfigOption('antialias', True)
+
 
 # TODO when recording starts you want to stop the monitor ?
 class TemperatureWidget(QWidget):
@@ -38,8 +41,6 @@ class TemperatureWidget(QWidget):
 
         self.declare_components()
         self.layout_components()
-
-
     
     def declare_components(self) -> None:
 
@@ -54,7 +55,7 @@ class TemperatureWidget(QWidget):
         self.temperature_curve.setFixedHeight(400)
         self.temperature_curve.setYRange(15,35)
         self.temperature_curve.setXRange(0,self.N_TIME_POINTS)
-        self.temperature_curve.setLabel('left', 'temperature (\N{DEGREE SIGN}C)')
+        self.temperature_curve.setLabel('left', 'Temperature (\N{DEGREE SIGN}C)')
 
         target_temp_zone = pg.LinearRegionItem(
             values = [self.TARGET_TEMPERATURE-self.ACCEPTABLE_RANGE, self.TARGET_TEMPERATURE+self.ACCEPTABLE_RANGE], 
@@ -63,10 +64,9 @@ class TemperatureWidget(QWidget):
             orientation = 'horizontal'
         )
         self.temperature_curve.addItem(target_temp_zone)
-        self.temperature_curve_data = self.temperature_curve.plot(pen=(30,30,30,255))
+        self.temperature_curve_data = self.temperature_curve.plot(pen=pg.mkPen((50,50,50,255), width=2))
 
     def serial_changed(self, index) -> None:
-
         port = self.serial_devices[index].device
         if port == '':
             if self.monitor is not None: 
