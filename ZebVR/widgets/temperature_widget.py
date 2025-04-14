@@ -106,7 +106,6 @@ class TemperatureWidget(QWidget):
     def stop_monitor(self) -> None:
         if self.monitor is not None: 
             self.monitor.stop()
-        self.thread_pool.waitForDone(-1)
         self.monitor = None
 
     def set_temperature(self, temp: float) -> None:
