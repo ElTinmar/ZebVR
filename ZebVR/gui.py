@@ -40,7 +40,6 @@ from .widgets import (
     TemperatureWidget,
     LogsWidget
 )
-from dagline import ProcessingDAG
 from .dags import closed_loop, open_loop, video_recording, tracking
 
         
