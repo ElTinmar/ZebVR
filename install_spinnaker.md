@@ -35,7 +35,7 @@ pip install ~/Downloads/spinnaker_python-4.2.0.46-cp38-cp38-linux_x86_64-20.04/s
 
 ## Download and install SDK and python whl (this will break if they change URL)
 
-Install SDK
+Install SDK for Ubuntu 22.04
 
 ```bash
 sudo apt-get install libusb-1.0-0 libpcre2-16-0 libdouble-conversion3 libxcb-xinput0 libxcb-xinerama0 qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
@@ -49,7 +49,7 @@ rm -rf spinnaker-4.2.0.46-amd64
 rm -f spinnaker-4.2.0.46-amd64-22.04-pkg.tar.gz
 ```
 
-Python wheel:
+Python 3.8 wheel:
 
 ```bash
 wget -O spinnaker_python-4.2.0.46-cp38-cp38-linux_x86_64-20.04.tar.gz https://flir.netx.net/file/asset/68776/original/attachment
