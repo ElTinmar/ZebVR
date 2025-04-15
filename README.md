@@ -92,6 +92,12 @@ error 11 unable to open XIMEA cameras: add user to the plugdev group
 sudo usermod -a -G plugdev <user>
 ```
 
+Permissions to access serial ports to interact with projector / temperature sensor:
+
+```bash
+sudo usermod -a -G dialout <user>
+```
+
 ### Check number of uniforms
 
 ```
