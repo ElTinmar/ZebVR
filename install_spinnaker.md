@@ -4,6 +4,13 @@
 
 https://www.teledynevisionsolutions.com/products/spinnaker-sdk
 
+```
+wget -O spinnaker-4.2.0.46-amd64-20.04-pkg.tar.gz https://flir.netx.net/file/asset/68777/original/attachment
+wget -O spinnaker_python-4.2.0.46-cp38-cp38-linux_x86_64-20.04.tar.gz https://flir.netx.net/file/asset/68776/original/attachment
+tar xzf spinnaker-4.2.0.46-amd64-20.04-pkg.tar.gz
+tar xzf spinnaker_python-4.2.0.46-cp38-cp38-linux_x86_64-20.04.tar.gz
+```
+
 ## Install dependencies
 
 ```
