@@ -27,14 +27,14 @@ cp ZebVR.desktop ~/.local/share/applications/
 ```bash
 git clone https://github.com/ElTinmar/ZebVR.git
 cd ZebVR
-conda env create -f ZebVR2.yml
-conda activate ZebVR2
+conda env create -f ZebVR3.yml
+conda activate ZebVR3
 ```
 
 ### Allow the python interpreter to set scheduler
 
 ```bash
-sudo setcap cap_sys_nice=eip /home/martinprivat/miniconda3/envs/ZebVR2/bin/python3.8
+sudo setcap cap_sys_nice=eip /home/martinprivat/miniconda3/envs/ZebVR3/bin/python3.8
 ```
 
 ### CPU shield and affinity
@@ -47,7 +47,7 @@ sudo apt install cpuset
 sudo cset shield --cpu 1-31 --kthread=on
 sudo cset shield --exec bash
 su username
-conda activate ZebVR2
+conda activate ZebVR3
 python -m ZebVR
 ```
 
@@ -67,7 +67,7 @@ sudo apt install nvidia-cuda-toolkit
 ### Install ximea package into environment
 
 ```bash
-conda activate ZebVR2
+conda activate ZebVR3
 wget https://updates.ximea.com/public/ximea_linux_sp_beta.tgz
 tar xzf ximea_linux_sp_beta.tgz
 cd package
@@ -100,7 +100,7 @@ sudo usermod -a -G dialout <user>
 
 ### Check number of uniforms
 
-```
+```python
 from vispy import app, gloo
 canvas = app.Canvas()
 canvas.show()
