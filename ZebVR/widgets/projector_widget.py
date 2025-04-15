@@ -370,7 +370,7 @@ class ProjectorController(QObject):
             if self.projector_checker_started:
                 self.projector_checker_started = False
                 self.checker.stop()
-                self.thread_pool.waitForDone(-1)
+                self.thread_pool.waitForDone(msecs=500)
 
     def on_state_changed(self):
 

@@ -91,6 +91,7 @@ class TemperatureWidget(QWidget):
             self.stop_monitor()
             return 
         
+        self.stop_monitor()
         self.monitor = TemperatureMonitor(self, port=port)
         self.thread_pool.start(self.monitor)
 
@@ -106,7 +107,8 @@ class TemperatureWidget(QWidget):
     def stop_monitor(self) -> None:
         if self.monitor is not None: 
             self.monitor.stop()
-        self.monitor = None
+            self.monitor = None
+        self.thread_pool.waitForDone(msecs=500)
 
     def set_temperature(self, temp: float) -> None:
         self.current_temperature = temp
