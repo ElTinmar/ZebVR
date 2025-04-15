@@ -296,6 +296,7 @@ class ProjectorChecker(QRunnable):
 class ProjectorController(QObject):
 
     state_changed = pyqtSignal()
+    THREAD_TIMEOUT_MSEC = 500
 
     def __init__(self, view: ProjectorWidget, *args, **kwargs):
         
@@ -370,7 +371,7 @@ class ProjectorController(QObject):
             if self.projector_checker_started:
                 self.projector_checker_started = False
                 self.checker.stop()
-                self.thread_pool.waitForDone(msecs=500)
+                self.thread_pool.waitForDone(msecs=self.THREAD_TIMEOUT_MSEC)
 
     def on_state_changed(self):
 

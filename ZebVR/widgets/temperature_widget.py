@@ -34,6 +34,7 @@ class TemperatureWidget(QWidget):
     LINE_WIDTH = 2
     TARGET_COL = (0,255,0,100)
     CSV_FOLDER: str = 'output/data'
+    THREAD_TIMEOUT_MSEC = 500
 
     def __init__(self,*args,**kwargs):
 
@@ -108,7 +109,7 @@ class TemperatureWidget(QWidget):
         if self.monitor is not None: 
             self.monitor.stop()
             self.monitor = None
-        self.thread_pool.waitForDone(msecs=500)
+        self.thread_pool.waitForDone(msecs=self.THREAD_TIMEOUT_MSEC)
 
     def set_temperature(self, temp: float) -> None:
         self.current_temperature = temp
