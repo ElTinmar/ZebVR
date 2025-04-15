@@ -1,0 +1,34 @@
+[workspace]
+channels = ["conda-forge"]
+name = "ZebVR"
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.8.*"
+cupy = ">=12.3.0,<13"
+ffmpeg = "4.*"
+ipython = ">=8.12.2,<9"
+numpy = ">=1.24.4,<2"
+opencv = ">=4.6.0,<5"
+psutil = ">=6.0.0,<7"
+pyqt = ">=5.15.7,<6"
+snakeviz = ">=2.2.2,<3"
+vispy = ">=0.14.2,<0.15"
+
+[pypi-dependencies]
+video-tools = { git = "https://github.com/ElTinmar/video_tools.git", extras = ["gpu"]}
+tracker = { git = "https://github.com/ElTinmar/tracker.git", branch = "multifish" }
+lightcrafter = { git = "https://github.com/ElTinmar/Lightcrafter.git" }
+viewsonicprojectorrs232 = { git = "https://github.com/ElTinmar/ViewSonicProjectorRS232.git" }
+email-sender = { git = "https://github.com/ElTinmar/email.git" }
+multiprocessing-logger = { git = "https://github.com/ElTinmar/multiprocessing_logger.git" }
+image-tools = { git = "https://github.com/ElTinmar/image_tools.git" }
+qt-widgets = { git = "https://github.com/ElTinmar/qt_widgets.git" }
+camera-tools = { git = "https://github.com/ElTinmar/camera_tools.git" }
+ipc-tools = { git = "https://github.com/ElTinmar/ipc_tools.git" }
+image-saver = { git = "https://github.com/ElTinmar/image_saver.git" }
+dagline = { git = "https://github.com/ElTinmar/dagline.git" }
+ds18b20 = { git = "https://github.com/ElTinmar/TemperatureSensor.git" }
+
+[tasks]
+ZebVR = "python -m ZebVR"
