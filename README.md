@@ -68,13 +68,13 @@ sudo apt install nvidia-cuda-toolkit
 
 ```bash
 conda activate ZebVR2
-wget https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
-tar xzf XIMEA_Linux_SP.tgz
+wget https://updates.ximea.com/public/ximea_linux_sp_beta.tgz
+tar xzf ximea_linux_sp_beta.tgz
 cd package
 ./install -pcie
 cp -r api/Python/v3/ximea "${CONDA_PREFIX}/lib/python3.8/site-packages/"
 cd ..
-rm -f XIMEA_Linux_SP.tgz
+rm -f ximea_linux_sp_beta.tgz
 rm -rf package
 ```
 
