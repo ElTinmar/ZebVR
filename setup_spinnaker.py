@@ -13,6 +13,7 @@ SDK_FOLDER = "spinnaker-4.2.0.46-amd64"
 
 WHEEL_URL = "https://flir.netx.net/file/asset/68776/original/attachment"
 WHEEL_TARBALL = "spinnaker_python-4.2.0.46-cp38-cp38-linux_x86_64-20.04.tar.gz"
+WHEEL_FOLDER = "spinnaker_wheel"
 WHEEL_FILE = "spinnaker_python-4.2.0.46-cp38-cp38-linux_x86_64.whl"
 
 REQUIRED_PACKAGES = [
@@ -50,12 +51,13 @@ def install_system_packages():
     subprocess.check_call(["sudo", "apt-get", "install", "-y"] + REQUIRED_PACKAGES)
     print("System packages installed.")
 
-def download_and_extract(url, out_path):
+def download_and_extract(url, out_path, extract_dir=None):
     print(f"Downloading {out_path}...")
     urllib.request.urlretrieve(url, out_path)
     print(f"Extracting {out_path}...")
+    target_dir = extract_dir or os.getcwd()
     with tarfile.open(out_path, "r:gz") as tar:
-        tar.extractall()
+        tar.extractall(path=target_dir)
     print("Extraction complete.")
 
 def install_spinnaker_sdk():
@@ -73,15 +75,12 @@ def install_spinnaker_sdk():
 
 def install_python_wheel():
     print("Installing Spinnaker Python wheel...")
-    # Find the wheel inside the tarball
-    with tarfile.open(WHEEL_TARBALL, "r:gz") as tar:
-        tar.extractall()
-    subprocess.check_call([sys.executable, "-m", "pip", "install", WHEEL_FILE])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", WHEEL_FILE], cwd=WHEEL_FOLDER)
     print("Python wheel installed.")
 
 def cleanup():
     print("Cleaning up...")
-    for path in [SDK_TARBALL, WHEEL_TARBALL, WHEEL_FILE, SDK_FOLDER]:
+    for path in [SDK_TARBALL, WHEEL_TARBALL, WHEEL_FOLDER, SDK_FOLDER]:
         if os.path.isdir(path):
             shutil.rmtree(path)
         elif os.path.isfile(path):
@@ -94,7 +93,7 @@ if __name__ == "__main__":
         install_system_packages()
         download_and_extract(SDK_URL, SDK_TARBALL)
         install_spinnaker_sdk()
-        download_and_extract(WHEEL_URL, WHEEL_TARBALL)
+        download_and_extract(WHEEL_URL, WHEEL_TARBALL, WHEEL_FOLDER)
         install_python_wheel()
     finally:
         cleanup()
