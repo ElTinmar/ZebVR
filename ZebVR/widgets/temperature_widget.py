@@ -63,10 +63,6 @@ class TemperatureWidget(QWidget):
         self.refresh = QPushButton('Refresh serial devices')
         self.refresh.clicked.connect(self.refresh_serial)
 
-        self.serial_ports = QComboBox()
-        self.serial_ports.currentIndexChanged.connect(self.serial_changed)
-        for ser_port, description in self.serial_devices:
-            self.serial_ports.addItem(f"{ser_port} - {description}")
 
         self.temperature_label = QLabel()
 
@@ -85,16 +81,24 @@ class TemperatureWidget(QWidget):
         self.temperature_curve.addItem(target_temp_zone)
         self.temperature_curve_data = self.temperature_curve.plot(pen=pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH))
 
+
+        self.serial_ports = QComboBox()
+        self.serial_ports.currentIndexChanged.connect(self.serial_changed)
+        for ser_port, description in self.serial_devices:
+            self.serial_ports.addItem(f"{ser_port} - {description}")
+
     def serial_changed(self, index) -> None:
         self.state_changed.emit()
         port = self.serial_devices[index].device
         if port == '':
             self.stop_monitor()
+            self.temperature_curve.setVisible(False)
             return 
         
         self.stop_monitor()
         self.monitor = TemperatureMonitor(self, port=port)
         self.thread_pool.start(self.monitor)
+        self.temperature_curve.setVisible(True)
 
     def layout_components(self) -> None:
         layout = QVBoxLayout(self)
