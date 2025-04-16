@@ -17,7 +17,7 @@ vispy = ">=0.14.2,<0.15"
 
 [pypi-dependencies]
 video-tools = { git = "https://github.com/ElTinmar/video_tools.git", extras = ["gpu"]}
-tracker = { git = "https://github.com/ElTinmar/tracker.git", branch = "multifish" }
+tracker = { git = "https://github.com/ElTinmar/tracker.git" }
 lightcrafter = { git = "https://github.com/ElTinmar/Lightcrafter.git" }
 viewsonicprojectorrs232 = { git = "https://github.com/ElTinmar/ViewSonicProjectorRS232.git" }
 email-sender = { git = "https://github.com/ElTinmar/email.git" }
