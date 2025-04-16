@@ -31,6 +31,38 @@ conda env create -f ZebVR3.yml
 conda activate ZebVR3
 ```
 
+### Permissions to access hardware
+
+```bash
+sudo usermod -a -G plugdev,dialout "$USER"
+```
+
+### CUDA
+
+This seems necessary for now
+TODO make that optional
+
+```bash
+sudo apt install nvidia-cuda-toolkit
+```
+
+### Install ximea package into environment
+
+
+```bash
+conda activate ZebVR3
+python setup_ximea.py
+```
+
+### Download and install spinnaker SDK and python whl (this will break if they change URL)
+
+```bash
+conda activate ZebVR3
+python setup_spinnaker.py
+```
+
+## Optimizations
+
 ### Allow the python interpreter to set scheduler
 
 ```bash
@@ -55,56 +87,6 @@ python -m ZebVR
 sudo cset shield --reset
 ```
 
-### CUDA
-
-This seems necessary for now
-TODO make that optional
-
-```bash
-sudo apt install nvidia-cuda-toolkit
-```
-
-### Install ximea package into environment
-
-```bash
-conda activate ZebVR3
-wget https://updates.ximea.com/public/ximea_linux_sp_beta.tgz
-tar xzf ximea_linux_sp_beta.tgz
-cd package
-./install -pcie
-cp -r api/Python/v3/ximea "${CONDA_PREFIX}/lib/python3.8/site-packages/"
-cd ..
-rm -f ximea_linux_sp_beta.tgz
-rm -rf package
-```
-
-### Download and install spinnaker SDK and python whl (this will break if they change URL)
-
-Install SDK for Ubuntu 22.04
-
-```bash
-sudo apt-get install libusb-1.0-0 libpcre2-16-0 libdouble-conversion3 libxcb-xinput0 libxcb-xinerama0 qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
-wget -O spinnaker-4.2.0.46-amd64-22.04-pkg.tar.gz https://flir.netx.net/file/asset/68771/original/attachment
-tar xzf spinnaker-4.2.0.46-amd64-22.04-pkg.tar.gz
-cd spinnaker-4.2.0.46-amd64
-sed -i 's|.*/etc/init.d/udev restart.*|    sudo systemctl restart systemd-udevd|' configure_spinnaker.sh
-sudo sh install_spinnaker.sh
-cd ..
-rm -rf spinnaker-4.2.0.46-amd64
-rm -f spinnaker-4.2.0.46-amd64-22.04-pkg.tar.gz
-```
-
-Python 3.8 wheel:
-
-```bash
-wget -O spinnaker_python-4.2.0.46-cp38-cp38-linux_x86_64-20.04.tar.gz https://flir.netx.net/file/asset/68776/original/attachment
-tar xzf spinnaker_python-4.2.0.46-cp38-cp38-linux_x86_64-20.04.tar.gz
-conda activate ZebVR3
-pip install spinnaker_python-4.2.0.46-cp38-cp38-linux_x86_64.whl
-rm -f spinnaker_python-4.2.0.46-cp38-cp38-linux_x86_64.whl
-rm -f spinnaker_python-4.2.0.46-cp38-cp38-linux_x86_64-20.04.tar.gz
-```
-
 
 ## Troubleshooting
 
@@ -114,19 +96,7 @@ if error 57 device already open, or if program is slower than usual
 sudo killall python
 ```
 
-error 11 unable to open XIMEA cameras: add user to the plugdev group
-
-```bash
-sudo usermod -a -G plugdev <user>
-```
-
-Permissions to access serial ports to interact with projector / temperature sensor:
-
-```bash
-sudo usermod -a -G dialout <user>
-```
-
-### Check number of uniforms
+### OpenGL check number of uniforms
 
 ```python
 from vispy import app, gloo
