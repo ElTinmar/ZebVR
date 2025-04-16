@@ -2,24 +2,6 @@
 
 Virtual reality for zebrafish.
 
-```bash
-python -m ZebVR
-```
-
-## Using .desktop
-
-Change the content depending on where ZebVR was downloaded
-
-(Otional) If you change settings and want to check syntax:
-
-```bash
-desktop-file-validate ZebVR.desktop
-```
-
-```bash
-cp ZebVR.desktop ~/.local/share/applications/
-```
-
 ## Installation
 
 ### Get code from github and create conda environment
@@ -55,6 +37,27 @@ TODO make that optional
 
 ```bash
 sudo apt install nvidia-cuda-toolkit
+```
+
+## Run
+
+
+```bash
+python -m ZebVR
+```
+
+## Using .desktop
+
+Change the content depending on where ZebVR was downloaded
+
+(Otional) If you change settings and want to check syntax:
+
+```bash
+desktop-file-validate ZebVR.desktop
+```
+
+```bash
+cp ZebVR.desktop ~/.local/share/applications/
 ```
 
 ## Optimizations
