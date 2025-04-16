@@ -31,6 +31,17 @@ conda env create -f ZebVR3.yml
 conda activate ZebVR3
 ```
 
+### Install camera SDK and python bindings into environment
+
+The SDK and python binding URLs are hardcoded in the script and will break
+if the camera manufacturers decide to change their website.
+
+```bash
+conda activate ZebVR3
+python setup_ximea.py
+python setup_spinnaker.py
+```
+
 ### Permissions to access hardware
 
 ```bash
@@ -44,21 +55,6 @@ TODO make that optional
 
 ```bash
 sudo apt install nvidia-cuda-toolkit
-```
-
-### Install ximea package into environment
-
-
-```bash
-conda activate ZebVR3
-python setup_ximea.py
-```
-
-### Download and install spinnaker SDK and python whl (this will break if they change URL)
-
-```bash
-conda activate ZebVR3
-python setup_spinnaker.py
 ```
 
 ## Optimizations
