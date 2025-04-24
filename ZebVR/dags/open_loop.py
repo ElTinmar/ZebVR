@@ -24,7 +24,7 @@ from ..workers import (
 )
 from ..stimulus import VisualStimWorker, GeneralStim
 
-DEFAULT_QUEUE_SIZE_MB = 100
+DEFAULT_QUEUE_SIZE_MB = 500
 
 def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     

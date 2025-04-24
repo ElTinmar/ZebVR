@@ -20,7 +20,7 @@ from ..workers import (
     TemperatureLoggerWorker
 )
 
-DEFAULT_QUEUE_SIZE_MB = 100
+DEFAULT_QUEUE_SIZE_MB = 500
 
 def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     
