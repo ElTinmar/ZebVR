@@ -42,6 +42,8 @@ class DummyTrackerWorker(WorkerNode):
         self.origin = np.array((x,y))
         self.shape = (h,w)
         self.tracking = np.zeros(1, tracker.tracking_param.dtype)
+        self.tracking['success'] = True
+        self.tracking['body']['success'] = True
         self.tracking['body']['centroid_global'] = centroid + self.origin + np.array((w//2, h//2)) 
         self.tracking['body']['body_axes_global'] = heading
         self.indentity = identity
