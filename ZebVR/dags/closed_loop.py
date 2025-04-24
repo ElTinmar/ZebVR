@@ -279,6 +279,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         tracker_worker_list.append(
             TrackerWorker(
                 SingleFishTracker_CPU(), 
+                cam_fps = settings['camera']['framerate_value'],
                 cam_width = settings['camera']['width_value'],
                 cam_height = settings['camera']['height_value'],
                 n_tracker_workers = settings['identity']['n_animals'],

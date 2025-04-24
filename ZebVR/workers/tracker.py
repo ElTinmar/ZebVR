@@ -78,6 +78,7 @@ class TrackerWorker(WorkerNode):
     def __init__(
             self, 
             tracker: SingleFishTracker, 
+            cam_fps: float,
             cam_width: int,
             cam_height: int,
             n_tracker_workers: int,
@@ -89,6 +90,7 @@ class TrackerWorker(WorkerNode):
         self.tracker = tracker
         self.cam_width = cam_width 
         self.cam_height = cam_height
+        self.cam_fps = cam_fps
         self.n_tracker_workers = n_tracker_workers
         self.current_tracking = None
         
@@ -147,7 +149,7 @@ class TrackerWorker(WorkerNode):
             body = eyes = tail = None
 
             if control['body_tracking_enabled']:
-                body = BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**control['body_tracking']))
+                body = BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**control['body_tracking']), fps=self.cam_fps)
 
             if control['eyes_tracking_enabled']:
                 eyes = EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**control['eyes_tracking']))
