@@ -146,6 +146,7 @@ class TrackerWorker(WorkerNode):
             if control is None:
                 continue
 
+            # TODO : parametrize this with a widget
             animal = AnimalTrackerKalman(
                 tracking_param=AnimalTrackerParamTracking(**control['animal_tracking']),
                 fps = self.cam_fps, 
@@ -160,6 +161,7 @@ class TrackerWorker(WorkerNode):
                 body = BodyTrackerKalman(
                     tracking_param=BodyTrackerParamTracking(**control['body_tracking']), 
                     fps = self.cam_fps, 
+                    history_sec = 0.2,
                     model_order=2,
                     model_uncertainty=0.2,
                     measurement_uncertainty=1
