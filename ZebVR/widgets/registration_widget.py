@@ -51,7 +51,7 @@ class RegistrationWidget(QWidget):
         self.detection_threshold.setText('intensity threshold:')
         self.detection_threshold.setRange(0, 1)
         self.detection_threshold.setSingleStep(0.01)
-        self.detection_threshold.setValue(0.15)
+        self.detection_threshold.setValue(0.75)
         self.detection_threshold.valueChanged.connect(self.state_changed)
 
         self.image_contrast = LabeledDoubleSpinBox()
