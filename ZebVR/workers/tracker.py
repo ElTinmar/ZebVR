@@ -7,13 +7,17 @@ from tracker import (
     SingleFishTracker, 
     SingleFishTracker_CPU,
     SingleFishTrackerParamTracking,
-    AnimalTracker_CPU,  
+    AnimalTracker_CPU,
+    AnimalTrackerKalman,  
     AnimalTrackerParamTracking,
     BodyTracker_CPU, 
+    BodyTrackerKalman,
     BodyTrackerParamTracking,
     EyesTracker_CPU,
+    EyesTrackerKalman,
     EyesTrackerParamTracking, 
     TailTracker_CPU,
+    TailTrackerKalman,
     TailTrackerParamTracking,
 )
 from dagline import WorkerNode
@@ -78,6 +82,7 @@ class TrackerWorker(WorkerNode):
     def __init__(
             self, 
             tracker: SingleFishTracker, 
+            cam_fps: float,
             cam_width: int,
             cam_height: int,
             n_tracker_workers: int,
@@ -89,6 +94,7 @@ class TrackerWorker(WorkerNode):
         self.tracker = tracker
         self.cam_width = cam_width 
         self.cam_height = cam_height
+        self.cam_fps = cam_fps
         self.n_tracker_workers = n_tracker_workers
         self.current_tracking = None
         
@@ -140,20 +146,42 @@ class TrackerWorker(WorkerNode):
             if control is None:
                 continue
 
-            animal = AnimalTracker_CPU(
-                tracking_param=AnimalTrackerParamTracking(**control['animal_tracking'])
+            animal = AnimalTrackerKalman(
+                tracking_param=AnimalTrackerParamTracking(**control['animal_tracking']),
+                fps = self.cam_fps, 
+                model_order=2,
+                model_uncertainty=0.2,
+                measurement_uncertainty=1
             )
             
             body = eyes = tail = None
 
             if control['body_tracking_enabled']:
-                body = BodyTracker_CPU(tracking_param=BodyTrackerParamTracking(**control['body_tracking']))
+                body = BodyTrackerKalman(
+                    tracking_param=BodyTrackerParamTracking(**control['body_tracking']), 
+                    fps = self.cam_fps, 
+                    model_order=2,
+                    model_uncertainty=0.2,
+                    measurement_uncertainty=1
+                )
 
             if control['eyes_tracking_enabled']:
-                eyes = EyesTracker_CPU(tracking_param=EyesTrackerParamTracking(**control['eyes_tracking']))
+                eyes = EyesTrackerKalman(
+                    tracking_param=EyesTrackerParamTracking(**control['eyes_tracking']),
+                    fps = self.cam_fps, 
+                    model_order=1,
+                    model_uncertainty=0.2,
+                    measurement_uncertainty=1
+                )
 
             if control['tail_tracking_enabled']:
-                tail = TailTracker_CPU(tracking_param=TailTrackerParamTracking(**control['tail_tracking']))
+                tail = TailTrackerKalman(
+                    tracking_param=TailTrackerParamTracking(**control['tail_tracking']),
+                    fps = self.cam_fps, 
+                    model_order=2,
+                    model_uncertainty=1,
+                    measurement_uncertainty=1
+                )
             
             self.tracker = SingleFishTracker_CPU(
                 SingleFishTrackerParamTracking(
