@@ -106,7 +106,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
         queue_crop_to_tracker.append(
             MonitoredQueue(ModifiableRingBuffer(
-                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+                num_bytes = 100*1024**2,
                 #copy=False, # you probably don't need to copy if processing is fast enough
                 logger = queue_logger,
                 name = 'background_to_trackers',
@@ -116,7 +116,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
         queue_tracking_to_stim.append(
             MonitoredQueue(ModifiableRingBuffer(
-                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+                num_bytes = 100*1024**2,
                 logger = queue_logger,
                 name = 'tracker_to_stim',
                 t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
@@ -125,7 +125,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
         queue_tracking_to_overlay.append(
             MonitoredQueue(ModifiableRingBuffer(
-                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+                num_bytes = 100*1024**2,
                 logger = queue_logger,
                 name = 'tracker_to_overlay',
                 t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
@@ -134,7 +134,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
         queue_tracking_to_saver.append(
             MonitoredQueue(ModifiableRingBuffer(
-                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+                num_bytes = 100*1024**2,
                 logger = queue_logger,
                 name = 'tracker_to_overlay',
                 t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
@@ -143,7 +143,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
     queue_trigger_metadata = MonitoredQueue(
         ModifiableRingBuffer(
-            num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
+            num_bytes = 100*1024**2,
             logger = queue_logger,
             name = 'tracker_to_protocol',
             t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
