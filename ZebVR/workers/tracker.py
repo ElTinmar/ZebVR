@@ -23,7 +23,6 @@ from tracker import (
 from dagline import WorkerNode
 from geometry import SimilarityTransform2D
 
-# TODO fix that
 class DummyTrackerWorker(WorkerNode):
     '''For open loop tracking, sends the centroid / main direction'''
     def __init__(
