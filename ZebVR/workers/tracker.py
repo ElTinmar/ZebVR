@@ -2,6 +2,7 @@ from typing import Any, Dict, Optional
 import numpy as np
 from numpy.typing import NDArray
 import time
+import cv2
 
 from tracker import (
     SingleFishTracker, 
@@ -100,10 +101,12 @@ class TrackerWorker(WorkerNode):
         self.current_tracking = None
         
     def initialize(self) -> None:
-        super().initialize()
-
         # try to trigger numba compilation during init phase (doesn't work right now)
-        # self.tracker.tail.track(np.zeros((100,100),dtype=np.float32), centroid=np.array([0,0]))
+        #fake_fish = np.zeros((self.cam_height, self.cam_width), dtype=np.float32)
+        #cv2.ellipse(fake_fish,(self.cam_height//2, self.cam_width//2),(20,10),0,0,360,255,-1)
+        #self.tracker.track(fake_fish)
+
+        super().initialize()
 
     def process_data(self, data: NDArray) -> Dict:
 
