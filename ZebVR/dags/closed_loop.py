@@ -106,7 +106,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
         queue_crop_to_tracker.append(
             MonitoredQueue(ModifiableRingBuffer(
-                num_bytes = 1024*1024**2,
+                num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
                 #copy=False, # you probably don't need to copy if processing is fast enough
                 logger = queue_logger,
                 name = 'background_to_trackers',
