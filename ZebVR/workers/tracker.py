@@ -99,14 +99,6 @@ class TrackerWorker(WorkerNode):
         self.cam_fps = cam_fps
         self.n_tracker_workers = n_tracker_workers
         self.current_tracking = None
-        
-    def initialize(self) -> None:
-        # try to trigger numba compilation during init phase (doesn't work right now)
-        #fake_fish = np.zeros((self.cam_height, self.cam_width), dtype=np.float32)
-        #cv2.ellipse(fake_fish,(self.cam_height//2, self.cam_width//2),(20,10),0,0,360,255,-1)
-        #self.tracker.track(fake_fish)
-
-        super().initialize()
 
     def process_data(self, data: NDArray) -> Dict:
 
