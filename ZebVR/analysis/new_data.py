@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
+from scipy import stats
 
 from ZebVR.protocol import Stim
 StimType = Stim.Visual
@@ -82,7 +83,7 @@ for age in DPF:
             angle, angle_unwrapped = get_heading_angle(phototaxis)
             angle_unwrapped_interp = np.interp(interpolated_time, relative_time_sec, angle_unwrapped)
             phototaxis_data = np.vstack((phototaxis_data, angle_unwrapped_interp))
-
+  
     firsthalf = interpolated_time[0:num_frames_phototaxis//2]
     secondhalf = interpolated_time[num_frames_phototaxis//2:-1]
     avg_firsthalf = np.mean(phototaxis_data, axis=0)[0:num_frames_phototaxis//2]
