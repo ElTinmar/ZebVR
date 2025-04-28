@@ -7,9 +7,9 @@ from scipy import stats
 
 from ZebVR.protocol import Stim
 StimType = Stim.Visual
-
+ 
 DATAFOLDER = Path(
-    os.environ.get('DATAFOLDER_CICHLIDS', '/media/martin/DATA/Cichlids/')
+    os.environ.get('DATAFOLDER_CICHLIDS', '/media/martin/DATA/Cichlids/') 
 )
 DATAFILES = [
     ('stim_00_07dpf_Cichlid_Do_24_Apr_2025_12h00min07sec.csv', 'tracking_00_07dpf_Cichlid_Thu_24_Apr_2025_12h00min07sec.csv'), # bad flipping example
@@ -36,25 +36,14 @@ YLIM = (-420,420)
 
 # -----------------------------------------------------
 
-stim_file, tracking_file = DATAFILES[2]
-
-tracking = pd.read_csv(
-    DATAFOLDER / tracking_file, 
-    usecols=['index', 'timestamp', 'centroid_x', 'centroid_y', 'pc1_x', 'pc1_y']
-)
-stim = pd.read_csv(
-    DATAFOLDER / stim_file, 
-    usecols=['timestamp', 'stim_id', 'phototaxis_polarity']
-)
-
 def find_stim(stim: pd.DataFrame, tracking: pd.DataFrame, stim_type: StimType) -> pd.DataFrame:
-    timestamps_dark = stim.loc[stim['stim_id'] == stim_type, 'timestamp']
-    start = timestamps_dark.iloc[0]
-    stop = timestamps_dark.iloc[-1]
+    timestamp = stim.loc[stim.stim_id == stim_type, 'timestamp']
+    start = timestamp.iloc[0]
+    stop = timestamp.iloc[-1]
     return tracking[(start <= tracking.timestamp) & (tracking.timestamp <= stop)]
 
 def get_heading_angle(data: pd.DataFrame):
-    angle = np.arctan2(data['pc1_y'],data['pc1_x'])
+    angle = np.arctan2(data.pc1_y, data.pc1_x)
     angle_unwrapped = np.unwrap(angle)
     return angle, angle_unwrapped 
 
@@ -75,7 +64,7 @@ for age in DPF:
         if age in stim_file:
             tracking = pd.read_csv(
                 DATAFOLDER / tracking_file, 
-                usecols=['index', 'timestamp', 'centroid_x', 'centroid_y', 'pc1_x', 'pc1_y']
+                usecols=['timestamp', 'pc1_x', 'pc1_y']
             )
             stim = pd.read_csv(
                 DATAFOLDER / stim_file, 
@@ -106,3 +95,169 @@ for age in DPF:
     ax.add_patch(plt.Rectangle((0,0), 1200, YLIM[1], color='#333333'))
     ax.add_patch(plt.Rectangle((1200,0), 1200, YLIM[0], color='#333333'))
     plt.show(block=False)
+
+#------------------------------------------------------------------------------------------
+OLD_DATAFILES = [
+    '08_09dpf_Di_27_Aug_2024_14h50min47sec.csv', # shorter trial
+    '09_09dpf_Di_27_Aug_2024_16h03min14sec.csv', # shorter trial
+    '10_09dpf_Di_27_Aug_2024_17h17min12sec.csv', # shorter trial
+    '11_09dpf_Di_27_Aug_2024_18h47min44sec.csv', # shorter trial
+    '12_09dpf_Di_27_Aug_2024_20h27min13sec.csv', # shorter trial
+    '08_10dpf_Mi_28_Aug_2024_10h18min41sec.csv', # shorter trial
+    '09_10dpf_Mi_28_Aug_2024_11h44min03sec.csv', # shorter trial
+    '10_10dpf_Mi_28_Aug_2024_13h16min25sec.csv', # shorter trial
+    '11_10dpf_Mi_28_Aug_2024_14h30min41sec.csv', # shorter trial
+    '12_10dpf_Mi_28_Aug_2024_16h21min17sec.csv', # shorter trial
+    '13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv', # shorter trial
+    '10_09dpf_Di_27_Aug_2024_17h17min12sec.csv',
+    '11_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
+    '12_09dpf_Di_27_Aug_2024_20h27min13sec.csv',
+    '08_10dpf_Mi_28_Aug_2024_10h18min41sec.csv',
+    '09_10dpf_Mi_28_Aug_2024_11h44min03sec.csv',
+    '10_10dpf_Mi_28_Aug_2024_13h16min25sec.csv',
+    '11_10dpf_Mi_28_Aug_2024_14h30min41sec.csv',
+    '12_10dpf_Mi_28_Aug_2024_16h21min17sec.csv',
+    '13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv', 
+    '01_07dpf_Do_29_Aug_2024_09h50min07sec.csv',
+    '02_07dpf_Do_29_Aug_2024_11h31min10sec.csv',
+    '03_07dpf_Do_29_Aug_2024_13h06min01sec.csv',
+    '04_07dpf_Do_29_Aug_2024_14h38min17sec.csv',
+    '05_07dpf_Do_29_Aug_2024_16h11min51sec.csv',
+    '06_07dpf_Do_29_Aug_2024_17h43min56sec.csv',
+    '07_07dpf_Do_29_Aug_2024_19h17min38sec.csv',
+    '01_08dpf_Fr_30_Aug_2024_09h26min14sec.csv',
+    '02_08dpf_Fr_30_Aug_2024_11h11min11sec.csv',
+    '03_08dpf_Fr_30_Aug_2024_12h42min49sec.csv',
+    '04_08dpf_Fr_30_Aug_2024_14h15min52sec.csv',
+    '05_08dpf_Fr_30_Aug_2024_15h47min53sec.csv',
+    '06_08dpf_Fr_30_Aug_2024_17h17min41sec.csv',
+    '07_08dpf_Fr_30_Aug_2024_18h48min39sec.csv',
+    '02_10dpf_So_01_Sep_2024_11h51min15sec.csv',
+    '03_10dpf_So_01_Sep_2024_14h42min31sec.csv',
+    '04_10dpf_So_01_Sep_2024_16h12min08sec.csv',
+    '05_10dpf_So_01_Sep_2024_17h42min55sec.csv',
+    '06_10dpf_So_01_Sep_2024_19h13min20sec.csv',
+    '07_10dpf_So_01_Sep_2024_20h44min18sec.csv',
+    '14_10dpf_Mo_09_Sep_2024_12h17min25sec.csv',
+    '15_10dpf_Mo_09_Sep_2024_13h49min54sec.csv',
+    '16_10dpf_Mo_09_Sep_2024_15h24min48sec.csv',
+    '17_10dpf_Mo_09_Sep_2024_18h07min58sec.csv',
+    '09_07dpf_Di_17_Sep_2024_18h15min51sec.csv',
+    '10_07dpf_Di_17_Sep_2024_19h46min28sec.csv',
+    '11_07dpf_Di_17_Sep_2024_21h16min13sec.csv',
+    '08_08dpf_Mi_18_Sep_2024_10h07min56sec.csv',
+    '09_08dpf_Mi_18_Sep_2024_11h43min18sec.csv',
+    '10_08dpf_Mi_18_Sep_2024_13h13min31sec.csv',
+    '07_09dpf_Do_19_Sep_2024_20h36min09sec.csv',
+    '18_10dpf_Fr_20_Sep_2024_10h39min51sec.csv',
+    '19_10dpf_Fr_20_Sep_2024_12h14min45sec.csv',
+    '20_10dpf_Fr_20_Sep_2024_13h51min56sec.csv',
+    '21_10dpf_Fr_20_Sep_2024_15h23min51sec.csv',
+    '22_10dpf_Fr_20_Sep_2024_16h59min47sec.csv',
+    '23_10dpf_Fr_20_Sep_2024_18h29min15sec.csv',
+    '24_10dpf_Fr_20_Sep_2024_20h02min20sec.csv',
+    '12_07dpf_Do_03_Okt_2024_10h58min16sec.csv',
+    '13_07dpf_Do_03_Okt_2024_12h28min52sec.csv', 
+    '14_07dpf_Do_03_Okt_2024_14h02min07sec.csv', 
+    '15_07dpf_Do_03_Okt_2024_15h38min20sec.csv', 
+    '16_07dpf_Do_03_Okt_2024_17h07min50sec.csv', 
+    '17_07dpf_Do_03_Okt_2024_18h37min36sec.csv'
+]
+
+def get_phototaxis_data_new(stim: pd.DataFrame, tracking: pd.DataFrame, polarity: int) -> pd.DataFrame:
+    data = stim.loc[stim.stim_id == StimType.PHOTOTAXIS]
+    timestamp = data.loc[data.phototaxis_polarity == polarity, 'timestamp']
+    start = timestamp.iloc[0]
+    stop = timestamp.iloc[-1]
+    phototaxis = tracking.loc[(start <= tracking.timestamp) & (tracking.timestamp <= stop)]
+    relative_time_sec = get_relative_time_sec(phototaxis)
+    angle, angle_unwrapped = get_heading_angle(phototaxis)
+    return relative_time_sec, angle_unwrapped
+
+def get_phototaxis_data_old(data: pd.DataFrame, polarity: int) -> pd.DataFrame:
+    phototaxis = data.loc[(data.stim_id == StimType.PHOTOTAXIS) & (data.phototaxis_polarity == polarity), ['t_local', 'pc1_x', 'pc1_y']]
+    relative_time_sec = phototaxis['t_local'] - phototaxis['t_local'].iloc[0]
+    angle, angle_unwrapped = get_heading_angle(phototaxis)
+    return relative_time_sec, angle_unwrapped
+
+interpolated_time = np.linspace(0, 1200, 120_000)
+
+for age in DPF:
+
+    phototaxis_darkleft = np.zeros((0,120_000)) * np.nan
+    phototaxis_darkright = np.zeros((0,120_000)) * np.nan
+
+    for stim_file, tracking_file in DATAFILES:
+        if age in stim_file:
+            tracking = pd.read_csv(
+                DATAFOLDER / tracking_file, 
+                usecols=['timestamp', 'pc1_x', 'pc1_y']
+            )
+            stim = pd.read_csv(
+                DATAFOLDER / stim_file, 
+                usecols=['timestamp', 'stim_id', 'phototaxis_polarity']
+            )
+
+            relative_time_sec_darkleft, angle_unwrapped_darkleft = get_phototaxis_data_new(stim, tracking, -1)
+            angle_unwrapped_interp_darkleft = np.interp(
+                interpolated_time, 
+                relative_time_sec_darkleft, 
+                angle_unwrapped_darkleft,
+                right = np.nan
+            )
+            phototaxis_darkleft = np.vstack((phototaxis_darkleft, angle_unwrapped_interp_darkleft))
+            
+            relative_time_sec_darkright, angle_unwrapped_darkright = get_phototaxis_data_new(stim, tracking, 1)
+            angle_unwrapped_interp_darkright = np.interp(
+                interpolated_time, 
+                relative_time_sec_darkright, 
+                angle_unwrapped_darkright,
+                right = np.nan
+            )
+            phototaxis_darkright = np.vstack((phototaxis_darkright, angle_unwrapped_interp_darkright))
+
+    for file in OLD_DATAFILES:
+        if age in file:
+            data = pd.read_csv(
+                DATAFOLDER / file, 
+                usecols=['t_local', 'pc1_x', 'pc1_y', 'stim_id', 'phototaxis_polarity']
+            )
+            relative_time_sec_darkleft, angle_unwrapped_darkleft = get_phototaxis_data_old(data, -1)
+            angle_unwrapped_interp_darkleft = np.interp(
+                interpolated_time, 
+                relative_time_sec_darkleft, 
+                angle_unwrapped_darkleft,
+                right = np.nan
+            )
+            phototaxis_darkleft = np.vstack((phototaxis_darkleft, angle_unwrapped_interp_darkleft))
+
+            relative_time_sec_darkright, angle_unwrapped_darkright = get_phototaxis_data_old(data, 1)
+            angle_unwrapped_interp_darkright = np.interp(
+                interpolated_time, 
+                relative_time_sec_darkright, 
+                angle_unwrapped_darkright,
+                right = np.nan
+            )
+            phototaxis_darkright = np.vstack((phototaxis_darkright, angle_unwrapped_interp_darkright))
+
+    avg_darkleft = np.mean(phototaxis_darkleft, axis=0)
+    avg_darkright = np.mean(phototaxis_darkright, axis=0)
+
+    fig = plt.figure()
+
+    ax1 = fig.add_subplot(111) 
+
+    for i in range(phototaxis_darkleft.shape[0]):
+        plt.plot(interpolated_time, phototaxis_darkleft[i,:], color='blue', alpha=0.2)
+    plt.plot(interpolated_time, avg_darkleft, color='blue', linewidth=2)
+
+
+    for i in range(phototaxis_darkright.shape[0]):
+        plt.plot(interpolated_time, phototaxis_darkright[i,:], color='orange', alpha=0.2)
+    plt.plot(interpolated_time, avg_darkright, color='orange', linewidth=2)
+    plt.title(age)
+    plt.xlabel('time (sec)')
+    plt.ylabel('cum. angle (rad)')
+
+    plt.show(block = False)
+
