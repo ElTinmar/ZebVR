@@ -2,12 +2,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
+import os
 from scipy import stats
 
 from ZebVR.protocol import Stim
 StimType = Stim.Visual
 
-DATAFOLDER = Path('/media/martin/DATA/Cichlids/')
+DATAFOLDER = Path(
+    os.environ.get('DATAFOLDER_CICHLIDS', '/media/martin/DATA/Cichlids/')
+)
 DATAFILES = [
     ('stim_00_07dpf_Cichlid_Do_24_Apr_2025_12h00min07sec.csv', 'tracking_00_07dpf_Cichlid_Thu_24_Apr_2025_12h00min07sec.csv'), # bad flipping example
     ('stim_00_08dpf_Cichlid_Fr_25_Apr_2025_11h21min18sec.csv', 'tracking_00_08dpf_Cichlid_Fri_25_Apr_2025_11h21min17sec.csv'),
