@@ -182,7 +182,7 @@ OLD_DATAFILES = [
     '17_07dpf_Do_03_Okt_2024_18h37min36sec.csv'
 ]
 
-USE_OLD_DATA = False
+USE_OLD_DATA = True
 USE_NEW_DATA = True
 
 def load_data_old(datafile: str) -> pd.DataFrame:
