@@ -9,9 +9,14 @@ from enum import IntEnum
 
 from ZebVR.protocol import Stim
 StimType = Stim.Visual
-class Polarity(IntEnum):
+class PolarityOld(IntEnum):
     DARKLEFT = -1
     DARKRIGHT = 1
+ 
+# WARNING: Polarity changed between two runs
+class PolarityNew(IntEnum):
+    DARKLEFT = 1
+    DARKRIGHT = -1
  
 DPF = ['7dpf', '8dpf', '9dpf', '10dpf']
 PHOTOTAXIS_DURATION_SEC = 1200
@@ -177,8 +182,8 @@ OLD_DATAFILES = [
     '17_07dpf_Do_03_Okt_2024_18h37min36sec.csv'
 ]
 
-USE_OLD_DATA = True
-USE_NEW_DATA = False
+USE_OLD_DATA = False
+USE_NEW_DATA = True
 
 def load_data_old(datafile: str) -> pd.DataFrame:
     data = pd.read_csv(
@@ -250,11 +255,11 @@ def collect_data(interp_time, dpf):
 
                 phototaxis_darkleft = np.vstack((
                     phototaxis_darkleft, 
-                    get_interpolated_angle_new(stim, tracking, interp_time, Polarity.DARKLEFT)
+                    get_interpolated_angle_new(stim, tracking, interp_time, PolarityNew.DARKLEFT)
                 ))
                 phototaxis_darkright = np.vstack((
                     phototaxis_darkright, 
-                    get_interpolated_angle_new(stim, tracking, interp_time, Polarity.DARKRIGHT)
+                    get_interpolated_angle_new(stim, tracking, interp_time, PolarityNew.DARKRIGHT)
                 ))
 
     if USE_OLD_DATA:
@@ -266,11 +271,11 @@ def collect_data(interp_time, dpf):
                 data = load_data_old(file)
                 phototaxis_darkleft = np.vstack((
                     phototaxis_darkleft, 
-                    get_interpolated_angle_old(data, interp_time, Polarity.DARKLEFT)
+                    get_interpolated_angle_old(data, interp_time, PolarityOld.DARKLEFT)
                 ))
                 phototaxis_darkright = np.vstack((
                     phototaxis_darkright, 
-                    get_interpolated_angle_old(data, interp_time, Polarity.DARKRIGHT)
+                    get_interpolated_angle_old(data, interp_time, PolarityOld.DARKRIGHT)
                 ))
 
     return phototaxis_darkleft, phototaxis_darkright
