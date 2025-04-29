@@ -4,9 +4,15 @@ import numpy as np
 from pathlib import Path
 import os
 from scipy import stats
+from typing import Tuple
+from enum import IntEnum
 
 from ZebVR.protocol import Stim
 StimType = Stim.Visual
+
+class Polarity(IntEnum):
+    DARKLEFT = -1
+    DARKRIGHT = 1
  
 DATAFOLDER = Path(
     os.environ.get('DATAFOLDER_CICHLIDS', '/media/martin/DATA/Cichlids/') 
@@ -29,7 +35,7 @@ DATAFILES = [
     ('stim_05_08dpf_Cichlid_Fr_25_Apr_2025_17h37min00sec.csv', 'tracking_05_08dpf_Cichlid_Fri_25_Apr_2025_17h36min59sec.csv'),
     ('stim_05_09dpf_Cichlid_Sa_26_Apr_2025_16h47min50sec.csv', 'tracking_05_09dpf_Cichlid_Sat_26_Apr_2025_16h47min51sec.csv')
 ]
-DPF = ['7dpf', '8dpf', '9dpf']
+DPF = ['7dpf', '8dpf', '9dpf', '10dpf']
 PHOTOTAXIS_DURATION_SEC = 1200
 TRACKING_FPS = 100
 YLIM = (-420,420)
@@ -44,8 +50,10 @@ def find_stim(stim: pd.DataFrame, tracking: pd.DataFrame, stim_type: StimType) -
 
 def get_heading_angle(data: pd.DataFrame):
     angle = np.arctan2(data.pc1_y, data.pc1_x)
-    angle_unwrapped = np.unwrap(angle)
-    return angle, angle_unwrapped 
+    notna = ~np.isnan(angle)
+    angle_unwrapped = np.zeros_like(angle) * np.nan
+    angle_unwrapped[notna] = np.unwrap(angle[notna]) # TODO this is probably a bit wrong
+    return angle, angle_unwrapped
 
 def get_relative_time_sec(data: pd.DataFrame):
     first_timestamp = data.iloc[0].timestamp
@@ -98,17 +106,17 @@ for age in DPF:
 
 #------------------------------------------------------------------------------------------
 OLD_DATAFILES = [
-    '08_09dpf_Di_27_Aug_2024_14h50min47sec.csv', # shorter trial
-    '09_09dpf_Di_27_Aug_2024_16h03min14sec.csv', # shorter trial
-    '10_09dpf_Di_27_Aug_2024_17h17min12sec.csv', # shorter trial
-    '11_09dpf_Di_27_Aug_2024_18h47min44sec.csv', # shorter trial
-    '12_09dpf_Di_27_Aug_2024_20h27min13sec.csv', # shorter trial
-    '08_10dpf_Mi_28_Aug_2024_10h18min41sec.csv', # shorter trial
-    '09_10dpf_Mi_28_Aug_2024_11h44min03sec.csv', # shorter trial
-    '10_10dpf_Mi_28_Aug_2024_13h16min25sec.csv', # shorter trial
-    '11_10dpf_Mi_28_Aug_2024_14h30min41sec.csv', # shorter trial
-    '12_10dpf_Mi_28_Aug_2024_16h21min17sec.csv', # shorter trial
-    '13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv', # shorter trial
+    #'08_09dpf_Di_27_Aug_2024_14h50min47sec.csv', # shorter trial
+    #'09_09dpf_Di_27_Aug_2024_16h03min14sec.csv', # shorter trial
+    #'10_09dpf_Di_27_Aug_2024_17h17min12sec.csv', # shorter trial
+    #'11_09dpf_Di_27_Aug_2024_18h47min44sec.csv', # shorter trial
+    #'12_09dpf_Di_27_Aug_2024_20h27min13sec.csv', # shorter trial
+    #'08_10dpf_Mi_28_Aug_2024_10h18min41sec.csv', # shorter trial
+    #'09_10dpf_Mi_28_Aug_2024_11h44min03sec.csv', # shorter trial
+    #'10_10dpf_Mi_28_Aug_2024_13h16min25sec.csv', # shorter trial
+    #'11_10dpf_Mi_28_Aug_2024_14h30min41sec.csv', # shorter trial
+    #'12_10dpf_Mi_28_Aug_2024_16h21min17sec.csv', # shorter trial
+    #'13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv', # shorter trial
     '10_09dpf_Di_27_Aug_2024_17h17min12sec.csv',
     '11_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
     '12_09dpf_Di_27_Aug_2024_20h27min13sec.csv',
@@ -163,6 +171,26 @@ OLD_DATAFILES = [
     '16_07dpf_Do_03_Okt_2024_17h07min50sec.csv', 
     '17_07dpf_Do_03_Okt_2024_18h37min36sec.csv'
 ]
+USE_OLD_DATA = True
+USE_NEW_DATA = False
+
+def load_data_old(datafile: str) -> pd.DataFrame:
+    data = pd.read_csv(
+        DATAFOLDER / file, 
+        usecols=['t_local', 'pc1_x', 'pc1_y', 'stim_id', 'phototaxis_polarity']
+    )
+    return data
+
+def load_data_new(stim_file: str, tracking_file: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    tracking = pd.read_csv(
+        DATAFOLDER / tracking_file, 
+        usecols=['timestamp', 'pc1_x', 'pc1_y']
+    )
+    stim = pd.read_csv(
+        DATAFOLDER / stim_file, 
+        usecols=['timestamp', 'stim_id', 'phototaxis_polarity']
+    )
+    return stim, tracking
 
 def get_phototaxis_data_new(stim: pd.DataFrame, tracking: pd.DataFrame, polarity: int) -> pd.DataFrame:
     data = stim.loc[stim.stim_id == StimType.PHOTOTAXIS]
@@ -180,81 +208,75 @@ def get_phototaxis_data_old(data: pd.DataFrame, polarity: int) -> pd.DataFrame:
     angle, angle_unwrapped = get_heading_angle(phototaxis)
     return relative_time_sec, angle_unwrapped
 
-interpolated_time = np.linspace(0, 1200, 120_000)
+def get_interpolated_angle_new(stim, tracking, interpolated_time, polarity):
+    relative_time_sec, angle_unwrapped = get_phototaxis_data_new(stim, tracking, polarity)
+    angle_unwrapped_interp = np.interp(
+        interpolated_time, 
+        relative_time_sec, 
+        angle_unwrapped,
+        right = np.nan
+    )
+    return angle_unwrapped_interp
+    
+def get_interpolated_angle_old(data, interpolated_time, polarity):
+    relative_time_sec, angle_unwrapped = get_phototaxis_data_old(data, polarity)
+    angle_unwrapped_interp = np.interp(
+        interpolated_time, 
+        relative_time_sec, 
+        angle_unwrapped,
+        right = np.nan
+    )
+    return angle_unwrapped_interp
+
+interp_time = np.linspace(0, 1200, 120_000)
 
 for age in DPF:
 
     phototaxis_darkleft = np.zeros((0,120_000)) * np.nan
     phototaxis_darkright = np.zeros((0,120_000)) * np.nan
 
-    for stim_file, tracking_file in DATAFILES:
-        if age in stim_file:
-            tracking = pd.read_csv(
-                DATAFOLDER / tracking_file, 
-                usecols=['timestamp', 'pc1_x', 'pc1_y']
-            )
-            stim = pd.read_csv(
-                DATAFOLDER / stim_file, 
-                usecols=['timestamp', 'stim_id', 'phototaxis_polarity']
-            )
+    if USE_NEW_DATA:
+        for stim_file, tracking_file in DATAFILES:
+            if age in stim_file:
+                stim, tracking = load_data_new(stim_file, tracking_file)
+                phototaxis_darkleft = np.vstack((
+                    phototaxis_darkleft, 
+                    get_interpolated_angle_new(stim, tracking, interp_time, Polarity.DARKLEFT)
+                ))
+                phototaxis_darkright = np.vstack((
+                    phototaxis_darkright, 
+                    get_interpolated_angle_new(stim, tracking, interp_time, Polarity.DARKRIGHT)
+                ))
 
-            relative_time_sec_darkleft, angle_unwrapped_darkleft = get_phototaxis_data_new(stim, tracking, -1)
-            angle_unwrapped_interp_darkleft = np.interp(
-                interpolated_time, 
-                relative_time_sec_darkleft, 
-                angle_unwrapped_darkleft,
-                right = np.nan
-            )
-            phototaxis_darkleft = np.vstack((phototaxis_darkleft, angle_unwrapped_interp_darkleft))
-            
-            relative_time_sec_darkright, angle_unwrapped_darkright = get_phototaxis_data_new(stim, tracking, 1)
-            angle_unwrapped_interp_darkright = np.interp(
-                interpolated_time, 
-                relative_time_sec_darkright, 
-                angle_unwrapped_darkright,
-                right = np.nan
-            )
-            phototaxis_darkright = np.vstack((phototaxis_darkright, angle_unwrapped_interp_darkright))
+    if USE_OLD_DATA:
+        for file in OLD_DATAFILES:
+            if age in file:
+                data = load_data_old(file)
+                phototaxis_darkleft = np.vstack((
+                    phototaxis_darkleft, 
+                    get_interpolated_angle_old(data, interp_time, Polarity.DARKLEFT)
+                ))
+                phototaxis_darkright = np.vstack((
+                    phototaxis_darkright, 
+                    get_interpolated_angle_old(data, interp_time, Polarity.DARKRIGHT)
+                ))
 
-    for file in OLD_DATAFILES:
-        if age in file:
-            data = pd.read_csv(
-                DATAFOLDER / file, 
-                usecols=['t_local', 'pc1_x', 'pc1_y', 'stim_id', 'phototaxis_polarity']
-            )
-            relative_time_sec_darkleft, angle_unwrapped_darkleft = get_phototaxis_data_old(data, -1)
-            angle_unwrapped_interp_darkleft = np.interp(
-                interpolated_time, 
-                relative_time_sec_darkleft, 
-                angle_unwrapped_darkleft,
-                right = np.nan
-            )
-            phototaxis_darkleft = np.vstack((phototaxis_darkleft, angle_unwrapped_interp_darkleft))
+    avg_darkleft = np.nanmean(phototaxis_darkleft, axis=0)
+    avg_darkright = np.nanmean(phototaxis_darkright, axis=0)
 
-            relative_time_sec_darkright, angle_unwrapped_darkright = get_phototaxis_data_old(data, 1)
-            angle_unwrapped_interp_darkright = np.interp(
-                interpolated_time, 
-                relative_time_sec_darkright, 
-                angle_unwrapped_darkright,
-                right = np.nan
-            )
-            phototaxis_darkright = np.vstack((phototaxis_darkright, angle_unwrapped_interp_darkright))
 
-    avg_darkleft = np.mean(phototaxis_darkleft, axis=0)
-    avg_darkright = np.mean(phototaxis_darkright, axis=0)
-
-    fig = plt.figure()
+fig = plt.figure()
 
     ax1 = fig.add_subplot(111) 
 
     for i in range(phototaxis_darkleft.shape[0]):
-        plt.plot(interpolated_time, phototaxis_darkleft[i,:], color='blue', alpha=0.2)
-    plt.plot(interpolated_time, avg_darkleft, color='blue', linewidth=2)
+        plt.plot(interpolated_time, phototaxis_darkleft[i,:], color='orange', alpha=0.2)
+    plt.plot(interpolated_time, avg_darkleft, color='orange', linewidth=2)
 
 
     for i in range(phototaxis_darkright.shape[0]):
-        plt.plot(interpolated_time, phototaxis_darkright[i,:], color='orange', alpha=0.2)
-    plt.plot(interpolated_time, avg_darkright, color='orange', linewidth=2)
+        plt.plot(interpolated_time, phototaxis_darkright[i,:], color='blue', alpha=0.2)
+    plt.plot(interpolated_time, avg_darkright, color='blue', linewidth=2)
     plt.title(age)
     plt.xlabel('time (sec)')
     plt.ylabel('cum. angle (rad)')
