@@ -13,7 +13,8 @@ class PolarityOld(IntEnum):
     DARKLEFT = -1
     DARKRIGHT = 1
  
-# WARNING: Polarity changed between two runs
+# WARNING: Polarity changed between two runs.
+# I think I changed something in the shader
 class PolarityNew(IntEnum):
     DARKLEFT = 1
     DARKRIGHT = -1
@@ -293,6 +294,24 @@ for dpf in DPF:
         phototaxis_darkright
     )
 
+# Regression analysis    
+for dpf in DPF:
+    phototaxis_darkleft = np.load(PREPROCFOLDER / f'phototaxis_darkleft_{dpf}.npy')
+    phototaxis_darkright = np.load(PREPROCFOLDER / f'phototaxis_darkright_{dpf}.npy')
+
+    x = np.hstack((interp_time, -interp_time))
+    y = np.hstack((phototaxis_darkleft, phototaxis_darkright))
+    n_fish = y.shape[0]
+    coeffs = np.zeros((n_fish,))
+
+    for n in range(n_fish):
+        mask = ~np.isnan(y[n,:])
+        reg = stats.linregress(x[mask],y[n,mask])
+        coeffs[n] = reg.slope
+
+    s, pval = stats.wilcoxon(coeffs)
+    print(dpf, np.mean(coeffs), pval)
+
 for dpf in DPF:
 
     phototaxis_darkleft = np.load(PREPROCFOLDER / f'phototaxis_darkleft_{dpf}.npy')
@@ -304,11 +323,11 @@ for dpf in DPF:
     fig = plt.figure()
     ax1 = fig.add_subplot(111) 
     for i in range(phototaxis_darkleft.shape[0]):
-        plt.plot(interpolated_time, phototaxis_darkleft[i,:], color='orange', alpha=0.2)
-    plt.plot(interpolated_time, avg_darkleft, color='orange', linewidth=2)
+        plt.plot(interp_time, phototaxis_darkleft[i,:], color='orange', alpha=0.2)
+    plt.plot(interp_time, avg_darkleft, color='orange', linewidth=2)
     for i in range(phototaxis_darkright.shape[0]):
-        plt.plot(interpolated_time, phototaxis_darkright[i,:], color='blue', alpha=0.2)
-    plt.plot(interpolated_time, avg_darkright, color='blue', linewidth=2)
+        plt.plot(interp_time, phototaxis_darkright[i,:], color='blue', alpha=0.2)
+    plt.plot(interp_time, avg_darkright, color='blue', linewidth=2)
     plt.title(dpf)
     plt.xlabel('time (sec)')
     plt.ylabel('cum. angle (rad)')
