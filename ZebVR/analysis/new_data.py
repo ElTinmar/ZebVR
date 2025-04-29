@@ -6,6 +6,8 @@ import os
 from scipy import stats
 from typing import Tuple
 from enum import IntEnum
+import seaborn as sns
+from statsmodels.stats.multitest import multipletests
 
 from ZebVR.protocol import Stim
 StimType = Stim.Visual
@@ -294,7 +296,10 @@ for dpf in DPF:
         phototaxis_darkright
     )
 
-# Regression analysis    
+# Regression analysis ------------------------------------------------------------------
+plot_data = []
+pvals = []
+
 for dpf in DPF:
     phototaxis_darkleft = np.load(PREPROCFOLDER / f'phototaxis_darkleft_{dpf}.npy')
     phototaxis_darkright = np.load(PREPROCFOLDER / f'phototaxis_darkright_{dpf}.npy')
@@ -309,11 +314,49 @@ for dpf in DPF:
         reg = stats.linregress(x[mask],y[n,mask])
         coeffs[n] = reg.slope
 
+    for c in coeffs:
+        plot_data.append({'dpf': dpf, 'slope': c})
+
     s, pval = stats.wilcoxon(coeffs)
+    pvals.append(pval)
+ 
     print(dpf, np.mean(coeffs), pval)
 
-for dpf in DPF:
+# multiple testing correction
+rejected, pvals_corrected, _, _ = multipletests(pvals, alpha=0.05, method='fdr_bh')
 
+df = pd.DataFrame(plot_data)
+
+sns.stripplot(data=df, x='dpf', y='slope', jitter=True, size=6)
+group_means = df.groupby('dpf', sort=False)['slope'].mean()
+# Plot horizontal lines for means
+for i, mean_val in enumerate(group_means):
+    plt.hlines(y=mean_val, xmin=i - 0.2, xmax=i + 0.2, color='black', linewidth=3, zorder=10)
+
+    # Significance asterisks
+    p = pvals_corrected[i]
+    if p < 0.001:
+        stars = '***'
+    elif p < 0.01:
+        stars = '**'
+    elif p < 0.05:
+        stars = '*'
+    else:
+        stars = 'ns'
+
+    if stars:
+        plt.text(i, 0.25, stars, ha='center', va='bottom', fontsize=14)
+
+plt.axhline(0, color='gray', linestyle='--', linewidth=1)
+plt.ylabel("angular speed towards dark side (rad/s)")
+plt.ylim(-0.3,0.3)
+plt.tight_layout()
+plt.savefig(PLOTSFOLDER /f'regression_analysis')
+plt.show()
+
+
+# Plot cum angles  ------------------------------------------------------------------ 
+for dpf in DPF:
     phototaxis_darkleft = np.load(PREPROCFOLDER / f'phototaxis_darkleft_{dpf}.npy')
     phototaxis_darkright = np.load(PREPROCFOLDER / f'phototaxis_darkright_{dpf}.npy')
     
@@ -328,9 +371,11 @@ for dpf in DPF:
     for i in range(phototaxis_darkright.shape[0]):
         plt.plot(interp_time, phototaxis_darkright[i,:], color='blue', alpha=0.2)
     plt.plot(interp_time, avg_darkright, color='blue', linewidth=2)
+    plt.plot(interp_time, group_means[dpf]*interp_time, color='orange', linestyle='--')
+    plt.plot(interp_time, -group_means[dpf]*interp_time, color='blue', linestyle='--')
     plt.title(dpf)
     plt.xlabel('time (sec)')
     plt.ylabel('cum. angle (rad)')
-    plt.show(block = False)
     plt.savefig(PLOTSFOLDER /f'phototaxis_{dpf}')
+    plt.show(block = False)
 
