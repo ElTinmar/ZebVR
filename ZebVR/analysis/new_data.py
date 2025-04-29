@@ -111,15 +111,15 @@ for age in DPF:
 
 #------------------------------------------------------------------------------------------
 OLD_DATAFILES = [
-    #'10_09dpf_Di_27_Aug_2024_17h17min12sec.csv',
-    #'11_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
-    #'12_09dpf_Di_27_Aug_2024_20h27min13sec.csv',
-    #'08_10dpf_Mi_28_Aug_2024_10h18min41sec.csv',
-    #'09_10dpf_Mi_28_Aug_2024_11h44min03sec.csv',
-    #'10_10dpf_Mi_28_Aug_2024_13h16min25sec.csv',
-    #'11_10dpf_Mi_28_Aug_2024_14h30min41sec.csv',
-    #'12_10dpf_Mi_28_Aug_2024_16h21min17sec.csv',
-    #'13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv', 
+    #'10_09dpf_Di_27_Aug_2024_17h17min12sec.csv', # shorter trials (600 sec each)
+    #'11_09dpf_Di_27_Aug_2024_18h47min44sec.csv', # shorter trials (600 sec each)
+    #'12_09dpf_Di_27_Aug_2024_20h27min13sec.csv', # shorter trials (600 sec each)
+    #'08_10dpf_Mi_28_Aug_2024_10h18min41sec.csv', # shorter trials (600 sec each)
+    #'09_10dpf_Mi_28_Aug_2024_11h44min03sec.csv', # shorter trials (600 sec each)
+    #'10_10dpf_Mi_28_Aug_2024_13h16min25sec.csv', # shorter trials (600 sec each)
+    #'11_10dpf_Mi_28_Aug_2024_14h30min41sec.csv', # shorter trials (600 sec each)
+    #'12_10dpf_Mi_28_Aug_2024_16h21min17sec.csv', # shorter trials (600 sec each)
+    #'13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv', # shorter trials (600 sec each)
     '01_07dpf_Do_29_Aug_2024_09h50min07sec.csv',
     '02_07dpf_Do_29_Aug_2024_11h31min10sec.csv',
     '03_07dpf_Do_29_Aug_2024_13h06min01sec.csv',
