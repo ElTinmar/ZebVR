@@ -15,6 +15,7 @@ dependencies:
 - pyserial
 - pyqtgraph
 - pip:
+  - statsmodels  
   - psutil
   - git+https://github.com/ElTinmar/video_tools.git@main#egg=video_tools[gpu]
   - git+https://github.com/ElTinmar/tracker.git@main
