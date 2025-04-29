@@ -9,14 +9,23 @@ from enum import IntEnum
 
 from ZebVR.protocol import Stim
 StimType = Stim.Visual
-
 class Polarity(IntEnum):
     DARKLEFT = -1
     DARKRIGHT = 1
  
-DATAFOLDER = Path(
-    os.environ.get('DATAFOLDER_CICHLIDS', '/media/martin/DATA/Cichlids/') 
+DPF = ['7dpf', '8dpf', '9dpf', '10dpf']
+PHOTOTAXIS_DURATION_SEC = 1200
+TRACKING_FPS = 100
+YLIM = (-420,420)
+
+
+ROOTFOLDER = Path(
+    os.environ.get('DATAFOLDER_CICHLIDS', '/media/martin/DATA/Cichlids') 
 )
+DATAFOLDER = ROOTFOLDER / 'data'
+PREPROCFOLDER = ROOTFOLDER / 'preprocessed'
+PLOTSFOLDER = ROOTFOLDER / 'plots'
+
 DATAFILES = [
     ('stim_00_07dpf_Cichlid_Do_24_Apr_2025_12h00min07sec.csv', 'tracking_00_07dpf_Cichlid_Thu_24_Apr_2025_12h00min07sec.csv'), # bad flipping example
     ('stim_00_08dpf_Cichlid_Fr_25_Apr_2025_11h21min18sec.csv', 'tracking_00_08dpf_Cichlid_Fri_25_Apr_2025_11h21min17sec.csv'),
@@ -35,10 +44,6 @@ DATAFILES = [
     ('stim_05_08dpf_Cichlid_Fr_25_Apr_2025_17h37min00sec.csv', 'tracking_05_08dpf_Cichlid_Fri_25_Apr_2025_17h36min59sec.csv'),
     ('stim_05_09dpf_Cichlid_Sa_26_Apr_2025_16h47min50sec.csv', 'tracking_05_09dpf_Cichlid_Sat_26_Apr_2025_16h47min51sec.csv')
 ]
-DPF = ['7dpf', '8dpf', '9dpf', '10dpf']
-PHOTOTAXIS_DURATION_SEC = 1200
-TRACKING_FPS = 100
-YLIM = (-420,420)
 
 # -----------------------------------------------------
 
@@ -106,26 +111,15 @@ for age in DPF:
 
 #------------------------------------------------------------------------------------------
 OLD_DATAFILES = [
-    #'08_09dpf_Di_27_Aug_2024_14h50min47sec.csv', # shorter trial
-    #'09_09dpf_Di_27_Aug_2024_16h03min14sec.csv', # shorter trial
-    #'10_09dpf_Di_27_Aug_2024_17h17min12sec.csv', # shorter trial
-    #'11_09dpf_Di_27_Aug_2024_18h47min44sec.csv', # shorter trial
-    #'12_09dpf_Di_27_Aug_2024_20h27min13sec.csv', # shorter trial
-    #'08_10dpf_Mi_28_Aug_2024_10h18min41sec.csv', # shorter trial
-    #'09_10dpf_Mi_28_Aug_2024_11h44min03sec.csv', # shorter trial
-    #'10_10dpf_Mi_28_Aug_2024_13h16min25sec.csv', # shorter trial
-    #'11_10dpf_Mi_28_Aug_2024_14h30min41sec.csv', # shorter trial
-    #'12_10dpf_Mi_28_Aug_2024_16h21min17sec.csv', # shorter trial
-    #'13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv', # shorter trial
-    '10_09dpf_Di_27_Aug_2024_17h17min12sec.csv',
-    '11_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
-    '12_09dpf_Di_27_Aug_2024_20h27min13sec.csv',
-    '08_10dpf_Mi_28_Aug_2024_10h18min41sec.csv',
-    '09_10dpf_Mi_28_Aug_2024_11h44min03sec.csv',
-    '10_10dpf_Mi_28_Aug_2024_13h16min25sec.csv',
-    '11_10dpf_Mi_28_Aug_2024_14h30min41sec.csv',
-    '12_10dpf_Mi_28_Aug_2024_16h21min17sec.csv',
-    '13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv', 
+    #'10_09dpf_Di_27_Aug_2024_17h17min12sec.csv',
+    #'11_09dpf_Di_27_Aug_2024_18h47min44sec.csv',
+    #'12_09dpf_Di_27_Aug_2024_20h27min13sec.csv',
+    #'08_10dpf_Mi_28_Aug_2024_10h18min41sec.csv',
+    #'09_10dpf_Mi_28_Aug_2024_11h44min03sec.csv',
+    #'10_10dpf_Mi_28_Aug_2024_13h16min25sec.csv',
+    #'11_10dpf_Mi_28_Aug_2024_14h30min41sec.csv',
+    #'12_10dpf_Mi_28_Aug_2024_16h21min17sec.csv',
+    #'13_10dpf_Mi_28_Aug_2024_17h41min49sec.csv', 
     '01_07dpf_Do_29_Aug_2024_09h50min07sec.csv',
     '02_07dpf_Do_29_Aug_2024_11h31min10sec.csv',
     '03_07dpf_Do_29_Aug_2024_13h06min01sec.csv',
@@ -156,6 +150,17 @@ OLD_DATAFILES = [
     '08_08dpf_Mi_18_Sep_2024_10h07min56sec.csv',
     '09_08dpf_Mi_18_Sep_2024_11h43min18sec.csv',
     '10_08dpf_Mi_18_Sep_2024_13h13min31sec.csv',
+    '11_08dpf_Mi_18_Sep_2024_14h42min48sec.csv',
+    '12_08dpf_Mi_18_Sep_2024_16h14min00sec.csv',
+    '13_08dpf_Mi_18_Sep_2024_17h44min33sec.csv',
+    '14_08dpf_Mi_18_Sep_2024_19h13min51sec.csv',
+    '00_09dpf_Do_19_Sep_2024_10h05min11sec.csv',
+    '01_09dpf_Do_19_Sep_2024_11h38min50sec.csv',
+    '02_09dpf_Do_19_Sep_2024_13h07min20sec.csv',
+    '03_09dpf_Do_19_Sep_2024_14h36min33sec.csv',
+    '04_09dpf_Do_19_Sep_2024_16h08min06sec.csv',
+    '05_09dpf_Do_19_Sep_2024_17h37min36sec.csv',
+    '06_09dpf_Do_19_Sep_2024_19h06min10sec.csv',
     '07_09dpf_Do_19_Sep_2024_20h36min09sec.csv',
     '18_10dpf_Fr_20_Sep_2024_10h39min51sec.csv',
     '19_10dpf_Fr_20_Sep_2024_12h14min45sec.csv',
@@ -171,15 +176,17 @@ OLD_DATAFILES = [
     '16_07dpf_Do_03_Okt_2024_17h07min50sec.csv', 
     '17_07dpf_Do_03_Okt_2024_18h37min36sec.csv'
 ]
+
 USE_OLD_DATA = True
 USE_NEW_DATA = False
 
 def load_data_old(datafile: str) -> pd.DataFrame:
     data = pd.read_csv(
-        DATAFOLDER / file, 
-        usecols=['t_local', 'pc1_x', 'pc1_y', 'stim_id', 'phototaxis_polarity']
+        DATAFOLDER / datafile, 
+        usecols=['image_index', 't_local', 'pc1_x', 'pc1_y', 'stim_id', 'phototaxis_polarity']
     )
-    return data
+    data_filtered = data.groupby('image_index').first()
+    return data_filtered
 
 def load_data_new(stim_file: str, tracking_file: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     tracking = pd.read_csv(
@@ -208,37 +215,39 @@ def get_phototaxis_data_old(data: pd.DataFrame, polarity: int) -> pd.DataFrame:
     angle, angle_unwrapped = get_heading_angle(phototaxis)
     return relative_time_sec, angle_unwrapped
 
-def get_interpolated_angle_new(stim, tracking, interpolated_time, polarity):
+def get_interpolated_angle_new(stim, tracking, interp_time, polarity):
     relative_time_sec, angle_unwrapped = get_phototaxis_data_new(stim, tracking, polarity)
     angle_unwrapped_interp = np.interp(
-        interpolated_time, 
+        interp_time, 
         relative_time_sec, 
         angle_unwrapped,
         right = np.nan
     )
     return angle_unwrapped_interp
     
-def get_interpolated_angle_old(data, interpolated_time, polarity):
+def get_interpolated_angle_old(data, interp_time, polarity):
     relative_time_sec, angle_unwrapped = get_phototaxis_data_old(data, polarity)
     angle_unwrapped_interp = np.interp(
-        interpolated_time, 
+        interp_time, 
         relative_time_sec, 
         angle_unwrapped,
         right = np.nan
     )
     return angle_unwrapped_interp
 
-interp_time = np.linspace(0, 1200, 120_000)
-
-for age in DPF:
+def collect_data(interp_time, dpf):
 
     phototaxis_darkleft = np.zeros((0,120_000)) * np.nan
     phototaxis_darkright = np.zeros((0,120_000)) * np.nan
 
     if USE_NEW_DATA:
+
         for stim_file, tracking_file in DATAFILES:
-            if age in stim_file:
+            if dpf in stim_file:
+
+                print(stim_file, tracking_file)
                 stim, tracking = load_data_new(stim_file, tracking_file)
+
                 phototaxis_darkleft = np.vstack((
                     phototaxis_darkleft, 
                     get_interpolated_angle_new(stim, tracking, interp_time, Polarity.DARKLEFT)
@@ -249,8 +258,11 @@ for age in DPF:
                 ))
 
     if USE_OLD_DATA:
+
         for file in OLD_DATAFILES:
-            if age in file:
+            if dpf in file:
+
+                print(file)
                 data = load_data_old(file)
                 phototaxis_darkleft = np.vstack((
                     phototaxis_darkleft, 
@@ -261,25 +273,40 @@ for age in DPF:
                     get_interpolated_angle_old(data, interp_time, Polarity.DARKRIGHT)
                 ))
 
+    return phototaxis_darkleft, phototaxis_darkright
+
+interp_time = np.linspace(0, 1200, 120_000)
+
+for dpf in DPF:
+    phototaxis_darkleft, phototaxis_darkright = collect_data(interp_time, dpf)
+    np.save(
+        PREPROCFOLDER / f'phototaxis_darkleft_{dpf}.npy',
+        phototaxis_darkleft
+    )
+    np.save(
+        PREPROCFOLDER / f'phototaxis_darkright_{dpf}.npy',
+        phototaxis_darkright
+    )
+
+for dpf in DPF:
+
+    phototaxis_darkleft = np.load(PREPROCFOLDER / f'phototaxis_darkleft_{dpf}.npy')
+    phototaxis_darkright = np.load(PREPROCFOLDER / f'phototaxis_darkright_{dpf}.npy')
+    
     avg_darkleft = np.nanmean(phototaxis_darkleft, axis=0)
     avg_darkright = np.nanmean(phototaxis_darkright, axis=0)
 
-
-fig = plt.figure()
-
+    fig = plt.figure()
     ax1 = fig.add_subplot(111) 
-
     for i in range(phototaxis_darkleft.shape[0]):
         plt.plot(interpolated_time, phototaxis_darkleft[i,:], color='orange', alpha=0.2)
     plt.plot(interpolated_time, avg_darkleft, color='orange', linewidth=2)
-
-
     for i in range(phototaxis_darkright.shape[0]):
         plt.plot(interpolated_time, phototaxis_darkright[i,:], color='blue', alpha=0.2)
     plt.plot(interpolated_time, avg_darkright, color='blue', linewidth=2)
-    plt.title(age)
+    plt.title(dpf)
     plt.xlabel('time (sec)')
     plt.ylabel('cum. angle (rad)')
-
     plt.show(block = False)
+    plt.savefig(PLOTSFOLDER /f'phototaxis_{dpf}')
 

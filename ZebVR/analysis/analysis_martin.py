@@ -95,8 +95,6 @@ def setlocale(*args, **kw):
 # exclude from phototaxis because I changed duration
 # other assays are still usable
 EXCLUDE_PHOTOTAXIS = [
-    '08_09dpf_Di_27_Aug_2024_14h50min47sec.csv', # 
-    '09_09dpf_Di_27_Aug_2024_16h03min14sec.csv', # exclude shorter trial
     '10_09dpf_Di_27_Aug_2024_17h17min12sec.csv', # exclude shorter trial
     '11_09dpf_Di_27_Aug_2024_18h47min44sec.csv', # exclude shorter trial
     '12_09dpf_Di_27_Aug_2024_20h27min13sec.csv', # exclude shorter trial
@@ -148,6 +146,17 @@ DATAFILES = [
     '08_08dpf_Mi_18_Sep_2024_10h07min56sec.csv',
     '09_08dpf_Mi_18_Sep_2024_11h43min18sec.csv',
     '10_08dpf_Mi_18_Sep_2024_13h13min31sec.csv',
+    '11_08dpf_Mi_18_Sep_2024_14h42min48sec.csv',
+    '12_08dpf_Mi_18_Sep_2024_16h14min00sec.csv',
+    '13_08dpf_Mi_18_Sep_2024_17h44min33sec.csv',
+    '14_08dpf_Mi_18_Sep_2024_19h13min51sec.csv',
+    '00_09dpf_Do_19_Sep_2024_10h05min11sec.csv',
+    '01_09dpf_Do_19_Sep_2024_11h38min50sec.csv',
+    '02_09dpf_Do_19_Sep_2024_13h07min20sec.csv',
+    '03_09dpf_Do_19_Sep_2024_14h36min33sec.csv',
+    '04_09dpf_Do_19_Sep_2024_16h08min06sec.csv',
+    '05_09dpf_Do_19_Sep_2024_17h37min36sec.csv',
+    '06_09dpf_Do_19_Sep_2024_19h06min10sec.csv',
     '07_09dpf_Do_19_Sep_2024_20h36min09sec.csv',
     '18_10dpf_Fr_20_Sep_2024_10h39min51sec.csv',
     '19_10dpf_Fr_20_Sep_2024_12h14min45sec.csv',
