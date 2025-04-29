@@ -8,6 +8,7 @@ from typing import Tuple
 from enum import IntEnum
 import seaborn as sns
 from statsmodels.stats.multitest import multipletests
+from statsmodels.api import OLS
 
 from ZebVR.protocol import Stim
 StimType = Stim.Visual
@@ -28,7 +29,7 @@ YLIM = (-420,420)
 
 
 ROOTFOLDER = Path(
-    os.environ.get('DATAFOLDER_CICHLIDS', '/media/martin/DATA/Cichlids') 
+    os.environ.get('ROOTFOLDER', '/media/martin/DATA/Cichlids') 
 )
 DATAFOLDER = ROOTFOLDER / 'data'
 PREPROCFOLDER = ROOTFOLDER / 'preprocessed'
@@ -283,7 +284,7 @@ def collect_data(interp_time, dpf):
 
     return phototaxis_darkleft, phototaxis_darkright
 
-interp_time = np.linspace(0, 1200, 120_000)
+interp_time = np.linspace(0, PHOTOTAXIS_DURATION_SEC, PHOTOTAXIS_DURATION_SEC*TRACKING_FPS)
 
 for dpf in DPF:
     phototaxis_darkleft, phototaxis_darkright = collect_data(interp_time, dpf)
@@ -311,8 +312,8 @@ for dpf in DPF:
 
     for n in range(n_fish):
         mask = ~np.isnan(y[n,:])
-        reg = stats.linregress(x[mask],y[n,mask])
-        coeffs[n] = reg.slope
+        reg = OLS(y[n,mask], x[mask, np.newaxis]).fit()
+        coeffs[n] = reg.params[0]
 
     for c in coeffs:
         plot_data.append({'dpf': dpf, 'slope': c})
