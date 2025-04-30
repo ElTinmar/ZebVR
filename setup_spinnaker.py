@@ -4,6 +4,7 @@ import tarfile
 import urllib.request
 import shutil
 import sys
+import argparse
 
 EXPECTED_ENV_NAME = "ZebVR3"
 
@@ -27,6 +28,13 @@ REQUIRED_PACKAGES = [
     "qt5-qmake",
     "qtbase5-dev-tools"
 ]
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Install Spinnaker SDK and/or Python bindings")
+    parser.add_argument("--only-sdk", action="store_true", help="Only install SDK (skip Python bindings)")
+    parser.add_argument("--only-python", action="store_true", help="Only install Python bindings (skip SDK)")
+    parser.add_argument("--no-cleanup", action="store_true", help="Keep downloaded and extracted files")
+    return parser.parse_args()
 
 def check_conda_environment():
     conda_prefix = os.environ.get("CONDA_PREFIX")
@@ -88,12 +96,27 @@ def cleanup():
     print("Done.")
 
 if __name__ == "__main__":
-    conda_prefix = check_conda_environment()
-    try:
-        install_system_packages()
-        download_and_extract(SDK_URL, SDK_TARBALL)
-        install_spinnaker_sdk()
-        download_and_extract(WHEEL_URL, WHEEL_TARBALL, WHEEL_FOLDER)
-        install_python_wheel()
+
+    args = parse_arguments()
+
+    if args.only_sdk and args.only_python:
+        print("Error: --only-sdk and --only-python cannot be used together.")
+        sys.exit(1)
+
+    conda_prefix = None
+    if not args.only_sdk:
+        conda_prefix = check_conda_environment()
+
+    try:       
+        if not args.only_python:
+            download_and_extract(SDK_URL, SDK_TARBALL)
+            install_system_packages()
+            install_spinnaker_sdk()
+        
+        if not args.only_sdk:
+            download_and_extract(WHEEL_URL, WHEEL_TARBALL, WHEEL_FOLDER)
+            install_python_wheel()
+
     finally:
-        cleanup()
+        if not args.no_cleanup:
+            cleanup()
