@@ -2,7 +2,7 @@ import time
 from video_tools import mode
 import numpy as np
 from tqdm import tqdm
-from image_tools import im2single, im2gray
+from image_tools import im2single, im2gray, im2uint8
 import cv2
 from typing import Callable
 
@@ -64,5 +64,5 @@ def static_background(
 
     print(f'Saving image to {background_file}')
     with open(background_file, 'wb') as f:
-        np.save(f, background)
+        np.save(f, im2uint8(background))
     
