@@ -4,6 +4,7 @@ import subprocess
 import sys
 import tarfile
 import urllib.request
+import argparse
 
 EXPECTED_ENV_NAME = "ZebVR3"
 SDK_URL = "https://updates.ximea.com/public/ximea_linux_sp_beta.tgz"
@@ -11,6 +12,12 @@ SDK_ARCHIVE = "ximea_linux_sp_beta.tgz"
 SDK_FOLDER = "package"
 INSTALL_FLAG = "-pcie"
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Install XIMEA SDK and/or Python bindings")
+    parser.add_argument("--only-sdk", action="store_true", help="Only install SDK (skip Python bindings)")
+    parser.add_argument("--only-python", action="store_true", help="Only install Python bindings (skip SDK)")
+    parser.add_argument("--no-cleanup", action="store_true", help="Do not delete downloaded/extracted files after install")
+    return parser.parse_args()
 
 def check_conda_environment():
     conda_prefix = os.environ.get("CONDA_PREFIX")
@@ -41,6 +48,7 @@ def extract_sdk():
     print("Extracted to ./package")
 
 def run_installer():
+    # NOTE: this requires admin rights
     print("Running installer...")
     subprocess.check_call(["chmod", "+x", f"{SDK_FOLDER}/install"])
     subprocess.check_call([f"./install", INSTALL_FLAG], cwd=SDK_FOLDER)
@@ -63,11 +71,27 @@ def cleanup():
     print("Done.")
 
 if __name__ == "__main__":
-    conda_prefix = check_conda_environment()
+
+    args = parse_arguments()
+
+    if args.only_sdk and args.only_python:
+        print("Error: Cannot use --only-sdk and --only-python together.")
+        sys.exit(1)
+
+    conda_prefix = None
+    if not args.only_sdk:
+        conda_prefix = check_conda_environment()
+
     try:
         download_sdk()
         extract_sdk()
-        run_installer()
-        copy_python_bindings(conda_prefix)
+
+        if not args.only_python:
+            run_installer()
+            
+        if not args.only_sdk:
+            copy_python_bindings(conda_prefix)
+            
     finally:
-        cleanup()
+        if not args.no_cleanup:
+            cleanup()
