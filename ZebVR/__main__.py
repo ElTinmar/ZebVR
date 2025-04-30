@@ -29,3 +29,6 @@ if __name__ == "__main__":
     main = MainGui()
     main.show()
     app.exec_()
+
+# TODO add option to start without GUI,
+# directly from .vr file
