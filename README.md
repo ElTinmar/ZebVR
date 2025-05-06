@@ -140,8 +140,18 @@ canvas.close()
 
 ## Troubleshooting
 
+### Ximea Error 57
+
 if error 57 device already open, or if program is slower than usual
 
 ```bash
 sudo killall python
+```
+
+### Ximea Error 56
+
+if error 56 No Devices Found, reinstall SDK (requires sudo)
+
+```bash
+python setup_ximea.py --only-sdk
 ```
