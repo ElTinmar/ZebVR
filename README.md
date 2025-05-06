@@ -24,6 +24,22 @@ python setup_ximea.py
 python setup_spinnaker.py
 ```
 
+You can also install the SDK (requires sudo) or python bindings separately:
+
+```bash
+python setup_ximea.py --only-sdk
+python setup_spinnaker.py --only-sdk
+```
+
+```bash
+conda activate ZebVR3
+python setup_ximea.py --only-python
+python setup_spinnaker.py --only-python
+```
+
+Please note that every time a new kernel is installed during a system update,
+the SDK needs to be reinstalled.
+
 ### Permissions to access hardware
 
 ```bash
@@ -41,8 +57,8 @@ sudo apt install nvidia-cuda-toolkit
 
 ## Run
 
-
 ```bash
+conda activate ZebVR3
 python -m ZebVR
 ```
 
