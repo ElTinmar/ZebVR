@@ -2,6 +2,10 @@
 
 Virtual reality for zebrafish.
 
+<!---TODO
+Add screenshots of the GUI
+-->
+
 ## Installation
 
 This program is meant to run on Ubuntu >= 22.04
