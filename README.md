@@ -4,6 +4,8 @@ Virtual reality for zebrafish.
 
 ## Installation
 
+This program is meant to run on Ubuntu >= 22.04
+
 ### Get code from github and create conda environment
 
 ```bash
@@ -76,7 +78,7 @@ desktop-file-validate ZebVR.desktop
 cp ZebVR.desktop ~/.local/share/applications/
 ```
 
-## Optimizations
+## Optimizations (experimental)
 
 ### Allow the python interpreter to set scheduler
 
@@ -100,15 +102,6 @@ python -m ZebVR
 
 ```bash
 sudo cset shield --reset
-```
-
-
-## Troubleshooting
-
-if error 57 device already open, or if program is slower than usual
-
-```bash
-sudo killall python
 ```
 
 ### OpenGL check number of uniforms
@@ -139,4 +132,12 @@ for key, value in gpu_info.items():
     print(f"{key}: {value}")
 
 canvas.close()
+```
+
+## Troubleshooting
+
+if error 57 device already open, or if program is slower than usual
+
+```bash
+sudo killall python
 ```
