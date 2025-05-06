@@ -12,6 +12,9 @@ SDK_ARCHIVE = "ximea_linux_sp_beta.tgz"
 SDK_FOLDER = "package"
 INSTALL_FLAG = "-pcie"
 
+# TODO add package dependencies
+# sudo apt-get install build-essential linux-headers-"$(uname -r)" libtiff5 libxcb-cursor0
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Install XIMEA SDK and/or Python bindings")
     parser.add_argument("--only-sdk", action="store_true", help="Only install SDK (skip Python bindings)")
