@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Tuple
 from .visual_stim import VisualStim
 from vispy import gloo, app, use
 from vispy.util.transforms import translate, rotate, frustum, ortho
@@ -7,7 +7,6 @@ from vispy.io import imread, read_mesh
 from multiprocessing import RawValue, RawArray
 import time
 import numpy as np 
-import os
 from dataclasses import dataclass
 from geometry import AffineTransform2D
 
@@ -303,22 +302,18 @@ class Stim3D(VisualStim):
             rollover_time_sec: float = 3600 # TODO add that to a gui somewhere
         ) -> None:
 
+        self.window_size = window_size
+        self.window_position = window_position
+        self.camera_resolution = camera_resolution
+        self.window_decoration = window_decoration
+        self.transformation_matrix = transformation_matrix
+        self.pixel_scaling = pixel_scaling
+        self.pix_per_mm = pix_per_mm
+        self.vsync = vsync
+        self.fullscreen = fullscreen
+
         self.num_tail_points_interp = num_tail_points_interp
         self.rollover_time_sec = rollover_time_sec
-
-        super().__init__(
-            vertex_shader = VERT_SHADER, 
-            fragment_shader = FRAG_SHADER, 
-            window_size = window_size,
-            window_position = window_position, 
-            camera_resolution = camera_resolution,
-            pix_per_mm = pix_per_mm, 
-            window_decoration = window_decoration, 
-            transformation_matrix = transformation_matrix, 
-            pixel_scaling = pixel_scaling, 
-            vsync = vsync,
-            fullscreen = fullscreen
-        )
 
         self.shared_fish_state = SharedFishState(num_tail_points_interp)
         self.refresh_rate = refresh_rate
@@ -343,18 +338,32 @@ class Stim3D(VisualStim):
 
         self.timer = app.Timer(1/30, connect=self.on_timer, start=True)
 
+    def initialize(self):
+        # this needs to happen in the process where the window is displayed
+
+        app.Canvas.__init__(
+            self, 
+            size = self.window_size, 
+            decorate = self.window_decoration, 
+            position = self.window_position, 
+            keys = 'interactive', 
+            vsync = self.vsync,
+            fullscreen = self.fullscreen,
+            always_on_top = True,
+        )
+
     def set_context(self):
         self.width, self.height = self.physical_size
         gloo.set_viewport(0, 0, self.width, self.height)
         gloo.set_state(depth_test=True)  # required for object in the Z axis to hide each other
 
     def create_view(self):
-        x,y = self.shared_fish_state[0].fish_centroid
+        x,y = self.shared_fish_state[0].fish_centroid[:]
         z = 0
         self.view = translate((x, y, z))
 
     def create_projection(self):
-        x,y = self.shared_fish_state[0].fish_centroid
+        x,y = self.shared_fish_state[0].fish_centroid[:]
         z = 0
 
         left = self.screen_bottomleft_x-x
