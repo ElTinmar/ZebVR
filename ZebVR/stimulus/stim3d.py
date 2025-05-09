@@ -325,7 +325,7 @@ class Stim3D(app.Canvas):
         #TODO this should come from calibration
         self.screen_width_cm = 27 
         self.screen_height_cm = 17
-        self.screen_bottomleft = [-self.screen_width_cm//2,-self.screen_height_cm//2,0]
+        self.screen_bottomleft = [-self.screen_width_cm//2,0,0]
         self.screen_normal = [0,0,1]
         self.screen_bottomleft_x, self.screen_bottomleft_y, self.screen_bottomleft_z = self.screen_bottomleft
         
@@ -462,7 +462,7 @@ class Stim3D(app.Canvas):
         vertex['a_normal'] = normals
         vbo_shell = gloo.VertexBuffer(vertex, divisor=0)
         self.indices = gloo.IndexBuffer(faces)
-        instance_shift = gloo.VertexBuffer(np.array([[10,0,-2],[0,0,-10],[0,0,10],[-5,5,-1]], dtype=np.float32), divisor=1)
+        instance_shift = gloo.VertexBuffer(np.array([[10,0,-2],[0,1,-10],[0,5,10],[-5,5,-1]], dtype=np.float32), divisor=1)
 
         self.shadowmap_program = gloo.Program(VERTEX_SHADER_SHADOW, FRAGMENT_SHADER_SHADOW)
         self.shadowmap_program.bind(vbo_shell)
