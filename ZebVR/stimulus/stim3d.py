@@ -491,9 +491,18 @@ class Stim3D(app.Canvas):
     def update_shader_variables(self):
         # communication between CPU and GPU for every frame drawn
 
-        self.x, self.y = self.shared_fish_state.fish_centroid[:]
+        x, y = self.shared_fish_state.fish_centroid[:]
+
+        # Transform camera space to world coordinates
+        pos = np.array((self.x, self.y, self.z, 1.0))
         
-        # TODO update everything related to fish pos
+        T = np.eye(4)
+        T[0,0] = 1/self.pix_per_mm
+        T[0,0] = 1/self.pix_per_mm
+        T[:3,3] = [-self.camera_resolution[0]/(2*self.pix_per_mm),-self.camera_resolution[1]/(2*self.pix_per_mm),0]
+        pos_world = T @ pos
+        self.x, self.y = pos_world[:2]
+
         self.create_view()
         self.create_projection()
         
