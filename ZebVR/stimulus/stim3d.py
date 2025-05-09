@@ -325,7 +325,7 @@ class Stim3D(app.Canvas):
         #TODO this should come from calibration
         self.screen_width_cm = 27 
         self.screen_height_cm = 17
-        self.screen_bottomleft = [self.screen_width_cm//2,self.screen_height_cm//2,0]
+        self.screen_bottomleft = [-self.screen_width_cm//2,-self.screen_height_cm//2,0]
         self.screen_normal = [0,0,1]
         self.screen_bottomleft_x, self.screen_bottomleft_y, self.screen_bottomleft_z = self.screen_bottomleft
         
