@@ -9,6 +9,7 @@ import time
 import numpy as np 
 from dataclasses import dataclass
 from geometry import AffineTransform2D
+from multiprocessing import Event 
 
 @dataclass
 class SharedFishState:
@@ -284,14 +285,14 @@ SHELL_MODEL = rotate(90,(1,0,0)).dot(rotate(180,(0,0,1))).dot(translate((0,0.6,0
 GROUND_MODEL = translate((0,0,0))
 SHADOWMAP_RES = 4096
 
-class Stim3D(VisualStim):
+class Stim3D(app.Canvas):
 
     def __init__(
             self,  
             window_size: Tuple[int, int], 
             window_position: Tuple[int, int], 
             camera_resolution: Tuple[int, int],
-            window_decoration: bool = True,
+            window_decoration: bool = False,
             transformation_matrix: AffineTransform2D = AffineTransform2D.identity(),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             pix_per_mm: float = 30,
@@ -299,7 +300,6 @@ class Stim3D(VisualStim):
             vsync: bool = False,
             fullscreen: bool = True,
             num_tail_points_interp: int = 40,
-            rollover_time_sec: float = 3600 # TODO add that to a gui somewhere
         ) -> None:
 
         self.window_size = window_size
@@ -310,14 +310,17 @@ class Stim3D(VisualStim):
         self.pixel_scaling = pixel_scaling
         self.pix_per_mm = pix_per_mm
         self.vsync = vsync
-        self.fullscreen = fullscreen
+        self.use_fullscreen = fullscreen
 
         self.num_tail_points_interp = num_tail_points_interp
-        self.rollover_time_sec = rollover_time_sec
 
         self.shared_fish_state = SharedFishState(num_tail_points_interp)
         self.refresh_rate = refresh_rate
         self.tstart = 0
+
+        self.x = 0
+        self.y = 0
+        self.z = 45
 
         #TODO this should come from calibration
         self.screen_width_cm = 27 
@@ -331,12 +334,7 @@ class Stim3D(VisualStim):
         self.t = 0
         self.t_step = 1/30
 
-        self.set_context()
-        self.create_view()
-        self.create_projection()
-        self.create_scene()
-
-        self.timer = app.Timer(1/30, connect=self.on_timer, start=True)
+        self.initialized = Event()
 
     def initialize(self):
         # this needs to happen in the process where the window is displayed
@@ -348,27 +346,36 @@ class Stim3D(VisualStim):
             position = self.window_position, 
             keys = 'interactive', 
             vsync = self.vsync,
-            fullscreen = self.fullscreen,
+            fullscreen = self.use_fullscreen,
             always_on_top = True,
         )
 
+        self.set_context()
+        self.create_view()
+        self.create_projection()
+        self.create_scene()
+
+        self.timer = app.Timer(1/30, connect=self.on_timer, start=True)
+        self.update_shader_variables()
+        self.show()
+
+        self.initialized.set()
+
+    def cleanup(self):
+        self.initialized.clear()
+            
     def set_context(self):
-        self.width, self.height = self.physical_size
+        self.width, self.height = self.window_size
         gloo.set_viewport(0, 0, self.width, self.height)
         gloo.set_state(depth_test=True)  # required for object in the Z axis to hide each other
 
     def create_view(self):
-        x,y = self.shared_fish_state[0].fish_centroid[:]
-        z = 0
-        self.view = translate((x, y, z))
+        self.view = translate((-self.x, -self.y, -self.z))
 
     def create_projection(self):
-        x,y = self.shared_fish_state[0].fish_centroid[:]
-        z = 0
-
-        left = self.screen_bottomleft_x-x
-        bottom = self.screen_bottomleft_y-y
-        depth = self.screen_bottomleft_z-z
+        left = self.screen_bottomleft_x-self.x
+        bottom = self.screen_bottomleft_y-self.y
+        depth = self.screen_bottomleft_z-self.z
         right = left + self.screen_width_cm
         top = bottom + self.screen_height_cm
         znear = 0.1
@@ -399,7 +406,7 @@ class Stim3D(VisualStim):
         ## ground ----------------------------------------------------------------------------
 
         # load texture
-        texture = np.flipud(imread('sand.jpeg'))
+        texture = np.flipud(imread('ZebVR/resources/sand.jpeg'))
 
         vertices, faces, _ = create_box(width=30, height=30, depth=1, height_segments=100, width_segments=100, depth_segments=10)
         vtype = [
@@ -439,10 +446,10 @@ class Stim3D(VisualStim):
         ## shell -----------------------------------------------------------------------------
 
         # load texture
-        texture = np.flipud(imread('quartz.jpg'))
+        texture = np.flipud(imread('ZebVR/resources/quartz.jpg'))
 
         # load mesh
-        vertices, faces, normals, texcoords = read_mesh('shell_simplified.obj')
+        vertices, faces, normals, texcoords = read_mesh('ZebVR/resources/shell_simplified.obj')
         vertices = 10*vertices
         vtype = [
             ('a_position', np.float32, 3),
@@ -481,34 +488,22 @@ class Stim3D(VisualStim):
     def set_filename(self, filename:str):
         self.timings_file = filename
 
-    def update_shader_variables(self, time_s: float):
+    def update_shader_variables(self):
         # communication between CPU and GPU for every frame drawn
 
-        self.program['u_time_s'] = time_s
-
-        # fish state 
-        self.program['u_bounding_box'] = self.ROI_identities
+        self.x, self.y = self.shared_fish_state.fish_centroid[:]
         
-        for i in range(self.n_animals):
-            self.program[f'u_fish_centroid[{i}]'] = self.shared_fish_state[i].fish_centroid[:] 
-            self.program[f'u_fish_caudorostral_axis[{i}]'] = self.shared_fish_state[i].fish_caudorostral_axis[:]
-            self.program[f'u_fish_mediolateral_axis[{i}]'] = self.shared_fish_state[i].fish_mediolateral_axis[:]
-            self.program[f'u_left_eye_centroid[{i}]'] = self.shared_fish_state[i].left_eye_centroid[:]
-            self.program[f'u_left_eye_angle[{i}]'] = self.shared_fish_state[i].left_eye_angle.value
-            self.program[f'u_right_eye_centroid[{i}]'] = self.shared_fish_state[i].right_eye_centroid[:]
-            self.program[f'u_right_eye_angle[{i}]'] = self.shared_fish_state[i].right_eye_angle.value
+        # TODO update everything related to fish pos
+        self.create_view()
+        self.create_projection()
+        
+        self.ground_program['u_view'] = self.view
+        self.ground_program['u_fish'] = [self.x, self.y, self.z]
+        self.ground_program['u_projection'] = self.projection
 
-    def initialize(self):
-        # this runs in the display process
-        super().initialize()
-        self.update_shader_variables(0)
-        self.show()
-        self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
-        self.timer.start()
-        self.initialized.set()
-
-    def cleanup(self):
-        super().cleanup()
+        self.main_program['u_view'] = self.view
+        self.main_program['u_fish'] = [self.x, self.y, self.z]
+        self.main_program['u_projection'] = self.projection
 
     def on_draw(self, event):
         # draw to the fbo 
@@ -530,10 +525,6 @@ class Stim3D(VisualStim):
     def on_timer(self, event):
         # this runs in the display process
 
-        timestamp = time.perf_counter_ns()
-        timestamp_sec = 1e-9*timestamp
-        time_sec = timestamp_sec % self.rollover_time_sec
-
         self.t += self.t_step
         self.light_theta += self.light_theta_step
 
@@ -550,7 +541,7 @@ class Stim3D(VisualStim):
         self.main_program['u_lightspace'] = lightspace
         self.main_program['u_light_position'] = light_position
 
-        self.update_shader_variables(time_sec)
+        self.update_shader_variables()
         self.update()
 
     def process_data(self, data) -> None:
@@ -567,33 +558,32 @@ class Stim3D(VisualStim):
             fields = data['tracking'].dtype.names
 
             print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
-            ID = data['identity']
 
             if 'body' in fields and data['tracking']['body']['success']:
-                self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body']['centroid_global']).squeeze()
+                self.shared_fish_state.fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body']['centroid_global']).squeeze()
                 body_axes = data['tracking']['body']['body_axes_global']                
-                self.shared_fish_state[ID].fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
-                self.shared_fish_state[ID].fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
+                self.shared_fish_state.fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
+                self.shared_fish_state.fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
             else:
-                self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroids_global']).squeeze()
+                self.shared_fish_state.fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroids_global']).squeeze()
 
             # TODO use eyes heading vector if present?
             # eyes
             if 'eyes' in fields and data['tracking']['eyes']['success']:
 
                 if data['tracking']['eyes']['left_eye'] is not None:
-                    self.shared_fish_state[ID].left_eye_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['eyes']['left_eye']['centroid_cropped']).squeeze()
-                    self.shared_fish_state[ID].left_eye_angle.value = data['tracking']['eyes']['left_eye']['angle']
+                    self.shared_fish_state.left_eye_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['eyes']['left_eye']['centroid_cropped']).squeeze()
+                    self.shared_fish_state.left_eye_angle.value = data['tracking']['eyes']['left_eye']['angle']
 
                 if data['tracking']['eyes']['right_eye'] is not None:
-                    self.shared_fish_state[ID].right_eye_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['eyes']['right_eye']['centroid_cropped']).squeeze()
-                    self.shared_fish_state[ID].right_eye_angle.value = data['tracking']['eyes']['right_eye']['angle']
+                    self.shared_fish_state.right_eye_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['eyes']['right_eye']['centroid_cropped']).squeeze()
+                    self.shared_fish_state.right_eye_angle.value = data['tracking']['eyes']['right_eye']['angle']
 
             # tail
             if 'tail' in fields and data['tracking']['tail']['success']:
                 skeleton_interp = self.transformation_matrix.transform_points(data['tracking']['tail']['skeleton_interp_cropped'])
-                self.shared_fish_state[ID].tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
-                self.shared_fish_state[ID].tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
+                self.shared_fish_state.tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
+                self.shared_fish_state.tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
 
         except KeyError as err:
             print(f'KeyError: {err}')
