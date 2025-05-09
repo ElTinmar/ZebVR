@@ -494,14 +494,16 @@ class Stim3D(app.Canvas):
         x, y = self.shared_fish_state.fish_centroid[:]
 
         # Transform camera space to world coordinates
-        pos = np.array((self.x, self.y, self.z, 1.0))
+        pos = np.array((x, y, self.z, 1.0))
         
         T = np.eye(4)
-        T[0,0] = 1/self.pix_per_mm
-        T[0,0] = 1/self.pix_per_mm
-        T[:3,3] = [-self.camera_resolution[0]/(2*self.pix_per_mm),-self.camera_resolution[1]/(2*self.pix_per_mm),0]
+        T[0,0] = -1/self.pix_per_mm
+        T[1,1] = -1/self.pix_per_mm
+        T[:3,3] = [self.camera_resolution[0]/(2*self.pix_per_mm),self.camera_resolution[1]/(2*self.pix_per_mm),0]
         pos_world = T @ pos
         self.x, self.y = pos_world[:2]
+
+        print([self.x, self.y, self.z])
 
         self.create_view()
         self.create_projection()
