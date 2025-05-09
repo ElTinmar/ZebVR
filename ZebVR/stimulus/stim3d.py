@@ -324,10 +324,24 @@ class Stim3D(VisualStim):
         self.refresh_rate = refresh_rate
         self.tstart = 0
 
+        #TODO this should come from calibration
+        self.screen_width_cm = 27 
+        self.screen_height_cm = 17
+        self.screen_bottomleft = [self.screen_width_cm//2,self.screen_height_cm//2,0]
+        self.screen_normal = [0,0,1]
+        self.screen_bottomleft_x, self.screen_bottomleft_y, self.screen_bottomleft_z = self.screen_bottomleft
+        
+        self.light_theta = 0
+        self.light_theta_step = 0.01
+        self.t = 0
+        self.t_step = 1/30
+
         self.set_context()
         self.create_view()
         self.create_projection()
         self.create_scene()
+
+        self.timer = app.Timer(1/30, connect=self.on_timer, start=True)
 
     def set_context(self):
         self.width, self.height = self.physical_size
@@ -335,12 +349,17 @@ class Stim3D(VisualStim):
         gloo.set_state(depth_test=True)  # required for object in the Z axis to hide each other
 
     def create_view(self):
-        self.view = translate((-self.cam_x, -self.cam_y, -self.cam_z))
+        x,y = self.shared_fish_state[0].fish_centroid
+        z = 0
+        self.view = translate((x, y, z))
 
     def create_projection(self):
-        left = self.screen_bottomleft_x-self.cam_x
-        bottom = self.screen_bottomleft_y-self.cam_y
-        depth = self.screen_bottomleft_z-self.cam_z
+        x,y = self.shared_fish_state[0].fish_centroid
+        z = 0
+
+        left = self.screen_bottomleft_x-x
+        bottom = self.screen_bottomleft_y-y
+        depth = self.screen_bottomleft_z-z
         right = left + self.screen_width_cm
         top = bottom + self.screen_height_cm
         znear = 0.1
@@ -395,7 +414,7 @@ class Stim3D(VisualStim):
         
         self.ground_program = gloo.Program(VERT_SHADER, FRAG_SHADER)
         self.ground_program.bind(vbo_ground) 
-        self.ground_program['u_fish'] = [self.cam_x,self.cam_y,self.cam_z]
+        self.ground_program['u_fish'] = [0, 0, 0]
         self.ground_program['u_texture'] = gloo.Texture2D(texture, wrapping='repeat')
         self.ground_program['a_instance_shift'] = instance_shift
         self.ground_program['u_resolution'] = [self.width, self.height]
@@ -438,7 +457,7 @@ class Stim3D(VisualStim):
         self.main_program = gloo.Program(VERT_SHADER, FRAG_SHADER)
         self.main_program.bind(vbo_shell)
         self.main_program['u_texture'] = texture
-        self.main_program['u_fish'] = [self.cam_x,self.cam_y,self.cam_z]
+        self.main_program['u_fish'] = [0,0,0]
         self.main_program['a_instance_shift'] = instance_shift
         self.main_program['u_resolution'] = [self.width, self.height]
         self.main_program['u_view'] = self.view
