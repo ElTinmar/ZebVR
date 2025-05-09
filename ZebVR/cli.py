@@ -17,7 +17,7 @@ p_queue_logger.start()
 dag.start()
 
 try:
-    time.sleep(60)
+    time.sleep(1200)
 except KeyboardInterrupt:
     print('stopping')
     pass
