@@ -282,7 +282,7 @@ void main()
 """
 
 SHELL_MODEL = rotate(90,(1,0,0)).dot(rotate(180,(0,0,1))).dot(translate((0,0.6,0)))
-GROUND_MODEL = translate((0,0,0))
+GROUND_MODEL = translate((0,0,-15))
 SHADOWMAP_RES = 4096
 
 class Stim3D(app.Canvas):
