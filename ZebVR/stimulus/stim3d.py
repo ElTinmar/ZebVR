@@ -462,7 +462,7 @@ class Stim3D(app.Canvas):
         vertex['a_normal'] = normals
         vbo_shell = gloo.VertexBuffer(vertex, divisor=0)
         self.indices = gloo.IndexBuffer(faces)
-        instance_shift = gloo.VertexBuffer(np.array([[10,0,-2],[0,0,-10],[0,0,0],[-5,5,-1]], dtype=np.float32), divisor=1)
+        instance_shift = gloo.VertexBuffer(np.array([[10,0,-2],[0,0,-10],[0,0,10],[-5,5,-1]], dtype=np.float32), divisor=1)
 
         self.shadowmap_program = gloo.Program(VERTEX_SHADER_SHADOW, FRAGMENT_SHADER_SHADOW)
         self.shadowmap_program.bind(vbo_shell)
