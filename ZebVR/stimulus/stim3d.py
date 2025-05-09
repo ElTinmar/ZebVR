@@ -320,7 +320,7 @@ class Stim3D(app.Canvas):
 
         self.x = 0
         self.y = 0
-        self.z = 45
+        self.z = 30
 
         #TODO this should come from calibration
         self.screen_width_cm = 27 
@@ -502,8 +502,6 @@ class Stim3D(app.Canvas):
         T[:3,3] = [self.camera_resolution[0]/(2*self.pix_per_mm),self.camera_resolution[1]/(2*self.pix_per_mm),0]
         pos_world = T @ pos
         self.x, self.y = pos_world[:2]
-
-        print([self.x, self.y, self.z])
 
         self.create_view()
         self.create_projection()
