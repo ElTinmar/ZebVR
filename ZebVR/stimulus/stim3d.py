@@ -320,11 +320,11 @@ class Stim3D(app.Canvas):
 
         self.x = 0
         self.y = 0
-        self.z = 30
+        self.z = 65
 
-        #TODO this should come from calibration
-        self.screen_width_cm = 27 
-        self.screen_height_cm = 17
+        # TODO fix this
+        self.screen_width_cm = 60 
+        self.screen_height_cm = 34
         self.screen_bottomleft = [-self.screen_width_cm//2,0,0]
         self.screen_normal = [0,0,1]
         self.screen_bottomleft_x, self.screen_bottomleft_y, self.screen_bottomleft_z = self.screen_bottomleft
@@ -370,16 +370,16 @@ class Stim3D(app.Canvas):
         gloo.set_state(depth_test=True)  # required for object in the Z axis to hide each other
 
     def create_view(self):
-        self.view = translate((-self.x, -self.y, -self.z))
+        self.view = translate((0, 0, -100))
 
     def create_projection(self):
-        left = self.screen_bottomleft_x-self.x
-        bottom = self.screen_bottomleft_y-self.y
-        depth = self.screen_bottomleft_z-self.z
+        left = self.screen_bottomleft_x
+        bottom = self.screen_bottomleft_y
+        depth = self.screen_bottomleft_z-(-100)
         right = left + self.screen_width_cm
         top = bottom + self.screen_height_cm
-        znear = 0.1
-        zfar = 1000
+        znear = 90
+        zfar = 110
         scale = znear/abs(depth)
         
         self.projection = frustum(scale*left, scale*right, scale*bottom, scale*top, znear, zfar)
@@ -493,9 +493,9 @@ class Stim3D(app.Canvas):
 
         x, y = self.shared_fish_state.fish_centroid[:]
 
+        # TODO fix that
         # Transform camera space to world coordinates
         pos = np.array((x, y, self.z, 1.0))
-        
         T = np.eye(4)
         T[0,0] = -1/self.pix_per_mm
         T[1,1] = -1/self.pix_per_mm
@@ -503,8 +503,8 @@ class Stim3D(app.Canvas):
         pos_world = T @ pos
         self.x, self.y = pos_world[:2]
 
-        self.create_view()
-        self.create_projection()
+        #self.create_view()
+        #self.create_projection()
         
         self.ground_program['u_view'] = self.view
         self.ground_program['u_fish'] = [self.x, self.y, self.z]
