@@ -378,8 +378,8 @@ class Stim3D(app.Canvas):
         depth = self.screen_bottomleft_z-(-100)
         right = left + self.screen_width_cm
         top = bottom + self.screen_height_cm
-        znear = 90
-        zfar = 110
+        znear = 1
+        zfar = 1000
         scale = znear/abs(depth)
         
         self.projection = frustum(scale*left, scale*right, scale*bottom, scale*top, znear, zfar)
