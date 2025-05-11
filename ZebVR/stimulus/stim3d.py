@@ -410,11 +410,7 @@ class Stim3D(app.Canvas):
         # load texture
         texture = np.flipud(imread('ZebVR/resources/sand.jpeg'))
 
-        vertices0, faces0, _ = create_box(width=30, height=30, depth=1, height_segments=100, width_segments=100, depth_segments=10)
-        vertices1, faces1, _ = create_box(width=5, height=15, depth=1, height_segments=100, width_segments=100, depth_segments=10)
-        vertices1['position'] = vertices1['position'] - np.array((5,5,5)) 
-        vertices = np.hstack((vertices0, vertices1))
-        faces = np.hstack((faces0, faces1))
+        vertices, faces, _ = create_box(width=30, height=30, depth=1, height_segments=100, width_segments=100, depth_segments=10)
         vtype = [
             ('a_position', np.float32, 3),
             ('a_texcoord', np.float32, 2),
@@ -426,7 +422,7 @@ class Stim3D(app.Canvas):
         vertex['a_normal'] = vertices['normal']
         vbo_ground = gloo.VertexBuffer(vertex, divisor=0)
         self.ground_indices = gloo.IndexBuffer(faces)
-        instance_shift = gloo.VertexBuffer(np.array([[0,0,0]], np.float32), divisor=1)
+        instance_shift = gloo.VertexBuffer(np.array([[0,0,0],[15,0,15],[-15,0,-30]], np.float32), divisor=1)
 
         self.shadowmap_ground = gloo.Program(VERTEX_SHADER_SHADOW, FRAGMENT_SHADER_SHADOW)
         self.shadowmap_ground.bind(vbo_ground) 
