@@ -370,6 +370,8 @@ class Stim3D(app.Canvas):
         gloo.set_state(depth_test=True)  # required for object in the Z axis to hide each other
 
     def create_view(self):
+        # if using an LCD it does not matter so much. 
+        # match distance if you use an actual projector
         self.view = translate((0, 0, -100))
 
     def create_projection(self):
@@ -408,7 +410,11 @@ class Stim3D(app.Canvas):
         # load texture
         texture = np.flipud(imread('ZebVR/resources/sand.jpeg'))
 
-        vertices, faces, _ = create_box(width=30, height=30, depth=1, height_segments=100, width_segments=100, depth_segments=10)
+        vertices0, faces0, _ = create_box(width=30, height=30, depth=1, height_segments=100, width_segments=100, depth_segments=10)
+        vertices1, faces1, _ = create_box(width=5, height=15, depth=1, height_segments=100, width_segments=100, depth_segments=10)
+        vertices1['position'] = vertices1['position'] - np.array((5,5,5)) 
+        vertices = np.hstack((vertices0, vertices1))
+        faces = np.hstack((faces0, faces1))
         vtype = [
             ('a_position', np.float32, 3),
             ('a_texcoord', np.float32, 2),
@@ -503,16 +509,8 @@ class Stim3D(app.Canvas):
         pos_world = T @ pos
         self.x, self.y = pos_world[:2]
 
-        #self.create_view()
-        #self.create_projection()
-        
-        self.ground_program['u_view'] = self.view
         self.ground_program['u_fish'] = [self.x, self.y, self.z]
-        self.ground_program['u_projection'] = self.projection
-
-        self.main_program['u_view'] = self.view
         self.main_program['u_fish'] = [self.x, self.y, self.z]
-        self.main_program['u_projection'] = self.projection
 
     def on_draw(self, event):
         # draw to the fbo 
