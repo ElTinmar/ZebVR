@@ -281,8 +281,8 @@ void main()
 }
 """
 
-SHELL_MODEL = rotate(90,(1,0,0)).dot(rotate(180,(0,0,1))).dot(translate((0,0.6,0)))
-GROUND_MODEL = translate((0,0,-15))
+SHELL_MODEL = rotate(90,(1,0,0)).dot(rotate(180,(0,0,1))).dot(translate((0,5.6,0)))
+GROUND_MODEL = translate((0,5,-15))
 SHADOWMAP_RES = 4096
 
 class Stim3D(app.Canvas):
@@ -319,12 +319,12 @@ class Stim3D(app.Canvas):
         self.tstart = 0
 
         self.x = 0
-        self.y = 0
-        self.z = 65
+        self.y = 5
+        self.z = 30
 
         # TODO fix this
-        self.screen_width_cm = 60 
-        self.screen_height_cm = 34
+        self.screen_width_cm = 27 
+        self.screen_height_cm = 17
         self.screen_bottomleft = [-self.screen_width_cm//2,0,0]
         self.screen_normal = [0,0,1]
         self.screen_bottomleft_x, self.screen_bottomleft_y, self.screen_bottomleft_z = self.screen_bottomleft
@@ -432,7 +432,7 @@ class Stim3D(app.Canvas):
         
         self.ground_program = gloo.Program(VERT_SHADER, FRAG_SHADER)
         self.ground_program.bind(vbo_ground) 
-        self.ground_program['u_fish'] = [0, 0, 0]
+        self.ground_program['u_fish'] = [self.x, self.y, self.z]
         self.ground_program['u_texture'] = gloo.Texture2D(texture, wrapping='repeat')
         self.ground_program['a_instance_shift'] = instance_shift
         self.ground_program['u_resolution'] = [self.width, self.height]
@@ -475,7 +475,7 @@ class Stim3D(app.Canvas):
         self.main_program = gloo.Program(VERT_SHADER, FRAG_SHADER)
         self.main_program.bind(vbo_shell)
         self.main_program['u_texture'] = texture
-        self.main_program['u_fish'] = [0,0,0]
+        self.main_program['u_fish'] = [self.x, self.y, self.z]
         self.main_program['a_instance_shift'] = instance_shift
         self.main_program['u_resolution'] = [self.width, self.height]
         self.main_program['u_view'] = self.view
@@ -505,8 +505,8 @@ class Stim3D(app.Canvas):
         pos_world = T @ pos
         self.x, self.y = pos_world[:2]
 
-        self.ground_program['u_fish'] = [self.x, self.y, self.z]
-        self.main_program['u_fish'] = [self.x, self.y, self.z]
+        #self.ground_program['u_fish'] = [self.x, self.y, self.z]
+        #self.main_program['u_fish'] = [self.x, self.y, self.z]
 
     def on_draw(self, event):
         # draw to the fbo 
