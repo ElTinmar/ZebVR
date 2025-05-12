@@ -505,8 +505,8 @@ class Stim3D(app.Canvas):
         pos_world = T @ pos
         self.x, self.y = pos_world[:2]
 
-        #self.ground_program['u_fish'] = [self.x, self.y, self.z]
-        #self.main_program['u_fish'] = [self.x, self.y, self.z]
+        self.ground_program['u_fish'] = [self.x, self.y, self.z]
+        self.main_program['u_fish'] = [self.x, self.y, self.z]
 
     def on_draw(self, event):
         # draw to the fbo 
