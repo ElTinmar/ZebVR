@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.image import imread
 import numpy as np
 from pathlib import Path
 import os
@@ -26,7 +27,7 @@ DPF = ['7dpf', '8dpf', '9dpf', '10dpf']
 PHOTOTAXIS_DURATION_SEC = 1200
 TRACKING_FPS = 100
 YLIM = (-420,420)
-
+interp_time = np.linspace(0, PHOTOTAXIS_DURATION_SEC, PHOTOTAXIS_DURATION_SEC*TRACKING_FPS)
 
 ROOTFOLDER = Path(
     os.environ.get('ROOTFOLDER', '/media/martin/DATA/Cichlids') 
@@ -284,8 +285,6 @@ def collect_data(interp_time, dpf):
 
     return phototaxis_darkleft, phototaxis_darkright
 
-interp_time = np.linspace(0, PHOTOTAXIS_DURATION_SEC, PHOTOTAXIS_DURATION_SEC*TRACKING_FPS)
-
 for dpf in DPF:
     phototaxis_darkleft, phototaxis_darkright = collect_data(interp_time, dpf)
     np.save(
@@ -297,7 +296,42 @@ for dpf in DPF:
         phototaxis_darkright
     )
 
-# Regression analysis ------------------------------------------------------------------
+## Regression analysis ------------------------------------------------------------------
+
+# plot to explain regression analysis
+dpf = '7dpf'
+fish = 0
+
+phototaxis_darkleft = np.load(PREPROCFOLDER / f'phototaxis_darkleft_{dpf}.npy')
+phototaxis_darkright = np.load(PREPROCFOLDER / f'phototaxis_darkright_{dpf}.npy')
+x = np.hstack((interp_time, -interp_time))
+y = np.hstack((phototaxis_darkleft, phototaxis_darkright))
+
+mask = ~np.isnan(y[fish,:])
+reg = OLS(y[fish,mask], x[mask, np.newaxis]).fit()
+coeffs = reg.params[0]
+
+fig, ax = plt.subplots()
+fig.set_size_inches(7,4)
+ax.set_box_aspect(.5)  
+plt.subplots_adjust(right=0.85)
+plt.plot(interp_time, phototaxis_darkleft[fish,:], color='orange')
+plt.plot(interp_time+interp_time[-1], phototaxis_darkright[fish,:], color='blue')
+plt.plot([0, 1200], [0, coeffs*1200], 'r--')
+plt.plot([1200, 2400], [0, -coeffs*1200], 'r--')
+plt.vlines(x=1200, ymin=-400, ymax=800, linestyle='dotted', color='gray', linewidth=1)
+plt.hlines(y=0, xmin=0, xmax=2800, linestyle='dotted', color='gray', linewidth=1, clip_on=False)
+ax.imshow(imread('ZebVR/analysis/phototaxis_darkleft.png'), extent=[400, 800, 300, 700])
+ax.imshow(imread('ZebVR/analysis/phototaxis_darkright.png'), extent=[1600, 2000, 300, 700])
+ax.imshow(imread('ZebVR/analysis/fish_turns_left.png'), extent=[2400, 2800, 100, 500], clip_on=False)
+ax.imshow(imread('ZebVR/analysis/fish_turns_right.png'), extent=[2400, 2800, -500, -100], clip_on=False)
+plt.ylabel("cumulative angle (rad)")
+plt.xlabel("time (s)")
+plt.xlim([0,2400])
+plt.ylim([-400,800])
+plt.savefig(PLOTSFOLDER /f'regression_analysis_method')
+plt.show()
+
 plot_data = []
 pvals = []
 
