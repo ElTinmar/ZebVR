@@ -343,14 +343,16 @@ for dpf in DPF:
     y = np.hstack((phototaxis_darkleft, phototaxis_darkright))
     n_fish = y.shape[0]
     coeffs = np.zeros((n_fish,))
+    rsquared = np.zeros((n_fish,))
 
     for n in range(n_fish):
         mask = ~np.isnan(y[n,:])
         reg = OLS(y[n,mask], x[mask, np.newaxis]).fit()
         coeffs[n] = reg.params[0]
+        rsquared[n] = reg.rsquared
 
-    for c in coeffs:
-        plot_data.append({'dpf': dpf, 'slope': c})
+    for c,r in zip(coeffs, rsquared):
+        plot_data.append({'dpf': dpf, 'slope': c, 'rsq': r})
 
     s, pval = stats.wilcoxon(coeffs)
     pvals.append(pval)
@@ -362,7 +364,7 @@ rejected, pvals_corrected, _, _ = multipletests(pvals, alpha=0.05, method='fdr_b
 
 df = pd.DataFrame(plot_data)
 
-sns.stripplot(data=df, x='dpf', y='slope', jitter=True, size=6)
+sns.stripplot(data=df, x='dpf', y='slope', hue='rsq', jitter=True, size=6)
 group_means = df.groupby('dpf', sort=False)['slope'].mean()
 # Plot horizontal lines for means
 for i, mean_val in enumerate(group_means):
@@ -386,9 +388,12 @@ plt.axhline(0, color='gray', linestyle='--', linewidth=1)
 plt.ylabel("angular speed towards dark side (rad/s)")
 plt.ylim(-0.3,0.3)
 plt.tight_layout()
+ax = plt.gca()
+ax.legend(loc='lower left', title='$R^2$')
 plt.savefig(PLOTSFOLDER /f'regression_analysis')
 plt.show()
 
+df.hist(column='rsq', by='dpf')
 
 # Plot cum angles  ------------------------------------------------------------------ 
 for dpf in DPF:
