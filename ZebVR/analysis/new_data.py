@@ -355,6 +355,7 @@ for dpf in DPF:
         plot_data.append({'dpf': dpf, 'slope': c, 'rsq': r})
 
     s, pval = stats.wilcoxon(coeffs)
+    #s, pval = stats.ttest_1samp(coeffs, 0) # same results
     pvals.append(pval)
  
     print(dpf, np.mean(coeffs), pval)
@@ -382,14 +383,18 @@ for i, mean_val in enumerate(group_means):
         stars = 'ns'
 
     if stars:
-        plt.text(i, 0.25, stars, ha='center', va='bottom', fontsize=14)
+        plt.text(i, 0.25, stars, ha='center', va='bottom', fontsize=10, fontweight='bold')
 
-plt.axhline(0, color='gray', linestyle='--', linewidth=1)
+plt.hlines(y=0, xmin=-0.5, xmax=4, linestyle='dotted', color='gray', linewidth=1, clip_on=False)
 plt.ylabel("angular speed towards dark side (rad/s)")
 plt.ylim(-0.3,0.3)
+plt.xlim(-0.5,3.5)
 plt.tight_layout()
 ax = plt.gca()
 ax.legend(loc='lower left', title='$R^2$')
+plt.subplots_adjust(right=0.9)
+ax.text(3.75,0.15, "Dark preference", fontsize=12, rotation=90, ha='center', va='center', clip_on=False)
+ax.text(3.75,-0.15, "Bright preference", fontsize=12, rotation=90, ha='center', va='center', clip_on=False)
 plt.savefig(PLOTSFOLDER /f'regression_analysis')
 plt.show()
 
