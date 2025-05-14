@@ -18,8 +18,8 @@ light_step_std = 1.5
 light_tau = 0.5
 
 # Initialize lists
-time_in_dark = [0.0]
-time_in_light = [0.0]
+time_in_dark = []
+time_in_light = []
 
 nreps = 100
 
@@ -137,4 +137,125 @@ axs[2].set_ylabel('Probability Density')
 
 plt.tight_layout()
 plt.savefig('mc_distribution')
+plt.show()
+
+## Phototaxis ---------------------------------------------------------------------------
+# not OK
+
+# Parameters
+total_time = 1000
+x0, y0 = 0.0, 0.0
+
+# Arena size
+Lx = 10
+Ly = 5
+
+# Uniform step and inter-event time
+step_std = 1.0
+tau = 1.0
+
+# Directional bias
+bias_angle = -np.pi  # Bias toward left (dark compartment at x < 0)
+kappa = 2.0         # Concentration (higher = stronger bias)
+
+# Storage
+positions = [(x0, y0)]
+times = [0.0]
+time_in_dark = []
+time_in_light = []
+
+nreps = 100
+
+for rep in range(nreps):
+
+    x, y = x0, y0
+    t = 0.0
+    positions = [(x0, y0)]
+    times = [0.0]
+    time_in_dark.append(0.0)
+    time_in_light.append(0.0)
+
+    while t < total_time:
+        dt = np.random.exponential(tau)
+
+        # Try valid move
+        while True:
+            angle = np.random.vonmises(mu=bias_angle, kappa=kappa)
+            dx = np.random.normal(loc=0.0, scale=step_std) * np.cos(angle)
+            dy = np.random.normal(loc=0.0, scale=step_std) * np.sin(angle)
+
+            new_x = x + dx
+            new_y = y + dy
+
+            if -Lx <= new_x <= Lx and -Ly <= new_y <= Ly:
+                break
+        
+        if x < 0:
+            time_in_dark[rep] += dt
+        else:
+            time_in_light[rep] += dt
+
+        # Accept move
+        x, y = new_x, new_y
+        t += dt
+        positions.append((x, y))
+        times.append(t)
+
+## Plotting trajectory
+# Convert to arrays
+positions = np.array(positions)
+x_vals, y_vals = positions[:, 0], positions[:, 1]
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.add_patch(plt.Rectangle((-Lx, -Ly), Lx, 2 * Ly, color='black'))  # dark side
+ax.add_patch(plt.Rectangle((0, -Ly), Lx, 2 * Ly, color='white', edgecolor='black'))
+ax.plot(x_vals, y_vals, color='gray', linewidth=1)
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.grid(True)
+plt.xlim([-Lx, Lx])
+plt.ylim([-Ly, Ly])
+plt.savefig('trajectory')
+plt.show()
+
+
+## Plotting
+n_samples = 10_000
+dt_samples = np.random.exponential(tau, n_samples)
+step_samples = np.random.normal(0, step_std, n_samples)
+angle_samples = np.random.vonmises(bias_angle, kappa, n_samples)
+
+fig, axs = plt.subplots(1, 3, figsize=(18, 5))
+
+# Inter-event times
+axs[0].hist(dt_samples, bins=100, density=True, color='orange', alpha=0.7)
+axs[0].set_title('Inter-Event Time Distribution (Exponential)')
+axs[0].set_xlabel('Δt')
+axs[0].set_ylabel('Density')
+
+# Step size 
+axs[1].hist(step_samples, bins=100, density=True, color='blue', alpha=0.7)
+axs[1].set_title('Step Size Distribution')
+axs[1].set_xlabel('step size (px)')
+axs[1].set_ylabel('Density')
+
+# Direction (angle)
+axs[2].hist(angle_samples, bins=100, density=True, color='green', alpha=0.7)
+theta = np.linspace(-np.pi, np.pi, 500)
+axs[2].set_title('Direction Distribution (von Mises)')
+axs[2].set_xlabel('Angle (radians)')
+axs[2].set_ylabel('Density')
+axs[2].legend()
+
+plt.tight_layout()
+plt.show()
+
+# Boxplot
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.boxplot([time_in_dark, time_in_light], labels=['Dark', 'Light'], patch_artist=True,
+           boxprops=dict(facecolor='gray'), medianprops=dict(color='red'))
+ax.set_title('Time Spent in Dark vs Light Compartments')
+ax.set_ylabel('Time (seconds)')
+plt.grid(True, axis='y')
+plt.savefig('time_spent_compartments')
 plt.show()
