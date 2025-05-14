@@ -1,3 +1,5 @@
+import matplotlib
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.image import imread
@@ -387,7 +389,7 @@ for i, mean_val in enumerate(group_means):
         plt.text(i, 0.25, stars, ha='center', va='bottom', fontsize=10, fontweight='bold')
 
 plt.hlines(y=0, xmin=-0.5, xmax=4, linestyle='dotted', color='gray', linewidth=1, clip_on=False)
-plt.ylabel("angular speed towards dark side (rad/s)")
+plt.ylabel("angular speed towards dark side (rad/s)", fontsize=14)
 plt.ylim(-0.3,0.3)
 plt.xlim(-0.5,3.5)
 plt.tight_layout()
@@ -424,16 +426,17 @@ for i, dpf in enumerate(DPF):
     plt.plot(avg_darkright, interp_time,  color='blue', linewidth=2)
 
     plt.title(dpf)
-    plt.xlabel('cum. angle (rad)')
+    plt.xlabel('cum. angle (rad)', fontsize=14)
     plt.xlim(-475,475)
 
     print(i)
     if i == 0:
-        plt.ylabel('time (sec)')
+        plt.ylabel('time (sec)', fontsize=14)
     else:
         ax.set_yticklabels([])
 
 
+plt.tight_layout()
 plt.savefig(PLOTSFOLDER /f'phototaxis')
 plt.show(block = False)
 
