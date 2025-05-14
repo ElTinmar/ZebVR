@@ -367,6 +367,7 @@ df = pd.DataFrame(plot_data)
 
 sns.stripplot(data=df, x='dpf', y='slope', hue='rsq', jitter=True, size=6)
 group_means = df.groupby('dpf', sort=False)['slope'].mean()
+
 # Plot horizontal lines for means
 for i, mean_val in enumerate(group_means):
     plt.hlines(y=mean_val, xmin=i - 0.2, xmax=i + 0.2, color='black', linewidth=3, zorder=10)
@@ -401,26 +402,38 @@ plt.show()
 df.hist(column='rsq', by='dpf')
 
 # Plot cum angles  ------------------------------------------------------------------ 
-for dpf in DPF:
+fig = plt.figure(figsize=(16,4))
+
+for i, dpf in enumerate(DPF):
+
     phototaxis_darkleft = np.load(PREPROCFOLDER / f'phototaxis_darkleft_{dpf}.npy')
     phototaxis_darkright = np.load(PREPROCFOLDER / f'phototaxis_darkright_{dpf}.npy')
     
     avg_darkleft = np.nanmean(phototaxis_darkleft, axis=0)
     avg_darkright = np.nanmean(phototaxis_darkright, axis=0)
 
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111) 
-    for i in range(phototaxis_darkleft.shape[0]):
-        plt.plot(interp_time, phototaxis_darkleft[i,:], color='orange', alpha=0.2)
-    plt.plot(interp_time, avg_darkleft, color='orange', linewidth=2)
-    for i in range(phototaxis_darkright.shape[0]):
-        plt.plot(interp_time, phototaxis_darkright[i,:], color='blue', alpha=0.2)
-    plt.plot(interp_time, avg_darkright, color='blue', linewidth=2)
-    plt.plot(interp_time, group_means[dpf]*interp_time, color='orange', linestyle='--')
-    plt.plot(interp_time, -group_means[dpf]*interp_time, color='blue', linestyle='--')
+    ax = fig.add_subplot(1,4,i+1) 
+    ax.set_box_aspect(1)
+
+    for n in range(phototaxis_darkleft.shape[0]):
+        plt.plot(phototaxis_darkleft[n,:], interp_time, color='orange', alpha=0.2)
+    plt.plot(avg_darkleft, interp_time, color='orange', linewidth=2)
+
+    for n in range(phototaxis_darkright.shape[0]):
+        plt.plot(phototaxis_darkright[n,:], interp_time, color='blue', alpha=0.2)
+    plt.plot(avg_darkright, interp_time,  color='blue', linewidth=2)
+
     plt.title(dpf)
-    plt.xlabel('time (sec)')
-    plt.ylabel('cum. angle (rad)')
-    plt.savefig(PLOTSFOLDER /f'phototaxis_{dpf}')
-    plt.show(block = False)
+    plt.xlabel('cum. angle (rad)')
+    plt.xlim(-475,475)
+
+    print(i)
+    if i == 0:
+        plt.ylabel('time (sec)')
+    else:
+        ax.set_yticklabels([])
+
+
+plt.savefig(PLOTSFOLDER /f'phototaxis')
+plt.show(block = False)
 
