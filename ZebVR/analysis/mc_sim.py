@@ -10,8 +10,8 @@ Lx = 10  # half-width in x
 Ly = 5   # half-height in y
 
 # Dark region (x < 0)
-dark_step_std = 0.5
-dark_tau = 5.0
+dark_step_std = 1.0
+dark_tau = 1.5
 
 # Light region (x >= 0)
 light_step_std = 1.5
@@ -76,13 +76,14 @@ ax.boxplot([time_in_dark, time_in_light], labels=['Dark', 'Light'], patch_artist
 ax.set_title('Time Spent in Dark vs Light Compartments')
 ax.set_ylabel('Time (seconds)')
 plt.grid(True, axis='y')
+plt.savefig('time_spent_compartments')
 plt.show()
 
+## Plotting trajectory
 # Convert to arrays
 positions = np.array(positions)
 x_vals, y_vals = positions[:, 0], positions[:, 1]
 
-# Plotting
 fig, ax = plt.subplots(figsize=(10, 6))
 ax.add_patch(plt.Rectangle((-Lx, -Ly), Lx, 2 * Ly, color='black'))  # dark side
 ax.add_patch(plt.Rectangle((0, -Ly), Lx, 2 * Ly, color='white', edgecolor='black'))
@@ -92,9 +93,10 @@ plt.ylabel('Y')
 plt.grid(True)
 plt.xlim([-Lx, Lx])
 plt.ylim([-Ly, Ly])
+plt.savefig('trajectory')
 plt.show()
 
-# Plotting distributions
+## Plotting distributions
 
 n_samples = 10_000
 
@@ -109,7 +111,6 @@ step_light = np.random.normal(0, light_step_std, n_samples)
 # Directions
 angles = np.random.uniform(0, 2 * np.pi, n_samples)
 
-
 fig, axs = plt.subplots(1, 3, figsize=(18, 5))
 
 # Inter-event time distributions
@@ -123,8 +124,8 @@ axs[0].legend()
 # Step size distributions
 axs[1].hist(step_dark, bins=100, alpha=0.6, label='Dark', density=True)
 axs[1].hist(step_light, bins=100, alpha=0.6, label='Light', density=True)
-axs[1].set_title('Step Size Distribution (1D projection)')
-axs[1].set_xlabel('Step (dx or dy)')
+axs[1].set_title('Step Size Distribution')
+axs[1].set_xlabel('Step (px)')
 axs[1].set_ylabel('Probability Density')
 axs[1].legend()
 
@@ -135,4 +136,5 @@ axs[2].set_xlabel('Angle (radians)')
 axs[2].set_ylabel('Probability Density')
 
 plt.tight_layout()
+plt.savefig('mc_distribution')
 plt.show()
