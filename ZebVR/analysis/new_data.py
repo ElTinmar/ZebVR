@@ -1,4 +1,5 @@
 import matplotlib
+matplotlib.rcParams['font.size'] = 16
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -24,7 +25,10 @@ class PolarityOld(IntEnum):
 class PolarityNew(IntEnum):
     DARKLEFT = 1
     DARKRIGHT = -1
- 
+
+PIX_PER_MM_OLD = 38.773681409813456
+PIX_PER_MM_NEW = 32
+
 DPF = ['7dpf', '8dpf', '9dpf', '10dpf']
 PHOTOTAXIS_DURATION_SEC = 1200
 TRACKING_FPS = 100
@@ -77,6 +81,31 @@ def get_relative_time_sec(data: pd.DataFrame):
     relative_time_ns = data.timestamp - first_timestamp
     return 1e-9*relative_time_ns
 
+def get_distance(data, pix_per_mm):
+    x_diff = data['centroid_x'].diff()
+    y_diff = data['centroid_y'].diff()
+    distance = np.sqrt(x_diff**2+y_diff**2)
+    return distance * 1/pix_per_mm
+
+def load_data_old(datafile: str) -> pd.DataFrame:
+    data = pd.read_csv(
+        DATAFOLDER / datafile, 
+        usecols=['image_index', 't_local', 'centroid_x', 'centroid_y', 'pc1_x', 'pc1_y', 'stim_id', 'phototaxis_polarity']
+    )
+    data_filtered = data.groupby('image_index').first()
+    return data_filtered
+
+def load_data_new(stim_file: str, tracking_file: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    tracking = pd.read_csv(
+        DATAFOLDER / tracking_file, 
+        usecols=['timestamp', 'centroid_x', 'centroid_y', 'pc1_x', 'pc1_y']
+    )
+    stim = pd.read_csv(
+        DATAFOLDER / stim_file, 
+        usecols=['timestamp', 'stim_id', 'phototaxis_polarity']
+    )
+    return stim, tracking
+
 num_frames_phototaxis = 2*PHOTOTAXIS_DURATION_SEC*TRACKING_FPS
 interpolated_time = np.linspace(0, 2*PHOTOTAXIS_DURATION_SEC, num_frames_phototaxis)
 
@@ -120,6 +149,49 @@ for age in DPF:
     ax.add_patch(plt.Rectangle((0,0), 1200, YLIM[1], color='#333333'))
     ax.add_patch(plt.Rectangle((1200,0), 1200, YLIM[0], color='#333333'))
     plt.show(block=False)
+
+# plot protocol
+ex = 0
+stim_file, tracking_file = DATAFILES[ex]
+stim, tracking = load_data_new(stim_file, tracking_file)
+relative_time_sec = get_relative_time_sec(tracking)
+angle, angle_unwrapped = get_heading_angle(tracking)
+distance = get_distance(tracking, PIX_PER_MM_NEW)
+
+fig = plt.figure(figsize=(16,12))
+
+ax1 = plt.subplot(311)
+plt.plot([],[])
+plt.xlim([0, 3000])
+plt.ylim([0, 300])
+ax1.imshow(imread('ZebVR/analysis/dark.png'), extent=[0, 300, -300, 0], clip_on=False)
+ax1.imshow(imread('ZebVR/analysis/bright.png'), extent=[300, 600, -300, 0], clip_on=False)
+ax1.imshow(imread('ZebVR/analysis/phototaxis_darkleft.png'), extent=[1050, 1350, -300, 0], clip_on=False)
+ax1.imshow(imread('ZebVR/analysis/phototaxis_darkright.png'), extent=[2250, 2550, -300, 0], clip_on=False)
+plt.vlines(x=300, ymin=-300, ymax=0, linestyle='dotted', color='gray', linewidth=1)
+plt.vlines(x=600, ymin=-300, ymax=0, linestyle='dotted', color='gray', linewidth=1)
+plt.vlines(x=1800, ymin=-300, ymax=0, linestyle='dotted', color='gray', linewidth=1)
+plt.axis('off')
+
+ax2 = plt.subplot(312, sharex=ax1)
+plt.plot(relative_time_sec, angle_unwrapped)
+plt.xlabel('time (s)')
+plt.ylabel('cum. angle (rad)')
+plt.vlines(x=300, ymin=-200, ymax=200, linestyle='dotted', color='gray', linewidth=1)
+plt.vlines(x=600, ymin=-200, ymax=200, linestyle='dotted', color='gray', linewidth=1)
+plt.vlines(x=1800, ymin=-200, ymax=200, linestyle='dotted', color='gray', linewidth=1)
+
+ax3 = plt.subplot(313, sharex=ax1)
+plt.plot(relative_time_sec, np.cumsum(distance))
+plt.xlabel('time (s)')
+plt.ylabel('cum. distance (mm)')
+plt.vlines(x=300, ymin=0, ymax=40_000, linestyle='dotted', color='gray', linewidth=1)
+plt.vlines(x=600, ymin=0, ymax=40_000, linestyle='dotted', color='gray', linewidth=1)
+plt.vlines(x=1800, ymin=0, ymax=40_000, linestyle='dotted', color='gray', linewidth=1)
+
+plt.tight_layout()
+plt.savefig('protocol')
+plt.show()
 
 #------------------------------------------------------------------------------------------
 OLD_DATAFILES = [
@@ -191,25 +263,6 @@ OLD_DATAFILES = [
 
 USE_OLD_DATA = True
 USE_NEW_DATA = True
-
-def load_data_old(datafile: str) -> pd.DataFrame:
-    data = pd.read_csv(
-        DATAFOLDER / datafile, 
-        usecols=['image_index', 't_local', 'pc1_x', 'pc1_y', 'stim_id', 'phototaxis_polarity']
-    )
-    data_filtered = data.groupby('image_index').first()
-    return data_filtered
-
-def load_data_new(stim_file: str, tracking_file: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    tracking = pd.read_csv(
-        DATAFOLDER / tracking_file, 
-        usecols=['timestamp', 'pc1_x', 'pc1_y']
-    )
-    stim = pd.read_csv(
-        DATAFOLDER / stim_file, 
-        usecols=['timestamp', 'stim_id', 'phototaxis_polarity']
-    )
-    return stim, tracking
 
 def get_phototaxis_data_new(stim: pd.DataFrame, tracking: pd.DataFrame, polarity: int) -> pd.DataFrame:
     data = stim.loc[stim.stim_id == StimType.PHOTOTAXIS]
@@ -404,7 +457,7 @@ plt.show()
 df.hist(column='rsq', by='dpf')
 
 # Plot cum angles  ------------------------------------------------------------------ 
-fig = plt.figure(figsize=(16,4))
+fig = plt.figure(figsize=(24,8))
 
 for i, dpf in enumerate(DPF):
 
@@ -426,12 +479,12 @@ for i, dpf in enumerate(DPF):
     plt.plot(avg_darkright, interp_time,  color='blue', linewidth=2)
 
     plt.title(dpf)
-    plt.xlabel('cum. angle (rad)', fontsize=14)
+    plt.xlabel('cum. angle (rad)', fontsize=18)
     plt.xlim(-475,475)
 
     print(i)
     if i == 0:
-        plt.ylabel('time (sec)', fontsize=14)
+        plt.ylabel('time (sec)', fontsize=18)
     else:
         ax.set_yticklabels([])
 
