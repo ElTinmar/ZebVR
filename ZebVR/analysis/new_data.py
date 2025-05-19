@@ -493,3 +493,102 @@ plt.tight_layout()
 plt.savefig(PLOTSFOLDER /f'phototaxis')
 plt.show(block = False)
 
+#############################################################
+# MIRROR PLOT
+#############################################################
+
+pvals = []
+plot_data = []
+
+for i, dpf in enumerate(DPF):
+
+    phototaxis_darkleft = np.load(PREPROCFOLDER / f'phototaxis_darkleft_{dpf}.npy')
+    phototaxis_darkright = np.load(PREPROCFOLDER / f'phototaxis_darkright_{dpf}.npy')
+
+    data = np.vstack((phototaxis_darkleft[:,-1],-phototaxis_darkright[:,-1]))
+    values = np.nanmean(data, axis=0)
+    
+    s, pval = stats.wilcoxon(values)
+    #s, pval = stats.ttest_1samp(coeffs, 0) # same results
+    pvals.append(pval)
+
+    for v in values:
+        plot_data.append({'dpf': dpf, 'val': v})
+
+rejected, pvals_corrected, _, _ = multipletests(pvals, alpha=0.05, method='fdr_bh')
+
+fig = plt.figure()
+ax = plt.axes()
+ax.add_patch(plt.Rectangle((-0.5,0), 4, 300, color='#333333'))
+sns.stripplot(data=df, x='dpf', y='val', jitter=True, size=6, color='orange')
+group_means = df.groupby('dpf', sort=False)['val'].mean()
+
+# Plot horizontal lines for means
+for i, mean_val in enumerate(group_means):
+    plt.hlines(y=mean_val, xmin=i - 0.2, xmax=i + 0.2, color='gray', linewidth=3, zorder=10)
+
+    # Significance asterisks
+    p = pvals_corrected[i]
+    if p < 0.001:
+        stars = '***'
+    elif p < 0.01:
+        stars = '**'
+    elif p < 0.05:
+        stars = '*'
+    else:
+        stars = 'ns'
+
+    if stars:
+        plt.text(i, 310, stars, ha='center', va='bottom', fontsize=12, fontweight='bold', clip_on=False)
+
+plt.hlines(y=0, xmin=-0.5, xmax=4, linestyle='dotted', color='gray', linewidth=1, clip_on=False)
+plt.ylabel("cum. angle towards dark side (rad)", fontsize=14)
+plt.xlabel('')
+plt.ylim(-300,300)
+plt.xlim(-0.5,3.5)
+plt.tight_layout()
+ax = plt.gca()
+plt.subplots_adjust(right=0.9)
+ax.text(3.75,150, "Dark preference", fontsize=12, rotation=90, ha='center', va='center', clip_on=False)
+ax.text(3.75,-150, "Bright preference", fontsize=12, rotation=90, ha='center', va='center', clip_on=False)
+plt.savefig(PLOTSFOLDER /f'last_value_analysis')
+plt.show()
+
+
+fig = plt.figure(figsize=(24,8))
+
+for i, dpf in enumerate(DPF):
+
+    phototaxis_darkleft = np.load(PREPROCFOLDER / f'phototaxis_darkleft_{dpf}.npy')
+    phototaxis_darkright = np.load(PREPROCFOLDER / f'phototaxis_darkright_{dpf}.npy')
+
+    data = np.vstack((phototaxis_darkleft, -phototaxis_darkright))
+
+    avg_ptx = np.nanmean(data, axis=0)
+    std_ptx = np.nanstd(data, axis=0)
+
+    ax = fig.add_subplot(1,4,i+1) 
+    ax.set_box_aspect(1)
+
+    ax.add_patch(plt.Rectangle((0,-10), 475, 1220, color='#333333'))
+
+    for n in range(data.shape[0]):
+        plt.plot(data[n,:], interp_time, color='orange', alpha=0.2, linewidth=2)
+        plt.plot(data[n,-1], interp_time[-1], color='orange', marker='o', alpha=0.6)
+    plt.plot(avg_ptx, interp_time, color='orange', linewidth=4)
+
+    
+    plt.title(dpf)
+    plt.xlabel('cum. angle (rad)', fontsize=18)
+    plt.xlim(-475,475)
+    plt.ylim(-10,1210)
+
+    print(i)
+    if i == 0:
+        plt.ylabel('time (sec)', fontsize=18)
+    else:
+        ax.set_yticklabels([])
+
+plt.tight_layout()
+plt.savefig(PLOTSFOLDER /f'phototaxis_mirrored')
+plt.show(block = False)
