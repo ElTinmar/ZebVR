@@ -11,6 +11,7 @@ import seaborn as sns
 from scipy.stats import ranksums
 import os
 from pathlib import Path
+from typing import Optional
 
 PIX_PER_MM = 38.773681409813456
 CAM_WIDTH = 2048
@@ -60,7 +61,7 @@ COLORS = ('#FF6900', '#002BFF')
 ARENA_CENTER = (1049,1049)
 ARENA_DIAMETER_MM = 50
 ARENA_DIAMETER_PX = PIX_PER_MM * ARENA_DIAMETER_MM
-BASE_FOLDER = Path('output')
+BASE_FOLDER = Path('/media/martin/DATA/Cichlids')
 DATA_FOLDER = BASE_FOLDER / 'data'
 #DATA_FOLDER = '/media/martin/DATA/Cichlids'
 RESULT_FOLDER = BASE_FOLDER / 'results'
@@ -218,6 +219,7 @@ def ranksum_plot(
         title: str,
         col: Iterable, 
         fontsize: int = 12, 
+        ylim: Optional[Tuple] = None,
         *args, 
         **kwargs):
         
@@ -241,11 +243,15 @@ def ranksum_plot(
         palette=sns.color_palette(col)
     )
     ax.set_xlim(-0.5, 1.5)
+
     ax.set_ylabel(ylabel)
     ax.set_xlabel('')
     ax.set_box_aspect(1)
 
     significance_bridge(ax,x,y,p_value,fontsize)
+
+    if ylim is not None:
+        ax.set_ylim(*ylim)
 
 def parse_filename(filename: str, loc: str = 'de_DE.utf8') -> Tuple:
 
@@ -458,7 +464,8 @@ def plot_helper(
         xlabel:str, 
         vertical_time_axis: bool,
         prefix: str,
-        end_idx: int = -1
+        end_idx: int = -1,
+        ylim: Optional[Tuple] = None
     ):
 
     fig, axs = plt.subplots(2, 4, figsize=(15,7.5))
@@ -517,6 +524,9 @@ def plot_helper(
                         axs[0, count].set_xlabel('time (s)') 
                         axs[0, count].set_ylabel(xlabel)
                     summary[cat_value].append(data_cat[val].iloc[end_idx])
+        
+        if ylim is not None:
+            axs[0, count].set_ylim(*ylim)
 
         ranksum_plot(
             axs[1, count],
@@ -525,8 +535,9 @@ def plot_helper(
             cat_names=key_names,
             ylabel=xlabel,
             title=f'{dpf} dpf',
-            col=col
-        )
+            col=col,
+            ylim = ylim
+        ) 
 
         count += 1
     
@@ -546,7 +557,8 @@ def plot_dark_vs_bright(data):
         key_names = ('bright', 'dark'),
         col=COLORS,
         vertical_time_axis=False,
-        prefix=os.path.join(RESULT_FOLDER, 'dark_vs_bright')
+        prefix=os.path.join(RESULT_FOLDER, 'dark_vs_bright'),
+        ylim=(0,4500)
     )
         
 def plot_omr_left_vs_right(data):
