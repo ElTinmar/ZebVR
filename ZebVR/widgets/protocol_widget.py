@@ -35,6 +35,7 @@ from ..protocol import (
     FollowingLooming,
     Looming,
     PreyCapture,
+    FollowingDot,
     Pause,
     SoftwareTrigger,
     TrackingTrigger
@@ -289,6 +290,8 @@ class StimWidget(QWidget):
             following_looming_period_sec: float = 10,
             following_looming_expansion_time_sec: float = 10,
             following_looming_expansion_speed_mm_per_sec: float = 10,
+            following_dot_center_mm: Tuple = (0.0, 0.0),
+            following_dot_radius_mm: float = 0.0,
             foreground_color: Tuple = (0.2, 0.2, 0.2, 1.0),
             background_color: Tuple = (0.0, 0.0, 0.0, 1.0),
             n_preys: int = 50,
@@ -318,6 +321,8 @@ class StimWidget(QWidget):
         self.following_looming_period_sec = following_looming_period_sec
         self.following_looming_expansion_time_sec = following_looming_expansion_time_sec
         self.following_looming_expansion_speed_mm_per_sec = following_looming_expansion_speed_mm_per_sec
+        self.following_dot_center_mm = following_dot_center_mm
+        self.following_dot_radius_mm = following_dot_radius_mm
         self.foreground_color = foreground_color
         self.background_color = background_color
         self.n_preys = n_preys
@@ -451,7 +456,7 @@ class StimWidget(QWidget):
         self.sb_okr_speed.setValue(self.okr_speed_deg_per_sec)
         self.sb_okr_speed.valueChanged.connect(self.on_change)
 
-        # Looming
+        # Following looming
         self.sb_following_looming_center_mm_x = LabeledDoubleSpinBox()
         self.sb_following_looming_center_mm_x.setText('X (mm)')
         self.sb_following_looming_center_mm_x.setRange(-10_000,10_000)
@@ -513,8 +518,7 @@ class StimWidget(QWidget):
         self.sb_looming_expansion_speed_mm_per_sec.setValue(self.looming_expansion_speed_mm_per_sec)
         self.sb_looming_expansion_speed_mm_per_sec.valueChanged.connect(self.on_change)
 
-        # prey capture
-
+        # Prey capture
         self.sb_n_preys = LabeledSpinBox()
         self.sb_n_preys.setText('# preys')
         self.sb_n_preys.setRange(0, MAX_PREY) 
@@ -534,6 +538,25 @@ class StimWidget(QWidget):
         self.sb_prey_radius_mm.setRange(0,10)
         self.sb_prey_radius_mm.setValue(self.prey_radius_mm)
         self.sb_prey_radius_mm.valueChanged.connect(self.on_change)
+
+        # Following dot
+        self.sb_following_dot_center_mm_x = LabeledDoubleSpinBox()
+        self.sb_following_dot_center_mm_x.setText('X (mm)')
+        self.sb_following_dot_center_mm_x.setRange(-10_000,10_000)
+        self.sb_following_dot_center_mm_x.setValue(self.following_dot_center_mm[0])
+        self.sb_following_dot_center_mm_x.valueChanged.connect(self.on_change)
+
+        self.sb_following_dot_center_mm_y = LabeledDoubleSpinBox()
+        self.sb_following_dot_center_mm_y.setText('Y (mm)')
+        self.sb_following_dot_center_mm_y.setRange(-10_000,10_000)
+        self.sb_following_dot_center_mm_y.setValue(self.following_dot_center_mm[1])
+        self.sb_following_dot_center_mm_y.valueChanged.connect(self.on_change)
+
+        self.sb_following_dot_radius_mm = LabeledDoubleSpinBox()
+        self.sb_following_dot_radius_mm.setText('radius (mm)')
+        self.sb_following_dot_radius_mm.setRange(0,100)
+        self.sb_following_dot_radius_mm.setValue(self.following_dot_radius_mm)
+        self.sb_following_dot_radius_mm.valueChanged.connect(self.on_change)
 
         # Stop condition
         self.stop_condition_widget = StopWidget(self.debouncer, self.background_image)
@@ -613,6 +636,14 @@ class StimWidget(QWidget):
         self.preycapture_group = QGroupBox('Prey capture parameters')
         self.preycapture_group.setLayout(preycapture_layout)
 
+        following_dot_layout = QVBoxLayout()
+        following_dot_layout.addWidget(self.sb_following_dot_center_mm_x)
+        following_dot_layout.addWidget(self.sb_following_dot_center_mm_y)
+        following_dot_layout.addWidget(self.sb_following_dot_radius_mm)
+        following_dot_layout.addStretch()
+        self.following_dot_group = QGroupBox('Following dot parameters')
+        self.following_dot_group.setLayout(following_dot_layout)
+
         self.stack = QStackedWidget()
         self.stack.addWidget(QLabel()) # Dark
         self.stack.addWidget(QLabel()) # Bright
@@ -623,6 +654,7 @@ class StimWidget(QWidget):
         self.stack.addWidget(self.preycapture_group)
         self.stack.addWidget(self.looming_group) # regular looming
         self.stack.addWidget(self.concentric_group)
+        self.stack.addWidget(self.following_dot_group)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.cmb_stim_select)
@@ -685,6 +717,11 @@ class StimWidget(QWidget):
         state['following_looming_period_sec'] = self.sb_following_looming_period_sec.value()
         state['following_looming_expansion_time_sec'] = self.sb_following_looming_expansion_time_sec.value()
         state['following_looming_expansion_speed_mm_per_sec'] = self.sb_following_looming_expansion_speed_mm_per_sec.value()
+        state['following_dot_center_mm'] = (
+            self.sb_following_dot_center_mm_x.value(),
+            self.sb_following_dot_center_mm_y.value()
+        )
+        state['following_dot_radius_mm'] = self.sb_following_dot_radius_mm.value()
         state['foreground_color'] = (
             self.sb_foreground_color_R.value(),
             self.sb_foreground_color_G.value(),
@@ -704,6 +741,8 @@ class StimWidget(QWidget):
         return state
 
     def set_state(self, state: Dict) -> None:
+        # TODO use get with default ?
+
         self.cmb_stim_select.setCurrentIndex(state['stim_select'])
         self.chb_phototaxis_polarity.setChecked((state['phototaxis_polarity']+1)/2)
         self.sb_omr_spatial_freq.setValue(state['omr_spatial_period_mm'])
@@ -716,6 +755,9 @@ class StimWidget(QWidget):
         self.sb_following_looming_center_mm_x.setValue(state['following_looming_center_mm'][0])
         self.sb_following_looming_center_mm_y.setValue(state['following_looming_center_mm'][1])
         self.sb_following_looming_period_sec.setValue(state['following_looming_period_sec'])
+        self.sb_following_dot_center_mm_x.setValue(state['following_dot_center_mm'][0])
+        self.sb_following_dot_center_mm_y.setValue(state['following_dot_center_mm'][1])
+        self.sb_following_dot_radius_mm.setValue(state['following_dot_radius_mm'])
         self.sb_following_looming_expansion_time_sec.setValue(state['following_looming_expansion_time_sec'])
         self.sb_following_looming_expansion_speed_mm_per_sec.setValue(state['following_looming_expansion_speed_mm_per_sec'])
         self.sb_looming_center_mm_x.setValue(state['looming_center_mm'][0])
@@ -781,6 +823,12 @@ class StimWidget(QWidget):
             self.sb_following_looming_period_sec.setValue(protocol_item.looming_period_sec)
             self.sb_following_looming_expansion_time_sec.setValue(protocol_item.looming_expansion_time_sec)
             self.sb_following_looming_expansion_speed_mm_per_sec.setValue(protocol_item.looming_expansion_speed_mm_per_sec)
+
+        elif isinstance(protocol_item, FollowingDot):
+            self.cmb_stim_select.setCurrentText(str(Stim.Visual.FOLLOWING_DOT))
+            self.sb_following_dot_center_mm_x.setValue(protocol_item.dot_center_mm[0])
+            self.sb_following_dot_center_mm_y.setValue(protocol_item.dot_center_mm[1])
+            self.sb_following_dot_radius_mm.setValue(protocol_item.dot_radius_mm)
 
         elif isinstance(protocol_item, Looming):
             self.cmb_stim_select.setCurrentText(str(Stim.Visual.LOOMING))
@@ -880,6 +928,18 @@ class StimWidget(QWidget):
                 looming_period_sec = self.sb_following_looming_period_sec.value(),
                 looming_expansion_time_sec = self.sb_following_looming_expansion_time_sec.value(),
                 looming_expansion_speed_mm_per_sec = self.sb_following_looming_expansion_speed_mm_per_sec.value(),
+                stop_condition = stop_condition
+            )
+
+        if state['stim_select'] == Stim.Visual.FOLLOWING_DOT:
+            protocol = FollowingDot(
+                foreground_color = foreground_color,
+                background_color = background_color,
+                dot_center_mm = (
+                    self.sb_following_dot_center_mm_x.value(),
+                    self.sb_following_dot_center_mm_y.value()
+                ),
+                dot_radius_mm = self.sb_following_dot_radius_mm.value(),
                 stop_condition = stop_condition
             )
 

@@ -42,6 +42,9 @@ class SharedStimParameters:
     default_looming_period_sec: float
     default_looming_expansion_time_sec: float
     default_looming_expansion_speed_mm_per_sec: float
+    default_dot_center_mm: Tuple[float, float]
+    default_dot_radius_mm: float
+    default_looming_expansion_time_sec: float
     default_n_preys: int
     default_prey_speed_mm_s: float
     default_prey_radius_mm: float
@@ -67,6 +70,8 @@ class SharedStimParameters:
         self.following_looming_period_sec = RawValue('d', self.default_looming_period_sec)
         self.following_looming_expansion_time_sec = RawValue('d', self.default_looming_expansion_time_sec)
         self.following_looming_expansion_speed_mm_per_sec = RawValue('d', self.default_looming_expansion_speed_mm_per_sec)
+        self.following_dot_center_mm = RawArray('d', self.default_dot_center_mm)
+        self.following_dot_radius_mm = RawValue('d', self.default_dot_radius_mm)
         self.n_preys = RawValue('L', self.default_n_preys)
         self.prey_speed_mm_s = RawValue('d', self.default_prey_speed_mm_s)
         self.prey_radius_mm = RawValue('d', self.default_prey_radius_mm)
@@ -114,6 +119,8 @@ class GeneralStim(VisualStim):
             looming_period_sec: float = 30,
             looming_expansion_time_sec: float = 3,
             looming_expansion_speed_mm_per_sec: float = 10,
+            dot_center_mm: Tuple = (0.0, 0.0),
+            dot_radius_mm: float = 5,
             n_preys: int = 50,
             prey_speed_mm_s: float = 20, # 0.75
             prey_radius_mm: float = 50, # 0.25
@@ -169,6 +176,8 @@ class GeneralStim(VisualStim):
         uniform float u_following_looming_period_sec;
         uniform float u_following_looming_expansion_time_sec;
         uniform float u_following_looming_expansion_speed_mm_per_sec;
+        uniform vec2 u_following_dot_center_mm;
+        uniform float u_following_dot_radius_mm;
         uniform float u_n_preys;
         uniform float u_prey_radius_mm;
         uniform float u_prey_speed_mm_s;
@@ -185,6 +194,7 @@ class GeneralStim(VisualStim):
         const int PREY_CAPTURE = 6;
         const int LOOMING = 7;
         const int CONCENTRIC_GRATING = 8;
+        const int FOLLOWING_DOT = 9;
 
         const float PI = radians(180.0);
 
@@ -287,6 +297,13 @@ class GeneralStim(VisualStim):
                     }
                 } 
 
+                if (u_stim_select == FOLLOWING_DOT) {
+                    if ( distance(fish_ego_coords_mm, u_following_dot_center_mm) <= u_following_dot_radius_mm)
+                    {
+                        gl_FragColor = u_foreground_color;
+                    }
+                } 
+
                 if (u_stim_select == LOOMING) {
                     float rel_time = mod(u_time_s-u_start_time_s, u_looming_period_sec); 
                     float looming_on = float(rel_time<=u_looming_expansion_time_sec);
@@ -352,6 +369,8 @@ class GeneralStim(VisualStim):
             default_looming_period_sec = looming_period_sec,
             default_looming_expansion_time_sec = looming_expansion_time_sec,
             default_looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec,
+            default_dot_radius_mm = dot_radius_mm,
+            default_dot_center_mm = dot_center_mm,
             default_n_preys = n_preys,
             default_prey_speed_mm_s = prey_speed_mm_s,
             default_prey_radius_mm = prey_radius_mm, 
@@ -405,6 +424,8 @@ class GeneralStim(VisualStim):
         self.program['u_following_looming_period_sec'] = self.shared_stim_parameters.following_looming_period_sec.value
         self.program['u_following_looming_expansion_time_sec'] = self.shared_stim_parameters.following_looming_expansion_time_sec.value
         self.program['u_following_looming_expansion_speed_mm_per_sec'] = self.shared_stim_parameters.following_looming_expansion_speed_mm_per_sec.value
+        self.program['u_following_dot_center_mm'] = self.shared_stim_parameters.following_dot_center_mm[:]
+        self.program['u_following_dot_radius_mm'] = self.shared_stim_parameters.following_dot_radius_mm.value
         self.program['u_prey_speed_mm_s'] = self.shared_stim_parameters.prey_speed_mm_s.value
         self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
@@ -446,6 +467,9 @@ class GeneralStim(VisualStim):
             'following_looming_period_sec',
             'following_looming_expansion_time_sec',
             'following_looming_expansion_speed_mm_per_sec',
+            'following_dot_center_mm_x',
+            'following_dot_center_mm_y',
+            'following_dot_radius_mm',
             'n_prey',
             'prey_speed_mm_s',
             'prey_radius_mm'
@@ -510,6 +534,9 @@ class GeneralStim(VisualStim):
             f'{self.shared_stim_parameters.following_looming_period_sec.value}',
             f'{self.shared_stim_parameters.following_looming_expansion_time_sec.value}',
             f'{self.shared_stim_parameters.following_looming_expansion_speed_mm_per_sec.value}',
+            f'{self.shared_stim_parameters.following_dot_center_mm[0]}',
+            f'{self.shared_stim_parameters.following_dot_center_mm[1]}',
+            f'{self.shared_stim_parameters.following_dot_radius_mm.value}',
             f'{self.shared_stim_parameters.n_preys.value}',
             f'{self.shared_stim_parameters.prey_speed_mm_s.value}',
             f'{self.shared_stim_parameters.prey_radius_mm.value}'
@@ -573,6 +600,8 @@ class GeneralStim(VisualStim):
     def process_metadata(self, metadata) -> None:
         # this runs in the worker process
 
+        # TODO: use get with default value 
+
         control = metadata['visual_stim_control']
         
         if control is None:
@@ -584,24 +613,35 @@ class GeneralStim(VisualStim):
         
         self.shared_stim_parameters.start_time_sec.value = time_sec
         self.shared_stim_parameters.stim_select.value = control['stim_select']
+
+        self.shared_stim_parameters.foreground_color[:] = control['foreground_color']
+        self.shared_stim_parameters.background_color[:] = control['background_color']
+
         self.shared_stim_parameters.phototaxis_polarity.value = control['phototaxis_polarity']
+
         self.shared_stim_parameters.omr_spatial_period_mm.value = control['omr_spatial_period_mm']
         self.shared_stim_parameters.omr_angle_deg.value = control['omr_angle_deg']
         self.shared_stim_parameters.omr_speed_mm_per_sec.value = control['omr_speed_mm_per_sec']
+
         self.shared_stim_parameters.concentric_spatial_period_mm.value = control['concentric_spatial_period_mm']
         self.shared_stim_parameters.concentric_speed_mm_per_sec.value = control['concentric_speed_mm_per_sec']
+
         self.shared_stim_parameters.okr_spatial_frequency_deg.value = control['okr_spatial_frequency_deg']
         self.shared_stim_parameters.okr_speed_deg_per_sec.value = control['okr_speed_deg_per_sec']
+
         self.shared_stim_parameters.looming_center_mm[:] = control['looming_center_mm']
         self.shared_stim_parameters.looming_period_sec.value = control['looming_period_sec']
         self.shared_stim_parameters.looming_expansion_time_sec.value = control['looming_expansion_time_sec']
         self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value = control['looming_expansion_speed_mm_per_sec']
+
         self.shared_stim_parameters.following_looming_center_mm[:] = control['following_looming_center_mm']
         self.shared_stim_parameters.following_looming_period_sec.value = control['following_looming_period_sec']
         self.shared_stim_parameters.following_looming_expansion_time_sec.value = control['following_looming_expansion_time_sec']
         self.shared_stim_parameters.following_looming_expansion_speed_mm_per_sec.value = control['following_looming_expansion_speed_mm_per_sec']
-        self.shared_stim_parameters.foreground_color[:] = control['foreground_color']
-        self.shared_stim_parameters.background_color[:] = control['background_color']
+
+        self.shared_stim_parameters.following_dot_center_mm[:] = control['following_dot_center_mm']
+        self.shared_stim_parameters.following_dot_radius_mm.value = control['following_dot_radius_mm']
+
         self.shared_stim_parameters.n_preys.value = int(control['n_preys'])
         self.shared_stim_parameters.prey_speed_mm_s.value = control['prey_speed_mm_s']
         self.shared_stim_parameters.prey_radius_mm.value = control['prey_radius_mm']
