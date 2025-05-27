@@ -291,7 +291,7 @@ class StimWidget(QWidget):
             following_looming_expansion_time_sec: float = 10,
             following_looming_expansion_speed_mm_per_sec: float = 10,
             following_dot_center_mm: Tuple = (0.0, 0.0),
-            following_dot_radius_mm: float = 0.0,
+            following_dot_radius_mm: float = 1.0,
             foreground_color: Tuple = (0.2, 0.2, 0.2, 1.0),
             background_color: Tuple = (0.0, 0.0, 0.0, 1.0),
             n_preys: int = 50,
@@ -556,6 +556,7 @@ class StimWidget(QWidget):
         self.sb_following_dot_radius_mm.setText('radius (mm)')
         self.sb_following_dot_radius_mm.setRange(0,100)
         self.sb_following_dot_radius_mm.setValue(self.following_dot_radius_mm)
+        self.sb_following_dot_radius_mm.setSingleStep(0.1)
         self.sb_following_dot_radius_mm.valueChanged.connect(self.on_change)
 
         # Stop condition
