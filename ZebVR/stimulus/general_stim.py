@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from .visual_stim import VisualStim
 from vispy import gloo, app
 from multiprocessing import RawValue, RawArray
@@ -7,6 +7,7 @@ import numpy as np
 import os
 from dataclasses import dataclass
 from geometry import AffineTransform2D
+from ..protocol import Stim
 
 # TODO generate preys for each fish ?
 
@@ -599,10 +600,7 @@ class GeneralStim(VisualStim):
 
     def process_metadata(self, metadata) -> None:
         # this runs in the worker process
-
-        # TODO: use get with default value 
-
-        control = metadata['visual_stim_control']
+        control: Dict = metadata['visual_stim_control']
         
         if control is None:
             return
@@ -612,36 +610,36 @@ class GeneralStim(VisualStim):
         time_sec = timestamp_sec % self.rollover_time_sec
         
         self.shared_stim_parameters.start_time_sec.value = time_sec
-        self.shared_stim_parameters.stim_select.value = control['stim_select']
+        self.shared_stim_parameters.stim_select.value = control.get('stim_select', self.shared_stim_parameters.default_stim_select)
 
-        self.shared_stim_parameters.foreground_color[:] = control['foreground_color']
-        self.shared_stim_parameters.background_color[:] = control['background_color']
+        self.shared_stim_parameters.foreground_color[:] = control.get('foreground_color', self.shared_stim_parameters.default_foreground_color)
+        self.shared_stim_parameters.background_color[:] = control.get('background_color', self.shared_stim_parameters.default_background_color)
 
-        self.shared_stim_parameters.phototaxis_polarity.value = control['phototaxis_polarity']
+        self.shared_stim_parameters.phototaxis_polarity.value = control.get('phototaxis_polarity', self.shared_stim_parameters.default_phototaxis_polarity)
 
-        self.shared_stim_parameters.omr_spatial_period_mm.value = control['omr_spatial_period_mm']
-        self.shared_stim_parameters.omr_angle_deg.value = control['omr_angle_deg']
-        self.shared_stim_parameters.omr_speed_mm_per_sec.value = control['omr_speed_mm_per_sec']
+        self.shared_stim_parameters.omr_spatial_period_mm.value = control.get('omr_spatial_period_mm', self.shared_stim_parameters.default_omr_spatial_period_mm)
+        self.shared_stim_parameters.omr_angle_deg.value = control.get('omr_angle_deg', self.shared_stim_parameters.default_omr_angle_deg)
+        self.shared_stim_parameters.omr_speed_mm_per_sec.value = control.get('omr_speed_mm_per_sec', self.shared_stim_parameters.default_omr_speed_mm_per_sec)
 
-        self.shared_stim_parameters.concentric_spatial_period_mm.value = control['concentric_spatial_period_mm']
-        self.shared_stim_parameters.concentric_speed_mm_per_sec.value = control['concentric_speed_mm_per_sec']
+        self.shared_stim_parameters.concentric_spatial_period_mm.value = control.get('concentric_spatial_period_mm',self.shared_stim_parameters.default_concentric_spatial_period_mm)
+        self.shared_stim_parameters.concentric_speed_mm_per_sec.value = control.get('concentric_speed_mm_per_sec',self.shared_stim_parameters.default_concentric_speed_mm_per_sec)
 
-        self.shared_stim_parameters.okr_spatial_frequency_deg.value = control['okr_spatial_frequency_deg']
-        self.shared_stim_parameters.okr_speed_deg_per_sec.value = control['okr_speed_deg_per_sec']
+        self.shared_stim_parameters.okr_spatial_frequency_deg.value = control.get('okr_spatial_frequency_deg', self.shared_stim_parameters.default_okr_spatial_frequency_deg)
+        self.shared_stim_parameters.okr_speed_deg_per_sec.value = control.get('okr_speed_deg_per_sec', self.shared_stim_parameters.default_okr_speed_deg_per_sec)
 
-        self.shared_stim_parameters.looming_center_mm[:] = control['looming_center_mm']
-        self.shared_stim_parameters.looming_period_sec.value = control['looming_period_sec']
-        self.shared_stim_parameters.looming_expansion_time_sec.value = control['looming_expansion_time_sec']
-        self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value = control['looming_expansion_speed_mm_per_sec']
+        self.shared_stim_parameters.looming_center_mm[:] = control.get('looming_center_mm', self.shared_stim_parameters.default_looming_center_mm)
+        self.shared_stim_parameters.looming_period_sec.value = control.get('looming_period_sec', self.shared_stim_parameters.default_looming_period_sec)
+        self.shared_stim_parameters.looming_expansion_time_sec.value = control.get('looming_expansion_time_sec', self.shared_stim_parameters.default_looming_expansion_time_sec)
+        self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value = control.get('looming_expansion_speed_mm_per_sec', self.shared_stim_parameters.default_looming_expansion_speed_mm_per_sec)
 
-        self.shared_stim_parameters.following_looming_center_mm[:] = control['following_looming_center_mm']
-        self.shared_stim_parameters.following_looming_period_sec.value = control['following_looming_period_sec']
-        self.shared_stim_parameters.following_looming_expansion_time_sec.value = control['following_looming_expansion_time_sec']
-        self.shared_stim_parameters.following_looming_expansion_speed_mm_per_sec.value = control['following_looming_expansion_speed_mm_per_sec']
+        self.shared_stim_parameters.following_looming_center_mm[:] = control.get('following_looming_center_mm', self.shared_stim_parameters.default_looming_center_mm)
+        self.shared_stim_parameters.following_looming_period_sec.value = control.get('following_looming_period_sec', self.shared_stim_parameters.default_looming_period_sec)
+        self.shared_stim_parameters.following_looming_expansion_time_sec.value = control.get('following_looming_expansion_time_sec', self.shared_stim_parameters.default_looming_expansion_time_sec)
+        self.shared_stim_parameters.following_looming_expansion_speed_mm_per_sec.value = control.get('following_looming_expansion_speed_mm_per_sec', self.shared_stim_parameters.default_looming_expansion_speed_mm_per_sec)
 
-        self.shared_stim_parameters.following_dot_center_mm[:] = control['following_dot_center_mm']
-        self.shared_stim_parameters.following_dot_radius_mm.value = control['following_dot_radius_mm']
+        self.shared_stim_parameters.following_dot_center_mm[:] = control.get('following_dot_center_mm', self.shared_stim_parameters.default_dot_center_mm)
+        self.shared_stim_parameters.following_dot_radius_mm.value = control.get('following_dot_radius_mm', self.shared_stim_parameters.default_dot_radius_mm)
 
-        self.shared_stim_parameters.n_preys.value = int(control['n_preys'])
-        self.shared_stim_parameters.prey_speed_mm_s.value = control['prey_speed_mm_s']
-        self.shared_stim_parameters.prey_radius_mm.value = control['prey_radius_mm']
+        self.shared_stim_parameters.n_preys.value = int(control.get('n_preys', self.shared_stim_parameters.default_n_preys))
+        self.shared_stim_parameters.prey_speed_mm_s.value = control.get('prey_speed_mm_s', self.shared_stim_parameters.default_prey_speed_mm_s)
+        self.shared_stim_parameters.prey_radius_mm.value = control.get('prey_radius_mm', self.shared_stim_parameters.default_prey_radius_mm)

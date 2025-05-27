@@ -742,41 +742,51 @@ class StimWidget(QWidget):
         return state
 
     def set_state(self, state: Dict) -> None:
-        # TODO use get with default ?
 
-        self.cmb_stim_select.setCurrentIndex(state['stim_select'])
-        self.chb_phototaxis_polarity.setChecked((state['phototaxis_polarity']+1)/2)
-        self.sb_omr_spatial_freq.setValue(state['omr_spatial_period_mm'])
-        self.sb_omr_angle.setValue(state['omr_angle_deg'])
-        self.sb_omr_speed.setValue(state['omr_speed_mm_per_sec']) 
-        self.sb_concentric_spatial_freq.setValue(state['concentric_spatial_period_mm'])
-        self.sb_concentric_speed.setValue(state['concentric_speed_mm_per_sec']) 
-        self.sb_okr_spatial_freq.setValue(state['okr_spatial_frequency_deg'])
-        self.sb_okr_speed.setValue(state['okr_speed_deg_per_sec'])
-        self.sb_following_looming_center_mm_x.setValue(state['following_looming_center_mm'][0])
-        self.sb_following_looming_center_mm_y.setValue(state['following_looming_center_mm'][1])
-        self.sb_following_looming_period_sec.setValue(state['following_looming_period_sec'])
-        self.sb_following_dot_center_mm_x.setValue(state['following_dot_center_mm'][0])
-        self.sb_following_dot_center_mm_y.setValue(state['following_dot_center_mm'][1])
-        self.sb_following_dot_radius_mm.setValue(state['following_dot_radius_mm'])
-        self.sb_following_looming_expansion_time_sec.setValue(state['following_looming_expansion_time_sec'])
-        self.sb_following_looming_expansion_speed_mm_per_sec.setValue(state['following_looming_expansion_speed_mm_per_sec'])
-        self.sb_looming_center_mm_x.setValue(state['looming_center_mm'][0])
-        self.sb_looming_center_mm_y.setValue(state['looming_center_mm'][1])
-        self.sb_looming_period_sec.setValue(state['looming_period_sec'])
-        self.sb_looming_expansion_time_sec.setValue(state['looming_expansion_time_sec'])
-        self.sb_looming_expansion_speed_mm_per_sec.setValue(state['looming_expansion_speed_mm_per_sec'])
-        self.sb_foreground_color_R.setValue(state['foreground_color'][0])
-        self.sb_foreground_color_G.setValue(state['foreground_color'][1])
-        self.sb_foreground_color_B.setValue(state['foreground_color'][2])
-        self.sb_foreground_color_A.setValue(state['foreground_color'][3])
-        self.sb_background_color_R.setValue(state['background_color'][0])
-        self.sb_background_color_G.setValue(state['background_color'][1])
-        self.sb_background_color_B.setValue(state['background_color'][2])
-        self.sb_background_color_A.setValue(state['background_color'][3])
-        self.sb_n_preys.setValue(state['n_preys'])
-        self.sb_prey_speed_mm_s.setValue(state['prey_speed_mm_s'])
-        self.sb_prey_radius_mm.setValue(state['prey_radius_mm'])
+        self.cmb_stim_select.setCurrentIndex(state.get('stim_select', 0))
+
+        self.chb_phototaxis_polarity.setChecked((state.get('phototaxis_polarity', self.phototaxis_polarity)+1)/2)
+
+        self.sb_omr_spatial_freq.setValue(state.get('omr_spatial_period_mm', self.omr_spatial_period_mm))
+        self.sb_omr_angle.setValue(state.get('omr_angle_deg', self.omr_angle_deg))
+        self.sb_omr_speed.setValue(state.get('omr_speed_mm_per_sec', self.omr_speed_mm_per_sec)) 
+
+        self.sb_concentric_spatial_freq.setValue(state.get('concentric_spatial_period_mm', self.concentric_spatial_period_mm))
+        self.sb_concentric_speed.setValue(state.get('concentric_speed_mm_per_sec', self.concentric_speed_mm_per_sec)) 
+
+        self.sb_okr_spatial_freq.setValue(state.get('okr_spatial_frequency_deg', self.okr_spatial_frequency_deg))
+        self.sb_okr_speed.setValue(state.get('okr_speed_deg_per_sec', self.okr_speed_deg_per_sec))
+
+        self.sb_following_looming_center_mm_x.setValue(state.get('following_looming_center_mm', self.looming_center_mm)[0])
+        self.sb_following_looming_center_mm_y.setValue(state.get('following_looming_center_mm', self.looming_center_mm)[1])
+        self.sb_following_looming_period_sec.setValue(state.get('following_looming_period_sec', self.looming_period_sec))
+        self.sb_following_looming_expansion_time_sec.setValue(state.get('following_looming_expansion_time_sec', self.looming_expansion_time_sec))
+        self.sb_following_looming_expansion_speed_mm_per_sec.setValue(state.get('following_looming_expansion_speed_mm_per_sec', self.looming_expansion_speed_mm_per_sec))
+
+        self.sb_following_dot_center_mm_x.setValue(state.get('following_dot_center_mm', self.following_dot_center_mm)[0])
+        self.sb_following_dot_center_mm_y.setValue(state.get('following_dot_center_mm', self.following_dot_center_mm)[1])
+        self.sb_following_dot_radius_mm.setValue(state.get('following_dot_radius_mm', self.following_dot_radius_mm))
+
+        self.sb_looming_center_mm_x.setValue(state.get('looming_center_mm', self.looming_center_mm)[0])
+        self.sb_looming_center_mm_y.setValue(state.get('looming_center_mm', self.looming_center_mm)[1])
+        self.sb_looming_period_sec.setValue(state.get('looming_period_sec', self.looming_period_sec))
+        self.sb_looming_expansion_time_sec.setValue(state.get('looming_expansion_time_sec', self.looming_expansion_time_sec))
+        self.sb_looming_expansion_speed_mm_per_sec.setValue(state.get('looming_expansion_speed_mm_per_sec', self.looming_expansion_speed_mm_per_sec))
+
+        self.sb_foreground_color_R.setValue(state.get('foreground_color', self.foreground_color)[0])
+        self.sb_foreground_color_G.setValue(state.get('foreground_color', self.foreground_color)[1])
+        self.sb_foreground_color_B.setValue(state.get('foreground_color', self.foreground_color)[2])
+        self.sb_foreground_color_A.setValue(state.get('foreground_color', self.foreground_color)[3])
+
+        self.sb_background_color_R.setValue(state.get('background_color', self.background_color)[0])
+        self.sb_background_color_G.setValue(state.get('background_color', self.background_color)[1])
+        self.sb_background_color_B.setValue(state.get('background_color', self.background_color)[2])
+        self.sb_background_color_A.setValue(state.get('background_color', self.background_color)[3])
+
+        self.sb_n_preys.setValue(state.get('n_preys', self.n_preys))
+        self.sb_prey_speed_mm_s.setValue(state.get('prey_speed_mm_s', self.prey_speed_mm_s))
+        self.sb_prey_radius_mm.setValue(state.get('prey_radius_mm', self.prey_radius_mm))
+
         self.stop_condition_widget.set_state(state['stop_condition'])
     
     def from_protocol_item(self, protocol_item: ProtocolItem):

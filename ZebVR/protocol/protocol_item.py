@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Optional, Tuple, DefaultDict, Any
+from typing import Optional, Tuple, Dict, Any
 from abc import ABC
 from enum import IntEnum
 from .stop_condition import StopCondition, Pause
@@ -34,7 +34,7 @@ class ProtocolItem(ABC):
     def __init__(self, stop_condition: StopCondition = Pause()):
         self.stop_condition = stop_condition
 
-    def start(self) -> Optional[DefaultDict]:
+    def start(self) -> Optional[Dict]:
         self.stop_condition.start()
 
     def done(self, metadata: Optional[Any]) -> bool:
@@ -69,18 +69,16 @@ class Phototaxis(ProtocolItem):
         self.foreground_color = foreground_color
         self.background_color = background_color 
 
-    def start(self) -> DefaultDict:
+    def start(self) -> Dict:
 
         super().start()
 
-        command = defaultdict(float, {
+        command = {
             'stim_select': self.STIM_SELECT,
             'phototaxis_polarity': self.phototaxis_polarity,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'looming_center_mm': (0, 0),
-            'following_looming_center_mm': (0, 0)
-        })
+            'background_color': self.background_color
+        }
         return command
     
 class OKR(ProtocolItem):
@@ -103,19 +101,17 @@ class OKR(ProtocolItem):
         self.foreground_color = foreground_color
         self.background_color = background_color 
 
-    def start(self) -> DefaultDict:
+    def start(self) -> Dict:
 
         super().start()
 
-        command = defaultdict(float, {
+        command = {
             'stim_select': self.STIM_SELECT,
             'okr_spatial_frequency_deg': self.okr_spatial_frequency_deg,
             'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'looming_center_mm': (0, 0),
-            'following_looming_center_mm': (0, 0)
-        })
+            'background_color': self.background_color
+        }
         return command
 
 class ConcentricGrating(ProtocolItem):
@@ -138,19 +134,17 @@ class ConcentricGrating(ProtocolItem):
         self.foreground_color = foreground_color
         self.background_color = background_color 
 
-    def start(self) -> DefaultDict:
+    def start(self) -> Dict:
 
         super().start()
 
-        command = defaultdict(float, {
+        command = {
             'stim_select': self.STIM_SELECT,
             'concentric_spatial_period_mm': self.spatial_period_mm,
             'concentric_speed_mm_per_sec': self.speed_mm_per_sec,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'looming_center_mm': (0, 0),
-            'following_looming_center_mm': (0, 0)
-        })
+            'background_color': self.background_color
+        }
         return command
     
 class OMR(ProtocolItem):
@@ -175,20 +169,18 @@ class OMR(ProtocolItem):
         self.foreground_color = foreground_color
         self.background_color = background_color 
     
-    def start(self) -> DefaultDict:
+    def start(self) -> Dict:
 
         super().start()
 
-        command = defaultdict(float, {
+        command = {
             'stim_select': self.STIM_SELECT,
             'omr_spatial_period_mm': self.omr_spatial_period_mm,
             'omr_angle_deg': self.omr_angle_deg,
             'omr_speed_mm_per_sec': self.omr_speed_mm_per_sec,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'looming_center_mm': (0, 0),
-            'following_looming_center_mm': (0, 0)
-        })
+            'background_color': self.background_color
+        }
         return command
 
 class Dark(ProtocolItem):
@@ -207,17 +199,15 @@ class Dark(ProtocolItem):
         self.foreground_color = foreground_color
         self.background_color = background_color 
 
-    def start(self) -> DefaultDict:
+    def start(self) -> Dict:
 
         super().start()
         
-        command = defaultdict(float, {
+        command = {
             'stim_select': self.STIM_SELECT,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'looming_center_mm': (0, 0),
-            'following_looming_center_mm': (0, 0)
-        })
+            'background_color': self.background_color
+        }
         return command
 
 class Bright(ProtocolItem):
@@ -236,17 +226,15 @@ class Bright(ProtocolItem):
         self.foreground_color = foreground_color 
         self.background_color = background_color 
 
-    def start(self) -> DefaultDict:
+    def start(self) -> Dict:
 
         super().start()
         
-        command = defaultdict(float, {
+        command = {
             'stim_select': self.STIM_SELECT,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'looming_center_mm': (0, 0),
-            'following_looming_center_mm': (0, 0)
-        })
+            'background_color': self.background_color
+        }
         return command
 
 class FollowingLooming(ProtocolItem):
@@ -273,20 +261,19 @@ class FollowingLooming(ProtocolItem):
         self.looming_expansion_time_sec = looming_expansion_time_sec
         self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
 
-    def start(self) -> DefaultDict:
+    def start(self) -> Dict:
 
         super().start()
         
-        command = defaultdict(float, {
+        command = {
             'stim_select': self.STIM_SELECT,
             'following_looming_center_mm': self.looming_center_mm,
             'following_looming_period_sec': self.looming_period_sec,
             'following_looming_expansion_time_sec': self.looming_expansion_time_sec,
             'following_looming_expansion_speed_mm_per_sec': self.looming_expansion_speed_mm_per_sec,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'looming_center_mm': (0, 0),
-        })
+            'background_color': self.background_color
+        }
         return command 
 
 class FollowingDot(ProtocolItem):
@@ -309,19 +296,17 @@ class FollowingDot(ProtocolItem):
         self.dot_center_mm = dot_center_mm
         self.dot_radius_mm = dot_radius_mm 
 
-    def start(self) -> DefaultDict:
+    def start(self) -> Dict:
 
         super().start()
         
-        command = defaultdict(float, {
+        command = {
             'stim_select': self.STIM_SELECT,
             'dot_center_mm': self.dot_center_mm,
             'dot_radius_mm': self.dot_radius_mm,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'looming_center_mm': (0, 0),
-            'following_looming_center_mm': (0, 0)
-        })
+        }
         return command 
     
 class Looming(ProtocolItem):
@@ -348,20 +333,19 @@ class Looming(ProtocolItem):
         self.looming_expansion_time_sec = looming_expansion_time_sec
         self.looming_expansion_speed_mm_per_sec = looming_expansion_speed_mm_per_sec
 
-    def start(self) -> DefaultDict:
+    def start(self) -> Dict:
 
         super().start()
         
-        command = defaultdict(float, {
+        command = {
             'stim_select': self.STIM_SELECT,
             'looming_center_mm': self.looming_center_mm,
             'looming_period_sec': self.looming_period_sec,
             'looming_expansion_time_sec': self.looming_expansion_time_sec,
             'looming_expansion_speed_mm_per_sec': self.looming_expansion_speed_mm_per_sec,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'following_looming_center_mm': (0, 0)
-        })
+            'background_color': self.background_color
+        }
         return command 
 
 
@@ -387,7 +371,7 @@ class PreyCapture(ProtocolItem):
         self.prey_speed_mm_s = prey_speed_mm_s 
         self.prey_radius_mm = prey_radius_mm
 
-    def start(self) -> DefaultDict:
+    def start(self) -> Dict:
 
         super().start()
         
@@ -395,11 +379,9 @@ class PreyCapture(ProtocolItem):
             'stim_select': self.STIM_SELECT,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'looming_center_mm': (0, 0),
-            'following_looming_center_mm': (0, 0),
             'n_preys': self.n_preys,
             'prey_speed_mm_s': self.prey_speed_mm_s,
-            'prey_radius_mm': self.prey_radius_mm,
+            'prey_radius_mm': self.prey_radius_mm
         })
         return command 
     
