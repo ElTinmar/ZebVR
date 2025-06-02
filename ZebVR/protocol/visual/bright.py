@@ -3,6 +3,7 @@ from typing import Tuple, Dict
 from PyQt5.QtWidgets import (
     QApplication, 
 )
+
 class Bright(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.BRIGHT

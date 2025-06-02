@@ -746,3 +746,78 @@ class StimWidget(QWidget):
             )
 
         return protocol
+    
+class StimWidget2(QWidget):
+
+    state_changed = pyqtSignal()
+    size_changed = pyqtSignal()
+
+    def __init__(
+            self, 
+            debouncer: Debouncer,
+            background_image: Optional[NDArray] = None,
+            *args, 
+            **kwargs
+        ) -> None:
+
+        super().__init__(*args, **kwargs)
+        
+        self.debouncer = debouncer
+        self.background_image = background_image
+        self.updated = False
+        self.declare_components()
+        self.layout_components()
+        self.setWindowTitle('Visual stim controls')
+        self.stim_changed()
+    
+    def declare_components(self) -> None:
+    
+        self.cmb_stim_select = QComboBox()
+        for stim in Stim.Visual:
+            self.cmb_stim_select.addItem(str(stim))
+        self.cmb_stim_select.currentIndexChanged.connect(self.stim_changed)
+
+        ...
+
+    def layout_components(self) -> None:
+        ...
+
+    def on_size_changed(self):
+        self.adjustSize() 
+        self.size_changed.emit()
+
+    def set_background_image(self, image: NDArray) -> None:
+        self.background_image = image
+        self.stop_condition_widget.set_background_image(image)
+
+    def stim_changed(self):
+        self.stack.setCurrentIndex(self.cmb_stim_select.currentIndex())
+        current_widget = self.stack.currentWidget()
+        if current_widget:
+            new_height = current_widget.sizeHint().height()  
+            self.stack.setFixedHeight(new_height)
+            self.adjustSize() 
+        self.size_changed.emit()
+        self.on_change()
+
+    def on_change(self):
+        self.updated = True
+        self.state_changed.emit()
+
+    def is_updated(self) -> bool:
+        return self.updated
+    
+    def set_updated(self, updated:bool) -> None:
+        self.updated = updated
+
+    def get_state(self) -> Dict:
+        ...
+
+    def set_state(self, state: Dict) -> None:
+        ...
+
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
+        ...
+
+    def to_protocol_item(self) -> ProtocolItem:
+        ...

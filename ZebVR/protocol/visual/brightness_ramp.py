@@ -1,5 +1,12 @@
-from ..protocol_item import Stim, ProtocolItem, ProtocolItemWidget
+from ...protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer
 from typing import Tuple, Dict
+from qt_widgets import LabeledDoubleSpinBox
+from PyQt5.QtWidgets import (
+    QGroupBox, 
+    QVBoxLayout,
+    QApplication, 
+)
+from ...utils import set_from_dict
 
 class BrightnessRamp(ProtocolItem):
 
