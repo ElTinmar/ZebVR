@@ -3,6 +3,8 @@ from ZebVR.dags import closed_loop_3D
 from multiprocessing import Process
 import time
 
+# TODO write proper CLI with argparse
+
 with open('test.vr', 'rb') as fp:
     settings = pickle.load(fp)
 
