@@ -768,7 +768,7 @@ class StimWidget2(QWidget):
         self.updated = False
 
         self.setWindowTitle('Visual stim controls')
-        
+
         self.declare_components()
         self.layout_components()
         self.stim_changed()
@@ -776,11 +776,11 @@ class StimWidget2(QWidget):
     def declare_components(self) -> None:
     
         self.cmb_stim_select = QComboBox()
-        for stim in Stim.Visual:
+        for (_, stim) in PROTOCOL_WIDGETS.values():
             self.cmb_stim_select.addItem(str(stim))
         self.cmb_stim_select.currentIndexChanged.connect(self.stim_changed)
 
-        for name, widget in PROTOCOL_WIDGETS.items():
+        for name, (widget, _) in PROTOCOL_WIDGETS.items():
             self.__setattr__(name, widget())
 
     def layout_components(self) -> None:
