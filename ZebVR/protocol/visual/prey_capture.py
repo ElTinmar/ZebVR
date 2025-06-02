@@ -1,5 +1,13 @@
-from ..protocol_item import Stim, ProtocolItem, ProtocolItemWidget
+from ZebVR.protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer
 from typing import Tuple, Dict
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
+from PyQt5.QtWidgets import (
+    QGroupBox, 
+    QVBoxLayout,
+    QApplication, 
+)
+from ZebVR.utils import set_from_dict
+from ZebVR.stimulus import MAX_PREY
 
 class PreyCapture(ProtocolItem):
 
@@ -37,5 +45,139 @@ class PreyCapture(ProtocolItem):
         }
         return command 
 
-class PreyCaptureWidget(ProtocolItemWidget):
-    ...
+class PreyCaptureWidget(VisualProtocolItemWidget):
+
+    def __init__(
+            self,
+            n_preys: int,
+            prey_speed_mm_s: float,
+            prey_radius_mm: float,
+            *args, 
+            **kwargs
+        ) -> None:
+
+        self.n_preys = n_preys
+        self.prey_speed_mm_s = prey_speed_mm_s
+        self.prey_radius_mm = prey_radius_mm
+        
+        super().__init__(*args, **kwargs)
+
+    def declare_components(self) -> None:
+
+        super().declare_components()
+
+        self.sb_n_preys = LabeledSpinBox()
+        self.sb_n_preys.setText('# preys')
+        self.sb_n_preys.setRange(0, MAX_PREY) 
+        self.sb_n_preys.setValue(self.n_preys)
+        self.sb_n_preys.valueChanged.connect(self.state_changed)
+
+        self.sb_prey_speed_mm_s = LabeledDoubleSpinBox()
+        self.sb_prey_speed_mm_s.setText('speed (mm/s)')
+        self.sb_prey_speed_mm_s.setRange(0,10)
+        self.sb_prey_speed_mm_s.setSingleStep(0.025)
+        self.sb_prey_speed_mm_s.setValue(self.prey_speed_mm_s)
+        self.sb_prey_speed_mm_s.valueChanged.connect(self.state_changed)
+
+        self.sb_prey_radius_mm = LabeledDoubleSpinBox()
+        self.sb_prey_radius_mm.setText('radius (mm)')
+        self.sb_prey_radius_mm.setSingleStep(0.025)
+        self.sb_prey_radius_mm.setRange(0,10)
+        self.sb_prey_radius_mm.setValue(self.prey_radius_mm)
+        self.sb_prey_radius_mm.valueChanged.connect(self.state_changed)
+
+    def layout_components(self) -> None:
+        
+        super().layout_components()
+
+        preycapture_layout = QVBoxLayout()
+        preycapture_layout.addWidget(self.sb_n_preys)
+        preycapture_layout.addWidget(self.sb_prey_speed_mm_s)
+        preycapture_layout.addWidget(self.sb_prey_radius_mm)
+        preycapture_layout.addStretch()
+
+        self.preycapture_group = QGroupBox('Prey capture parameters')
+        self.preycapture_group.setLayout(preycapture_layout)
+
+        self.main_layout.addWidget(self.preycapture_group)
+
+    def get_state(self) -> Dict:
+        
+        state = super().get_state()
+        state['n_preys'] = self.sb_n_preys.value()
+        state['prey_speed_mm_s'] = self.sb_prey_speed_mm_s.value()
+        state['prey_radius_mm'] = self.sb_prey_radius_mm.value()
+        return state
+    
+    def set_state(self, state: Dict) -> None:
+        
+        super().set_state(state)
+
+        set_from_dict(
+            dictionary = state,
+            key = 'n_preys',
+            setter = self.sb_n_preys.setValue,
+            default = self.n_preys,
+            cast = int
+        )
+        set_from_dict(
+            dictionary = state,
+            key = 'prey_speed_mm_s',
+            setter = self.sb_prey_speed_mm_s.setValue,
+            default = self.prey_speed_mm_s,
+            cast = float
+        )
+        set_from_dict(
+            dictionary = state,
+            key = 'prey_radius_mm',
+            setter = self.sb_prey_radius_mm.setValue,
+            default = self.prey_radius_mm,
+            cast = float
+        )
+
+    def from_protocol_item(self, protocol_item: PreyCapture) -> None:
+
+        super().from_protocol_item(protocol_item)
+
+        self.sb_n_preys.setValue(protocol_item.n_preys)
+        self.sb_prey_speed_mm_s.setValue(protocol_item.prey_speed_mm_s)
+        self.sb_prey_radius_mm.setValue(protocol_item.prey_radius_mm)
+        
+    def to_protocol_item(self) -> PreyCapture:
+        
+        foreground_color = (
+            self.sb_foreground_color_R.value(), 
+            self.sb_foreground_color_G.value(),
+            self.sb_foreground_color_B.value(),
+            self.sb_foreground_color_A.value()
+        )
+        background_color = (
+            self.sb_background_color_R.value(), 
+            self.sb_background_color_G.value(),
+            self.sb_background_color_B.value(),
+            self.sb_background_color_A.value()
+        )
+        protocol = PreyCapture(
+            foreground_color = foreground_color,
+            background_color = background_color,
+            n_preys = self.sb_n_preys.value(),
+            prey_speed_mm_s = self.sb_prey_speed_mm_s.value(),
+            prey_radius_mm = self.sb_prey_radius_mm.value(),
+            stop_condition = self.stop_widget.to_stop_condition()
+        )
+        return protocol
+    
+if __name__ == '__main__':
+
+    app = QApplication([])
+    window = PreyCaptureWidget(
+        n_preys = 50,
+        prey_speed_mm_s = 0.75,
+        prey_radius_mm = 0.25,
+        stop_widget = StopWidget(
+            debouncer = Debouncer()
+        )
+    )
+    window.show()
+    app.exec()
+ 
