@@ -766,9 +766,11 @@ class StimWidget2(QWidget):
         self.debouncer = debouncer
         self.background_image = background_image
         self.updated = False
+
+        self.setWindowTitle('Visual stim controls')
+        
         self.declare_components()
         self.layout_components()
-        self.setWindowTitle('Visual stim controls')
         self.stim_changed()
     
     def declare_components(self) -> None:
