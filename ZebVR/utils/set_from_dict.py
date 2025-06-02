@@ -8,7 +8,7 @@ def set_from_dict(
         dictionary: Dict[K, Any],
         key: K,
         setter: Callable[[V], None],
-        default: V,
+        default: Any,
         cast: Callable[[Any], V] = lambda x: x  # no-op cast by default
     ) -> None:
     """
@@ -37,4 +37,4 @@ def set_from_dict(
             f"default used: {default}.\n" 
             f"Error: {e}"
         )        
-        setter(default)
+        setter(cast(default))
