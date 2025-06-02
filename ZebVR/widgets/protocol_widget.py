@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QLabel
 )
-from ..protocol import (
+from ZebVR.protocol import (
     Debouncer,
     Stim,
     ProtocolItem,
@@ -27,7 +27,8 @@ from ..protocol import (
     Looming,
     PreyCapture,
     FollowingDot,
-    StopWidget
+    StopWidget,
+    PROTOCOL_WIDGETS
 )
 
 from ZebVR.stimulus import MAX_PREY
@@ -777,10 +778,20 @@ class StimWidget2(QWidget):
             self.cmb_stim_select.addItem(str(stim))
         self.cmb_stim_select.currentIndexChanged.connect(self.stim_changed)
 
-        ...
+        for name, widget in PROTOCOL_WIDGETS.items():
+            self.__setattr__(name, widget())
 
     def layout_components(self) -> None:
-        ...
+
+        self.stack = QStackedWidget()
+        for name in PROTOCOL_WIDGETS.keys():
+            widget = self.__getattribute__(name)
+            self.stack.addWidget(widget) 
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.cmb_stim_select)
+        layout.addWidget(self.stack)
+        layout.addStretch()
 
     def on_size_changed(self):
         self.adjustSize() 
