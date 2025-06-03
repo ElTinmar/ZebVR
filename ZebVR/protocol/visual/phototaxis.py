@@ -7,16 +7,16 @@ from PyQt5.QtWidgets import (
     QCheckBox
 )
 from ...utils import set_from_dict
-
+from .default import DEFAULT
 class Phototaxis(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.PHOTOTAXIS
 
     def __init__(
             self, 
-            phototaxis_polarity: int,
-            foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float],
+            phototaxis_polarity: int = DEFAULT['phototaxis_polarity'],
+            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
+            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
@@ -42,7 +42,7 @@ class PhototaxisWidget(VisualProtocolItemWidget):
 
     def __init__(
             self,
-            phototaxis_polarity: int,
+            phototaxis_polarity: int = DEFAULT['phototaxis_polarity'],
             *args, 
             **kwargs
         ) -> None:

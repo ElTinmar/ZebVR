@@ -7,19 +7,19 @@ from PyQt5.QtWidgets import (
     QApplication, 
 )
 from ...utils import set_from_dict
-
+from .default import DEFAULT
 class Looming(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.LOOMING
 
     def __init__(
             self, 
-            foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float],
-            looming_center_mm: Tuple[float, float],
-            looming_period_sec: float,
-            looming_expansion_time_sec: float,
-            looming_expansion_speed_mm_per_sec: float,
+            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
+            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
+            looming_center_mm: Tuple[float, float] = DEFAULT['looming_center_mm'],
+            looming_period_sec: float = DEFAULT['looming_period_sec'],
+            looming_expansion_time_sec: float = DEFAULT['looming_expansion_time_sec'],
+            looming_expansion_speed_mm_per_sec: float = DEFAULT['looming_expansion_speed_mm_per_sec'],
             *args,
             **kwargs   
         ) -> None:
@@ -56,10 +56,10 @@ class LoomingWidget(VisualProtocolItemWidget):
 
     def __init__(
             self,
-            looming_center_mm: Tuple[float, float],
-            looming_period_sec: float,
-            looming_expansion_time_sec: float,
-            looming_expansion_speed_mm_per_sec: float,
+            looming_center_mm: Tuple[float, float] = DEFAULT['looming_center_mm'],
+            looming_period_sec: float = DEFAULT['looming_period_sec'],
+            looming_expansion_time_sec: float = DEFAULT['looming_expansion_time_sec'],
+            looming_expansion_speed_mm_per_sec: float = DEFAULT['looming_expansion_speed_mm_per_sec'],
             *args, 
             **kwargs
         ) -> None:

@@ -7,7 +7,7 @@ import numpy as np
 import os
 from dataclasses import dataclass
 from geometry import AffineTransform2D
-from ..protocol import Stim
+from ZebVR import MAX_PREY
 
 # TODO generate preys for each fish ?
 
@@ -77,7 +77,6 @@ class SharedStimParameters:
         self.prey_speed_mm_s = RawValue('d', self.default_prey_speed_mm_s)
         self.prey_radius_mm = RawValue('d', self.default_prey_radius_mm)
 
-MAX_PREY = 100
 
 VERT_SHADER = """
 attribute vec2 a_position;

@@ -7,19 +7,19 @@ from PyQt5.QtWidgets import (
     QApplication, 
 )
 from ZebVR.utils import set_from_dict
-from ZebVR.stimulus import MAX_PREY
-
+from ZebVR import MAX_PREY
+from .default import DEFAULT
 class PreyCapture(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.PREY_CAPTURE
 
     def __init__(
             self, 
-            foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float],
-            n_preys: int = 50,
-            prey_speed_mm_s: float = 0.75,
-            prey_radius_mm: float = 0.25,
+            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
+            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
+            n_preys: int = DEFAULT['n_preys'],
+            prey_speed_mm_s: float = DEFAULT['prey_speed_mm_s'],
+            prey_radius_mm: float = DEFAULT['prey_radius_mm'],
             *args,
             **kwargs   
         ) -> None:
@@ -49,9 +49,9 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
 
     def __init__(
             self,
-            n_preys: int,
-            prey_speed_mm_s: float,
-            prey_radius_mm: float,
+            n_preys: int = DEFAULT['n_preys'],
+            prey_speed_mm_s: float = DEFAULT['prey_speed_mm_s'],
+            prey_radius_mm: float = DEFAULT['prey_radius_mm'],
             *args, 
             **kwargs
         ) -> None:

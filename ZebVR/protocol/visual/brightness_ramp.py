@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
     QApplication, 
 )
 from ...utils import set_from_dict
+from .default import DEFAULT
 
 class BrightnessRamp(ProtocolItem):
 
@@ -14,19 +15,19 @@ class BrightnessRamp(ProtocolItem):
 
     def __init__(
             self, 
-            brightness_start_percent: float,
-            brightness_stop_percent: float,
-            duration_sec: float,
-            foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float],
+            ramp_start_percent: float = DEFAULT['ramp_start_percent'],
+            ramp_stop_percent: float = DEFAULT['ramp_stop_percent'],
+            ramp_duration_sec: float = DEFAULT['ramp_duration_sec'],
+            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
+            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
 
         super().__init__(*args, **kwargs)
-        self.brightness_start_percent = brightness_start_percent
-        self.brightness_stop_percent = brightness_stop_percent
-        self.duration_sec = duration_sec
+        self.ramp_start_percent = ramp_start_percent
+        self.ramp_stop_percent = ramp_stop_percent
+        self.ramp_duration_sec = ramp_duration_sec
         self.foreground_color = foreground_color 
         self.background_color = background_color 
 
@@ -36,13 +37,13 @@ class BrightnessRamp(ProtocolItem):
         
         command = {
             'stim_select': self.STIM_SELECT,
-            'brightness_start_percent': self.brightness_start_percent,
-            'brightness_stop_percent': self.brightness_stop_percent,
-            'duration_sec': self.duration_sec,
+            'ramp_start_percent': self.ramp_start_percent,
+            'ramp_stop_percent': self.ramp_stop_percent,
+            'ramp_duration_sec': self.ramp_duration_sec,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color
         }
         return command
     
-class BrightnessRampWidget(ProtocolItemWidget):
+class BrightnessRampWidget(VisualProtocolItemWidget):
     ...

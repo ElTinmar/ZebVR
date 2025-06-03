@@ -7,17 +7,17 @@ from PyQt5.QtWidgets import (
     QApplication, 
 )
 from ...utils import set_from_dict
-
+from .default import DEFAULT
 class ConcentricGrating(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.CONCENTRIC_GRATING
 
     def __init__(
             self, 
-            spatial_period_mm: float,
-            speed_mm_per_sec: float,
-            foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float],
+            spatial_period_mm: float = DEFAULT['concentric_spatial_period_mm'],
+            speed_mm_per_sec: float = DEFAULT['concentric_speed_mm_per_sec'],
+            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
+            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
@@ -45,8 +45,8 @@ class ConcentricGratingWidget(VisualProtocolItemWidget):
 
     def __init__(
             self,
-            spatial_period_mm: float,
-            speed_mm_per_sec: float,
+            spatial_period_mm: float = DEFAULT['concentric_spatial_period_mm'],
+            speed_mm_per_sec: float = DEFAULT['concentric_speed_mm_per_sec'],
             *args, 
             **kwargs
         ) -> None:

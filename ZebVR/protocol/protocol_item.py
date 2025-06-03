@@ -79,15 +79,21 @@ class ProtocolItemWidget(QWidget):
         ...
 
     def layout_components(self) -> None:
-        
         self.main_layout = QVBoxLayout(self)
         self.main_layout.addWidget(self.stop_widget)
 
     def get_state(self) -> Dict:
-        ...
+        state = {}
+        state['stop_condition'] = self.stop_widget.get_state()
+        return state
 
     def set_state(self, state: Dict) -> None:
-        ...
+        set_from_dict(
+            dictionary = state,
+            key = 'stop_condition',
+            setter = self.stop_widget.set_state,
+            default = {}
+        )
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
         ...
@@ -203,7 +209,8 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
 
     def get_state(self) -> Dict:
 
-        state = {} 
+        state = super().get_state()
+
         state['foreground_color'] = (
             self.sb_foreground_color_R.value(),
             self.sb_foreground_color_G.value(),
@@ -220,6 +227,8 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
 
     def set_state(self, state: Dict) -> None:
 
+        super().set_state(state)
+        
         set_from_dict(
             dictionary = state,
             key = 'foreground_color',

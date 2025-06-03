@@ -3,15 +3,15 @@ from typing import Tuple, Dict
 from PyQt5.QtWidgets import (
     QApplication, 
 )
-
+from .default import DEFAULT
 class Dark(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.DARK
 
     def __init__(
             self,
-            foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float],
+            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
+            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:

@@ -31,9 +31,9 @@ from ZebVR.protocol import (
     PROTOCOL_WIDGETS
 )
 
-from ZebVR.stimulus import MAX_PREY
+from ZebVR import MAX_PREY
 
-class StimWidget(QWidget):
+class StimWidget2(QWidget):
 
     state_changed = pyqtSignal()
     size_changed = pyqtSignal()
@@ -748,7 +748,7 @@ class StimWidget(QWidget):
 
         return protocol
     
-class StimWidget2(QWidget):
+class StimWidget(QWidget):
 
     state_changed = pyqtSignal()
     size_changed = pyqtSignal()
@@ -776,17 +776,22 @@ class StimWidget2(QWidget):
     def declare_components(self) -> None:
     
         self.cmb_stim_select = QComboBox()
-        for (_, stim) in PROTOCOL_WIDGETS.values():
+        for _, _, stim in PROTOCOL_WIDGETS:
             self.cmb_stim_select.addItem(str(stim))
         self.cmb_stim_select.currentIndexChanged.connect(self.stim_changed)
 
-        for name, (widget, _) in PROTOCOL_WIDGETS.items():
-            self.__setattr__(name, widget())
+        for name, constructor, _ in PROTOCOL_WIDGETS:
+            widget = constructor(stop_widget = StopWidget(self.debouncer, self.background_image))
+            widget.state_changed.connect(self.on_change)
+            self.__setattr__(
+                name, 
+                widget
+            )
 
     def layout_components(self) -> None:
 
         self.stack = QStackedWidget()
-        for name in PROTOCOL_WIDGETS.keys():
+        for name, _, _ in PROTOCOL_WIDGETS:
             widget = self.__getattribute__(name)
             self.stack.addWidget(widget) 
 
@@ -801,7 +806,8 @@ class StimWidget2(QWidget):
 
     def set_background_image(self, image: NDArray) -> None:
         self.background_image = image
-        self.stop_condition_widget.set_background_image(image)
+        current_widget = self.stack.currentWidget()
+        current_widget.stop_widget.set_background_image(image)
 
     def stim_changed(self):
         self.stack.setCurrentIndex(self.cmb_stim_select.currentIndex())
@@ -824,13 +830,22 @@ class StimWidget2(QWidget):
         self.updated = updated
 
     def get_state(self) -> Dict:
-        ...
+        state = {}
+        state['stim_select'] = self.cmb_stim_select.currentIndex() 
+        current_widget = self.stack.currentWidget()
+        state.update(current_widget.get_state())
+        return state
 
     def set_state(self, state: Dict) -> None:
-        ...
+        self.cmb_stim_select.setCurrentIndex(state.get('stim_select', Stim.Visual.DARK)) 
+        current_widget = self.stack.currentWidget()
+        current_widget.set_state(state)
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
-        ...
+        self.cmb_stim_select.setCurrentIndex(protocol_item.STIM_SELECT) 
+        current_widget = self.stack.currentWidget()
+        current_widget.from_protocol_item(protocol_item)
 
     def to_protocol_item(self) -> ProtocolItem:
-        ...
+        current_widget = self.stack.currentWidget()
+        return current_widget.to_protocol_item()

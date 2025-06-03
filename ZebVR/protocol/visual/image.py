@@ -7,16 +7,16 @@ from PyQt5.QtWidgets import (
     QApplication, 
 )
 from ...utils import set_from_dict
-
+from .default import DEFAULT
 class Image(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.IMAGE
 
     def __init__(
             self, 
-            image_path: str,
-            foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float],
+            image_path: str = DEFAULT['image_path'],
+            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
+            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
@@ -38,5 +38,5 @@ class Image(ProtocolItem):
         }
         return command
     
-class ImageWidget(ProtocolItemWidget):
+class ImageWidget(VisualProtocolItemWidget):
     ...

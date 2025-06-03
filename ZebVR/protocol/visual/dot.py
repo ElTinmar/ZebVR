@@ -7,17 +7,17 @@ from PyQt5.QtWidgets import (
     QApplication, 
 )
 from ...utils import set_from_dict
-
+from .default import DEFAULT
 class Dot(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.DOT
 
     def __init__(
             self, 
-            foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float],
-            dot_center_mm: Tuple[float, float],
-            dot_radius_mm: float,
+            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
+            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
+            dot_center_mm: Tuple[float, float] = DEFAULT['dot_center_mm'],
+            dot_radius_mm: float = DEFAULT['dot_radius_mm'],
             *args,
             **kwargs   
         ) -> None:
@@ -50,8 +50,8 @@ class DotWidget(VisualProtocolItemWidget):
 
     def __init__(
             self,
-            dot_center_mm: Tuple[float, float],
-            dot_radius_mm: float,
+            dot_center_mm: Tuple[float, float] = DEFAULT['dot_center_mm'],
+            dot_radius_mm: float = DEFAULT['dot_radius_mm'],
             *args, 
             **kwargs
         ) -> None:

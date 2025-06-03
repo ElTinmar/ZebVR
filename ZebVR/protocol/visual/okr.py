@@ -7,17 +7,17 @@ from PyQt5.QtWidgets import (
     QApplication, 
 )
 from ...utils import set_from_dict
-
+from .default import DEFAULT
 class OKR(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.OKR
 
     def __init__(
             self, 
-            okr_spatial_frequency_deg: float,
-            okr_speed_deg_per_sec: float,
-            foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float],
+            okr_spatial_frequency_deg: float = DEFAULT['okr_spatial_frequency_deg'],
+            okr_speed_deg_per_sec: float = DEFAULT['okr_speed_deg_per_sec'],
+            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
+            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
@@ -45,8 +45,8 @@ class OKR_Widget(VisualProtocolItemWidget):
 
     def __init__(
             self,
-            okr_spatial_frequency_deg: float,
-            okr_speed_deg_per_sec: float,
+            okr_spatial_frequency_deg: float = DEFAULT['okr_spatial_frequency_deg'],
+            okr_speed_deg_per_sec: float = DEFAULT['okr_speed_deg_per_sec'],
             *args, 
             **kwargs
         ) -> None:

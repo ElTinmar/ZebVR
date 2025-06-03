@@ -7,18 +7,18 @@ from PyQt5.QtWidgets import (
     QApplication, 
 )
 from ...utils import set_from_dict
-
+from .default import DEFAULT
 class OMR(ProtocolItem):
     
     STIM_SELECT = Stim.Visual.OMR
     
     def __init__(
             self, 
-            omr_spatial_period_mm: float,
-            omr_angle_deg: float,
-            omr_speed_mm_per_sec: float,
-            foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float],
+            omr_spatial_period_mm: float = DEFAULT['omr_spatial_period_mm'],
+            omr_angle_deg: float = DEFAULT['omr_angle_deg'],
+            omr_speed_mm_per_sec: float = DEFAULT['omr_speed_mm_per_sec'],
+            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
+            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
@@ -48,9 +48,9 @@ class OMR_Widget(VisualProtocolItemWidget):
 
     def __init__(
             self,
-            omr_spatial_period_mm: float,
-            omr_angle_deg: float,
-            omr_speed_mm_per_sec: float,
+            omr_spatial_period_mm: float = DEFAULT['omr_spatial_period_mm'],
+            omr_angle_deg: float = DEFAULT['omr_angle_deg'],
+            omr_speed_mm_per_sec: float = DEFAULT['omr_speed_mm_per_sec'],
             *args, 
             **kwargs
         ) -> None:

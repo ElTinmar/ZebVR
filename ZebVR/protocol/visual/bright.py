@@ -1,17 +1,17 @@
-from ...protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer
+from ZebVR.protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer
 from typing import Tuple, Dict
 from PyQt5.QtWidgets import (
     QApplication, 
 )
-
+from .default import DEFAULT
 class Bright(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.BRIGHT
 
     def __init__(
             self, 
-            foreground_color: Tuple[float, float, float, float],
-            background_color: Tuple[float, float, float, float],
+            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
+            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
