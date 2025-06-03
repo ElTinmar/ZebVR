@@ -24,7 +24,6 @@ class SharedFishState:
         self.right_eye_angle = RawValue('f', 0)
         self.tail_points = RawArray('f', 2*self.num_tail_points_interp)
 
-# TODO maybe also make that an array per fish if you want each fish to receive a different stimulus
 class SharedStimParameters:
 
     def __init__(self):
