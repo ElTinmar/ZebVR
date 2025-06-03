@@ -4,6 +4,8 @@ from multiprocessing import Process
 from numpy.typing import NDArray
 import numpy as np 
 import sounddevice as sd
+import matplotlib.pyplot as plt
+from scipy.signal import spectrogram, welch
 
 def pure_tone(
     frequency: float,
@@ -91,8 +93,6 @@ def frequency_sweep(
     envelope[-fade_samples:] = fade_out
 
     return sweep * envelope
-
-import numpy as np
 
 def band_limited_white_noise(
     f_low: float,
@@ -201,8 +201,112 @@ def band_limited_pink_noise(
 
     return pink_noise * envelope
 
+def click_train(
+    samplerate: int = 44100,
+    duration: float = 1.0,
+    click_rate: float = 10.0,
+    click_amplitude: float = 0.5,
+    click_duration: float = 0.001,  # in seconds (1 ms)
+    polarity: str = "biphasic"      # or "positive"
+) -> np.ndarray:
+    """
+    Generate a train of click sounds.
 
-class VisualStimWorker(WorkerNode):
+    Parameters:
+        samplerate (int): Sampling rate in Hz.
+        duration (float): Total duration of the signal in seconds.
+        click_rate (float): Number of clicks per second (Hz).
+        click_amplitude (float): Amplitude of each click (0–1).
+        click_duration (float): Duration of each click in seconds.
+        polarity (str): 'positive' (unipolar) or 'biphasic' (± pulse).
+
+    Returns:
+        np.ndarray: The generated click train waveform.
+    """
+    total_samples = int(samplerate * duration)
+    click_samples = int(samplerate * click_duration)
+    interval_samples = int(samplerate / click_rate)
+
+    if click_samples >= interval_samples:
+        raise ValueError(
+            f"Click duration ({click_duration}s) is too long for the "
+            f"given click rate ({click_rate} Hz). "
+            "Increase the click rate or decrease click duration."
+        )
+        
+    signal = np.zeros(total_samples)
+
+    for i in range(0, total_samples, interval_samples):
+        if i + click_samples >= total_samples:
+            break
+        if polarity == "positive":
+            signal[i:i+click_samples] += click_amplitude
+        elif polarity == "biphasic":
+            half = click_samples // 2
+            signal[i:i+half] += click_amplitude
+            signal[i+half:i+click_samples] -= click_amplitude
+        else:
+            raise ValueError("polarity must be 'positive' or 'biphasic'")
+
+    return signal
+
+def plot_waveform_spectrogram_and_psd(
+    signal: np.ndarray,
+    samplerate: int = 44100,
+    max_freq: float = 8000,
+    title_prefix: str = "Audio Signal",
+    cmap: str = "magma"
+) -> None:
+    """
+    Plot waveform, spectrogram, and power spectrum of an audio signal.
+
+    Parameters:
+        signal (np.ndarray): 1D audio signal.
+        samplerate (int): Sampling rate in Hz.
+        max_freq (float): Max frequency for y-axis in Hz (for plots).
+        title_prefix (str): Title prefix for each plot.
+        cmap (str): Colormap for spectrogram.
+    """
+    # Time axis
+    duration = len(signal) / samplerate
+    time = np.linspace(0, duration, len(signal), endpoint=False)
+
+    # Spectrogram
+    f, t, Sxx = spectrogram(signal, fs=samplerate, nperseg=1024, noverlap=512)
+    Sxx_dB = 10 * np.log10(Sxx + 1e-12)
+
+    # Power Spectral Density
+    freqs, psd = welch(signal, fs=samplerate, nperseg=4096)
+    psd_dB = 10 * np.log10(psd + 1e-12)
+
+    # Plot
+    fig, axs = plt.subplots(3, 1, figsize=(12, 10), constrained_layout=True)
+
+    # Waveform
+    axs[0].plot(time, signal, color='black', linewidth=0.7)
+    axs[0].set_title(f"{title_prefix} – Waveform")
+    axs[0].set_ylabel("Amplitude")
+    axs[0].set_xlim([0, duration])
+
+    # Spectrogram
+    pcm = axs[1].pcolormesh(t, f, Sxx_dB, shading='gouraud', cmap=cmap)
+    axs[1].set_title(f"{title_prefix} – Spectrogram")
+    axs[1].set_ylabel("Frequency [Hz]")
+    axs[1].set_ylim([0, max_freq])
+    fig.colorbar(pcm, ax=axs[1], label="Power [dB/Hz]")
+
+    # Power Spectrum
+    axs[2].semilogx(freqs, psd_dB, color='navy')
+    axs[2].set_title(f"{title_prefix} – Power Spectrum")
+    axs[2].set_xlabel("Frequency [Hz]")
+    axs[2].set_ylabel("PSD [dB/Hz]")
+    axs[2].grid(True, which='both', ls='--', lw=0.5)
+    axs[2].set_xlim(10, samplerate / 2)
+    axs[2].set_ylim(np.max(psd_dB) - 60, np.max(psd_dB) + 3)
+
+    plt.show()
+
+class AudioStimWorker(WorkerNode):
 
     def __init__(self, stim: VisualStim, *args, **kwargs):
         super().__init__(*args, **kwargs)
