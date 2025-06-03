@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
 )
 from qt_widgets import LabeledDoubleSpinBox
 from ..utils import set_from_dict
+from .default import DEFAULT
 
 class Stim:
     class Visual(IntEnum):
@@ -106,8 +107,8 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
 
     def __init__(
             self,
-            foreground_color: Tuple = (0.2, 0.2, 0.2, 1.0),
-            background_color: Tuple = (0.0, 0.0, 0.0, 1.0),
+            foreground_color: Tuple = DEFAULT['foreground_color'],
+            background_color: Tuple = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
