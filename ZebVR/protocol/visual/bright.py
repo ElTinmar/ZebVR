@@ -7,7 +7,7 @@ from ..default import DEFAULT
 
 class Bright(ProtocolItem):
 
-    STIM_SELECT = Stim.Visual.BRIGHT
+    STIM_SELECT = Stim.BRIGHT
 
     def __init__(
             self, 

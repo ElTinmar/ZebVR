@@ -10,7 +10,7 @@ from ...utils import set_from_dict
 from ..default import DEFAULT
 class Image(ProtocolItem):
 
-    STIM_SELECT = Stim.Visual.IMAGE
+    STIM_SELECT = Stim.IMAGE
 
     def __init__(
             self, 

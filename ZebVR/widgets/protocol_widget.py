@@ -101,7 +101,7 @@ class StimWidget(QWidget):
         return state
 
     def set_state(self, state: Dict) -> None:
-        self.cmb_stim_select.setCurrentIndex(state.get('stim_select', Stim.Visual.DARK)) 
+        self.cmb_stim_select.setCurrentIndex(state.get('stim_select', Stim.DARK)) 
         current_widget = self.stack.currentWidget()
         current_widget.set_state(state)
 

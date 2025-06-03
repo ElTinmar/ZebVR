@@ -29,7 +29,7 @@ class SharedStimParameters:
     def __init__(self):
         
         self.start_time_sec = RawValue('d', 0) 
-        self.stim_select = RawValue('d', Stim.Visual.DARK) 
+        self.stim_select = RawValue('d', Stim.DARK) 
         self.foreground_color = RawArray('d', DEFAULT['foreground_color'])
         self.background_color = RawArray('d', DEFAULT['background_color'])
         self.phototaxis_polarity = RawValue('d', DEFAULT['phototaxis_polarity']) 
@@ -53,7 +53,7 @@ class SharedStimParameters:
     def from_dict(self, d: Dict) -> None:
 
         self.start_time_sec.value = d.get('time_sec', 0)
-        self.stim_select.value = d.get('stim_select', Stim.Visual.DARK)
+        self.stim_select.value = d.get('stim_select', Stim.DARK)
         self.foreground_color[:] = d.get('foreground_color', DEFAULT['foreground_color'])
         self.background_color[:] = d.get('background_color', DEFAULT['background_color'])
         self.phototaxis_polarity.value = d.get('phototaxis_polarity', DEFAULT['phototaxis_polarity'])

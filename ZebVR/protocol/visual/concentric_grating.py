@@ -11,7 +11,7 @@ from ..default import DEFAULT
 
 class ConcentricGrating(ProtocolItem):
 
-    STIM_SELECT = Stim.Visual.CONCENTRIC_GRATING
+    STIM_SELECT = Stim.CONCENTRIC_GRATING
 
     def __init__(
             self, 

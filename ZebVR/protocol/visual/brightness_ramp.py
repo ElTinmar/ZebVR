@@ -11,7 +11,7 @@ from ..default import DEFAULT
 
 class BrightnessRamp(ProtocolItem):
 
-    STIM_SELECT = Stim.Visual.BRIGHTNESS_RAMP
+    STIM_SELECT = Stim.BRIGHTNESS_RAMP
 
     def __init__(
             self, 

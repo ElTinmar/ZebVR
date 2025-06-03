@@ -11,7 +11,7 @@ from ..default import DEFAULT
 
 class OKR(ProtocolItem):
 
-    STIM_SELECT = Stim.Visual.OKR
+    STIM_SELECT = Stim.OKR
 
     def __init__(
             self, 

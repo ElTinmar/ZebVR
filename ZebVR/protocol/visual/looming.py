@@ -11,7 +11,7 @@ from ..default import DEFAULT
 
 class Looming(ProtocolItem):
 
-    STIM_SELECT = Stim.Visual.LOOMING
+    STIM_SELECT = Stim.LOOMING
 
     def __init__(
             self, 
@@ -49,7 +49,7 @@ class Looming(ProtocolItem):
         return command 
 
 class FollowingLooming(Looming):
-    STIM_SELECT = Stim.Visual.FOLLOWING_LOOMING
+    STIM_SELECT = Stim.FOLLOWING_LOOMING
 
 class LoomingWidget(VisualProtocolItemWidget):
 

@@ -12,7 +12,7 @@ from ..default import DEFAULT
 
 class PreyCapture(ProtocolItem):
 
-    STIM_SELECT = Stim.Visual.PREY_CAPTURE
+    STIM_SELECT = Stim.PREY_CAPTURE
 
     def __init__(
             self, 

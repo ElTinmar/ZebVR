@@ -11,7 +11,7 @@ from ..default import DEFAULT
 
 class Dot(ProtocolItem):
 
-    STIM_SELECT = Stim.Visual.DOT
+    STIM_SELECT = Stim.DOT
 
     def __init__(
             self, 
@@ -43,7 +43,7 @@ class Dot(ProtocolItem):
         return command 
 
 class FollowingDot(Dot):
-    STIM_SELECT = Stim.Visual.FOLLOWING_DOT
+    STIM_SELECT = Stim.FOLLOWING_DOT
 
 class DotWidget(VisualProtocolItemWidget):
 

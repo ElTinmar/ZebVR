@@ -15,7 +15,7 @@ from statsmodels.stats.multitest import multipletests
 from statsmodels.api import OLS
 
 from ZebVR.protocol import Stim
-StimType = Stim.Visual
+StimType = Stim
 class PolarityOld(IntEnum):
     DARKLEFT = -1
     DARKRIGHT = 1

@@ -11,7 +11,7 @@ from ..default import DEFAULT
 
 class Phototaxis(ProtocolItem):
 
-    STIM_SELECT = Stim.Visual.PHOTOTAXIS
+    STIM_SELECT = Stim.PHOTOTAXIS
 
     def __init__(
             self, 

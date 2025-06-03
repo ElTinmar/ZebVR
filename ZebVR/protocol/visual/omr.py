@@ -11,7 +11,7 @@ from ..default import DEFAULT
 
 class OMR(ProtocolItem):
     
-    STIM_SELECT = Stim.Visual.OMR
+    STIM_SELECT = Stim.OMR
     
     def __init__(
             self, 

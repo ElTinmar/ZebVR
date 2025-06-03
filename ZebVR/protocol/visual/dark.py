@@ -7,7 +7,7 @@ from ..default import DEFAULT
 
 class Dark(ProtocolItem):
 
-    STIM_SELECT = Stim.Visual.DARK
+    STIM_SELECT = Stim.DARK
 
     def __init__(
             self,
