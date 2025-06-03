@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (
     QApplication, 
 )
 from .default import DEFAULT
+
 class Bright(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.BRIGHT

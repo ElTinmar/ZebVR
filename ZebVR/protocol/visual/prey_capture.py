@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
 from ZebVR.utils import set_from_dict
 from ZebVR import MAX_PREY
 from .default import DEFAULT
+
 class PreyCapture(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.PREY_CAPTURE

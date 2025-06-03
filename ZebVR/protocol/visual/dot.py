@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
 )
 from ...utils import set_from_dict
 from .default import DEFAULT
+
 class Dot(ProtocolItem):
 
     STIM_SELECT = Stim.Visual.DOT
