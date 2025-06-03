@@ -264,7 +264,7 @@ class GeneralStim(VisualStim):
                 }
 
                 if (u_stim_select == DOT) {
-                    if ( distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.wz/2.0 + u_looming_center_mm) <= u_dot_radius_mm)
+                    if ( distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.wz/2.0 + u_dot_center_mm) <= u_dot_radius_mm)
                     {
                         gl_FragColor = u_foreground_color;
                     }
