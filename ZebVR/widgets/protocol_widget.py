@@ -33,6 +33,7 @@ class StimWidget(QWidget):
         self.debouncer = debouncer
         self.background_image = background_image
         self.updated = False
+        self.protocol_item_widgets = []
 
         self.setWindowTitle('Visual stim controls')
 
@@ -43,23 +44,19 @@ class StimWidget(QWidget):
     def declare_components(self) -> None:
     
         self.cmb_stim_select = QComboBox()
-        for _, _, stim in PROTOCOL_WIDGETS:
-            self.cmb_stim_select.addItem(str(stim))
+        for _, stim_type in PROTOCOL_WIDGETS:
+            self.cmb_stim_select.addItem(str(stim_type))
         self.cmb_stim_select.currentIndexChanged.connect(self.stim_changed)
 
-        for name, constructor, _ in PROTOCOL_WIDGETS:
+        for constructor, _ in PROTOCOL_WIDGETS:
             widget = constructor(stop_widget = StopWidget(self.debouncer, self.background_image))
             widget.state_changed.connect(self.on_change)
-            self.__setattr__(
-                name, 
-                widget
-            )
+            self.protocol_item_widgets.append(widget)
 
     def layout_components(self) -> None:
 
         self.stack = QStackedWidget()
-        for name, _, _ in PROTOCOL_WIDGETS:
-            widget = self.__getattribute__(name)
+        for widget in self.protocol_item_widgets:
             self.stack.addWidget(widget) 
 
         layout = QVBoxLayout(self)
