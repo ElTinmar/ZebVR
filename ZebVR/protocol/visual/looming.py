@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QApplication, 
 )
 from ...utils import set_from_dict
-from .default import DEFAULT
+from ..default import DEFAULT
 
 class Looming(ProtocolItem):
 

@@ -3,7 +3,7 @@ from typing import Tuple, Dict
 from PyQt5.QtWidgets import (
     QApplication, 
 )
-from .default import DEFAULT
+from ..default import DEFAULT
 
 class Dark(ProtocolItem):
 

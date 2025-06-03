@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QCheckBox
 )
 from ...utils import set_from_dict
-from .default import DEFAULT
+from ..default import DEFAULT
 
 class Phototaxis(ProtocolItem):
 
