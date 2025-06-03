@@ -100,6 +100,7 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
         self.preycapture_group.setLayout(preycapture_layout)
 
         self.main_layout.addWidget(self.preycapture_group)
+        self.main_layout.addWidget(self.stop_widget)
 
     def get_state(self) -> Dict:
         

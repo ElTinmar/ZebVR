@@ -85,6 +85,7 @@ class OKR_Widget(VisualProtocolItemWidget):
         self.okr_group.setLayout(okr_layout)
 
         self.main_layout.addWidget(self.okr_group)
+        self.main_layout.addWidget(self.stop_widget)
 
     def get_state(self) -> Dict:
         

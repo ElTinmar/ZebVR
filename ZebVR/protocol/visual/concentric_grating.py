@@ -85,6 +85,7 @@ class ConcentricGratingWidget(VisualProtocolItemWidget):
         self.concentric_group.setLayout(concentric_layout)
 
         self.main_layout.addWidget(self.concentric_group)
+        self.main_layout.addWidget(self.stop_widget)
 
     def get_state(self) -> Dict:
         

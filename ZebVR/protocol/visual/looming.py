@@ -121,6 +121,7 @@ class LoomingWidget(VisualProtocolItemWidget):
         self.looming_group.setLayout(looming_layout)
 
         self.main_layout.addWidget(self.looming_group)
+        self.main_layout.addWidget(self.stop_widget)
 
     def get_state(self) -> Dict:
         

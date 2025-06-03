@@ -80,7 +80,6 @@ class ProtocolItemWidget(QWidget):
 
     def layout_components(self) -> None:
         self.main_layout = QVBoxLayout(self)
-        self.main_layout.addWidget(self.stop_widget)
 
     def get_state(self) -> Dict:
         state = {}

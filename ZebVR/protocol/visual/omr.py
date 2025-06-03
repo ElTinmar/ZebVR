@@ -97,6 +97,7 @@ class OMR_Widget(VisualProtocolItemWidget):
         self.omr_group.setLayout(omr_layout)
 
         self.main_layout.addWidget(self.omr_group)
+        self.main_layout.addWidget(self.stop_widget)
 
     def get_state(self) -> Dict:
         

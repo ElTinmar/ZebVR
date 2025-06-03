@@ -48,6 +48,7 @@ class DarkWidget(VisualProtocolItemWidget):
     def layout_components(self) -> None:
         
         super().layout_components()
+        self.main_layout.addWidget(self.stop_widget)
 
     def get_state(self) -> Dict:
         return super().get_state()

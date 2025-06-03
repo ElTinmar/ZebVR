@@ -98,6 +98,7 @@ class DotWidget(VisualProtocolItemWidget):
         self.dot_group.setLayout(dot_layout)
 
         self.main_layout.addWidget(self.dot_group)
+        self.main_layout.addWidget(self.stop_widget)
 
     def get_state(self) -> Dict:
         
