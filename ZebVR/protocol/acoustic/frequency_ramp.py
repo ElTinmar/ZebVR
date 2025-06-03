@@ -5,13 +5,14 @@ from PyQt5.QtWidgets import (
 )
 from ..default import DEFAULT
 
-class PureTone(ProtocolItem):
+class FrequencyRamp(ProtocolItem):
 
-    STIM_SELECT = Stim.PURE_TONE
+    STIM_SELECT = Stim.FREQUENCY_RAMP
 
     def __init__(
             self, 
-            frequency_Hz: float,
+            frequency_Hz_start: float,
+            frequency_Hz_stop: float,
             duration_sec: float,
             t_rise_ms: float,
             *args,
@@ -20,7 +21,8 @@ class PureTone(ProtocolItem):
 
         super().__init__(*args, **kwargs)
 
-        self.frequency_Hz = frequency_Hz 
+        self.frequency_Hz_start = frequency_Hz_start 
+        self.frequency_Hz_stop = frequency_Hz_stop
         self.duration_sec = duration_sec
         self.t_rise_ms = t_rise_ms
 
@@ -36,13 +38,13 @@ class PureTone(ProtocolItem):
         }
         return command
     
-class PureToneWidget(ProtocolItemWidget):
+class FrequencyRampWidget(ProtocolItemWidget):
     ...
 
 if __name__ == '__main__':
 
     app = QApplication([])
-    window = PureToneWidget(
+    window = FrequencyRampWidget(
         stop_widget = StopWidget(
             debouncer = Debouncer()
         )

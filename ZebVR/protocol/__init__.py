@@ -1,6 +1,7 @@
 from .protocol_item import *
 from .stop_condition import *
 from .visual import *
+from .acoustic import *
 from .default import *
 
 PROTOCOL_WIDGETS = [
@@ -17,5 +18,9 @@ PROTOCOL_WIDGETS = [
     (visual.ConcentricGratingWidget, protocol_item.Stim.CONCENTRIC_GRATING),
     (visual.BrightnessRampWidget, protocol_item.Stim.BRIGHTNESS_RAMP),
     (visual.ImageWidget, protocol_item.Stim.IMAGE),
+    (acoustic.PureToneWidget, protocol_item.Stim.PURE_TONE),
+    (acoustic.WhiteNoiseWidget, protocol_item.Stim.WHITE_NOISE),
+    (acoustic.PinkNoiseWidget, protocol_item.Stim.PINK_NOISE),
+    (acoustic.FrequencyRampWidget, protocol_item.Stim.FREQUENCY_RAMP),
 ]
 PROTOCOL_WIDGETS.sort(key = lambda x: x[1])

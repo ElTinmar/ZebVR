@@ -13,32 +13,31 @@ from qt_widgets import LabeledDoubleSpinBox
 from ..utils import set_from_dict
 from .default import DEFAULT
 
-class Stim:
-    class Visual(IntEnum):
-        DARK = 0
-        BRIGHT = 1
-        PHOTOTAXIS = 2
-        OMR = 3
-        OKR = 4
-        FOLLOWING_LOOMING = 5
-        PREY_CAPTURE = 6
-        LOOMING = 7
-        CONCENTRIC_GRATING = 8
-        FOLLOWING_DOT = 9
-        DOT = 10
-        IMAGE = 11
-        BRIGHTNESS_RAMP = 12
+class Stim(IntEnum):
 
-        def __str__(self):
-            return self.name
-    
-    class Acoustic(IntEnum):
-        PURE_TONE = 0
-        WHITE_NOISE = 1
-        PINK_NOISE = 2
+    # visual
+    DARK = 0
+    BRIGHT = 1
+    PHOTOTAXIS = 2
+    OMR = 3
+    OKR = 4
+    FOLLOWING_LOOMING = 5
+    PREY_CAPTURE = 6
+    LOOMING = 7
+    CONCENTRIC_GRATING = 8
+    FOLLOWING_DOT = 9
+    DOT = 10
+    IMAGE = 11
+    BRIGHTNESS_RAMP = 12
 
-        def __str__(self):
-            return self.name
+    # acoustic
+    PURE_TONE = 20
+    FREQUENCY_RAMP = 21
+    WHITE_NOISE = 22
+    PINK_NOISE = 23
+
+    def __str__(self):
+        return self.name
         
 class ProtocolItem(ABC):
 

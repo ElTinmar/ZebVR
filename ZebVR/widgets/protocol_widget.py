@@ -35,7 +35,7 @@ class StimWidget(QWidget):
         self.updated = False
         self.protocol_item_widgets = []
 
-        self.setWindowTitle('Visual stim controls')
+        self.setWindowTitle('Stimulus controls')
 
         self.declare_components()
         self.layout_components()
