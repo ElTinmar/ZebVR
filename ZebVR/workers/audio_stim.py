@@ -306,37 +306,116 @@ def plot_waveform_spectrogram_and_psd(
 
     plt.show()
 
+from multiprocessing import RawValue
+from ZebVR.protocol import DEFAULT, Stim
+from typing import Dict
+import time
+import os
+
+class SharedAudioParameters:
+
+    def __init__(self):
+        
+        self.start_time_sec = RawValue('d', 0) 
+        self.stim_select = RawValue('d', Stim.DARK) 
+        self.phototaxis_polarity = RawValue('d', DEFAULT['phototaxis_polarity']) 
+
+    def from_dict(self, d: Dict) -> None:
+
+        self.start_time_sec.value = d.get('time_sec', 0)
+        self.stim_select.value = d.get('stim_select', Stim.DARK)
+        self.phototaxis_polarity.value = d.get('phototaxis_polarity', DEFAULT['phototaxis_polarity'])
+
+class AudioProducer:
+    
+    def __init__(self):
+        ...
+
+    def set_shared_parameters(self, shared_audio_parameters: SharedAudioParameters):
+        ...
+
+        
+class AudioConsumer:
+
+    def __init__(self):
+        ...
+
 class AudioStimWorker(WorkerNode):
 
-    def __init__(self, stim: VisualStim, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.stim = stim
-        self.display_process = None
+    def __init__(
+            self,
+            audio_producer,
+            audio_consumer,
+            samplerate: float = 44100, 
+            timings_file: str = 'audio.csv', 
+            *args, 
+            **kwargs
+        ):
 
-    def run(self) -> None:
-        self.stim.initialize()
-        # TODO set flag here
-        while not self.stop_event.is_set():
-            app.process_events()
-        self.stim.cleanup()
-        app.quit()
+        super().__init__(*args, **kwargs)
+
+        self.samplerate = samplerate
+        self.timings_file = timings_file
+        self.audio_producer = audio_producer
+        self.audio_consumer = audio_consumer 
+        self.audio_producer_process = None
+        self.audio_consumer_process = None
+
+        self.shared_audio_parameters = SharedAudioParameters()
+        self.audio_producer.set_shared_parameters(self.shared_audio_parameters)
 
     def set_filename(self, filename:str):
-        self.stim.set_filename(filename)
+        self.timings_file = filename
 
     def initialize(self) -> None:
+
+        prefix, ext = os.path.splitext(self.timings_file)
+        timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
+        while os.path.exists(timings_file):
+            time.sleep(1)
+            timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
+
+        self.fd = open(timings_file, 'w')
+        headers = (
+            'timestamp',
+            'time_sec',
+            'stim_id',          
+            'start_time_sec',
+            'phototaxis_polarity',
+        )
+        self.fd.write(','.join(headers) + '\n')
+
+        self.audio_consumer_process = Process(target=self.run)
+        self.audio_consumer_process.start()
+
+        self.audio_producer_process = Process(target=self.run)
+        self.audio_producer_process.start()
+
         super().initialize()
-        # launch main window loop in a separate process 
-        self.display_process = Process(target=self.run)
-        self.display_process.start()
-        self.stim.initialized.wait()
 
     def cleanup(self) -> None:
+
         super().cleanup()
-        self.display_process.join()
+
+        self.audio_consumer_process.join()
+        self.audio_producer_process.join()
+        self.fd.close()
 
     def process_data(self, data: Any) -> None:
-        return self.stim.process_data(data)
+        # could be used to do something with fish position
+        pass
     
-    def process_metadata(self, metadata) -> Any:
-        return self.stim.process_metadata(metadata)
+    def process_metadata(self, metadata) -> None:
+        # this runs in the worker process
+        
+        control: Dict = metadata['audio_stim_control']
+        
+        if control is None:
+            return
+        
+        timestamp = time.perf_counter_ns()
+        timestamp_sec = 1e-9*timestamp
+        time_sec = timestamp_sec % self.rollover_time_sec
+        control['time_sec'] = time_sec
+
+        self.shared_audio_parameters.from_dict(control)
