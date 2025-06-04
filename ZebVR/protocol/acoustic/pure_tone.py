@@ -16,7 +16,7 @@ class PureTone(ProtocolItem):
     def __init__(
             self, 
             frequency_Hz: float = DEFAULT['frequency_Hz'],
-            amplitude: float = DEFAULT['amplitude_dB_SPL'],
+            amplitude_dB_SPL: float = DEFAULT['amplitude_dB_SPL'],
             *args,
             **kwargs
         ) -> None:
@@ -24,7 +24,7 @@ class PureTone(ProtocolItem):
         super().__init__(*args, **kwargs)
 
         self.frequency_Hz = frequency_Hz
-        self.amplitude = amplitude
+        self.amplitude_dB_SPL = amplitude_dB_SPL
 
     def start(self) -> Dict:
 
@@ -33,7 +33,7 @@ class PureTone(ProtocolItem):
         command = {
             'stim_select': self.STIM_SELECT,
             'frequency_Hz': self.frequency_Hz,
-            'amplitude': self.amplitude
+            'amplitude_dB_SPL': self.amplitude_dB_SPL
         }
         return command
 
@@ -42,13 +42,13 @@ class PureToneWidget(ProtocolItemWidget):
     def __init__(
             self,
             frequency_Hz: float = DEFAULT['frequency_Hz'],
-            amplitude: float = DEFAULT['amplitude_dB_SPL'],
+            amplitude_dB_SPL: float = DEFAULT['amplitude_dB_SPL'],
             *args,
             **kwargs
         ) -> None:
 
         self.frequency_Hz = frequency_Hz
-        self.amplitude = amplitude
+        self.amplitude_dB_SPL = amplitude_dB_SPL
 
         super().__init__(*args, **kwargs)
 
@@ -62,11 +62,11 @@ class PureToneWidget(ProtocolItemWidget):
         self.sb_frequency_Hz.setValue(self.frequency_Hz)
         self.sb_frequency_Hz.valueChanged.connect(self.state_changed)
 
-        self.sb_amplitude = LabeledDoubleSpinBox()
-        self.sb_amplitude.setText('Amplitude SPL (dB)')
-        self.sb_amplitude.setRange(0.0, 200.0)
-        self.sb_amplitude.setValue(self.amplitude)
-        self.sb_amplitude.valueChanged.connect(self.state_changed)
+        self.sb_amplitude_dB_SPL = LabeledDoubleSpinBox()
+        self.sb_amplitude_dB_SPL.setText('Amplitude SPL (dB)')
+        self.sb_amplitude_dB_SPL.setRange(0.0, 200.0)
+        self.sb_amplitude_dB_SPL.setValue(self.amplitude_dB_SPL)
+        self.sb_amplitude_dB_SPL.valueChanged.connect(self.state_changed)
 
     def layout_components(self) -> None:
         
@@ -74,7 +74,7 @@ class PureToneWidget(ProtocolItemWidget):
 
         tone_layout = QVBoxLayout()
         tone_layout.addWidget(self.sb_frequency_Hz)
-        tone_layout.addWidget(self.sb_amplitude)    
+        tone_layout.addWidget(self.sb_amplitude_dB_SPL)
         tone_layout.addStretch()
 
         self.tone_group = QGroupBox('Pure tone parameters')
@@ -87,7 +87,7 @@ class PureToneWidget(ProtocolItemWidget):
         
         state = super().get_state()
         state['frequency_Hz'] = self.sb_frequency_Hz.value()
-        state['amplitude'] = self.sb_amplitude.value()
+        state['amplitude_dB_SPL'] = self.sb_amplitude_dB_SPL.value()
         return state
 
     def set_state(self, state: Dict) -> None:
@@ -103,9 +103,9 @@ class PureToneWidget(ProtocolItemWidget):
         )
         set_from_dict(
             dictionary = state,
-            key = 'amplitude',
-            setter = self.sb_amplitude.setValue,
-            default = self.amplitude,
+            key = 'amplitude_dB_SPL',
+            setter = self.sb_amplitude_dB_SPL.setValue,
+            default = self.amplitude_dB_SPL,
             cast = float
         )
 
@@ -113,13 +113,13 @@ class PureToneWidget(ProtocolItemWidget):
 
         super().from_protocol_item(protocol_item)
         self.sb_frequency_Hz.setValue(protocol_item.frequency_Hz)
-        self.sb_amplitude.setValue(protocol_item.amplitude)
+        self.sb_amplitude_dB_SPL.setValue(protocol_item.amplitude_dB_SPL)
 
     def to_protocol_item(self) -> PureTone:
         
         return PureTone(
             frequency_Hz = self.sb_frequency_Hz.value(),
-            amplitude = self.sb_amplitude.value(),
+            amplitude_dB_SPL = self.sb_amplitude_dB_SPL.value(),
             stop_condition = self.stop_widget.to_stop_condition()
         )
 

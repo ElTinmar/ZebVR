@@ -13,12 +13,12 @@ import numpy as np
 from numpy.typing import NDArray
 
 def plot_waveform_spectrogram_and_psd(
-    signal: np.ndarray,
-    samplerate: int = 44100,
-    max_freq: float = 8000,
-    title_prefix: str = "Audio Signal",
-    cmap: str = "magma"
-) -> None:
+        signal: np.ndarray,
+        samplerate: int = 44100,
+        max_freq: float = 8000,
+        title_prefix: str = "Audio Signal",
+        cmap: str = "magma"
+    ) -> None:
     """
     Plot waveform, spectrogram, and power spectrum of an audio signal.
 
@@ -69,13 +69,13 @@ def plot_waveform_spectrogram_and_psd(
     plt.show()
 
 def pure_tone_coroutine(
-    samplerate: int = 44100,
-    blocksize: int = 1024,
-    frequency: float = 440.0,
-    amplitude: float = 0.1,
-    channels: int = 1
-) -> Generator[NDArray, Optional[Dict], None]:
-    
+        samplerate: int = 44100,
+        blocksize: int = 1024,
+        frequency: float = 440.0,
+        amplitude: float = 0.1,
+        channels: int = 1
+    ) -> Generator[NDArray, Optional[Dict], None]:
+        
     phase = 0.0
 
     while True:
@@ -92,15 +92,15 @@ def pure_tone_coroutine(
             amplitude = update.get("amplitude", amplitude)
 
 def frequency_sweep_coroutine(
-    samplerate: int = 44100,
-    blocksize: int = 1024,
-    f_start: float = 440.0,
-    f_stop: float = 880.0,
-    amplitude: float = 0.1,
-    method: str = "linear",
-    channels: int = 1,
-) -> Generator[NDArray, Optional[Dict], None]:
-    
+        samplerate: int = 44100,
+        blocksize: int = 1024,
+        f_start: float = 440.0,
+        f_stop: float = 880.0,
+        amplitude: float = 0.1,
+        method: str = "linear",
+        channels: int = 1,
+    ) -> Generator[NDArray, Optional[Dict], None]:
+        
     phase = 0.0
 
     while True:
@@ -132,11 +132,11 @@ def frequency_sweep_coroutine(
             method = update.get("method", method)
 
 def white_noise_coroutine(
-    blocksize: int = 1024,
-    amplitude: float = 0.1,
-    channels: int = 1,
-) -> Generator[NDArray, Optional[Dict], None]:
-    
+        blocksize: int = 1024,
+        amplitude: float = 0.1,
+        channels: int = 1,
+    ) -> Generator[NDArray, Optional[Dict], None]:
+        
     while True:
         chunk = amplitude * np.random.randn(blocksize).astype(np.float32)
         if channels > 1:
@@ -147,11 +147,11 @@ def white_noise_coroutine(
             amplitude = update.get("amplitude", amplitude)
 
 def pink_noise_coroutine(
-    blocksize: int = 1024,
-    amplitude: float = 0.1,
-    channels: int = 1,
-) -> Generator[NDArray, Optional[Dict], None]:
-    
+        blocksize: int = 1024,
+        amplitude: float = 0.1,
+        channels: int = 1,
+    ) -> Generator[NDArray, Optional[Dict], None]:
+        
     while True:
         # Voss-McCartney algorithm approximation
         white = np.random.randn(blocksize).astype(np.float32)
@@ -175,15 +175,15 @@ def pink_noise_coroutine(
             amplitude = update.get("amplitude", amplitude)
 
 def click_train_coroutine(
-    samplerate: int = 44100,
-    blocksize: int = 1024,
-    click_rate: float = 10.0,
-    click_amplitude: float = 0.5,
-    click_duration: float = 0.001,
-    polarity: str = "biphasic",
-    channels: int = 1,
-) -> Generator[NDArray, Optional[Dict], None]:
-    
+        samplerate: int = 44100,
+        blocksize: int = 1024,
+        click_rate: float = 10.0,
+        click_amplitude: float = 0.5,
+        click_duration: float = 0.001,
+        polarity: str = "biphasic",
+        channels: int = 1,
+    ) -> Generator[NDArray, Optional[Dict], None]:
+        
     phase = 0
     interval_samples = int(samplerate / click_rate)
     click_samples = int(samplerate * click_duration)
@@ -217,15 +217,14 @@ def click_train_coroutine(
             click_samples = int(samplerate * click_duration)
 
 def silence_coroutine(
-    blocksize: int = 1024,
-    channels: int = 1,
-) -> Generator[NDArray, Optional[Dict], None]:
+        blocksize: int = 1024,
+        channels: int = 1,
+    ) -> Generator[NDArray, Optional[Dict], None]:
 
     chunk = np.zeros((blocksize, channels), dtype=np.float32)
 
     while True:
         update = yield chunk
-
 
 class SharedAudioParameters:
 
