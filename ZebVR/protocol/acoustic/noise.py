@@ -4,7 +4,9 @@ from PyQt5.QtWidgets import (
     QApplication, 
 )
 from ..default import DEFAULT
-from enum import IntEnum
+from ...utils import set_from_dict
+
+# TODO add amplitude
 
 class WhiteNoise(ProtocolItem):
 
