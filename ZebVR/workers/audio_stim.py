@@ -230,6 +230,11 @@ class SharedAudioParameters:
         self.stim_select.value = d.get('stim_select', Stim.DARK)
         self.phototaxis_polarity.value = d.get('phototaxis_polarity', DEFAULT['phototaxis_polarity'])
 
+    def to_dict(self) -> Dict:
+        
+        parameters = {}
+        return parameters
+
 class AudioProducer(Process):
     
     def __init__(
