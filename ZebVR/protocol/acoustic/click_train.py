@@ -1,0 +1,182 @@
+from ZebVR.protocol import Stim, ProtocolItem, ProtocolItemWidget, StopWidget, Debouncer
+from typing import Dict
+from PyQt5.QtWidgets import (
+    QApplication, 
+    QVBoxLayout,
+    QGroupBox
+)
+from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox
+from ..default import DEFAULT
+from ...utils import set_from_dict
+
+class ClickTrain(ProtocolItem):
+
+    STIM_SELECT = Stim.CLICK_TRAIN
+
+    def __init__(
+            self, 
+            click_rate: float = DEFAULT['click_rate'],
+            click_amplitude: float = DEFAULT['click_amplitude'],
+            click_duration: float = DEFAULT['click_duration'],
+            polarity: str = DEFAULT['polarity'],
+            *args,
+            **kwargs
+        ) -> None:
+
+        super().__init__(*args, **kwargs)
+
+        self.click_rate = click_rate
+        self.click_amplitude = click_amplitude
+        self.click_duration = click_duration
+        self.polarity = polarity
+
+    def start(self) -> Dict:
+
+        super().start()
+        
+        command = {
+            'stim_select': self.STIM_SELECT,
+            'click_rate': self.click_rate,
+            'click_amplitude': self.click_amplitude,
+            'click_duration': self.click_duration,
+            'polarity': self.polarity
+        }
+        return command
+    
+class ClickTrainWidget(ProtocolItemWidget):
+
+    def __init__(
+            self,
+            click_rate: float = DEFAULT['click_rate'],
+            click_amplitude: float = DEFAULT['click_amplitude'],
+            click_duration: float = DEFAULT['click_duration'],
+            polarity: str = DEFAULT['polarity'],
+            *args, 
+            **kwargs
+        ) -> None:
+
+        self.click_rate = click_rate
+        self.click_amplitude = click_amplitude
+        self.click_duration = click_duration
+        self.polarity = polarity
+
+        super().__init__(*args, **kwargs)
+
+    def declare_components(self) -> None:
+        
+        super().declare_components()
+
+        self.sb_click_rate = LabeledDoubleSpinBox()
+        self.sb_click_rate.setText('Click rate (Hz)')
+        self.sb_click_rate.setRange(0.1, 100.0)
+        self.sb_click_rate.setValue(self.click_rate)
+        self.sb_click_rate.valueChanged.connect(self.state_changed)
+
+        self.sb_click_amplitude = LabeledDoubleSpinBox()
+        self.sb_click_amplitude.setText('Click amplitude (dB SPL)')
+        self.sb_click_amplitude.setRange(0.0, 120.0)
+        self.sb_click_amplitude.setValue(self.click_amplitude)
+        self.sb_click_amplitude.valueChanged.connect(self.state_changed)
+
+        self.sb_click_duration = LabeledDoubleSpinBox()
+        self.sb_click_duration.setText('Click duration (ms)')
+        self.sb_click_duration.setRange(0.1, 1000.0)
+        self.sb_click_duration.setValue(self.click_duration)
+        self.sb_click_duration.valueChanged.connect(self.state_changed)
+
+        self.cb_polarity = LabeledComboBox()
+        self.cb_polarity.setText('Polarity')
+        self.cb_polarity.addItem('Biphasic')
+        self.cb_polarity.addItem('Positive')
+        self.cb_polarity.setCurrentText(self.polarity)
+        self.cb_polarity.currentTextChanged.connect(self.state_changed)
+        
+    def layout_components(self) -> None:
+        
+        super().layout_components()
+
+        click_layout = QVBoxLayout()
+        click_layout.addWidget(self.sb_click_rate)
+        click_layout.addWidget(self.sb_click_amplitude)
+        click_layout.addWidget(self.sb_click_duration)
+        click_layout.addWidget(self.cb_polarity)
+        click_layout.addStretch()
+
+        self.click_group = QGroupBox('Click parameters')
+        self.click_group.setLayout(click_layout)
+
+        self.main_layout.addWidget(self.click_group)
+        self.main_layout.addWidget(self.stop_widget)
+
+    def get_state(self) -> Dict:
+
+        state = super().get_state()
+        state['click_rate'] = self.sb_click_rate.value()
+        state['click_amplitude'] = self.sb_click_amplitude.value()
+        state['click_duration'] = self.sb_click_duration.value()    
+        state['polarity'] = self.cb_polarity.currentText()
+        return state
+    
+    def set_state(self, state: Dict) -> None:
+        
+        super().set_state(state)
+
+        set_from_dict(
+            dictionary = state,
+            key = 'click_rate',
+            setter = self.sb_click_rate.setValue,
+            default = self.click_rate,
+            cast = float
+        )
+        set_from_dict(
+            dictionary = state,
+            key = 'click_amplitude',
+            setter = self.sb_click_amplitude.setValue,
+            default = self.click_amplitude,
+            cast = float
+        )
+        set_from_dict(
+            dictionary = state,
+            key = 'click_duration',
+            setter = self.sb_click_duration.setValue,
+            default = self.click_duration,
+            cast = float
+        )
+        set_from_dict(
+            dictionary = state,
+            key = 'polarity',
+            setter = self.cb_polarity.setCurrentText,
+            default = self.polarity
+        )
+
+    def from_protocol_item(self, protocol_item: ClickTrain) -> None:
+        
+        super().from_protocol_item(protocol_item)
+
+        self.sb_click_rate.setValue(protocol_item.click_rate)
+        self.sb_click_amplitude.setValue(protocol_item.click_amplitude)
+        self.sb_click_duration.setValue(protocol_item.click_duration)
+        self.cb_polarity.setCurrentText(protocol_item.polarity)
+    
+    def to_protocol_item(self) -> ClickTrain:
+
+        protocol = ClickTrain(
+            click_rate = self.sb_click_rate.value(),
+            click_amplitude = self.sb_click_amplitude.value(),
+            click_duration = self.sb_click_duration.value(),
+            polarity = self.cb_polarity.currentText(),
+            stop_condition = self.stop_widget.to_stop_condition()
+        )
+        return protocol
+    
+if __name__ == '__main__':
+
+    app = QApplication([])
+    window = ClickTrainWidget(
+        stop_widget = StopWidget(
+            debouncer = Debouncer()
+        )
+    )
+    window.show()
+    app.exec()
+    

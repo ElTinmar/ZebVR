@@ -33,8 +33,11 @@ class Stim(IntEnum):
     # acoustic
     PURE_TONE = 20
     FREQUENCY_RAMP = 21
-    NOISE = 22
-    
+    WHITE_NOISE = 22
+    PINK_NOISE = 23
+    CLICK_TRAIN = 24
+    SILENCE = 25
+
     def __str__(self):
         return self.name
         

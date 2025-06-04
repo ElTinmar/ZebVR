@@ -6,33 +6,22 @@ from PyQt5.QtWidgets import (
 from ..default import DEFAULT
 from enum import IntEnum
 
-class NoiseType(IntEnum):
-    WHITE = 0
-    PINK = 1
+class WhiteNoise(ProtocolItem):
 
-    def __str__(self):
-        return self.name
+    STIM_SELECT = Stim.WHITE_NOISE
+    
+    def start(self) -> Dict:
 
-class Noise(ProtocolItem):
+        super().start()
+        
+        command = {
+            'stim_select': self.STIM_SELECT,
+        }
+        return command
 
-    STIM_SELECT = Stim.NOISE
+class PinkNoise(ProtocolItem):
 
-    def __init__(
-            self, 
-            frequency_low_Hz: float,
-            frequency_high_Hz: float,
-            t_rise_ms: float,
-            noise_type: NoiseType,
-            *args,
-            **kwargs
-        ) -> None:
-
-        super().__init__(*args, **kwargs)
-
-        self.frequency_low_Hz = frequency_low_Hz
-        self.frequency_high_Hz = frequency_high_Hz
-        self.noise_type = noise_type
-        self.t_rise_ms = t_rise_ms
+    STIM_SELECT = Stim.PINK_NOISE
 
     def start(self) -> Dict:
 
@@ -40,24 +29,33 @@ class Noise(ProtocolItem):
         
         command = {
             'stim_select': self.STIM_SELECT,
-            'frequency_low_Hz': self.frequency_low_Hz,
-            'frequency_high_Hz': self.frequency_high_Hz,
-            'noise_type': self.noise_type,
-            't_rise_ms': self.t_rise_ms
         }
         return command
     
-class NoiseWidget(ProtocolItemWidget):
+    
+class WhiteNoiseWidget(ProtocolItemWidget):
+    ...
+
+class PinkNoiseWidget(ProtocolItemWidget):
     ...
 
 if __name__ == '__main__':
 
     app = QApplication([])
-    window = PinkNoiseWidget(
+
+    window0 = WhiteNoiseWidget(
         stop_widget = StopWidget(
             debouncer = Debouncer()
         )
     )
-    window.show()
+    window0.show()
+
+    window1 = PinkNoiseWidget(
+        stop_widget = StopWidget(
+            debouncer = Debouncer()
+        )
+    )
+    window1.show()
+
     app.exec()
     

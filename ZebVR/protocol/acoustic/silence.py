@@ -5,38 +5,26 @@ from PyQt5.QtWidgets import (
 )
 from ..default import DEFAULT
 
-class PureTone(ProtocolItem):
+class WhiteNoise(ProtocolItem):
 
-    STIM_SELECT = Stim.PURE_TONE
-
-    def __init__(
-            self, 
-            frequency_Hz: float,
-            *args,
-            **kwargs
-        ) -> None:
-
-        super().__init__(*args, **kwargs)
-
-        self.frequency_Hz = frequency_Hz
-
+    STIM_SELECT = Stim.SILENCE
+    
     def start(self) -> Dict:
 
-        super().start()
+        super().start() 
         
         command = {
             'stim_select': self.STIM_SELECT,
-            'frequency_Hz': self.frequency_Hz
         }
         return command
     
-class PureToneWidget(ProtocolItemWidget):
+class SilenceWidget(ProtocolItemWidget):
     ...
 
 if __name__ == '__main__':
 
     app = QApplication([])
-    window = PureToneWidget(
+    window = SilenceWidget(
         stop_widget = StopWidget(
             debouncer = Debouncer()
         )

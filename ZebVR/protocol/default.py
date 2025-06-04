@@ -23,5 +23,12 @@ DEFAULT = {
     'ramp_stop_percent': 100.0,
     'ramp_speed_percent_per_sec': 1.0,
     'image_path': 'ZebVR/resources/checkerboard.png',
-    'image_res_px_per_mm': 10
+    'image_res_px_per_mm': 10,
+    'click_rate': 10.0,
+    'click_amplitude': 0.5,
+    'click_duration': 0.01,
+    'polarity': 'biphasic',
+    'frequency_Hz_start': 1000.0,
+    'frequency_Hz_stop': 2000.0,
+    'sweep_type': 'linear',
 }
