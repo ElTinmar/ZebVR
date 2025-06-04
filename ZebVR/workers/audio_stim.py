@@ -216,6 +216,17 @@ def click_train_coroutine(
             interval_samples = int(samplerate / click_rate)
             click_samples = int(samplerate * click_duration)
 
+def silence_coroutine(
+    blocksize: int = 1024,
+    channels: int = 1,
+) -> Generator[NDArray, Optional[Dict], None]:
+
+    chunk = np.zeros((blocksize, channels), dtype=np.float32)
+
+    while True:
+        update = yield chunk
+
+
 class SharedAudioParameters:
 
     def __init__(self):
@@ -241,7 +252,7 @@ class AudioProducer(Process):
             self, 
             audio_queue: Queue, 
             stop_event: EventType,
-            samplerate: float = 44100,
+            samplerate: int = 44100,
             blocksize: int = 1024,
             channels: int = 1
         ):
@@ -253,37 +264,43 @@ class AudioProducer(Process):
         self.channels = channels
 
         self.shared_audio_parameters = None 
-
-    def set_shared_parameters(self, shared_audio_parameters: SharedAudioParameters):
-        self.shared_audio_parameters = shared_audio_parameters 
-
-    def run(self):
-
-        generators = {
-            Stim.PURE_TONE: pure_tone_generator(
-                frequency = self.shared_audio_parameters.frequency.value,
+        self.stim_coroutine = {
+            Stim.PURE_TONE: pure_tone_coroutine(
                 samplerate = self.samplerate,
-                amplitude = self.shared_audio_parameters.amplitude.value,
                 blocksize = self.blocksize,
                 channels = self.channels,
             ),
-            Stim.NOISE: white_noise_generator(
+            Stim.NOISE: white_noise_coroutine(
+                blocksize = self.blocksize,
+                channels = self.channels,
+            ),
+            Stim.FREQUENCY_RAMP: frequency_sweep_coroutine(
                 samplerate = self.samplerate,
-                amplitude = self.shared_audio_parameters.amplitude.value,
+                blocksize = self.blocksize,
+                channels = self.channels,
+            ),
+            Stim.CLICK_TRAIN: click_train_coroutine(
+                samplerate = self.samplerate,
+                blocksize = self.blocksize,
+                channels = self.channels,
+            ),
+            Stim.SILENCE: silence_coroutine(
                 blocksize = self.blocksize,
                 channels = self.channels,
             ),
         }
 
+    def set_shared_parameters(self, shared_audio_parameters: SharedAudioParameters):
+        self.shared_audio_parameters = shared_audio_parameters
+
+    def run(self):
+        if self.shared_audio_parameters is None:
+            raise ValueError("SharedAudioParameters must be set before running the producer")
+        
         while not self.stop_event.is_set():
-
             current_stim = self.shared_audio_parameters.stim_select.value
-            generator = generators.get(current_stim, None)
-
-            if generator is None:
-                generator = (np.zeros((self.blocksize, self.channels), dtype=np.float32) for _ in iter(int, 1))
-                
-            chunk = next(generator)
+            coroutine = self.stim_coroutine.get(current_stim, Stim.SILENCE)
+            chunk = coroutine.send(self.shared_audio_parameters.to_dict())
             self.audio_queue.put(chunk)
         
 class AudioConsumer(Process):
@@ -292,7 +309,7 @@ class AudioConsumer(Process):
             self, 
             audio_queue: Queue, 
             stop_event: EventType,
-            samplerate: float = 44100,
+            samplerate: int = 44100,
             blocksize: int = 1024,
             channels: int = 1
         ):
@@ -339,9 +356,9 @@ class AudioStimWorker(WorkerNode):
 
     def __init__(
             self,
-            audio_producer,
-            audio_consumer,
-            samplerate: float = 44100, 
+            audio_producer: AudioProducer,
+            audio_consumer: AudioConsumer,
+            samplerate: int = 44100, 
             timings_file: str = 'audio.csv', 
             *args, 
             **kwargs
