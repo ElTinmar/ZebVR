@@ -12,7 +12,6 @@ class PureTone(ProtocolItem):
     def __init__(
             self, 
             frequency_Hz: float,
-            duration_sec: float,
             t_rise_ms: float,
             *args,
             **kwargs
@@ -21,7 +20,6 @@ class PureTone(ProtocolItem):
         super().__init__(*args, **kwargs)
 
         self.frequency_Hz = frequency_Hz 
-        self.duration_sec = duration_sec
         self.t_rise_ms = t_rise_ms
 
     def start(self) -> Dict:
@@ -31,7 +29,6 @@ class PureTone(ProtocolItem):
         command = {
             'stim_select': self.STIM_SELECT,
             'frequency_Hz': self.frequency_Hz,
-            'duration_sec': self.duration_sec,
             't_rise_ms': self.t_rise_ms
         }
         return command

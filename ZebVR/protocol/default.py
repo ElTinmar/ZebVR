@@ -21,6 +21,7 @@ DEFAULT = {
     'prey_radius_mm': 0.25,
     'ramp_start_percent': 0.0,
     'ramp_stop_percent': 100.0,
-    'ramp_duration_sec': 1.0,
+    'ramp_speed_percent_per_sec': 1.0,
     'image_path': 'ZebVR/resources/checkerboard.png',
+    'image_res_px_per_mm': 10
 }

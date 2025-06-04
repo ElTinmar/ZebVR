@@ -19,8 +19,7 @@ PROTOCOL_WIDGETS = [
     (visual.BrightnessRampWidget, protocol_item.Stim.BRIGHTNESS_RAMP),
     (visual.ImageWidget, protocol_item.Stim.IMAGE),
     (acoustic.PureToneWidget, protocol_item.Stim.PURE_TONE),
-    (acoustic.WhiteNoiseWidget, protocol_item.Stim.WHITE_NOISE),
-    (acoustic.PinkNoiseWidget, protocol_item.Stim.PINK_NOISE),
+    (acoustic.NoiseWidget, protocol_item.Stim.NOISE),
     (acoustic.FrequencyRampWidget, protocol_item.Stim.FREQUENCY_RAMP),
 ]
 PROTOCOL_WIDGETS.sort(key = lambda x: x[1])

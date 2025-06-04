@@ -13,7 +13,6 @@ class FrequencyRamp(ProtocolItem):
             self, 
             frequency_Hz_start: float,
             frequency_Hz_stop: float,
-            duration_sec: float,
             t_rise_ms: float,
             *args,
             **kwargs
@@ -23,7 +22,6 @@ class FrequencyRamp(ProtocolItem):
 
         self.frequency_Hz_start = frequency_Hz_start 
         self.frequency_Hz_stop = frequency_Hz_stop
-        self.duration_sec = duration_sec
         self.t_rise_ms = t_rise_ms
 
     def start(self) -> Dict:
@@ -33,7 +31,6 @@ class FrequencyRamp(ProtocolItem):
         command = {
             'stim_select': self.STIM_SELECT,
             'frequency_Hz': self.frequency_Hz,
-            'duration_sec': self.duration_sec,
             't_rise_ms': self.t_rise_ms
         }
         return command
