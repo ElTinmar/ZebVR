@@ -307,7 +307,7 @@ class AudioConsumer(Process):
             self,
             outdata: NDArray,
             frames: int,
-            time: sd.CallbackTime,
+            time: Any,
             status: sd.CallbackFlags
         ) -> None:
         
