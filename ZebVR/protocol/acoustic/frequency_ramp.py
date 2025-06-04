@@ -15,8 +15,9 @@ class FrequencyRamp(ProtocolItem):
 
     def __init__(
             self, 
-            frequency_Hz_start: float,
-            frequency_Hz_stop: float,
+            frequency_Hz_start: float = DEFAULT['frequency_Hz_start'],
+            frequency_Hz_stop: float = DEFAULT['frequency_Hz_stop'],
+            amplitude_dB_SPL: float = DEFAULT['amplitude_dB_SPL'],
             sweep_type: str = DEFAULT['sweep_type'],
             *args,
             **kwargs
@@ -26,6 +27,7 @@ class FrequencyRamp(ProtocolItem):
 
         self.frequency_Hz_start = frequency_Hz_start 
         self.frequency_Hz_stop = frequency_Hz_stop
+        self.amplitude_dB_SPL = amplitude_dB_SPL    
         self.sweep_type = sweep_type
 
     def start(self) -> Dict:
@@ -36,6 +38,7 @@ class FrequencyRamp(ProtocolItem):
             'stim_select': self.STIM_SELECT,
             'frequency_Hz_start': self.frequency_Hz_start,
             'frequency_Hz_stop': self.frequency_Hz_stop,
+            'amplitude_dB_SPL': self.amplitude_dB_SPL,
             'sweep_type': self.sweep_type
         }
         return command
@@ -46,6 +49,7 @@ class FrequencyRampWidget(ProtocolItemWidget):
             self,
             frequency_Hz_start: float = DEFAULT['frequency_Hz_start'],
             frequency_Hz_stop: float = DEFAULT['frequency_Hz_stop'],
+            amplitude_dB_SPL: float = DEFAULT['amplitude_dB_SPL'],
             sweep_type: str = DEFAULT['sweep_type'],
             *args,
             **kwargs
@@ -53,6 +57,7 @@ class FrequencyRampWidget(ProtocolItemWidget):
 
         self.frequency_Hz_start = frequency_Hz_start
         self.frequency_Hz_stop = frequency_Hz_stop
+        self.amplitude_dB_SPL = amplitude_dB_SPL
         self.sweep_type = sweep_type
 
         super().__init__(*args, **kwargs)
@@ -73,13 +78,19 @@ class FrequencyRampWidget(ProtocolItemWidget):
         self.sb_frequency_Hz_stop.setValue(self.frequency_Hz_stop)
         self.sb_frequency_Hz_stop.valueChanged.connect(self.state_changed)
 
+        self.sb_amplitude_dB_SPL = LabeledDoubleSpinBox()
+        self.sb_amplitude_dB_SPL.setText('Amplitude SPL (dB)')
+        self.sb_amplitude_dB_SPL.setRange(0.0, 200.0)
+        self.sb_amplitude_dB_SPL.setValue(self.amplitude_dB_SPL)
+        self.sb_amplitude_dB_SPL.valueChanged.connect(self.state_changed)
+
         self.cb_sweep_type = LabeledComboBox()
         self.cb_sweep_type.setText('Sweep type')
         self.cb_sweep_type.addItem('Linear')
         self.cb_sweep_type.addItem('Logarithmic')
         self.cb_sweep_type.setCurrentText(self.sweep_type)
         self.cb_sweep_type.currentTextChanged.connect(self.state_changed)
-        
+
     def layout_components(self) -> None:
         
         super().layout_components()
@@ -87,6 +98,7 @@ class FrequencyRampWidget(ProtocolItemWidget):
         frequency_layout = QVBoxLayout()
         frequency_layout.addWidget(self.sb_frequency_Hz_start)
         frequency_layout.addWidget(self.sb_frequency_Hz_stop)
+        frequency_layout.addWidget(self.sb_amplitude_dB_SPL)
         frequency_layout.addWidget(self.cb_sweep_type)
         frequency_layout.addStretch()
 
@@ -101,6 +113,7 @@ class FrequencyRampWidget(ProtocolItemWidget):
         state = super().get_state()
         state['frequency_Hz_start'] = self.sb_frequency_Hz_start.value()
         state['frequency_Hz_stop'] = self.sb_frequency_Hz_stop.value()
+        state['amplitude_dB_SPL'] = self.sb_amplitude_dB_SPL.value()
         state['sweep_type'] = self.cb_sweep_type.currentText()
         return state
 
@@ -124,6 +137,13 @@ class FrequencyRampWidget(ProtocolItemWidget):
         )
         set_from_dict(
             dictionary = state,
+            key = 'amplitude_dB_SPL',
+            setter = self.sb_amplitude_dB_SPL.setValue,
+            default = self.amplitude_dB_SPL,
+            cast = float
+        )
+        set_from_dict(
+            dictionary = state,
             key = 'sweep_type',
             setter = self.cb_sweep_type.setCurrentText,
             default = self.sweep_type
@@ -136,6 +156,7 @@ class FrequencyRampWidget(ProtocolItemWidget):
         self.sb_frequency_Hz_start.setValue(protocol_item.frequency_Hz_start)
         self.sb_frequency_Hz_stop.setValue(protocol_item.frequency_Hz_stop)
         self.cb_sweep_type.setCurrentText(protocol_item.sweep_type)
+        self.sb_amplitude_dB_SPL.setValue(protocol_item.amplitude_dB_SPL)
 
     def to_protocol_item(self) -> FrequencyRamp:
 
@@ -143,6 +164,7 @@ class FrequencyRampWidget(ProtocolItemWidget):
             frequency_Hz_start = self.sb_frequency_Hz_start.value(),
             frequency_Hz_stop = self.sb_frequency_Hz_stop.value(),
             sweep_type = self.cb_sweep_type.currentText(),
+            amplitude_dB_SPL = self.sb_amplitude_dB_SPL.value(),
             stop_condition = self.stop_widget.to_stop_condition()
         )
         return protocol

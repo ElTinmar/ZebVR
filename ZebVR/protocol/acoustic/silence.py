@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
 )
 from ..default import DEFAULT
 
-class WhiteNoise(ProtocolItem):
+class Silence(ProtocolItem):
 
     STIM_SELECT = Stim.SILENCE
     
@@ -19,7 +19,19 @@ class WhiteNoise(ProtocolItem):
         return command
     
 class SilenceWidget(ProtocolItemWidget):
-    ...
+
+    def layout_components(self) -> None:
+        
+        super().layout_components()
+        self.main_layout.addWidget(self.stop_widget)
+
+    def from_protocol_item(self, protocol_item: Silence) -> None:
+        super().from_protocol_item(protocol_item)
+
+    def to_protocol_item(self) -> Silence:
+        return Silence(
+            stop_condition = self.stop_widget.to_stop_condition()
+        )
 
 if __name__ == '__main__':
 

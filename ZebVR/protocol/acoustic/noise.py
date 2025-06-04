@@ -34,10 +34,34 @@ class PinkNoise(ProtocolItem):
     
     
 class WhiteNoiseWidget(ProtocolItemWidget):
-    ...
+
+    def layout_components(self) -> None:
+        
+        super().layout_components()
+        self.main_layout.addWidget(self.stop_widget)
+
+    def from_protocol_item(self, protocol_item: WhiteNoise) -> None:
+        super().from_protocol_item(protocol_item)
+
+    def to_protocol_item(self) -> WhiteNoise:
+        return WhiteNoise(
+            stop_condition = self.stop_widget.to_stop_condition()
+        )
 
 class PinkNoiseWidget(ProtocolItemWidget):
-    ...
+
+    def layout_components(self) -> None:
+        
+        super().layout_components()
+        self.main_layout.addWidget(self.stop_widget)
+
+    def from_protocol_item(self, protocol_item: PinkNoise) -> None:
+        super().from_protocol_item(protocol_item)
+
+    def to_protocol_item(self) -> PinkNoise:
+        return PinkNoise(
+            stop_condition = self.stop_widget.to_stop_condition()
+        )
 
 if __name__ == '__main__':
 
