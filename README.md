@@ -10,6 +10,12 @@ Add screenshots of the GUI
 
 This program is meant to run on Ubuntu >= 22.04
 
+### Dependencies
+
+```bash
+sudo apt-get install libportaudio2
+```
+
 ### Get code from github and create conda environment
 
 ```bash

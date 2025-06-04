@@ -1,254 +1,16 @@
-from typing import Tuple, Any
 from dagline import WorkerNode
-from multiprocessing import Process
-from numpy.typing import NDArray
-import numpy as np 
-import sounddevice as sd
 import matplotlib.pyplot as plt
 from scipy.signal import spectrogram, welch
-
-def pure_tone(
-    frequency: float,
-    duration: float,
-    samplerate: int = 44100,
-    amplitude: float = 0.1,
-    fade_ms: float = 5.0,
-) -> NDArray:
-    """
-    Generate a sine wave tone with optional cosine-squared onset/offset ramps.
-
-    Parameters:
-        frequency (float): Frequency of the tone in Hz.
-        duration (float): Duration in seconds.
-        samplerate (int): Sampling rate in Hz.
-        amplitude (float): Peak amplitude (0 to 1).
-        fade_ms (float): Duration of fade-in and fade-out in milliseconds.
-
-    Returns:
-        np.ndarray: Audio waveform with shape (n_samples,)
-    """
-    t = np.linspace(0, duration, int(samplerate * duration), endpoint=False)
-    tone = amplitude * np.sin(2 * np.pi * frequency * t)
-
-    fade_samples = int(samplerate * fade_ms / 1000)
-    if fade_samples * 2 >= len(tone):
-        raise ValueError("Fade duration too long for tone length")
-
-    envelope = np.ones_like(tone)
-    fade_in = np.sin(np.linspace(0, np.pi / 2, fade_samples))**2
-    fade_out = np.sin(np.linspace(np.pi / 2, 0, fade_samples))**2
-    envelope[:fade_samples] = fade_in
-    envelope[-fade_samples:] = fade_out
-
-    return tone * envelope
-
-def frequency_sweep(
-    f_start: float,
-    f_stop: float,
-    duration: float,
-    samplerate: int = 44100,
-    amplitude: float = 0.1,
-    fade_ms: float = 5.0,
-    method: str = 'linear',
-) -> NDArray:
-    """
-    Generate a frequency sweep (chirp) with cosine-squared fade-in/out.
-
-    Parameters:
-        f_start (float): Start frequency in Hz.
-        f_stop (float): End frequency in Hz.
-        duration (float): Duration in seconds.
-        samplerate (int): Sampling rate in Hz.
-        amplitude (float): Peak amplitude.
-        fade_ms (float): Duration of fade-in/out in milliseconds.
-        method (str): 'linear' or 'log' sweep.
-
-    Returns:
-        np.ndarray: Sweep waveform.
-    """
-    t = np.linspace(0, duration, int(samplerate * duration), endpoint=False)
-
-    if method == 'linear':
-        # Linear frequency sweep
-        phase = 2 * np.pi * (f_start * t + (f_stop - f_start) / (2 * duration) * t**2)
-    elif method == 'log':
-        if f_start <= 0 or f_stop <= 0:
-            raise ValueError("Log sweep requires positive frequencies")
-        k = np.log(f_stop / f_start) / duration
-        phase = 2 * np.pi * f_start * (np.exp(k * t) - 1) / k
-    else:
-        raise ValueError("Unsupported method. Choose 'linear' or 'log'.")
-
-    sweep = amplitude * np.sin(phase)
-
-    # Apply cos² fade
-    fade_samples = int(samplerate * fade_ms / 1000)
-    if fade_samples * 2 >= len(sweep):
-        raise ValueError("Fade duration too long for sweep length")
-
-    envelope = np.ones_like(sweep)
-    fade_in = np.sin(np.linspace(0, np.pi / 2, fade_samples))**2
-    fade_out = np.sin(np.linspace(np.pi / 2, 0, fade_samples))**2
-    envelope[:fade_samples] = fade_in
-    envelope[-fade_samples:] = fade_out
-
-    return sweep * envelope
-
-def band_limited_white_noise(
-    f_low: float,
-    f_high: float,
-    duration: float,
-    samplerate: int = 44100,
-    amplitude: float = 0.1,
-    fade_ms: float = 5.0
-) -> NDArray:
-    """
-    Generate white noise limited to a specific frequency band with cos² fades.
-
-    Parameters:
-        f_low (float): Lower cutoff frequency in Hz.
-        f_high (float): Upper cutoff frequency in Hz.
-        duration (float): Duration of the noise in seconds.
-        samplerate (int): Sampling rate in Hz.
-        amplitude (float): Peak amplitude (approximate).
-        fade_ms (float): Duration of fade-in/out in milliseconds.
-
-    Returns:
-        np.ndarray: Band-limited noise waveform.
-    """
-    n_samples = int(duration * samplerate)
-    noise = np.random.normal(0, 1, n_samples)
-
-    # Apply FFT bandpass filter
-    freqs = np.fft.rfftfreq(n_samples, d=1/samplerate)
-    fft_noise = np.fft.rfft(noise)
-
-    # Zero out frequencies outside the desired band
-    band_mask = (freqs >= f_low) & (freqs <= f_high)
-    fft_noise[~band_mask] = 0
-
-    # Convert back to time domain
-    filtered_noise = np.fft.irfft(fft_noise, n=n_samples)
-
-    # Normalize to target amplitude
-    filtered_noise *= amplitude / np.max(np.abs(filtered_noise) + 1e-12)
-
-    # Apply cos² fade-in/out
-    fade_samples = int(samplerate * fade_ms / 1000)
-    if fade_samples * 2 >= n_samples:
-        raise ValueError("Fade duration too long for noise length")
-
-    envelope = np.ones(n_samples)
-    fade_in = np.sin(np.linspace(0, np.pi / 2, fade_samples))**2
-    fade_out = np.sin(np.linspace(np.pi / 2, 0, fade_samples))**2
-    envelope[:fade_samples] = fade_in
-    envelope[-fade_samples:] = fade_out
-
-    return filtered_noise * envelope
-
-def band_limited_pink_noise(
-    f_low: float,
-    f_high: float,
-    duration: float,
-    samplerate: int = 44100,
-    amplitude: float = 0.1,
-    fade_ms: float = 5.0
-) -> NDArray:
-    """
-    Generate pink noise limited to a specific frequency band with cos² fades.
-
-    Parameters:
-        f_low (float): Lower cutoff frequency in Hz.
-        f_high (float): Upper cutoff frequency in Hz.
-        duration (float): Duration of the noise in seconds.
-        samplerate (int): Sampling rate in Hz.
-        amplitude (float): Peak amplitude (approximate).
-        fade_ms (float): Duration of fade-in/out in milliseconds.
-
-    Returns:
-        np.ndarray: Band-limited pink noise waveform.
-    """
-    n_samples = int(duration * samplerate)
-
-    # Generate white noise in frequency domain
-    freqs = np.fft.rfftfreq(n_samples, d=1/samplerate)
-    n_freqs = len(freqs)
-
-    # Create pink spectrum: scale ~ 1/f (avoid divide-by-zero at DC)
-    pink_spectrum = np.random.normal(0, 1, n_freqs) + 1j * np.random.normal(0, 1, n_freqs)
-    pink_spectrum /= np.sqrt(np.maximum(freqs, 1e-6))  # 1/sqrt(f) gives 1/f power
-
-    # Apply bandpass mask
-    band_mask = (freqs >= f_low) & (freqs <= f_high)
-    pink_spectrum[~band_mask] = 0
-
-    # Inverse FFT to get time domain signal
-    pink_noise = np.fft.irfft(pink_spectrum, n=n_samples)
-
-    # Normalize
-    pink_noise *= amplitude / np.max(np.abs(pink_noise) + 1e-12)
-
-    # Cos² fade
-    fade_samples = int(samplerate * fade_ms / 1000)
-    if fade_samples * 2 >= n_samples:
-        raise ValueError("Fade duration too long for noise length")
-
-    envelope = np.ones(n_samples)
-    fade_in = np.sin(np.linspace(0, np.pi / 2, fade_samples))**2
-    fade_out = np.sin(np.linspace(np.pi / 2, 0, fade_samples))**2
-    envelope[:fade_samples] = fade_in
-    envelope[-fade_samples:] = fade_out
-
-    return pink_noise * envelope
-
-def click_train(
-    samplerate: int = 44100,
-    duration: float = 1.0,
-    click_rate: float = 10.0,
-    click_amplitude: float = 0.5,
-    click_duration: float = 0.001,  # in seconds (1 ms)
-    polarity: str = "biphasic"      # or "positive"
-) -> np.ndarray:
-    """
-    Generate a train of click sounds.
-
-    Parameters:
-        samplerate (int): Sampling rate in Hz.
-        duration (float): Total duration of the signal in seconds.
-        click_rate (float): Number of clicks per second (Hz).
-        click_amplitude (float): Amplitude of each click (0–1).
-        click_duration (float): Duration of each click in seconds.
-        polarity (str): 'positive' (unipolar) or 'biphasic' (± pulse).
-
-    Returns:
-        np.ndarray: The generated click train waveform.
-    """
-    total_samples = int(samplerate * duration)
-    click_samples = int(samplerate * click_duration)
-    interval_samples = int(samplerate / click_rate)
-
-    if click_samples >= interval_samples:
-        raise ValueError(
-            f"Click duration ({click_duration}s) is too long for the "
-            f"given click rate ({click_rate} Hz). "
-            "Increase the click rate or decrease click duration."
-        )
-        
-    signal = np.zeros(total_samples)
-
-    for i in range(0, total_samples, interval_samples):
-        if i + click_samples >= total_samples:
-            break
-        if polarity == "positive":
-            signal[i:i+click_samples] += click_amplitude
-        elif polarity == "biphasic":
-            half = click_samples // 2
-            signal[i:i+half] += click_amplitude
-            signal[i+half:i+click_samples] -= click_amplitude
-        else:
-            raise ValueError("polarity must be 'positive' or 'biphasic'")
-
-    return signal
+from multiprocessing import RawValue, Process, Queue, Event
+from multiprocessing.synchronize  import Event as EventType
+import queue
+from ZebVR.protocol import DEFAULT, Stim
+from typing import Dict, Generator, Optional, Any
+import time
+import os
+import sounddevice as sd
+import numpy as np
+from numpy.typing import NDArray
 
 def plot_waveform_spectrogram_and_psd(
     signal: np.ndarray,
@@ -306,11 +68,153 @@ def plot_waveform_spectrogram_and_psd(
 
     plt.show()
 
-from multiprocessing import RawValue
-from ZebVR.protocol import DEFAULT, Stim
-from typing import Dict
-import time
-import os
+def pure_tone_coroutine(
+    samplerate: int = 44100,
+    blocksize: int = 1024,
+    frequency: float = 440.0,
+    amplitude: float = 0.1,
+    channels: int = 1
+) -> Generator[NDArray, Optional[Dict], None]:
+    
+    phase = 0.0
+
+    while True:
+        t = (np.arange(blocksize) + phase) / samplerate
+        chunk = amplitude * np.sin(2 * np.pi * frequency * t)
+        if channels > 1:
+            chunk = np.tile(chunk[:, None], (1, channels))
+
+        phase += blocksize
+
+        update = yield chunk
+        if update:
+            frequency = update.get("frequency", frequency)
+            amplitude = update.get("amplitude", amplitude)
+
+def frequency_sweep_coroutine(
+    samplerate: int = 44100,
+    blocksize: int = 1024,
+    f_start: float = 440.0,
+    f_stop: float = 880.0,
+    amplitude: float = 0.1,
+    method: str = "linear",
+    channels: int = 1,
+) -> Generator[NDArray, Optional[Dict], None]:
+    
+    phase = 0.0
+
+    while True:
+        t = np.arange(blocksize + phase) / samplerate
+
+        if method == "linear":
+            phase_array = 2 * np.pi * (f_start * t + (f_stop - f_start) / 2 * t**2)
+
+        elif method == "log":
+            if f_start <= 0 or f_stop <= 0:
+                raise ValueError("Log sweep requires positive frequencies")
+            k = np.log(f_stop / f_start)
+            phase_array = 2 * np.pi * f_start * (np.exp(k * t) - 1) / k
+
+        else:
+            raise ValueError("Unsupported method. Choose 'linear' or 'log'.")
+
+        chunk = amplitude * np.sin(phase_array)
+        if channels > 1:
+            chunk = np.tile(chunk[:, None], (1, channels))
+
+        phase += blocksize
+
+        update = yield chunk
+        if update:
+            f_start = update.get("f_start", f_start)
+            f_stop = update.get("f_stop", f_stop)
+            amplitude = update.get("amplitude", amplitude)
+            method = update.get("method", method)
+
+def white_noise_coroutine(
+    blocksize: int = 1024,
+    amplitude: float = 0.1,
+    channels: int = 1,
+) -> Generator[NDArray, Optional[Dict], None]:
+    
+    while True:
+        chunk = amplitude * np.random.randn(blocksize).astype(np.float32)
+        if channels > 1:
+            chunk = np.tile(chunk[:, None], (1, channels))
+
+        update = yield chunk
+        if update:
+            amplitude = update.get("amplitude", amplitude)
+
+def pink_noise_coroutine(
+    blocksize: int = 1024,
+    amplitude: float = 0.1,
+    channels: int = 1,
+) -> Generator[NDArray, Optional[Dict], None]:
+    
+    while True:
+        # Voss-McCartney algorithm approximation
+        white = np.random.randn(blocksize).astype(np.float32)
+        b = [0.99765, 0.96300, 0.57000]
+        a = [0.0990460, 0.2965164, 1.0526913]
+        y = np.zeros_like(white)
+        x0, x1, x2 = 0.0, 0.0, 0.0
+        for i in range(blocksize):
+            x = white[i]
+            x0 = b[0] * x + a[0] * x0
+            x1 = b[1] * x + a[1] * x1
+            x2 = b[2] * x + a[2] * x2
+            y[i] = x0 + x1 + x2 + x * 0.1848
+
+        chunk = (amplitude * y / np.max(np.abs(y)))
+        if channels > 1:
+            chunk = np.tile(chunk[:, None], (1, channels))
+
+        update = yield chunk
+        if update:
+            amplitude = update.get("amplitude", amplitude)
+
+def click_train_coroutine(
+    samplerate: int = 44100,
+    blocksize: int = 1024,
+    click_rate: float = 10.0,
+    click_amplitude: float = 0.5,
+    click_duration: float = 0.001,
+    polarity: str = "biphasic",
+    channels: int = 1,
+) -> Generator[NDArray, Optional[Dict], None]:
+    
+    phase = 0
+    interval_samples = int(samplerate / click_rate)
+    click_samples = int(samplerate * click_duration)
+
+    if click_samples >= interval_samples:
+        raise ValueError("Click duration too long for click rate")
+
+    while True:
+        chunk = np.zeros(blocksize, dtype=np.float32)
+        for i in range(phase, blocksize, interval_samples):
+            if i + click_samples >= blocksize:
+                break
+            if polarity == "positive":
+                chunk[i:i + click_samples] += click_amplitude
+            elif polarity == "biphasic":
+                half = click_samples // 2
+                chunk[i:i + half] += click_amplitude
+                chunk[i + half:i + click_samples] -= click_amplitude
+
+        phase = (phase + blocksize) % interval_samples
+        if channels > 1:
+            chunk = np.tile(chunk[:, None], (1, channels))
+
+        update = yield chunk
+        if update:
+            click_rate = update.get("click_rate", click_rate)
+            click_amplitude = update.get("click_amplitude", click_amplitude)
+            click_duration = update.get("click_duration", click_duration)
+            polarity = update.get("polarity", polarity)
+            interval_samples = int(samplerate / click_rate)
+            click_samples = int(samplerate * click_duration)
 
 class SharedAudioParameters:
 
@@ -326,19 +230,105 @@ class SharedAudioParameters:
         self.stim_select.value = d.get('stim_select', Stim.DARK)
         self.phototaxis_polarity.value = d.get('phototaxis_polarity', DEFAULT['phototaxis_polarity'])
 
-class AudioProducer:
+class AudioProducer(Process):
     
-    def __init__(self):
-        ...
+    def __init__(
+            self, 
+            audio_queue: Queue, 
+            stop_event: EventType,
+            samplerate: float = 44100,
+            blocksize: int = 1024,
+            channels: int = 1
+        ):
+
+        self.stop_event = stop_event
+        self.audio_queue = audio_queue
+        self.samplerate = samplerate
+        self.blocksize = blocksize 
+        self.channels = channels
+
+        self.shared_audio_parameters = None 
 
     def set_shared_parameters(self, shared_audio_parameters: SharedAudioParameters):
-        ...
+        self.shared_audio_parameters = shared_audio_parameters 
 
+    def run(self):
+
+        generators = {
+            Stim.PURE_TONE: pure_tone_generator(
+                frequency = self.shared_audio_parameters.frequency.value,
+                samplerate = self.samplerate,
+                amplitude = self.shared_audio_parameters.amplitude.value,
+                blocksize = self.blocksize,
+                channels = self.channels,
+            ),
+            Stim.NOISE: white_noise_generator(
+                samplerate = self.samplerate,
+                amplitude = self.shared_audio_parameters.amplitude.value,
+                blocksize = self.blocksize,
+                channels = self.channels,
+            ),
+        }
+
+        while not self.stop_event.is_set():
+
+            current_stim = self.shared_audio_parameters.stim_select.value
+            generator = generators.get(current_stim, None)
+
+            if generator is None:
+                generator = (np.zeros((self.blocksize, self.channels), dtype=np.float32) for _ in iter(int, 1))
+                
+            chunk = next(generator)
+            self.audio_queue.put(chunk)
         
-class AudioConsumer:
+class AudioConsumer(Process):
 
-    def __init__(self):
-        ...
+    def __init__(
+            self, 
+            audio_queue: Queue, 
+            stop_event: EventType,
+            samplerate: float = 44100,
+            blocksize: int = 1024,
+            channels: int = 1
+        ):
+
+        self.audio_queue = audio_queue
+        self.stop_event = stop_event
+        self.samplerate = samplerate
+        self.blocksize = blocksize 
+        self.channels = channels
+
+    def audio_callback(
+            self,
+            outdata: NDArray,
+            frames: int,
+            time: sd.CallbackTime,
+            status: sd.CallbackFlags
+        ) -> None:
+        
+        if status:
+            print(status)
+
+        try:
+            chunk = self.audio_queue.get_nowait()
+        except queue.Empty:
+            outdata.fill(0)
+        else:
+            outdata[:] = chunk
+
+    def run(self):
+
+        with sd.OutputStream(
+                callback = self.audio_callback,
+                samplerate = self.samplerate,
+                blocksize = self.blocksize,
+                channels = self.channels,
+                dtype = 'float32'
+            ):
+
+            while not self.stop_event.is_set():
+                time.sleep(0.1)  
+
 
 class AudioStimWorker(WorkerNode):
 
@@ -358,8 +348,6 @@ class AudioStimWorker(WorkerNode):
         self.timings_file = timings_file
         self.audio_producer = audio_producer
         self.audio_consumer = audio_consumer 
-        self.audio_producer_process = None
-        self.audio_consumer_process = None
 
         self.shared_audio_parameters = SharedAudioParameters()
         self.audio_producer.set_shared_parameters(self.shared_audio_parameters)
@@ -385,11 +373,8 @@ class AudioStimWorker(WorkerNode):
         )
         self.fd.write(','.join(headers) + '\n')
 
-        self.audio_consumer_process = Process(target=self.run)
-        self.audio_consumer_process.start()
-
-        self.audio_producer_process = Process(target=self.run)
-        self.audio_producer_process.start()
+        self.audio_consumer.start()
+        self.audio_producer.start()
 
         super().initialize()
 
@@ -397,8 +382,8 @@ class AudioStimWorker(WorkerNode):
 
         super().cleanup()
 
-        self.audio_consumer_process.join()
-        self.audio_producer_process.join()
+        self.audio_consumer.join()
+        self.audio_producer.join()
         self.fd.close()
 
     def process_data(self, data: Any) -> None:
@@ -415,7 +400,6 @@ class AudioStimWorker(WorkerNode):
         
         timestamp = time.perf_counter_ns()
         timestamp_sec = 1e-9*timestamp
-        time_sec = timestamp_sec % self.rollover_time_sec
-        control['time_sec'] = time_sec
+        control['time_sec'] = timestamp_sec
 
         self.shared_audio_parameters.from_dict(control)
