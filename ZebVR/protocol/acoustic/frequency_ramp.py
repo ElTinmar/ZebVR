@@ -8,7 +8,15 @@ from PyQt5.QtWidgets import (
 from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox
 from ..default import DEFAULT
 from ...utils import set_from_dict
+from enum import IntEnum
 
+class SweepType(IntEnum):
+    LOG = 0
+    LINEAR = 1
+
+    def __str__(self) -> str:
+        return self.name
+    
 class FrequencyRamp(ProtocolItem):
 
     STIM_SELECT = Stim.FREQUENCY_RAMP
@@ -18,7 +26,7 @@ class FrequencyRamp(ProtocolItem):
             frequency_Hz_start: float = DEFAULT['frequency_Hz_start'],
             frequency_Hz_stop: float = DEFAULT['frequency_Hz_stop'],
             amplitude_dB_SPL: float = DEFAULT['amplitude_dB_SPL'],
-            sweep_type: str = DEFAULT['sweep_type'],
+            sweep_type: SweepType = DEFAULT['sweep_type'],
             *args,
             **kwargs
         ) -> None:
@@ -50,7 +58,7 @@ class FrequencyRampWidget(ProtocolItemWidget):
             frequency_Hz_start: float = DEFAULT['frequency_Hz_start'],
             frequency_Hz_stop: float = DEFAULT['frequency_Hz_stop'],
             amplitude_dB_SPL: float = DEFAULT['amplitude_dB_SPL'],
-            sweep_type: str = DEFAULT['sweep_type'],
+            sweep_type: SweepType = DEFAULT['sweep_type'],
             *args,
             **kwargs
         ) -> None:
@@ -86,10 +94,10 @@ class FrequencyRampWidget(ProtocolItemWidget):
 
         self.cb_sweep_type = LabeledComboBox()
         self.cb_sweep_type.setText('Sweep type')
-        self.cb_sweep_type.addItem('Linear')
-        self.cb_sweep_type.addItem('Logarithmic')
-        self.cb_sweep_type.setCurrentText(self.sweep_type)
-        self.cb_sweep_type.currentTextChanged.connect(self.state_changed)
+        for sweep_type in SweepType:
+            self.cb_sweep_type.addItem(str(sweep_type))
+        self.cb_sweep_type.setCurrentIndex(self.sweep_type)
+        self.cb_sweep_type.currentIndexChanged.connect(self.state_changed)
 
     def layout_components(self) -> None:
         
@@ -114,7 +122,7 @@ class FrequencyRampWidget(ProtocolItemWidget):
         state['frequency_Hz_start'] = self.sb_frequency_Hz_start.value()
         state['frequency_Hz_stop'] = self.sb_frequency_Hz_stop.value()
         state['amplitude_dB_SPL'] = self.sb_amplitude_dB_SPL.value()
-        state['sweep_type'] = self.cb_sweep_type.currentText()
+        state['sweep_type'] = self.cb_sweep_type.currentIndex()
         return state
 
     def set_state(self, state: Dict) -> None:
@@ -145,7 +153,7 @@ class FrequencyRampWidget(ProtocolItemWidget):
         set_from_dict(
             dictionary = state,
             key = 'sweep_type',
-            setter = self.cb_sweep_type.setCurrentText,
+            setter = self.cb_sweep_type.setCurrentIndex,
             default = self.sweep_type
         )
 
@@ -155,7 +163,7 @@ class FrequencyRampWidget(ProtocolItemWidget):
 
         self.sb_frequency_Hz_start.setValue(protocol_item.frequency_Hz_start)
         self.sb_frequency_Hz_stop.setValue(protocol_item.frequency_Hz_stop)
-        self.cb_sweep_type.setCurrentText(protocol_item.sweep_type)
+        self.cb_sweep_type.setCurrentIndex(protocol_item.sweep_type)
         self.sb_amplitude_dB_SPL.setValue(protocol_item.amplitude_dB_SPL)
 
     def to_protocol_item(self) -> FrequencyRamp:
@@ -163,7 +171,7 @@ class FrequencyRampWidget(ProtocolItemWidget):
         protocol = FrequencyRamp(
             frequency_Hz_start = self.sb_frequency_Hz_start.value(),
             frequency_Hz_stop = self.sb_frequency_Hz_stop.value(),
-            sweep_type = self.cb_sweep_type.currentText(),
+            sweep_type = self.cb_sweep_type.currentIndex(),
             amplitude_dB_SPL = self.sb_amplitude_dB_SPL.value(),
             stop_condition = self.stop_widget.to_stop_condition()
         )

@@ -27,10 +27,10 @@ DEFAULT = {
     'click_rate': 10.0,
     'click_amplitude': 0.5,
     'click_duration': 0.01,
-    'polarity': 'biphasic',
+    'polarity': 0,
     'frequency_Hz_start': 1000.0,
     'frequency_Hz_stop': 2000.0,
-    'sweep_type': 'linear',
+    'sweep_type': 0,
     'frequency_Hz': 1000.0,
     'amplitude_dB_SPL': 60.0,
 }
