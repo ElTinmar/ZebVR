@@ -4,7 +4,7 @@ from scipy.signal import spectrogram, welch
 from multiprocessing import RawValue, Process, Queue, Event
 from multiprocessing.synchronize  import Event as EventType
 import queue
-from ZebVR.protocol import DEFAULT, Stim
+from ZebVR.protocol import DEFAULT, Stim, ClickPolarity, SweepType
 from typing import Dict, Any
 import time
 import os
@@ -140,13 +140,13 @@ class AudioProducer(Process):
         f_start = self.shared_audio_parameters.f_start.value
         f_stop = self.shared_audio_parameters.f_stop.value
         amplitude = self.shared_audio_parameters.amplitude_dB_SPL.value
-        method = self.shared_audio_parameters.method.value #TODO text
+        method = SweepType(self.shared_audio_parameters.method.value) 
 
         t = np.arange(self.blocksize + self.phase) / self.samplerate
 
-        if method == "linear":
+        if method == SweepType.LINEAR:
             phase_array = 2 * np.pi * (f_start * t + (f_stop - f_start) / 2 * t**2)
-        elif method == "log":
+        elif method == SweepType.LOG:
             if f_start <= 0 or f_stop <= 0:
                 raise ValueError("Log sweep requires positive frequencies")
             k = np.log(f_stop / f_start)
@@ -194,7 +194,7 @@ class AudioProducer(Process):
         click_rate = self.shared_audio_parameters.click_rate.value
         click_amplitude = self.shared_audio_parameters.click_amplitude.value
         click_duration = self.shared_audio_parameters.click_duration.value
-        polarity = self.shared_audio_parameters.polarity.value # TODO text
+        polarity = ClickPolarity(self.shared_audio_parameters.polarity.value)
 
         interval_samples = int(self.samplerate / click_rate)
         click_samples = int(self.samplerate * click_duration)
@@ -206,9 +206,9 @@ class AudioProducer(Process):
         for i in range(self.phase, self.blocksize, interval_samples):
             if i + click_samples >= self.blocksize:
                 break
-            if polarity == "positive":
+            if polarity == ClickPolarity.POSITIVE:
                 chunk[i:i + click_samples] += click_amplitude
-            elif polarity == "biphasic":
+            elif polarity == ClickPolarity.BIPHASIC:
                 half = click_samples // 2
                 chunk[i:i + half] += click_amplitude
                 chunk[i + half:i + click_samples] -= click_amplitude
@@ -298,6 +298,7 @@ class AudioStimWorker(WorkerNode):
 
     def __init__(
             self,
+            units_per_dB_RMS: float = 1,
             samplerate: int = 44100,
             blocksize: int = 1024,
             channels: int = 1,
@@ -308,6 +309,7 @@ class AudioStimWorker(WorkerNode):
 
         super().__init__(*args, **kwargs)
 
+        self.units_per_dB_RMS = units_per_dB_RMS
         self.samplerate = samplerate
         self.timings_file = timings_file
         self.blocksize = blocksize
