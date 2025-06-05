@@ -168,22 +168,21 @@ class AudioProducer(Process):
         return chunk
     
     def _pink_noise(self) -> NDArray:
+        # Paul Kellet's economy implementation of pink noise
+        # https://www.firstpr.com.au/dsp/pink-noise/#Filtering
+
         amplitude = self.shared_audio_parameters.amplitude_dB_SPL.value
 
-        # Voss-McCartney algorithm approximation
         white = np.random.randn(self.blocksize).astype(np.float32)
-        b = [0.99765, 0.96300, 0.57000]
-        a = [0.0990460, 0.2965164, 1.0526913]
-        y = np.zeros_like(white)
+        pink = np.zeros_like(white)
         x0, x1, x2 = 0.0, 0.0, 0.0
         for i in range(self.blocksize):
-            x = white[i]
-            x0 = b[0] * x + a[0] * x0
-            x1 = b[1] * x + a[1] * x1
-            x2 = b[2] * x + a[2] * x2
-            y[i] = x0 + x1 + x2 + x * 0.1848
+            x0 = 0.99765 * x0 + white[i] * 0.0990460
+            x1 = 0.96300 * x1 + white[i] * 0.2965164
+            x2 = 0.57000 * x2 + white[i] * 1.0526913
+            pink[i] = x0 + x1 + x2 + white[i] * 0.1848
 
-        chunk = (amplitude * y / np.max(np.abs(y)))
+        chunk = amplitude * pink
         if self.channels > 1:
             chunk = np.tile(chunk[:, None], (1, self.channels))
         return chunk
