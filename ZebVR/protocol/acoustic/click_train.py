@@ -172,7 +172,7 @@ class ClickTrainWidget(ProtocolItemWidget):
             click_rate = self.sb_click_rate.value(),
             click_amplitude = self.sb_click_amplitude.value(),
             click_duration = self.sb_click_duration.value(),
-            polarity = self.cb_polarity.currentIndex(),
+            polarity = ClickPolarity(self.cb_polarity.currentIndex()),
             stop_condition = self.stop_widget.to_stop_condition()
         )
         return protocol

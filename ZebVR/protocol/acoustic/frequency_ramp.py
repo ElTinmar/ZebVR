@@ -171,7 +171,7 @@ class FrequencyRampWidget(ProtocolItemWidget):
         protocol = FrequencyRamp(
             frequency_Hz_start = self.sb_frequency_Hz_start.value(),
             frequency_Hz_stop = self.sb_frequency_Hz_stop.value(),
-            sweep_type = self.cb_sweep_type.currentIndex(),
+            sweep_type = SweepType(self.cb_sweep_type.currentIndex()),
             amplitude_dB_SPL = self.sb_amplitude_dB_SPL.value(),
             stop_condition = self.stop_widget.to_stop_condition()
         )
