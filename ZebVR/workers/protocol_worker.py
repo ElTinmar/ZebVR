@@ -67,5 +67,5 @@ class Protocol(WorkerNode):
             return 
         
         res = {}
-        res['visual_stim_control'] = command
+        res['stim_control'] = command
         return res

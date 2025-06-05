@@ -546,7 +546,7 @@ class GeneralStim(VisualStim):
     def process_metadata(self, metadata) -> None:
         # this runs in the worker process
         
-        control: Dict = metadata['visual_stim_control']
+        control: Dict = metadata['stim_control']
         
         if control is None:
             return
