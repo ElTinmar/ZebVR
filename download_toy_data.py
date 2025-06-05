@@ -2,7 +2,7 @@ from urllib.request import urlretrieve
 import zipfile
 import os
 
-FOLDER_URL = 'https://owncloud.gwdg.de/index.php/s/3I1wGOdmh8W2XaZ/download'
+FOLDER_URL = 'https://owncloud.gwdg.de/index.php/s/qkoXus2Ez28WJ86/download'
 DESTINATION = 'toy_data.zip'
 
 def download() -> None:
