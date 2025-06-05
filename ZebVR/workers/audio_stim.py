@@ -137,6 +137,8 @@ class AudioProducer(Process):
         return chunk
 
     def _frequency_sweep(self) -> NDArray:
+        # TODO add sweep speed instead of stop freq ?
+
         f_start = self.shared_audio_parameters.f_start.value
         f_stop = self.shared_audio_parameters.f_stop.value
         amplitude = self.shared_audio_parameters.amplitude_dB_SPL.value
