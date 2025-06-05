@@ -110,6 +110,8 @@ class AudioProducer(Process):
             channels: int = 1
         ):
 
+        super().__init__()
+
         self.stop_event = stop_event
         self.audio_queue = audio_queue
         self.samplerate = samplerate
@@ -168,8 +170,9 @@ class AudioProducer(Process):
         return chunk
     
     def _pink_noise(self) -> NDArray:
-        # Paul Kellet's economy implementation of pink noise
+        # pink noise approximation using Paul Kellet's economy filter
         # https://www.firstpr.com.au/dsp/pink-noise/#Filtering
+        # Optimized for a 44100Hz samplerate
 
         amplitude = self.shared_audio_parameters.amplitude_dB_SPL.value
 
@@ -251,6 +254,8 @@ class AudioConsumer(Process):
             blocksize: int = 1024,
             channels: int = 1
         ):
+
+        super().__init__()
 
         self.audio_queue = audio_queue
         self.stop_event = stop_event
