@@ -374,6 +374,9 @@ class GeneralStim(VisualStim):
                         gl_FragColor = texture2D(u_image_texture, coords);
                     }
                 }
+
+                if (u_stim_select == BRIGHTNESS_RAMP) {
+                }
             }
         }
         """

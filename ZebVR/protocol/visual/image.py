@@ -79,12 +79,14 @@ class ImageWidget(VisualProtocolItemWidget):
         self.sb_image_offset_mm_x.setText('X (mm)')
         self.sb_image_offset_mm_x.setRange(-10_000,10_000)
         self.sb_image_offset_mm_x.setValue(self.image_offset_mm[0])
+        self.sb_image_offset_mm_x.setSingleStep(0.1)
         self.sb_image_offset_mm_x.valueChanged.connect(self.state_changed)
 
         self.sb_image_offset_mm_y = LabeledDoubleSpinBox()
         self.sb_image_offset_mm_y.setText('Y (mm)')
         self.sb_image_offset_mm_y.setRange(-10_000,10_000)
         self.sb_image_offset_mm_y.setValue(self.image_offset_mm[1])
+        self.sb_image_offset_mm_y.setSingleStep(0.1)
         self.sb_image_offset_mm_y.valueChanged.connect(self.state_changed)
 
     def layout_components(self) -> None:
