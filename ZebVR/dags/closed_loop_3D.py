@@ -491,7 +491,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
             sender = protocol_worker, 
             receiver = stim_worker, 
             queue = QueueMP(), 
-            name = 'visual_stim_control'
+            name = 'stim_control'
         )
         for i in range(settings['identity']['n_animals']):
             dag.connect_metadata(
@@ -505,7 +505,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
             sender = stim_control_worker, 
             receiver= stim_worker, 
             queue = QueueMP(), 
-            name = 'visual_stim_control'
+            name = 'stim_control'
         )
         
     for i in range(settings['identity']['n_animals']):

@@ -341,7 +341,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             sender = protocol_worker, 
             receiver = stim_worker, 
             queue = QueueMP(), 
-            name = 'visual_stim_control'
+            name = 'stim_control'
         )
 
     else:
@@ -350,7 +350,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             sender = stim_control_worker, 
             receiver = stim_worker, 
             queue = QueueMP(), 
-            name = 'visual_stim_control'
+            name = 'stim_control'
         )
 
     dag.add_node(queue_monitor_worker)

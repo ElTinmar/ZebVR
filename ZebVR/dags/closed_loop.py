@@ -493,7 +493,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             sender = protocol_worker, 
             receiver = stim_worker, 
             queue = QueueMP(), 
-            name = 'visual_stim_control'
+            name = 'stim_control'
         )
         for i in range(settings['identity']['n_animals']):
             dag.connect_metadata(
@@ -507,7 +507,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             sender = stim_control_worker, 
             receiver= stim_worker, 
             queue = QueueMP(), 
-            name = 'visual_stim_control'
+            name = 'stim_control'
         )
         
     for i in range(settings['identity']['n_animals']):

@@ -10,6 +10,7 @@ from geometry import AffineTransform2D
 from ZebVR import MAX_PREY
 from ZebVR.protocol import DEFAULT, Stim
 from ctypes import c_char
+import cv2
 
 class SharedString:
     def __init__(
@@ -119,10 +120,13 @@ class SharedStimParameters:
     
 VERT_SHADER = """
 attribute vec2 a_position;
+attribute vec2 a_texcoord;
+varying vec2 v_texcoord;
 
 void main()
 {
     gl_Position = vec4(a_position, 0.0, 1.0);
+    v_texcoord = a_texcoord;
 }
 """
 
@@ -152,6 +156,9 @@ class GeneralStim(VisualStim):
         self.rollover_time_sec = rollover_time_sec
 
         FRAG_SHADER = f"""
+        // varying
+        varying vec2 v_texcoord;
+
         // Some DMD projectors with diamond pixel layouts (e.g. Lightcrafters) do not have uniform pixel spacing.
         uniform vec2 u_pixel_scaling; 
         uniform float u_pix_per_mm; 
@@ -197,6 +204,8 @@ class GeneralStim(VisualStim):
         uniform float u_prey_speed_mm_s;
         uniform vec2 u_prey_position[{MAX_PREY}];
         uniform vec2 u_prey_direction[{MAX_PREY}];
+        uniform sampler2D u_image_texture;
+        uniform float u_image_res_px_per_mm;
 
         // constants 
         const int DARK = 0;
@@ -358,6 +367,10 @@ class GeneralStim(VisualStim):
                         }
                     }
                 }
+
+                if (u_stim_select == IMAGE) {
+                    gl_FragColor = texture2D(u_image_texture, v_texcoord);
+                }
             }
         }
         """
@@ -428,6 +441,8 @@ class GeneralStim(VisualStim):
         self.program['u_prey_speed_mm_s'] = self.shared_stim_parameters.prey_speed_mm_s.value
         self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
+        self.program['u_image_texture'] = cv2.imread(self.shared_stim_parameters.image_path.value)
+        self.program['u_image_res_px_per_mm'] = self.shared_stim_parameters.image_res_px_per_mm
 
     def initialize(self):
         # this runs in the display process
@@ -589,6 +604,7 @@ class GeneralStim(VisualStim):
     def process_metadata(self, metadata) -> None:
         # this runs in the worker process
         
+        print(metadata)
         control: Dict = metadata['stim_control']
         
         if control is None:

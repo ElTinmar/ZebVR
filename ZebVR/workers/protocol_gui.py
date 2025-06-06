@@ -38,7 +38,7 @@ class StimGUI(WorkerNode):
         # send only one message when things are changed
         if self.window.is_updated():
             res = {}
-            res['visual_stim_control'] = self.window.get_state()
+            res['stim_control'] = self.window.get_state()
             self.window.set_updated(False)
             return res       
         else:
