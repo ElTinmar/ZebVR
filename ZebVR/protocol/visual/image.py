@@ -70,7 +70,7 @@ class ImageWidget(VisualProtocolItemWidget):
         self.fs_image_path.textChanged.connect(self.state_changed)
 
         self.sb_image_res_px_per_mm = LabeledDoubleSpinBox()
-        self.sb_image_res_px_per_mm.setText('speed (deg/s)')
+        self.sb_image_res_px_per_mm.setText('resolution (pix/mm)')
         self.sb_image_res_px_per_mm.setRange(0,10_000)
         self.sb_image_res_px_per_mm.setValue(self.image_res_px_per_mm)
         self.sb_image_res_px_per_mm.valueChanged.connect(self.state_changed)

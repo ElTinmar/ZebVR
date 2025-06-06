@@ -368,7 +368,7 @@ class GeneralStim(VisualStim):
 
                 if (u_stim_select == IMAGE) {
                     vec2 image_size_mm = u_image_size / u_image_res_px_per_mm;
-                    vec2 coords = (coordinates_mm + u_image_offset_mm - proj_bbox_mm.xy) / image_size_mm;
+                    vec2 coords = (coordinates_mm - u_image_offset_mm - proj_bbox_mm.xy) / image_size_mm;
                     if (coords.x >= 0.0 && coords.x <= 1.0 &&
                         coords.y >= 0.0 && coords.y <= 1.0) {
                         gl_FragColor = texture2D(u_image_texture, coords);
