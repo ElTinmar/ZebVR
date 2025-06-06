@@ -16,6 +16,7 @@ class Image(ProtocolItem):
             self, 
             image_path: str = DEFAULT['image_path'],
             image_res_px_per_mm: float = DEFAULT['image_res_px_per_mm'],
+            image_offset_mm: Tuple[float, float] = DEFAULT['image_offset_mm'],
             foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
             background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
@@ -27,6 +28,7 @@ class Image(ProtocolItem):
         self.foreground_color = foreground_color
         self.background_color = background_color 
         self.image_res_px_per_mm = image_res_px_per_mm
+        self.image_offset_mm = image_offset_mm
 
     def start(self) -> Dict:
 
@@ -36,6 +38,7 @@ class Image(ProtocolItem):
             'stim_select': self.STIM_SELECT,
             'image_path': self.image_path,
             'image_res_px_per_mm': self.image_res_px_per_mm,
+            'image_offset_mm': self.image_offset_mm,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color
         }
@@ -47,12 +50,14 @@ class ImageWidget(VisualProtocolItemWidget):
             self,
             image_path: str = DEFAULT['image_path'],
             image_res_px_per_mm: float = DEFAULT['image_res_px_per_mm'],
+            image_offset_mm: Tuple[float, float] = DEFAULT['image_offset_mm'],
             *args, 
             **kwargs
         ) -> None:
 
         self.image_path = image_path
         self.image_res_px_per_mm = image_res_px_per_mm
+        self.image_offset_mm = image_offset_mm
         
         super().__init__(*args, **kwargs)
 
@@ -70,6 +75,18 @@ class ImageWidget(VisualProtocolItemWidget):
         self.sb_image_res_px_per_mm.setValue(self.image_res_px_per_mm)
         self.sb_image_res_px_per_mm.valueChanged.connect(self.state_changed)
 
+        self.sb_image_offset_mm_x = LabeledDoubleSpinBox()
+        self.sb_image_offset_mm_x.setText('X (mm)')
+        self.sb_image_offset_mm_x.setRange(-10_000,10_000)
+        self.sb_image_offset_mm_x.setValue(self.image_offset_mm[0])
+        self.sb_image_offset_mm_x.valueChanged.connect(self.state_changed)
+
+        self.sb_image_offset_mm_y = LabeledDoubleSpinBox()
+        self.sb_image_offset_mm_y.setText('Y (mm)')
+        self.sb_image_offset_mm_y.setRange(-10_000,10_000)
+        self.sb_image_offset_mm_y.setValue(self.image_offset_mm[1])
+        self.sb_image_offset_mm_y.valueChanged.connect(self.state_changed)
+
     def layout_components(self) -> None:
         
         super().layout_components()
@@ -77,6 +94,8 @@ class ImageWidget(VisualProtocolItemWidget):
         image_layout = QVBoxLayout()
         image_layout.addWidget(self.fs_image_path)
         image_layout.addWidget(self.sb_image_res_px_per_mm)
+        image_layout.addWidget(self.sb_image_offset_mm_x)
+        image_layout.addWidget(self.sb_image_offset_mm_y)
         image_layout.addStretch()
 
         self.image_group = QGroupBox('Image parameters')
@@ -90,6 +109,10 @@ class ImageWidget(VisualProtocolItemWidget):
         state = super().get_state()
         state['image_path'] = self.fs_image_path.text()
         state['image_res_px_per_mm'] = self.sb_image_res_px_per_mm.value()
+        state['image_offset_mm'] = (
+            self.sb_image_offset_mm_x.value(),
+            self.sb_image_offset_mm_y.value()
+        )
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -110,6 +133,20 @@ class ImageWidget(VisualProtocolItemWidget):
             default = self.image_res_px_per_mm,
             cast = float
         )
+        set_from_dict(
+            dictionary = state,
+            key = 'image_offset_mm',
+            setter = self.sb_image_offset_mm_x.setValue,
+            default = self.image_offset_mm,
+            cast = lambda x: float(x[0])
+        )
+        set_from_dict(
+            dictionary = state,
+            key = 'image_offset_mm',
+            setter = self.sb_image_offset_mm_y.setValue,
+            default = self.image_offset_mm,
+            cast = lambda x: float(x[1])
+        )
 
     def from_protocol_item(self, protocol_item: Image) -> None:
 
@@ -117,6 +154,8 @@ class ImageWidget(VisualProtocolItemWidget):
 
         self.fs_image_path.setText(protocol_item.image_path)
         self.sb_image_res_px_per_mm.setValue(protocol_item.image_res_px_per_mm)
+        self.sb_image_offset_mm_x.setValue(protocol_item.image_offset_mm[0])
+        self.sb_image_offset_mm_y.setValue(protocol_item.image_offset_mm[1])
 
     def to_protocol_item(self) -> Image:
         
@@ -135,6 +174,10 @@ class ImageWidget(VisualProtocolItemWidget):
         protocol = Image(
             foreground_color = foreground_color,
             background_color = background_color,
+            image_offset_mm = (
+                self.sb_image_offset_mm_x.value(),
+                self.sb_image_offset_mm_y.value()
+            ),
             image_path = self.fs_image_path.text(),
             image_res_px_per_mm = self.sb_image_res_px_per_mm.value(),
             stop_condition = self.stop_widget.to_stop_condition()

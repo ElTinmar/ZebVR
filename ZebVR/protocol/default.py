@@ -33,4 +33,5 @@ DEFAULT = {
     'sweep_type': 0,
     'frequency_Hz': 1000.0,
     'amplitude_dB_SPL': 60.0,
+    'image_offset_mm': (0,0),
 }
