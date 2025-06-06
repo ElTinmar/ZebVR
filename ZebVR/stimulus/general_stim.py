@@ -9,7 +9,46 @@ from dataclasses import dataclass
 from geometry import AffineTransform2D
 from ZebVR import MAX_PREY
 from ZebVR.protocol import DEFAULT, Stim
+from ctypes import c_char
 
+class SharedString:
+    def __init__(
+            self, 
+            max_length: int = 1024, 
+            initializer: str = ''
+        ):
+        self.buf = RawArray(c_char, max_length)
+        self.set(initializer)
+
+    def set(self, s: str):
+        encoded = s.encode('utf-8')
+        if len(encoded) >= len(self.buf):
+            raise ValueError("String too long for shared buffer")
+        self.buf[:len(encoded)] = encoded
+        self.buf[len(encoded)] = 0  # Null-terminate
+
+    def get(self) -> str:
+        raw_bytes = bytearray()
+        for b in self.buf:
+            if b == b'\x00': # null terminator
+                break
+            raw_bytes.append(b[0])
+        return raw_bytes.decode('utf-8')
+    
+    def __str__(self) -> str:
+        return self.get()
+
+    def __repr__(self) -> str:
+        return f"SharedString('{self.get()}')"
+
+    @property
+    def value(self) -> str:
+        return self.get()
+
+    @value.setter
+    def value(self, s: str):
+        self.set(s)
+        
 @dataclass
 class SharedFishState:
     num_tail_points_interp: int
@@ -49,6 +88,8 @@ class SharedStimParameters:
         self.n_preys = RawValue('L', DEFAULT['n_preys'])
         self.prey_speed_mm_s = RawValue('d', DEFAULT['prey_speed_mm_s'])
         self.prey_radius_mm = RawValue('d', DEFAULT['prey_radius_mm'])
+        self.image_path = SharedString(initializer = DEFAULT['image_path'])
+        self.image_res_px_per_mm = RawValue('d', DEFAULT['image_res_px_per_mm'])
 
     def from_dict(self, d: Dict) -> None:
 
@@ -73,7 +114,9 @@ class SharedStimParameters:
         self.n_preys.value = int(d.get('n_preys', DEFAULT['n_preys']))
         self.prey_speed_mm_s.value = d.get('prey_speed_mm_s', DEFAULT['prey_speed_mm_s'])
         self.prey_radius_mm.value = d.get('prey_radius_mm', DEFAULT['prey_radius_mm'])
-
+        self.image_path.value = d.get('image_path', DEFAULT['image_path'])
+        self.image_res_px_per_mm.value = d.get('image_res_px_per_mm', DEFAULT['image_res_px_per_mm'])
+    
 VERT_SHADER = """
 attribute vec2 a_position;
 
