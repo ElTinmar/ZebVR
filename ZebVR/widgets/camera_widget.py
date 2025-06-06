@@ -133,7 +133,7 @@ class CameraWidget(QWidget):
             self, 
             "Load movie",
             "",
-            "Movie file (*.avi)"
+            ""
         )
         self.filename.setText(filename)
         self.on_source_change()
