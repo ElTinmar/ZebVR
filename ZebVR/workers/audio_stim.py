@@ -164,6 +164,7 @@ class AudioProducer(Process):
         return chunk
 
     def _white_noise(self) -> NDArray:
+        
         amplitude = self.shared_audio_parameters.amplitude_dB_SPL.value
 
         chunk = amplitude * np.random.randn(self.blocksize).astype(np.float32)
@@ -193,6 +194,7 @@ class AudioProducer(Process):
         return chunk
     
     def _click_train(self) -> NDArray:
+
         click_rate = self.shared_audio_parameters.click_rate.value
         click_amplitude = self.shared_audio_parameters.click_amplitude.value
         click_duration = self.shared_audio_parameters.click_duration.value
@@ -242,6 +244,7 @@ class AudioProducer(Process):
         return self.chunk_function()
 
     def run(self):
+
         while not self.stop_event.is_set():
             chunk = self._next_chunk()
             self.audio_queue.put(chunk)
