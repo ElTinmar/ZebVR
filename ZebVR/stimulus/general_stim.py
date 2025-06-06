@@ -12,6 +12,8 @@ from ZebVR.protocol import DEFAULT, Stim
 from ctypes import c_char
 import cv2
 
+# TODO finish adding stimuli, and make sure stim parameters are saved to csv
+
 class SharedString:
     def __init__(
             self, 
@@ -455,7 +457,7 @@ class GeneralStim(VisualStim):
             self.program['u_image_texture'] = img_rgb
             self.program['u_image_size'] = [img_rgb.shape[1], img_rgb.shape[0]]
             self._last_image_path = self.shared_stim_parameters.image_path.value
-            
+
         self.program['u_image_res_px_per_mm'] = self.shared_stim_parameters.image_res_px_per_mm
         self.program['u_image_offset_mm'] = self.shared_stim_parameters.image_offset_mm[:]
 
