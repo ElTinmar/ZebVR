@@ -448,9 +448,10 @@ class GeneralStim(VisualStim):
         self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
 
-        img = cv2.imread(self.shared_stim_parameters.image_path.value)
-        self.program['u_image_texture'] = gloo.Texture2D(img, )
-        self.program['u_image_size'] = [img.shape[1], img.shape[0]]
+        img_bgr = cv2.imread(self.shared_stim_parameters.image_path.value)
+        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+        self.program['u_image_texture'] = img_rgb
+        self.program['u_image_size'] = [img_rgb.shape[1], img_rgb.shape[0]]
         self.program['u_image_res_px_per_mm'] = self.shared_stim_parameters.image_res_px_per_mm
         self.program['u_image_offset_mm'] = self.shared_stim_parameters.image_offset_mm[:]
 
