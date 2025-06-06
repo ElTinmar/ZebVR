@@ -448,6 +448,8 @@ class GeneralStim(VisualStim):
         self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
 
+        # TODO this is run at the display FPS. Maybe dont reload the image if
+        # not necessary 
         img_bgr = cv2.imread(self.shared_stim_parameters.image_path.value)
         img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
         self.program['u_image_texture'] = img_rgb
