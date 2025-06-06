@@ -153,6 +153,7 @@ class GeneralStim(VisualStim):
         self.num_tail_points_interp = num_tail_points_interp
         self.n_animals = len(ROI_identities)
         self.rollover_time_sec = rollover_time_sec
+        self._last_image_path: str = ''
 
         FRAG_SHADER = f"""
         // Some DMD projectors with diamond pixel layouts (e.g. Lightcrafters) do not have uniform pixel spacing.
@@ -448,14 +449,16 @@ class GeneralStim(VisualStim):
         self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
 
-        # TODO this is run at the display FPS. Maybe dont reload the image if
-        # not necessary 
-        img_bgr = cv2.imread(self.shared_stim_parameters.image_path.value)
-        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-        self.program['u_image_texture'] = img_rgb
-        self.program['u_image_size'] = [img_rgb.shape[1], img_rgb.shape[0]]
+        if self._last_image_path != self.shared_stim_parameters.image_path.value:
+            img_bgr = cv2.imread(self.shared_stim_parameters.image_path.value)
+            img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+            self.program['u_image_texture'] = img_rgb
+            self.program['u_image_size'] = [img_rgb.shape[1], img_rgb.shape[0]]
+            self._last_image_path = self.shared_stim_parameters.image_path.value
+            
         self.program['u_image_res_px_per_mm'] = self.shared_stim_parameters.image_res_px_per_mm
         self.program['u_image_offset_mm'] = self.shared_stim_parameters.image_offset_mm[:]
+
 
     def initialize(self):
         # this runs in the display process
