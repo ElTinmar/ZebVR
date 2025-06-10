@@ -12,7 +12,14 @@ from ZebVR.protocol import DEFAULT, Stim
 from ctypes import c_char
 import cv2
 
-# TODO finish adding stimuli, and make sure stim parameters are saved to csv
+def linear_ramp(t, slope, start=.5):
+    return np.clip(slope*t+start,0,1)
+
+def log_ramp(t, tau=.5, start=.5):
+    if tau>0:
+        return (1-start) * (1-1/(np.log(np.e+t/tau))) + start
+    else:
+        return start/(np.log(np.e-t/tau))
 
 class SharedString:
     def __init__(
@@ -395,11 +402,17 @@ class GeneralStim(VisualStim):
                     float color = 0;
                     if (u_brightness_ramp_type == LINEAR) {
                         float increment = t * u_brightness_ramp_rate_per_sec/100;
-                        color = clamp(u_brightness_start_percent/100 + increment, 0, 1);
+                        color = clamp(u_brightness_start_percent/100 + increment, 0.0, 1.0);
                     }
                     if (u_brightness_ramp_type == LOG) {
-                        float increment = log(t*u_brightness_ramp_rate_per_sec) * (1-);
-                        color = clamp(u_brightness_start_percent/100 * factor, 0, 1);
+                        float e = exp(1.0);
+                        if (u_brightness_ramp_rate_per_sec > 0) {
+                            float increment = (1.0 - u_brightness_start_percent/100) * (1 - 1/log(e + t/u_brightness_ramp_rate_per_sec));
+                            color = clamp(u_brightness_start_percent/100 + increment, 0, 1);
+                        }
+                        else {
+                            color = (u_brightness_start_percent/100) / log(e - t/u_brightness_ramp_rate_per_sec);
+                        }
                     }
                     gl_FragColor = vec4(color,color,color,1);
                 }
