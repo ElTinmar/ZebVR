@@ -28,7 +28,7 @@ class SharedString:
         if len(encoded) >= len(self.buf):
             raise ValueError("String too long for shared buffer")
         self.buf[:len(encoded)] = encoded
-        self.buf[len(encoded)] = 0  # Null-terminate
+        self.buf[len(encoded)] = 0  # null-terminate
 
     def get(self) -> str:
         raw_bytes = bytearray()
