@@ -12,6 +12,8 @@ from ZebVR.protocol import DEFAULT, Stim
 from ctypes import c_char
 import cv2
 
+# TODO: map to sRGB except for image?
+
 # debug ramps 
 def linear_ramp(t, slope, start=.5):
     return np.clip(slope*t+start,0,1)
