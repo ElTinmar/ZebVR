@@ -12,6 +12,7 @@ from ZebVR.protocol import DEFAULT, Stim
 from ctypes import c_char
 import cv2
 
+# debug ramps 
 def linear_ramp(t, slope, start=.5):
     return np.clip(slope*t+start,0,1)
 
@@ -20,6 +21,7 @@ def log_ramp(t, tau=.5, start=.5):
         return (1-start) * (1-1/(np.log(np.e+t/tau))) + start
     else:
         return start/(np.log(np.e-t/tau))
+# - debug ramps
 
 class SharedString:
     def __init__(
