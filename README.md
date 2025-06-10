@@ -118,11 +118,13 @@ sudo cset shield --reset
 
 ```python
 from vispy import app, gloo
+from OpenGL.GL import GL_FRAMEBUFFER_SRGB, glIsEnabled
 canvas = app.Canvas()
 canvas.show()
 app.process_events()
 
 gpu_info = {
+    "sRGB": glIsEnabled(GL_FRAMEBUFFER_SRGB),
     "Renderer": gloo.gl.glGetParameter(gloo.gl.GL_RENDERER),
     "Vendor": gloo.gl.glGetParameter(gloo.gl.GL_VENDOR),
     "OpenGL Version": gloo.gl.glGetParameter(gloo.gl.GL_VERSION),
@@ -141,8 +143,10 @@ gpu_info = {
 for key, value in gpu_info.items():
     print(f"{key}: {value}")
 
+
 canvas.close()
 ```
+
 
 ## Troubleshooting
 
