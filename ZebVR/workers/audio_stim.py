@@ -4,7 +4,7 @@ from scipy.signal import spectrogram, welch
 from multiprocessing import RawValue, Process, Queue, Event
 from multiprocessing.synchronize  import Event as EventType
 import queue
-from ZebVR.protocol import DEFAULT, Stim, ClickPolarity, SweepType
+from ZebVR.protocol import DEFAULT, Stim, ClickPolarity, RampType
 from typing import Dict, Any
 import time
 import os
@@ -142,13 +142,13 @@ class AudioProducer(Process):
         f_start = self.shared_audio_parameters.f_start.value
         f_stop = self.shared_audio_parameters.f_stop.value
         amplitude = self.shared_audio_parameters.amplitude_dB_SPL.value
-        method = SweepType(self.shared_audio_parameters.method.value) 
+        method = RampType(self.shared_audio_parameters.method.value) 
 
         t = np.arange(self.blocksize + self.phase) / self.samplerate
 
-        if method == SweepType.LINEAR:
+        if method == RampType.LINEAR:
             phase_array = 2 * np.pi * (f_start * t + (f_stop - f_start) / 2 * t**2)
-        elif method == SweepType.LOG:
+        elif method == RampType.LOG:
             if f_start <= 0 or f_stop <= 0:
                 raise ValueError("Log sweep requires positive frequencies")
             k = np.log(f_stop / f_start)

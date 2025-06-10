@@ -26,7 +26,7 @@ class ClickTrain(ProtocolItem):
             click_rate: float = DEFAULT['click_rate'],
             click_amplitude: float = DEFAULT['click_amplitude'],
             click_duration: float = DEFAULT['click_duration'],
-            polarity: ClickPolarity = DEFAULT['polarity'],
+            click_polarity: ClickPolarity = DEFAULT['click_polarity'],
             *args,
             **kwargs
         ) -> None:
@@ -36,7 +36,7 @@ class ClickTrain(ProtocolItem):
         self.click_rate = click_rate
         self.click_amplitude = click_amplitude
         self.click_duration = click_duration
-        self.polarity = polarity
+        self.click_polarity = click_polarity
 
     def start(self) -> Dict:
 
@@ -47,7 +47,7 @@ class ClickTrain(ProtocolItem):
             'click_rate': self.click_rate,
             'click_amplitude': self.click_amplitude,
             'click_duration': self.click_duration,
-            'polarity': self.polarity
+            'click_polarity': self.click_polarity
         }
         return command
     
@@ -58,7 +58,7 @@ class ClickTrainWidget(ProtocolItemWidget):
             click_rate: float = DEFAULT['click_rate'],
             click_amplitude: float = DEFAULT['click_amplitude'],
             click_duration: float = DEFAULT['click_duration'],
-            polarity: ClickPolarity = DEFAULT['polarity'],
+            click_polarity: ClickPolarity = DEFAULT['click_polarity'],
             *args, 
             **kwargs
         ) -> None:
@@ -66,7 +66,7 @@ class ClickTrainWidget(ProtocolItemWidget):
         self.click_rate = click_rate
         self.click_amplitude = click_amplitude
         self.click_duration = click_duration
-        self.polarity = polarity
+        self.click_polarity = click_polarity
 
         super().__init__(*args, **kwargs)
 
@@ -92,12 +92,12 @@ class ClickTrainWidget(ProtocolItemWidget):
         self.sb_click_duration.setValue(self.click_duration)
         self.sb_click_duration.valueChanged.connect(self.state_changed)
 
-        self.cb_polarity = LabeledComboBox()
-        self.cb_polarity.setText('Polarity')
-        for polarity in ClickPolarity:
-            self.cb_polarity.addItem(str(polarity))
-        self.cb_polarity.setCurrentIndex(self.polarity)
-        self.cb_polarity.currentIndexChanged.connect(self.state_changed)
+        self.cb_click_polarity = LabeledComboBox()
+        self.cb_click_polarity.setText('Polarity')
+        for click_polarity in ClickPolarity:
+            self.cb_click_polarity.addItem(str(click_polarity))
+        self.cb_click_polarity.setCurrentIndex(self.click_polarity)
+        self.cb_click_polarity.currentIndexChanged.connect(self.state_changed)
         
     def layout_components(self) -> None:
         
@@ -107,7 +107,7 @@ class ClickTrainWidget(ProtocolItemWidget):
         click_layout.addWidget(self.sb_click_rate)
         click_layout.addWidget(self.sb_click_amplitude)
         click_layout.addWidget(self.sb_click_duration)
-        click_layout.addWidget(self.cb_polarity)
+        click_layout.addWidget(self.cb_click_polarity)
         click_layout.addStretch()
 
         self.click_group = QGroupBox('Click parameters')
@@ -122,7 +122,7 @@ class ClickTrainWidget(ProtocolItemWidget):
         state['click_rate'] = self.sb_click_rate.value()
         state['click_amplitude'] = self.sb_click_amplitude.value()
         state['click_duration'] = self.sb_click_duration.value()    
-        state['polarity'] = self.cb_polarity.currentIndex()
+        state['click_polarity'] = self.cb_click_polarity.currentIndex()
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -152,9 +152,9 @@ class ClickTrainWidget(ProtocolItemWidget):
         )
         set_from_dict(
             dictionary = state,
-            key = 'polarity',
-            setter = self.cb_polarity.setCurrentIndex,
-            default = self.polarity
+            key = 'click_polarity',
+            setter = self.cb_click_polarity.setCurrentIndex,
+            default = self.click_polarity
         )
 
     def from_protocol_item(self, protocol_item: ClickTrain) -> None:
@@ -164,7 +164,7 @@ class ClickTrainWidget(ProtocolItemWidget):
         self.sb_click_rate.setValue(protocol_item.click_rate)
         self.sb_click_amplitude.setValue(protocol_item.click_amplitude)
         self.sb_click_duration.setValue(protocol_item.click_duration)
-        self.cb_polarity.setCurrentIndex(protocol_item.polarity)
+        self.cb_click_polarity.setCurrentIndex(protocol_item.click_polarity)
     
     def to_protocol_item(self) -> ClickTrain:
 
@@ -172,7 +172,7 @@ class ClickTrainWidget(ProtocolItemWidget):
             click_rate = self.sb_click_rate.value(),
             click_amplitude = self.sb_click_amplitude.value(),
             click_duration = self.sb_click_duration.value(),
-            polarity = ClickPolarity(self.cb_polarity.currentIndex()),
+            click_polarity = ClickPolarity(self.cb_click_polarity.currentIndex()),
             stop_condition = self.stop_widget.to_stop_condition()
         )
         return protocol

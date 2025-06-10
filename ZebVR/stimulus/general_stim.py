@@ -94,6 +94,10 @@ class SharedStimParameters:
         self.image_path = SharedString(initializer = DEFAULT['image_path'])
         self.image_res_px_per_mm = RawValue('d', DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm = RawArray('d', DEFAULT['image_offset_mm'])
+        self.brightness_start_percent = RawValue('d', DEFAULT['brightness_start_percent'])
+        self.brightness_stop_percent = RawValue('d', DEFAULT['brightness_stop_percent'])
+        self.brightness_ramp_rate_per_sec = RawValue('d', DEFAULT['brightness_ramp_rate_per_sec'])
+        self.brightness_ramp_type = RawValue('d', DEFAULT['brightness_ramp_type'])
 
     def from_dict(self, d: Dict) -> None:
 
@@ -121,6 +125,10 @@ class SharedStimParameters:
         self.image_path.value = d.get('image_path', DEFAULT['image_path'])
         self.image_res_px_per_mm.value = d.get('image_res_px_per_mm', DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm[:] = d.get('image_offset_mm', DEFAULT['image_offset_mm'])
+        self.brightness_start_percent.value = d.get('brightness_start_percent', DEFAULT['brightness_start_percent'])
+        self.brightness_stop_percent.value = d.get('brightness_stop_percent', DEFAULT['brightness_stop_percent'])
+        self.brightness_ramp_rate_per_sec.value = d.get('brightness_ramp_rate_per_sec', DEFAULT['brightness_ramp_rate_per_sec'])
+        self.brightness_ramp_type.value = d.get('brightness_ramp_type', DEFAULT['brightness_ramp_type'])
     
 VERT_SHADER = """
 attribute vec2 a_position;
@@ -207,8 +215,15 @@ class GeneralStim(VisualStim):
         uniform vec2 u_image_size;
         uniform float u_image_res_px_per_mm;
         uniform vec2 u_image_offset_mm;
+        uniform float u_brightness_start_percent;
+        uniform float u_brightness_stop_percent;
+        uniform float u_brightness_ramp_rate_per_sec;
+        uniform int u_brightness_ramp_type;
 
         // constants 
+        const int LOG = 0;
+        const int LINEAR = 1;
+        
         const int DARK = 0;
         const int BRIGHT = 1;
         const int PHOTOTAXIS = 2;
@@ -450,6 +465,10 @@ class GeneralStim(VisualStim):
         self.program['u_prey_speed_mm_s'] = self.shared_stim_parameters.prey_speed_mm_s.value
         self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
+        self.program['u_brightness_start_percent'] = self.shared_stim_parameters.brightness_start_percent.value
+        self.program['u_brightness_stop_percent'] = self.shared_stim_parameters.brightness_stop_percent.value
+        self.program['u_brightness_ramp_rate_per_sec'] = self.shared_stim_parameters.brightness_ramp_rate_per_sec.value
+        self.program['u_brightness_ramp_type'] = self.shared_stim_parameters.brightness_ramp_type.value
 
         if self._last_image_path != self.shared_stim_parameters.image_path.value:
             img_bgr = cv2.imread(self.shared_stim_parameters.image_path.value)
@@ -458,7 +477,7 @@ class GeneralStim(VisualStim):
             self.program['u_image_size'] = [img_rgb.shape[1], img_rgb.shape[0]]
             self._last_image_path = self.shared_stim_parameters.image_path.value
 
-        self.program['u_image_res_px_per_mm'] = self.shared_stim_parameters.image_res_px_per_mm
+        self.program['u_image_res_px_per_mm'] = self.shared_stim_parameters.image_res_px_per_mm.value
         self.program['u_image_offset_mm'] = self.shared_stim_parameters.image_offset_mm[:]
 
 
@@ -499,7 +518,15 @@ class GeneralStim(VisualStim):
             'dot_radius_mm',
             'n_prey',
             'prey_speed_mm_s',
-            'prey_radius_mm'
+            'prey_radius_mm',
+            'brightness_start_percent',
+            'brightness_stop_percent',
+            'brightness_ramp_rate_per_sec',
+            'brightness_ramp_type',
+            'image_path',
+            'image_res_px_per_mm',
+            'image_offset_mm_x',
+            'image_offset_mm_y',
         )
         self.fd.write(','.join(headers) + '\n')
         
@@ -561,7 +588,15 @@ class GeneralStim(VisualStim):
             f'{self.shared_stim_parameters.dot_radius_mm.value}',
             f'{self.shared_stim_parameters.n_preys.value}',
             f'{self.shared_stim_parameters.prey_speed_mm_s.value}',
-            f'{self.shared_stim_parameters.prey_radius_mm.value}'
+            f'{self.shared_stim_parameters.prey_radius_mm.value}',
+            f'{self.shared_stim_parameters.brightness_start_percent.value}',
+            f'{self.shared_stim_parameters.brightness_stop_percent.value}',
+            f'{self.shared_stim_parameters.brightness_ramp_rate_per_sec.value}',
+            f'{self.shared_stim_parameters.brightness_ramp_type.value}',
+            f'{self.shared_stim_parameters.image_path.value}',
+            f'{self.shared_stim_parameters.image_res_px_per_mm.value}',
+            f'{self.shared_stim_parameters.image_offset_mm[0]}',
+            f'{self.shared_stim_parameters.image_offset_mm[1]}',
         )
         self.fd.write(','.join(row) + '\n')
 
