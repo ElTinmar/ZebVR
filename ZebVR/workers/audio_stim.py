@@ -133,7 +133,8 @@ class AudioProducer(Process):
             samplerate: int = 44100,
             blocksize: int = 1024,
             channels: int = 1,
-            rollover_time_sec: float = 3600
+            rollover_time_sec: float = 3600,
+            units_per_dB: float = 1.0
         ):
 
         super().__init__()
@@ -145,6 +146,7 @@ class AudioProducer(Process):
         self.channels = channels
         self.shared_audio_parameters = shared_audio_parameters 
         self.rollover_time_sec = rollover_time_sec
+        self.units_per_dB = units_per_dB
 
         self.rollover_phase = int(rollover_time_sec * samplerate)
         self.phase: int = 0
@@ -233,7 +235,7 @@ class AudioProducer(Process):
     def _next_chunk(self) -> NDArray:
 
         current_stim = self.shared_audio_parameters.stim_select.value
-        amplitude = self.shared_audio_parameters.amplitude_dB.value
+        amplitude_dB = self.shared_audio_parameters.amplitude_dB.value
 
         if current_stim == Stim.SILENCE:
             self.chunk_function = self._silence
@@ -250,7 +252,7 @@ class AudioProducer(Process):
         else:
             self.chunk_function = self._silence
 
-        chunk = amplitude * self.chunk_function()
+        chunk = amplitude_dB * self.units_per_dB * self.chunk_function()
         chunk = chunk.astype(np.float32)
         chunk = np.tile(chunk[:, None], (1, self.channels))
         self.phase = (self.phase + self.blocksize) % self.rollover_phase
@@ -323,7 +325,8 @@ class AudioStimWorker(WorkerNode):
             samplerate: int = 44100,
             blocksize: int = 1024,
             channels: int = 1,
-            timings_file: str = 'audio.csv', 
+            timings_file: str = 'audio.csv',
+            rollover_time_sec: float = 3600,  
             *args, 
             **kwargs
         ):
@@ -331,6 +334,7 @@ class AudioStimWorker(WorkerNode):
         super().__init__(*args, **kwargs)
 
         self.units_per_dB = units_per_dB
+        self.rollover_time_sec = rollover_time_sec
         self.samplerate = samplerate
         self.timings_file = timings_file
         self.blocksize = blocksize
@@ -345,7 +349,9 @@ class AudioStimWorker(WorkerNode):
             shared_audio_parameters = self.shared_audio_parameters,
             samplerate = self.samplerate,
             blocksize = self.blocksize,
-            channels = self.channels
+            channels = self.channels,
+            rollover_time_sec = rollover_time_sec,
+            units_per_dB  = units_per_dB
         )
         self.audio_consumer = AudioConsumer(
             audio_queue = self.audio_queue,
