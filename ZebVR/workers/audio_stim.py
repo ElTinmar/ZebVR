@@ -412,6 +412,13 @@ class AudioStimWorker(WorkerNode):
         # Write to file here? Log only if there is a change?
         # implement the logic in SharedAudioParameters?
 
+def clear_queue(q: Queue) -> None:
+    try:
+        while True:
+            q.get_nowait()
+    except queue.Empty:
+        pass
+
 if __name__ == '__main__':
 
     q = Queue(maxsize=10) # important to set maxsize to a low value
@@ -458,5 +465,6 @@ if __name__ == '__main__':
     time.sleep(5)
 
     s.set()
+    clear_queue(q)
     producer.join()
     consumer.join()
