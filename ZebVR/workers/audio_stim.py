@@ -12,6 +12,7 @@ import sounddevice as sd
 import numpy as np
 from numpy.typing import NDArray
 
+# TODO log to file 
 
 # debug ramps 
 def linear_sweep(f_start, f_end, duration, sample_rate):
@@ -300,7 +301,7 @@ class AudioConsumer(Process):
             outdata[:] = chunk
 
         print(outdata)
-        
+
     def run(self):
 
         with sd.OutputStream(
