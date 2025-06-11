@@ -314,7 +314,7 @@ class AudioStimWorker(WorkerNode):
 
     def __init__(
             self,
-            units_per_dB_RMS: float = 1,
+            units_per_dB: float = 1,
             samplerate: int = 44100,
             blocksize: int = 1024,
             channels: int = 1,
@@ -325,7 +325,7 @@ class AudioStimWorker(WorkerNode):
 
         super().__init__(*args, **kwargs)
 
-        self.units_per_dB_RMS = units_per_dB_RMS
+        self.units_per_dB = units_per_dB
         self.samplerate = samplerate
         self.timings_file = timings_file
         self.blocksize = blocksize
