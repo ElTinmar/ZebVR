@@ -717,3 +717,5 @@ class GeneralStim(VisualStim):
         control['time_sec'] = time_sec
 
         self.shared_stim_parameters.from_dict(control)
+
+        # TODO log to stim file only if there is a change here? 
