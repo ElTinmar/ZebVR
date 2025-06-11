@@ -226,7 +226,7 @@ class AudioProducer(Process):
 
             if polarity == ClickPolarity.POSITIVE:
                 chunk[i:i + click_samples] += 1
-                
+
             elif polarity == ClickPolarity.BIPHASIC:
                 half = click_samples // 2
                 chunk[i:i + half] += 1
@@ -411,7 +411,8 @@ class AudioStimWorker(WorkerNode):
 
         self.shared_audio_parameters.from_dict(control)
 
-        # Write to file here?
+        # Write to file here? Log only if there is a change?
+        # implement the logic in SharedAudioParameters?
 
 if __name__ == '__main__':
 
