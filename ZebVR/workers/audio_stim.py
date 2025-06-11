@@ -261,9 +261,10 @@ class AudioProducer(Process):
         else:
             self.chunk_function = self._silence
 
-        chunk = amplitude_dB * self.units_per_dB * self.chunk_function()
+        chunk = self.chunk_function()
         chunk = chunk.astype(np.float32)
         chunk = np.tile(chunk[:, None], (1, self.channels))
+        chunk = amplitude_dB * self.units_per_dB * chunk
         self.phase = (self.phase + self.blocksize) % self.rollover_phase
         return chunk
 
