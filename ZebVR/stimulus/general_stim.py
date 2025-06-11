@@ -109,10 +109,10 @@ class SharedStimParameters:
         self.image_path = SharedString(initializer = DEFAULT['image_path'])
         self.image_res_px_per_mm = RawValue('d', DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm = RawArray('d', DEFAULT['image_offset_mm'])
-        self.brightness_ramp_duration_sec = RawValue('d', DEFAULT['brightness_ramp_duration_sec'])
-        self.brightness_ramp_log_curvature = RawValue('d', DEFAULT['brightness_ramp_log_curvature'])
-        self.brightness_ramp_powerlaw_exponent = RawValue('d', DEFAULT['brightness_ramp_powerlaw_exponent'])
-        self.brightness_ramp_type = RawValue('d', DEFAULT['brightness_ramp_type'])
+        self.ramp_duration_sec = RawValue('d', DEFAULT['ramp_duration_sec'])
+        self.ramp_log_curvature = RawValue('d', DEFAULT['ramp_log_curvature'])
+        self.ramp_powerlaw_exponent = RawValue('d', DEFAULT['ramp_powerlaw_exponent'])
+        self.ramp_type = RawValue('d', DEFAULT['ramp_type'])
 
     def from_dict(self, d: Dict) -> None:
 
@@ -140,10 +140,10 @@ class SharedStimParameters:
         self.image_path.value = d.get('image_path', DEFAULT['image_path'])
         self.image_res_px_per_mm.value = d.get('image_res_px_per_mm', DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm[:] = d.get('image_offset_mm', DEFAULT['image_offset_mm'])
-        self.brightness_ramp_duration_sec.value = d.get('brightness_ramp_duration_sec', DEFAULT['brightness_ramp_duration_sec'])
-        self.brightness_ramp_log_curvature.value = d.get('brightness_ramp_log_curvature', DEFAULT['brightness_ramp_log_curvature'])
-        self.brightness_ramp_powerlaw_exponent.value = d.get('brightness_ramp_powerlaw_exponent', DEFAULT['brightness_ramp_powerlaw_exponent'])
-        self.brightness_ramp_type.value = d.get('brightness_ramp_type', DEFAULT['brightness_ramp_type'])
+        self.ramp_duration_sec.value = d.get('ramp_duration_sec', DEFAULT['ramp_duration_sec'])
+        self.ramp_log_curvature.value = d.get('ramp_log_curvature', DEFAULT['ramp_log_curvature'])
+        self.ramp_powerlaw_exponent.value = d.get('ramp_powerlaw_exponent', DEFAULT['ramp_powerlaw_exponent'])
+        self.ramp_type.value = d.get('ramp_type', DEFAULT['ramp_type'])
     
 VERT_SHADER = """
 attribute vec2 a_position;
@@ -230,10 +230,10 @@ class GeneralStim(VisualStim):
         uniform vec2 u_image_size;
         uniform float u_image_res_px_per_mm;
         uniform vec2 u_image_offset_mm;
-        uniform float u_brightness_ramp_duration_sec;
-        uniform float u_brightness_ramp_log_curvature;
-        uniform float u_brightness_ramp_powerlaw_exponent;
-        uniform int u_brightness_ramp_type;
+        uniform float u_ramp_duration_sec;
+        uniform float u_ramp_log_curvature;
+        uniform float u_ramp_powerlaw_exponent;
+        uniform int u_ramp_type;
 
         // constants 
         const int LOG = 0;
@@ -421,21 +421,21 @@ class GeneralStim(VisualStim):
                 }
 
                 if (u_stim_select == RAMP) {
-                    float t = mod(u_time_s-u_start_time_s, u_brightness_ramp_duration_sec);
-                    float frac = clamp(t / u_brightness_ramp_duration_sec, 0.0, 1.0);
+                    float t = mod(u_time_s-u_start_time_s, u_ramp_duration_sec);
+                    float frac = clamp(t / u_ramp_duration_sec, 0.0, 1.0);
                     float ramp_value = 0.0;
 
-                    if (u_brightness_ramp_type == LINEAR) {
+                    if (u_ramp_type == LINEAR) {
                         ramp_value = frac;
                     }
 
-                    if (u_brightness_ramp_type == LOG) {
-                        float k = u_brightness_ramp_log_curvature;
+                    if (u_ramp_type == LOG) {
+                        float k = u_ramp_log_curvature;
                         ramp_value = log(1 + k*frac) / log(1 + k);
                     }
 
-                    if (u_brightness_ramp_type == POWER_LAW) {
-                        float exponent = u_brightness_ramp_powerlaw_exponent;
+                    if (u_ramp_type == POWER_LAW) {
+                        float exponent = u_ramp_powerlaw_exponent;
                         ramp_value = pow(frac, exponent);
                     }
 
@@ -517,10 +517,10 @@ class GeneralStim(VisualStim):
         self.program['u_prey_speed_mm_s'] = self.shared_stim_parameters.prey_speed_mm_s.value
         self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
-        self.program['u_brightness_ramp_duration_sec'] = self.shared_stim_parameters.brightness_ramp_duration_sec.value
-        self.program['u_brightness_ramp_log_curvature'] = self.shared_stim_parameters.brightness_ramp_log_curvature.value
-        self.program['u_brightness_ramp_powerlaw_exponent'] = self.shared_stim_parameters.brightness_ramp_powerlaw_exponent.value
-        self.program['u_brightness_ramp_type'] = self.shared_stim_parameters.brightness_ramp_type.value
+        self.program['u_ramp_duration_sec'] = self.shared_stim_parameters.ramp_duration_sec.value
+        self.program['u_ramp_log_curvature'] = self.shared_stim_parameters.ramp_log_curvature.value
+        self.program['u_ramp_powerlaw_exponent'] = self.shared_stim_parameters.ramp_powerlaw_exponent.value
+        self.program['u_ramp_type'] = self.shared_stim_parameters.ramp_type.value
 
         if self._last_image_path != self.shared_stim_parameters.image_path.value:
             img_bgr = cv2.imread(self.shared_stim_parameters.image_path.value)
@@ -571,10 +571,10 @@ class GeneralStim(VisualStim):
             'n_prey',
             'prey_speed_mm_s',
             'prey_radius_mm',
-            'brightness_ramp_duration_sec',
-            'brightness_ramp_log_curvature',
-            'brightness_ramp_powerlaw_exponent',
-            'brightness_ramp_type',
+            'ramp_duration_sec',
+            'ramp_log_curvature',
+            'ramp_powerlaw_exponent',
+            'ramp_type',
             'image_path',
             'image_res_px_per_mm',
             'image_offset_mm_x',
@@ -641,10 +641,10 @@ class GeneralStim(VisualStim):
             f'{self.shared_stim_parameters.n_preys.value}',
             f'{self.shared_stim_parameters.prey_speed_mm_s.value}',
             f'{self.shared_stim_parameters.prey_radius_mm.value}',
-            f'{self.shared_stim_parameters.brightness_ramp_duration_sec.value}',
-            f'{self.shared_stim_parameters.brightness_ramp_log_curvature.value}',
-            f'{self.shared_stim_parameters.brightness_ramp_powerlaw_exponent.value}',
-            f'{self.shared_stim_parameters.brightness_ramp_type.value}',
+            f'{self.shared_stim_parameters.ramp_duration_sec.value}',
+            f'{self.shared_stim_parameters.ramp_log_curvature.value}',
+            f'{self.shared_stim_parameters.ramp_powerlaw_exponent.value}',
+            f'{self.shared_stim_parameters.ramp_type.value}',
             f'{self.shared_stim_parameters.image_path.value}',
             f'{self.shared_stim_parameters.image_res_px_per_mm.value}',
             f'{self.shared_stim_parameters.image_offset_mm[0]}',
