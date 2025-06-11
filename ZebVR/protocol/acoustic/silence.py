@@ -3,7 +3,6 @@ from typing import Tuple, Dict
 from PyQt5.QtWidgets import (
     QApplication, 
 )
-from ..default import DEFAULT
 
 class Silence(ProtocolItem):
 
@@ -24,9 +23,6 @@ class SilenceWidget(AudioProtocolItemWidget):
         
         super().layout_components()
         self.main_layout.addWidget(self.stop_widget)
-
-    def from_protocol_item(self, protocol_item: Silence) -> None:
-        super().from_protocol_item(protocol_item)
 
     def to_protocol_item(self) -> Silence:
         return Silence(

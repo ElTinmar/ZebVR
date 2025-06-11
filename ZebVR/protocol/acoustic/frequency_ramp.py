@@ -17,7 +17,7 @@ class FrequencyRamp(ProtocolItem):
             self, 
             frequency_start_Hz: float = DEFAULT['frequency_start_Hz'],
             frequency_stop_Hz: float = DEFAULT['frequency_stop_Hz'],
-            amplitude_dB_SPL: float = DEFAULT['amplitude_dB_SPL'],
+            amplitude_dB: float = DEFAULT['amplitude_dB'],
             ramp_duration_sec: float = DEFAULT['audio_ramp_duration_sec'],
             ramp_powerlaw_exponent: float = DEFAULT['audio_ramp_powerlaw_exponent'],
             ramp_type: RampType = DEFAULT['audio_ramp_type'],
@@ -29,7 +29,7 @@ class FrequencyRamp(ProtocolItem):
 
         self.frequency_start_Hz = frequency_start_Hz
         self.frequency_stop_Hz = frequency_stop_Hz 
-        self.amplitude_dB_SPL = amplitude_dB_SPL
+        self.amplitude_dB = amplitude_dB
         self.ramp_duration_sec = ramp_duration_sec
         self.ramp_powerlaw_exponent = ramp_powerlaw_exponent
         self.ramp_type = ramp_type
@@ -42,7 +42,7 @@ class FrequencyRamp(ProtocolItem):
             'stim_select': self.STIM_SELECT,
             'frequency_start_Hz': self.frequency_start_Hz,
             'frequency_stop_Hz': self.frequency_stop_Hz,
-            'amplitude_dB_SPL': self.amplitude_dB_SPL,
+            'amplitude_dB': self.amplitude_dB,
             'ramp_powerlaw_exponent': self.ramp_powerlaw_exponent,
             'ramp_duration_sec': self.ramp_duration_sec,
             'ramp_type': self.ramp_type
@@ -57,7 +57,6 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
             self,
             frequency_start_Hz: float = DEFAULT['frequency_start_Hz'],
             frequency_stop_Hz: float = DEFAULT['frequency_stop_Hz'],
-            amplitude_dB_SPL: float = DEFAULT['amplitude_dB_SPL'],
             ramp_duration_sec: float = DEFAULT['audio_ramp_duration_sec'],
             ramp_powerlaw_exponent: float = DEFAULT['audio_ramp_powerlaw_exponent'],
             ramp_type: RampType = DEFAULT['audio_ramp_type'],
@@ -67,7 +66,6 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
 
         self.frequency_start_Hz = frequency_start_Hz
         self.frequency_stop_Hz = frequency_stop_Hz
-        self.amplitude_dB_SPL = amplitude_dB_SPL
         self.ramp_powerlaw_exponent = ramp_powerlaw_exponent
         self.ramp_duration_sec = ramp_duration_sec
         self.ramp_type = ramp_type
@@ -89,12 +87,6 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
         self.sb_frequency_stop_Hz.setRange(0.1, 10000.0)
         self.sb_frequency_stop_Hz.setValue(self.frequency_stop_Hz)
         self.sb_frequency_stop_Hz.valueChanged.connect(self.state_changed)
-
-        self.sb_amplitude_dB_SPL = LabeledDoubleSpinBox()
-        self.sb_amplitude_dB_SPL.setText('Amplitude SPL (dB)')
-        self.sb_amplitude_dB_SPL.setRange(0.0, 200.0)
-        self.sb_amplitude_dB_SPL.setValue(self.amplitude_dB_SPL)
-        self.sb_amplitude_dB_SPL.valueChanged.connect(self.state_changed)
 
         self.sb_ramp_duration_sec = LabeledDoubleSpinBox()
         self.sb_ramp_duration_sec.setText('Ramp duration (sec)')
@@ -135,7 +127,6 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
         frequency_layout = QVBoxLayout()
         frequency_layout.addWidget(self.sb_frequency_start_Hz)
         frequency_layout.addWidget(self.sb_frequency_stop_Hz)
-        frequency_layout.addWidget(self.sb_amplitude_dB_SPL)
         frequency_layout.addWidget(self.sb_ramp_duration_sec)
         frequency_layout.addWidget(self.sb_ramp_powerlaw_exponent)
         frequency_layout.addWidget(self.cb_ramp_type)
@@ -152,7 +143,6 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
         state = super().get_state()
         state['frequency_start_Hz'] = self.sb_frequency_start_Hz.value()
         state['frequency_stop_Hz'] = self.sb_frequency_stop_Hz.value()
-        state['amplitude_dB_SPL'] = self.sb_amplitude_dB_SPL.value()
         state['ramp_duration_sec'] = self.sb_ramp_duration_sec.value()
         state['ramp_powerlaw_exponent'] = self.sb_ramp_powerlaw_exponent.value()
         state['ramp_type'] = self.cb_ramp_type.currentIndex()
@@ -176,13 +166,6 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
             default = self.frequency_stop_Hz,
             cast = float
         )   
-        set_from_dict(
-            dictionary = state,
-            key = 'amplitude_dB_SPL',
-            setter = self.sb_amplitude_dB_SPL.setValue,
-            default = self.amplitude_dB_SPL,
-            cast = float
-        )
         set_from_dict(
             dictionary = state,
             key = 'ramp_duration_sec',
@@ -213,7 +196,6 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
         self.cb_ramp_type.setCurrentIndex(protocol_item.ramp_type)
         self.sb_ramp_duration_sec.setValue(protocol_item.ramp_duration_sec)
         self.sb_ramp_powerlaw_exponent.setValue(protocol_item.ramp_powerlaw_exponent)
-        self.sb_amplitude_dB_SPL.setValue(protocol_item.amplitude_dB_SPL)
 
     def to_protocol_item(self) -> FrequencyRamp:
 
@@ -223,7 +205,7 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
             ramp_duration_sec = self.sb_ramp_duration_sec.value(),
             ramp_powerlaw_exponent = self.sb_ramp_powerlaw_exponent.value(),
             ramp_type = RampType(self.cb_ramp_type.currentIndex()),
-            amplitude_dB_SPL = self.sb_amplitude_dB_SPL.value(),
+            amplitude_dB = self.sb_amplitude_dB.value(),
             stop_condition = self.stop_widget.to_stop_condition()
         )
         return protocol

@@ -24,9 +24,9 @@ class ClickTrain(ProtocolItem):
     def __init__(
             self, 
             click_rate: float = DEFAULT['click_rate'],
-            click_amplitude: float = DEFAULT['click_amplitude'],
             click_duration: float = DEFAULT['click_duration'],
             click_polarity: ClickPolarity = DEFAULT['click_polarity'],
+            amplitude_dB: float = DEFAULT['amplitude_dB'],
             *args,
             **kwargs
         ) -> None:
@@ -34,7 +34,7 @@ class ClickTrain(ProtocolItem):
         super().__init__(*args, **kwargs)
 
         self.click_rate = click_rate
-        self.click_amplitude = click_amplitude
+        self.amplitude_dB = amplitude_dB
         self.click_duration = click_duration
         self.click_polarity = click_polarity
 
@@ -45,9 +45,9 @@ class ClickTrain(ProtocolItem):
         command = {
             'stim_select': self.STIM_SELECT,
             'click_rate': self.click_rate,
-            'click_amplitude': self.click_amplitude,
             'click_duration': self.click_duration,
-            'click_polarity': self.click_polarity
+            'click_polarity': self.click_polarity,
+            'amplitude_dB': self.amplitude_dB,
         }
         return command
     
@@ -56,7 +56,6 @@ class ClickTrainWidget(AudioProtocolItemWidget):
     def __init__(
             self,
             click_rate: float = DEFAULT['click_rate'],
-            click_amplitude: float = DEFAULT['click_amplitude'],
             click_duration: float = DEFAULT['click_duration'],
             click_polarity: ClickPolarity = DEFAULT['click_polarity'],
             *args, 
@@ -64,7 +63,6 @@ class ClickTrainWidget(AudioProtocolItemWidget):
         ) -> None:
 
         self.click_rate = click_rate
-        self.click_amplitude = click_amplitude
         self.click_duration = click_duration
         self.click_polarity = click_polarity
 
@@ -79,12 +77,6 @@ class ClickTrainWidget(AudioProtocolItemWidget):
         self.sb_click_rate.setRange(0.1, 100.0)
         self.sb_click_rate.setValue(self.click_rate)
         self.sb_click_rate.valueChanged.connect(self.state_changed)
-
-        self.sb_click_amplitude = LabeledDoubleSpinBox()
-        self.sb_click_amplitude.setText('Click amplitude (dB SPL)')
-        self.sb_click_amplitude.setRange(0.0, 120.0)
-        self.sb_click_amplitude.setValue(self.click_amplitude)
-        self.sb_click_amplitude.valueChanged.connect(self.state_changed)
 
         self.sb_click_duration = LabeledDoubleSpinBox()
         self.sb_click_duration.setText('Click duration (ms)')
@@ -105,7 +97,6 @@ class ClickTrainWidget(AudioProtocolItemWidget):
 
         click_layout = QVBoxLayout()
         click_layout.addWidget(self.sb_click_rate)
-        click_layout.addWidget(self.sb_click_amplitude)
         click_layout.addWidget(self.sb_click_duration)
         click_layout.addWidget(self.cb_click_polarity)
         click_layout.addStretch()
@@ -120,7 +111,6 @@ class ClickTrainWidget(AudioProtocolItemWidget):
 
         state = super().get_state()
         state['click_rate'] = self.sb_click_rate.value()
-        state['click_amplitude'] = self.sb_click_amplitude.value()
         state['click_duration'] = self.sb_click_duration.value()    
         state['click_polarity'] = self.cb_click_polarity.currentIndex()
         return state
@@ -134,13 +124,6 @@ class ClickTrainWidget(AudioProtocolItemWidget):
             key = 'click_rate',
             setter = self.sb_click_rate.setValue,
             default = self.click_rate,
-            cast = float
-        )
-        set_from_dict(
-            dictionary = state,
-            key = 'click_amplitude',
-            setter = self.sb_click_amplitude.setValue,
-            default = self.click_amplitude,
             cast = float
         )
         set_from_dict(
@@ -162,7 +145,6 @@ class ClickTrainWidget(AudioProtocolItemWidget):
         super().from_protocol_item(protocol_item)
 
         self.sb_click_rate.setValue(protocol_item.click_rate)
-        self.sb_click_amplitude.setValue(protocol_item.click_amplitude)
         self.sb_click_duration.setValue(protocol_item.click_duration)
         self.cb_click_polarity.setCurrentIndex(protocol_item.click_polarity)
     
@@ -170,7 +152,7 @@ class ClickTrainWidget(AudioProtocolItemWidget):
 
         protocol = ClickTrain(
             click_rate = self.sb_click_rate.value(),
-            click_amplitude = self.sb_click_amplitude.value(),
+            amplitude_dB = self.sb_amplitude_dB.value(),
             click_duration = self.sb_click_duration.value(),
             click_polarity = ClickPolarity(self.cb_click_polarity.currentIndex()),
             stop_condition = self.stop_widget.to_stop_condition()
