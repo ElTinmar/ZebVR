@@ -282,6 +282,7 @@ class AudioProducer(Process):
         while not self.stop_event.is_set():
             chunk = self._next_chunk()
             self.audio_queue.put(chunk)
+            time.sleep(self.blocksize/self.samplerate)
         
 class AudioConsumer(Process):
 
@@ -421,3 +422,22 @@ class AudioStimWorker(WorkerNode):
             return
 
         self.shared_audio_parameters.from_dict(control)
+
+if __name__ == '__main__':
+
+    q = Queue()
+    s = Event()
+    params = SharedAudioParameters()
+    consumer = AudioConsumer(q,s)
+    producer = AudioProducer(q,s,params)
+    consumer.start()
+    producer.start()
+
+    params.stim_select.value = Stim.PURE_TONE
+    params.amplitude_dB.value = 1
+    params.frequency_Hz.value = 440
+    
+    time.sleep(10)
+    s.set()
+    producer.join()
+    consumer.join()
