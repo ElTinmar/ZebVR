@@ -150,6 +150,7 @@ class AudioProducer(Process):
 
         self.rollover_phase = int(rollover_time_sec * samplerate)
         self.phase: int = 0
+        self.current_stim: Stim = Stim.SILENCE
         self.chunk_function = self._silence
 
     def _silence(self) -> NDArray:
@@ -208,6 +209,7 @@ class AudioProducer(Process):
         return pink
     
     def _click_train(self) -> NDArray:
+        # TODO this needs fixing
 
         click_rate = self.shared_audio_parameters.click_rate.value
         click_duration = self.shared_audio_parameters.click_duration.value
@@ -220,36 +222,41 @@ class AudioProducer(Process):
             raise ValueError("Click duration too long for click rate")
 
         chunk = np.zeros(self.blocksize, dtype=np.float32)
-        for i in range(self.phase, self.blocksize, interval_samples):
-            if i + click_samples >= self.blocksize:
+        for i in range(self.phase, self.phase + self.blocksize, interval_samples):
+            j = i % self.blocksize
+
+            if j + click_samples >= self.blocksize:
                 break
 
             if polarity == ClickPolarity.POSITIVE:
-                chunk[i:i + click_samples] += 1
+                chunk[j:j + click_samples] += 1
 
             elif polarity == ClickPolarity.BIPHASIC:
                 half = click_samples // 2
-                chunk[i:i + half] += 1
-                chunk[i + half:i + click_samples] -= 1
+                chunk[j:j + half] += 1
+                chunk[j + half:j + click_samples] -= 1
 
         return chunk
     
     def _next_chunk(self) -> NDArray:
 
-        current_stim = self.shared_audio_parameters.stim_select.value
         amplitude_dB = self.shared_audio_parameters.amplitude_dB.value
 
-        if current_stim == Stim.SILENCE:
+        if self.shared_audio_parameters.stim_select.value != self.current_stim:
+            self.phase = 0
+            self.current_stim = self.shared_audio_parameters.stim_select.value
+
+        if self.current_stim == Stim.SILENCE:
             self.chunk_function = self._silence
-        elif current_stim == Stim.PURE_TONE:
+        elif self.current_stim == Stim.PURE_TONE:
             self.chunk_function = self._pure_tone
-        elif current_stim == Stim.FREQUENCY_RAMP:
+        elif self.current_stim == Stim.FREQUENCY_RAMP:
             self.chunk_function = self._frequency_ramp
-        elif current_stim == Stim.WHITE_NOISE:
+        elif self.current_stim == Stim.WHITE_NOISE:
             self.chunk_function = self._white_noise
-        elif current_stim == Stim.PINK_NOISE:
+        elif self.current_stim == Stim.PINK_NOISE:
             self.chunk_function = self._pink_noise
-        elif current_stim == Stim.CLICK_TRAIN:
+        elif self.current_stim == Stim.CLICK_TRAIN:
             self.chunk_function = self._click_train
         else:
             self.chunk_function = self._silence
