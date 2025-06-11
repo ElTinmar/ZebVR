@@ -272,7 +272,7 @@ class AudioProducer(Process):
 
         while not self.stop_event.is_set():
             chunk = self._next_chunk()
-            self.audio_queue.put(chunk)
+            self.audio_queue.put(chunk, block=True)
             time.sleep(0.01) # NOTE this needs to be low enough
 
 class AudioConsumer(Process):
