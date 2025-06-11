@@ -307,7 +307,7 @@ class AudioConsumer(Process):
             ):
 
             while not self.stop_event.is_set():
-                time.sleep(0.1)  
+                sd.sleep(0.1)  
 
 class AudioStimWorker(WorkerNode):
 
