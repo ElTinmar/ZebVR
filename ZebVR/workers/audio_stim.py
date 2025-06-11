@@ -237,7 +237,7 @@ class AudioProducer(Process):
         elif current_stim == Stim.PURE_TONE:
             self.chunk_function = self._pure_tone
         elif current_stim == Stim.FREQUENCY_RAMP:
-            self.chunk_function = self._frequency_sweep
+            self.chunk_function = self._frequency_ramp
         elif current_stim == Stim.WHITE_NOISE:
             self.chunk_function = self._white_noise
         elif current_stim == Stim.PINK_NOISE:
