@@ -296,7 +296,8 @@ class AudioConsumer(Process):
         else:
             outdata[:] = chunk
 
-        print(outdata)
+        print(self.audio_queue.qsize())
+
 
     def run(self):
 
