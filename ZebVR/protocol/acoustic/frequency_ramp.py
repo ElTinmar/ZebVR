@@ -16,8 +16,9 @@ class FrequencyRamp(ProtocolItem):
     def __init__(
             self, 
             frequency_start_Hz: float = DEFAULT['frequency_start_Hz'],
+            frequency_stop_Hz: float = DEFAULT['frequency_stop_Hz'],
             amplitude_dB_SPL: float = DEFAULT['amplitude_dB_SPL'],
-            frequency_ramp_rate_per_sec: float = DEFAULT['frequency_ramp_rate_per_sec'],
+            frequency_ramp_duration_sec: float = DEFAULT['frequency_ramp_duration_sec'],
             frequency_ramp_type: RampType = DEFAULT['frequency_ramp_type'],
             *args,
             **kwargs
@@ -25,9 +26,10 @@ class FrequencyRamp(ProtocolItem):
 
         super().__init__(*args, **kwargs)
 
-        self.frequency_start_Hz = frequency_start_Hz 
+        self.frequency_start_Hz = frequency_start_Hz
+        self.frequency_stop_Hz = frequency_stop_Hz 
         self.amplitude_dB_SPL = amplitude_dB_SPL
-        self.frequency_ramp_rate_per_sec = frequency_ramp_rate_per_sec
+        self.frequency_ramp_duration_sec = frequency_ramp_duration_sec
         self.frequency_ramp_type = frequency_ramp_type
 
     def start(self) -> Dict:
@@ -37,8 +39,9 @@ class FrequencyRamp(ProtocolItem):
         command = {
             'stim_select': self.STIM_SELECT,
             'frequency_start_Hz': self.frequency_start_Hz,
+            'frequency_stop_Hz': self.frequency_stop_Hz,
             'amplitude_dB_SPL': self.amplitude_dB_SPL,
-            'frequency_ramp_rate_per_sec': self.frequency_ramp_rate_per_sec,
+            'frequency_ramp_duration_sec': self.frequency_ramp_duration_sec,
             'frequency_ramp_type': self.frequency_ramp_type
         }
         return command
@@ -48,16 +51,18 @@ class FrequencyRampWidget(ProtocolItemWidget):
     def __init__(
             self,
             frequency_start_Hz: float = DEFAULT['frequency_start_Hz'],
+            frequency_stop_Hz: float = DEFAULT['frequency_stop_Hz'],
             amplitude_dB_SPL: float = DEFAULT['amplitude_dB_SPL'],
-            frequency_ramp_rate_per_sec: float = DEFAULT['frequency_ramp_rate_per_sec'],
+            frequency_ramp_duration_sec: float = DEFAULT['frequency_ramp_duration_sec'],
             frequency_ramp_type: RampType = DEFAULT['frequency_ramp_type'],
             *args,
             **kwargs
         ) -> None:
 
         self.frequency_start_Hz = frequency_start_Hz
+        self.frequency_stop_Hz = frequency_stop_Hz
         self.amplitude_dB_SPL = amplitude_dB_SPL
-        self.frequency_ramp_rate_per_sec = frequency_ramp_rate_per_sec
+        self.frequency_ramp_duration_sec = frequency_ramp_duration_sec
         self.frequency_ramp_type = frequency_ramp_type
 
         super().__init__(*args, **kwargs)
@@ -72,17 +77,23 @@ class FrequencyRampWidget(ProtocolItemWidget):
         self.sb_frequency_start_Hz.setValue(self.frequency_start_Hz)
         self.sb_frequency_start_Hz.valueChanged.connect(self.state_changed)
 
+        self.sb_frequency_stop_Hz = LabeledDoubleSpinBox()
+        self.sb_frequency_stop_Hz.setText('Frequency stop (Hz)')
+        self.sb_frequency_stop_Hz.setRange(0.1, 10000.0)
+        self.sb_frequency_stop_Hz.setValue(self.frequency_stop_Hz)
+        self.sb_frequency_stop_Hz.valueChanged.connect(self.state_changed)
+
         self.sb_amplitude_dB_SPL = LabeledDoubleSpinBox()
         self.sb_amplitude_dB_SPL.setText('Amplitude SPL (dB)')
         self.sb_amplitude_dB_SPL.setRange(0.0, 200.0)
         self.sb_amplitude_dB_SPL.setValue(self.amplitude_dB_SPL)
         self.sb_amplitude_dB_SPL.valueChanged.connect(self.state_changed)
 
-        self.sb_ramp_rate_per_sec = LabeledDoubleSpinBox()
-        self.sb_ramp_rate_per_sec.setText('Ramp rate')
-        self.sb_ramp_rate_per_sec.setRange(-10_000.0, 10_000.0)
-        self.sb_ramp_rate_per_sec.setValue(self.frequency_ramp_rate_per_sec)
-        self.sb_ramp_rate_per_sec.valueChanged.connect(self.state_changed)
+        self.sb_ramp_duration_sec = LabeledDoubleSpinBox()
+        self.sb_ramp_duration_sec.setText('Ramp duration (sec)')
+        self.sb_ramp_duration_sec.setRange(0, 1_000.0)
+        self.sb_ramp_duration_sec.setValue(self.frequency_ramp_duration_sec)
+        self.sb_ramp_duration_sec.valueChanged.connect(self.state_changed)
 
         self.cb_ramp_type = LabeledComboBox()
         self.cb_ramp_type.setText('Ramp type')
@@ -97,8 +108,9 @@ class FrequencyRampWidget(ProtocolItemWidget):
 
         frequency_layout = QVBoxLayout()
         frequency_layout.addWidget(self.sb_frequency_start_Hz)
+        frequency_layout.addWidget(self.sb_frequency_stop_Hz)
         frequency_layout.addWidget(self.sb_amplitude_dB_SPL)
-        frequency_layout.addWidget(self.sb_ramp_rate_per_sec)
+        frequency_layout.addWidget(self.sb_ramp_duration_sec)
         frequency_layout.addWidget(self.cb_ramp_type)
         frequency_layout.addStretch()
 
@@ -112,8 +124,9 @@ class FrequencyRampWidget(ProtocolItemWidget):
 
         state = super().get_state()
         state['frequency_start_Hz'] = self.sb_frequency_start_Hz.value()
+        state['frequency_stop_Hz'] = self.sb_frequency_stop_Hz.value()
         state['amplitude_dB_SPL'] = self.sb_amplitude_dB_SPL.value()
-        state['frequency_ramp_rate_per_sec'] = self.sb_ramp_rate_per_sec.value()
+        state['frequency_ramp_duration_sec'] = self.sb_ramp_duration_sec.value()
         state['frequency_ramp_type'] = self.cb_ramp_type.currentIndex()
         return state
 
@@ -130,6 +143,13 @@ class FrequencyRampWidget(ProtocolItemWidget):
         )   
         set_from_dict(
             dictionary = state,
+            key = 'frequency_stop_Hz',
+            setter = self.sb_frequency_stop_Hz.setValue,
+            default = self.frequency_stop_Hz,
+            cast = float
+        )   
+        set_from_dict(
+            dictionary = state,
             key = 'amplitude_dB_SPL',
             setter = self.sb_amplitude_dB_SPL.setValue,
             default = self.amplitude_dB_SPL,
@@ -137,9 +157,9 @@ class FrequencyRampWidget(ProtocolItemWidget):
         )
         set_from_dict(
             dictionary = state,
-            key = 'frequency_ramp_rate_per_sec',
-            setter = self.sb_ramp_rate_per_sec.setValue,
-            default = self.sb_ramp_rate_per_sec,
+            key = 'frequency_ramp_duration_sec',
+            setter = self.sb_ramp_duration_sec.setValue,
+            default = self.frequency_ramp_duration_sec,
             cast = float
         )
         set_from_dict(
@@ -154,15 +174,17 @@ class FrequencyRampWidget(ProtocolItemWidget):
         super().from_protocol_item(protocol_item)
 
         self.sb_frequency_start_Hz.setValue(protocol_item.frequency_start_Hz)
+        self.sb_frequency_stop_Hz.setValue(protocol_item.frequency_stop_Hz)
         self.cb_ramp_type.setCurrentIndex(protocol_item.frequency_ramp_type)
-        self.sb_ramp_rate_per_sec.setValue(protocol_item.frequency_ramp_rate_per_sec)
+        self.sb_ramp_duration_sec.setValue(protocol_item.frequency_ramp_duration_sec)
         self.sb_amplitude_dB_SPL.setValue(protocol_item.amplitude_dB_SPL)
 
     def to_protocol_item(self) -> FrequencyRamp:
 
         protocol = FrequencyRamp(
             frequency_start_Hz = self.sb_frequency_start_Hz.value(),
-            frequency_ramp_rate_per_sec = self.sb_ramp_rate_per_sec.value(),
+            frequency_stop_Hz = self.sb_frequency_stop_Hz.value(),
+            frequency_ramp_duration_sec = self.sb_ramp_duration_sec.value(),
             frequency_ramp_type = RampType(self.cb_ramp_type.currentIndex()),
             amplitude_dB_SPL = self.sb_amplitude_dB_SPL.value(),
             stop_condition = self.stop_widget.to_stop_condition()
