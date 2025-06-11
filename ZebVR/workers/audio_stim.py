@@ -12,6 +12,31 @@ import sounddevice as sd
 import numpy as np
 from numpy.typing import NDArray
 
+
+# debug ramps 
+def linear_sweep(f_start, f_end, duration, sample_rate):
+    t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+    k = (f_end - f_start) / duration
+    phase = 2 * np.pi * (f_start * t + 0.5 * k * t**2)
+    return np.sin(phase)
+
+def log_sweep(f_start, f_end, duration, sample_rate):
+    t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+    beta = np.log(f_end / f_start)
+    phase = 2 * np.pi * f_start * duration / beta * (np.exp(beta * t / duration) - 1)
+    return np.sin(phase)
+
+
+def powerlaw_sweep(f_start, f_end, duration, sample_rate, exponent=2):
+    t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+    delta_f = f_end - f_start
+    phase = 2 * np.pi * (
+        f_start * t + (delta_f / (exponent + 1)) * (t ** (exponent + 1)) / (duration ** exponent)
+    )
+    return np.sin(phase)
+# - debug ramps
+
+
 def plot_waveform_spectrogram_and_psd(
         signal: np.ndarray,
         samplerate: int = 44100,
@@ -66,7 +91,7 @@ def plot_waveform_spectrogram_and_psd(
     axs[2].set_xlim(10, samplerate / 2)
     axs[2].set_ylim(np.max(psd_dB) - 60, np.max(psd_dB) + 3)
 
-    plt.show()
+    plt.show(block=False)
 
 class SharedAudioParameters:
 
@@ -136,7 +161,7 @@ class AudioProducer(Process):
         self.phase = (self.phase + self.blocksize) % self.samplerate
         return chunk
 
-    def _frequency_sweep(self) -> NDArray:
+    def _frequency_ramp(self) -> NDArray:
         # TODO add sweep speed instead of stop freq ?
 
         f_start = self.shared_audio_parameters.f_start.value

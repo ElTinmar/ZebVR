@@ -39,9 +39,9 @@ class Stim(IntEnum):
     
 
 class RampType(IntEnum):
-    LOG = 0
-    LINEAR = 1
-    POWER_LAW = 2
+    LINEAR = 0
+    POWER_LAW = 1 # Stevens' law
+    LOG = 2 # Fechner's law
 
     def __str__(self) -> str:
         return self.name

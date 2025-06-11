@@ -1,4 +1,5 @@
 from .protocol_item import RampType
+import numpy as np
 
 DEFAULT = {
     'foreground_color': (0.2, 0.2, 0.2, 1.0),
@@ -21,9 +22,8 @@ DEFAULT = {
     'prey_speed_mm_s': 0.75,
     'prey_radius_mm': 0.25,
     'ramp_duration_sec': 1.0,
-    'ramp_log_curvature': 10,
-    'ramp_powerlaw_exponent': 2,
-    'ramp_type': RampType.LOG,
+    'ramp_powerlaw_exponent': 0.33,
+    'ramp_type': RampType.LINEAR,
     'frequency_start_Hz': 440.0,
     'frequency_stop_Hz': 880.0,
     'frequency_ramp_duration_sec': 1.0,
