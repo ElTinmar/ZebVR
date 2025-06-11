@@ -409,6 +409,8 @@ class AudioStimWorker(WorkerNode):
 
         self.shared_audio_parameters.from_dict(control)
 
+        # Write to file here?
+
 if __name__ == '__main__':
 
     q = Queue()
