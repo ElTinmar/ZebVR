@@ -223,8 +223,10 @@ class AudioProducer(Process):
         for i in range(self.phase, self.blocksize, interval_samples):
             if i + click_samples >= self.blocksize:
                 break
+
             if polarity == ClickPolarity.POSITIVE:
                 chunk[i:i + click_samples] += 1
+                
             elif polarity == ClickPolarity.BIPHASIC:
                 half = click_samples // 2
                 chunk[i:i + half] += 1
