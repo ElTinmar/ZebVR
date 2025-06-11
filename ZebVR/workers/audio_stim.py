@@ -121,7 +121,7 @@ class SharedAudioParameters:
         self.ramp_type.value = d.get('ramp_type', DEFAULT['audio_ramp_type'])
         self.click_rate.value = d.get('click_rate', DEFAULT['click_rate'])
         self.click_duration.value = d.get('click_duration', DEFAULT['click_duration'])
-        self.click_polarity = d.get('click_polarity', DEFAULT['click_polarity'])
+        self.click_polarity.value = d.get('click_polarity', DEFAULT['click_polarity'])
 
 class AudioProducer(Process):
     
