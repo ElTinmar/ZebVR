@@ -268,6 +268,17 @@ class GeneralStim(VisualStim):
                         sin(angle_rad),cos(angle_rad));
         }
 
+        vec3 linear_to_srgb(vec3 linear)
+        {
+            vec3 a = 12.92 * linear;
+            vec3 b = 1.055 * pow(linear, vec3(1.0 / 2.4)) - 0.055;
+            return mix(a, b, step(0.0031308, linear));
+        }
+        vec4 linear_to_srgb(vec4 linear)
+        {
+            return vec4(linear_to_srgb(linear.rgb), linear.a);
+        }
+
         void main()
         {
             vec2 coordinates_centered_px;
@@ -431,6 +442,11 @@ class GeneralStim(VisualStim):
                     vec4 color = mix(u_background_color, u_foreground_color, ramp_value);
                     gl_FragColor = color;
                 }
+            }
+
+            // convert to sRGB color space. Assume images already in sRGB.
+            if (u_stim_select != IMAGE) {
+                gl_FragColor = linear_to_srgb(gl_FragColor);
             }
         }
         """
