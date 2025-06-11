@@ -1,4 +1,4 @@
-from ZebVR.protocol import Stim, ProtocolItem, ProtocolItemWidget, StopWidget, Debouncer
+from ZebVR.protocol import Stim, ProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer
 from typing import Dict
 from PyQt5.QtWidgets import (
     QApplication, 
@@ -51,7 +51,7 @@ class ClickTrain(ProtocolItem):
         }
         return command
     
-class ClickTrainWidget(ProtocolItemWidget):
+class ClickTrainWidget(AudioProtocolItemWidget):
 
     def __init__(
             self,

@@ -1,4 +1,4 @@
-from ZebVR.protocol import Stim, ProtocolItem, ProtocolItemWidget, StopWidget, Debouncer
+from ZebVR.protocol import Stim, ProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer
 from typing import Dict
 from qt_widgets import LabeledDoubleSpinBox
 from PyQt5.QtWidgets import (
@@ -37,7 +37,7 @@ class PureTone(ProtocolItem):
         }
         return command
 
-class PureToneWidget(ProtocolItemWidget):
+class PureToneWidget(AudioProtocolItemWidget):
     
     def __init__(
             self,

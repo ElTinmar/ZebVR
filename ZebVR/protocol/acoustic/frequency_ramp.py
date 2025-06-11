@@ -1,4 +1,4 @@
-from ZebVR.protocol import Stim, ProtocolItem, ProtocolItemWidget, StopWidget, Debouncer, RampType
+from ZebVR.protocol import Stim, ProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer, RampType
 from typing import Dict
 from PyQt5.QtWidgets import (
     QApplication, 
@@ -49,7 +49,7 @@ class FrequencyRamp(ProtocolItem):
         }
         return command
     
-class FrequencyRampWidget(ProtocolItemWidget):
+class FrequencyRampWidget(AudioProtocolItemWidget):
     
     RAMPS = (RampType.LINEAR, RampType.POWER_LAW, RampType.LOG) 
 

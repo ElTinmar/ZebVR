@@ -1,5 +1,4 @@
 from .protocol_item import RampType
-import numpy as np
 
 DEFAULT = {
     'foreground_color': (0.2, 0.2, 0.2, 1.0),
@@ -24,18 +23,18 @@ DEFAULT = {
     'ramp_duration_sec': 1.0,
     'ramp_powerlaw_exponent': 0.33,
     'ramp_type': RampType.LINEAR,
+    'image_path': 'ZebVR/resources/checkerboard.png',
+    'image_res_px_per_mm': 43,
+    'image_offset_mm': (0,0),
     'frequency_start_Hz': 440.0,
     'frequency_stop_Hz': 880.0,
     'audio_ramp_duration_sec': 1.0,
     'audio_ramp_powerlaw_exponent': 1.0,
     'audio_ramp_type': RampType.LOG,
-    'image_path': 'ZebVR/resources/checkerboard.png',
-    'image_res_px_per_mm': 43,
     'click_rate': 10.0,
     'click_amplitude': 0.5,
     'click_duration': 0.01,
     'click_polarity': 0,
     'frequency_Hz': 1_000.0,
-    'amplitude_dB_SPL': 60.0,
-    'image_offset_mm': (0,0),
+    'amplitude_dB': 60.0,
 }

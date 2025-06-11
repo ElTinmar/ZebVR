@@ -26,7 +26,6 @@ def log_sweep(f_start, f_end, duration, sample_rate):
     phase = 2 * np.pi * f_start * duration / beta * (np.exp(beta * t / duration) - 1)
     return np.sin(phase)
 
-
 def powerlaw_sweep(f_start, f_end, duration, sample_rate, exponent=2):
     t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
     delta_f = f_end - f_start
@@ -98,30 +97,24 @@ class SharedAudioParameters:
     def __init__(self):
         
         self.stim_select = RawValue('d', Stim.SILENCE) 
-        self.phototaxis_polarity = RawValue('d', DEFAULT['phototaxis_polarity'])
-        self.frequency_Hz = RawValue('d', DEFAULT['frequency_Hz'])
-        self.amplitude_dB_SPL = RawValue('d', DEFAULT['amplitude_dB_SPL'])
-        self.f_start = RawValue('d', DEFAULT['f_start'])
-        self.f_stop = RawValue('d', DEFAULT['f_stop'])
-        self.method = RawValue('d', DEFAULT['method'])
+        
+
         self.click_rate = RawValue('d', DEFAULT['click_rate'])
         self.click_amplitude = RawValue('d', DEFAULT['click_amplitude'])
         self.click_duration = RawValue('d', DEFAULT['click_duration'])
-        self.polarity = RawValue('d', DEFAULT['polarity'])
+        self.click_polarity = RawValue('d', DEFAULT['click_polarity'])
+        self.frequency_Hz = RawValue('d', DEFAULT['frequency_Hz'])
+        self.amplitude_dB_SPL = RawValue('d', DEFAULT['amplitude_dB_SPL'])
 
     def from_dict(self, d: Dict) -> None:
 
         self.stim_select.value = d.get('stim_select', Stim.SILENCE)
-        self.phototaxis_polarity.value = d.get('phototaxis_polarity', DEFAULT['phototaxis_polarity'])
         self.frequency_Hz.value = d.get('frequency_Hz', DEFAULT['frequency_Hz'])
         self.amplitude_dB_SPL.value = d.get('amplitude_dB_SPL', DEFAULT['amplitude_dB_SPL'])
-        self.f_start.value = d.get('f_start', DEFAULT['f_start'])
-        self.f_stop.value = d.get('f_stop', DEFAULT['f_stop'])
-        self.method.value = d.get('method', DEFAULT['method'])
+
         self.click_rate.value = d.get('click_rate', DEFAULT['click_rate'])
         self.click_amplitude.value = d.get('click_amplitude', DEFAULT['click_amplitude'])
         self.click_duration.value = d.get('click_duration', DEFAULT['click_duration'])
-        self.polarity.value = d.get('polarity', DEFAULT['polarity'])
 
 class AudioProducer(Process):
     

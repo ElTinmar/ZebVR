@@ -1,4 +1,4 @@
-from ZebVR.protocol import Stim, ProtocolItem, ProtocolItemWidget, StopWidget, Debouncer
+from ZebVR.protocol import Stim, ProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer
 from typing import Tuple, Dict
 from PyQt5.QtWidgets import (
     QApplication, 
@@ -18,7 +18,7 @@ class Silence(ProtocolItem):
         }
         return command
     
-class SilenceWidget(ProtocolItemWidget):
+class SilenceWidget(AudioProtocolItemWidget):
 
     def layout_components(self) -> None:
         
