@@ -150,23 +150,17 @@ class AudioProducer(Process):
         self.chunk_function = self._silence
 
     def _silence(self) -> NDArray:
-        return np.zeros((self.blocksize, self.channels), dtype=np.float32)
+        return np.zeros((self.blocksize,), dtype=np.float32)
     
     def _pure_tone(self) -> NDArray:
         frequency = self.shared_audio_parameters.frequency_Hz.value
-        amplitude = self.shared_audio_parameters.amplitude_dB.value
-
         t = (np.arange(self.blocksize) + self.phase) / self.samplerate
-        chunk = amplitude * np.sin(2 * np.pi * frequency * t)
-        if self.channels > 1:
-            chunk = np.tile(chunk[:, None], (1, self.channels))
-        return chunk
+        return np.sin(2 * np.pi * frequency * t)
 
     def _frequency_ramp(self) -> NDArray:
         f_start = self.shared_audio_parameters.ramp_start_Hz.value
         f_stop = self.shared_audio_parameters.ramp_stop_Hz.value
         ramp_duration = self.shared_audio_parameters.ramp_duration_sec.value
-        amplitude = self.shared_audio_parameters.amplitude_dB.value
         exponent = self.shared_audio_parameters.ramp_powerlaw_exponent.value
         method = RampType(self.shared_audio_parameters.ramp_type.value) 
 
@@ -188,29 +182,16 @@ class AudioProducer(Process):
 
         else:
             raise ValueError("Unsupported method. Choose 'linear', 'log' or 'power law'.")
-
-        chunk = amplitude * np.sin(phase_array)
-        if self.channels > 1:
-            chunk = np.tile(chunk[:, None], (1, self.channels))
         
-        return chunk
+        return np.sin(phase_array)
 
     def _white_noise(self) -> NDArray:
-        
-        amplitude = self.shared_audio_parameters.amplitude_dB.value
-
-        chunk = amplitude * np.random.randn(self.blocksize).astype(np.float32)
-        if self.channels > 1:
-            chunk = np.tile(chunk[:, None], (1, self.channels))
-
-        return chunk
+        return np.random.randn(self.blocksize).astype(np.float32)
     
     def _pink_noise(self) -> NDArray:
         # pink noise approximation using Paul Kellet's economy filter
         # https://www.firstpr.com.au/dsp/pink-noise/#Filtering
         # Optimized for a 44100Hz samplerate
-
-        amplitude = self.shared_audio_parameters.amplitude_dB.value
 
         white = np.random.randn(self.blocksize).astype(np.float32)
         pink = np.zeros_like(white)
@@ -220,19 +201,13 @@ class AudioProducer(Process):
             x1 = 0.96300 * x1 + white[i] * 0.2965164
             x2 = 0.57000 * x2 + white[i] * 1.0526913
             pink[i] = x0 + x1 + x2 + white[i] * 0.1848
-
-        chunk = amplitude * pink
-        if self.channels > 1:
-            chunk = np.tile(chunk[:, None], (1, self.channels))
-
-        return chunk
+        return pink
     
     def _click_train(self) -> NDArray:
 
         click_rate = self.shared_audio_parameters.click_rate.value
-        click_amplitude = self.shared_audio_parameters.amplitude_dB.value
         click_duration = self.shared_audio_parameters.click_duration.value
-        polarity = ClickPolarity(self.shared_audio_parameters.polarity.value)
+        polarity = ClickPolarity(self.shared_audio_parameters.click_polarity.value)
 
         interval_samples = int(self.samplerate / click_rate)
         click_samples = int(self.samplerate * click_duration)
@@ -245,20 +220,17 @@ class AudioProducer(Process):
             if i + click_samples >= self.blocksize:
                 break
             if polarity == ClickPolarity.POSITIVE:
-                chunk[i:i + click_samples] += click_amplitude
+                chunk[i:i + click_samples] += 1
             elif polarity == ClickPolarity.BIPHASIC:
                 half = click_samples // 2
-                chunk[i:i + half] += click_amplitude
-                chunk[i + half:i + click_samples] -= click_amplitude  
-
-        if self.channels > 1:
-            chunk = np.tile(chunk[:, None], (1, self.channels))
-
+                chunk[i:i + half] += 1
+                chunk[i + half:i + click_samples] -= 1
         return chunk
     
     def _next_chunk(self) -> NDArray:
 
         current_stim = self.shared_audio_parameters.stim_select.value
+        amplitude = self.shared_audio_parameters.amplitude_dB.value
 
         if current_stim == Stim.SILENCE:
             self.chunk_function = self._silence
@@ -274,6 +246,8 @@ class AudioProducer(Process):
             self.chunk_function = self._click_train
 
         chunk = self.chunk_function()
+        chunk *= amplitude
+        chunk = np.tile(chunk[:, None], (1, self.channels))
         self.phase = (self.phase + self.blocksize) % self.rollover_phase
         return chunk
 
@@ -320,6 +294,8 @@ class AudioConsumer(Process):
             outdata.fill(0)
         else:
             outdata[:] = chunk
+
+        print(outdata)
 
     def run(self):
 
