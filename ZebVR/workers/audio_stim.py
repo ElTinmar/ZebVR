@@ -404,7 +404,6 @@ class AudioStimWorker(WorkerNode):
         # this runs in the worker process
         
         control: Dict = metadata['stim_control']
-        
         if control is None:
             return
 
