@@ -201,6 +201,7 @@ class AudioProducer(Process):
             x1 = 0.96300 * x1 + white[i] * 0.2965164
             x2 = 0.57000 * x2 + white[i] * 1.0526913
             pink[i] = x0 + x1 + x2 + white[i] * 0.1848
+
         return pink
     
     def _click_train(self) -> NDArray:
@@ -225,6 +226,7 @@ class AudioProducer(Process):
                 half = click_samples // 2
                 chunk[i:i + half] += 1
                 chunk[i + half:i + click_samples] -= 1
+
         return chunk
     
     def _next_chunk(self) -> NDArray:
@@ -248,6 +250,7 @@ class AudioProducer(Process):
             self.chunk_function = self._silence
 
         chunk = amplitude * self.chunk_function()
+        chunk = chunk.astype(np.float32)
         chunk = np.tile(chunk[:, None], (1, self.channels))
         self.phase = (self.phase + self.blocksize) % self.rollover_phase
         return chunk
@@ -307,7 +310,7 @@ class AudioConsumer(Process):
             ):
 
             while not self.stop_event.is_set():
-                sd.sleep(0.1)  
+                sd.sleep(1)  
 
 class AudioStimWorker(WorkerNode):
 
