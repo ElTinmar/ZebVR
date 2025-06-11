@@ -245,8 +245,7 @@ class AudioProducer(Process):
         elif current_stim == Stim.CLICK_TRAIN:
             self.chunk_function = self._click_train
 
-        chunk = self.chunk_function()
-        chunk *= amplitude
+        chunk = amplitude * self.chunk_function()
         chunk = np.tile(chunk[:, None], (1, self.channels))
         self.phase = (self.phase + self.blocksize) % self.rollover_phase
         return chunk
