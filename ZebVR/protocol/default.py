@@ -32,7 +32,6 @@ DEFAULT = {
     'audio_ramp_powerlaw_exponent': 1.0,
     'audio_ramp_type': RampType.LOG,
     'click_rate': 10.0,
-    'click_amplitude': 0.5,
     'click_duration': 0.01,
     'click_polarity': 0,
     'frequency_Hz': 1_000.0,
