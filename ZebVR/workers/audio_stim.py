@@ -244,6 +244,8 @@ class AudioProducer(Process):
             self.chunk_function = self._pink_noise
         elif current_stim == Stim.CLICK_TRAIN:
             self.chunk_function = self._click_train
+        else:
+            self.chunk_function = self._silence
 
         chunk = amplitude * self.chunk_function()
         chunk = np.tile(chunk[:, None], (1, self.channels))
