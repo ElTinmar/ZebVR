@@ -96,25 +96,31 @@ class SharedAudioParameters:
 
     def __init__(self):
         
-        self.stim_select = RawValue('d', Stim.SILENCE) 
-        
-
+        self.stim_select = RawValue('d', Stim.SILENCE)
+        self.frequency_Hz = RawValue('d', DEFAULT['frequency_Hz'])
+        self.amplitude_dB = RawValue('d', DEFAULT['amplitude_dB'])
+        self.ramp_start_Hz = RawValue('d', DEFAULT['audio_ramp_start_Hz'])
+        self.ramp_stop_Hz = RawValue('d', DEFAULT['audio_ramp_stop_Hz'])
+        self.ramp_duration_sec = RawValue('d', DEFAULT['audio_ramp_duration_sec'])
+        self.ramp_powerlaw_exponent = RawValue('d', DEFAULT['audio_ramp_powerlaw_exponent'])
+        self.ramp_type = RawValue('d', DEFAULT['audio_ramp_type'])
         self.click_rate = RawValue('d', DEFAULT['click_rate'])
-        self.click_amplitude = RawValue('d', DEFAULT['click_amplitude'])
         self.click_duration = RawValue('d', DEFAULT['click_duration'])
         self.click_polarity = RawValue('d', DEFAULT['click_polarity'])
-        self.frequency_Hz = RawValue('d', DEFAULT['frequency_Hz'])
-        self.amplitude_dB_SPL = RawValue('d', DEFAULT['amplitude_dB_SPL'])
 
     def from_dict(self, d: Dict) -> None:
 
         self.stim_select.value = d.get('stim_select', Stim.SILENCE)
         self.frequency_Hz.value = d.get('frequency_Hz', DEFAULT['frequency_Hz'])
-        self.amplitude_dB_SPL.value = d.get('amplitude_dB_SPL', DEFAULT['amplitude_dB_SPL'])
-
+        self.amplitude_dB.value = d.get('amplitude_dB', DEFAULT['amplitude_dB'])
+        self.ramp_start_Hz.value = d.get('ramp_start_Hz', DEFAULT['audio_ramp_start_Hz'])
+        self.ramp_stop_Hz.value = d.get('ramp_stop_Hz', DEFAULT['audio_ramp_stop_Hz'])
+        self.ramp_duration_sec.value = d.get('ramp_duration_sec', DEFAULT['audio_ramp_duration_sec'])
+        self.ramp_powerlaw_exponent.value = d.get('ramp_powerlaw_exponent', DEFAULT['audio_ramp_powerlaw_exponent'])
+        self.ramp_type.value = d.get('ramp_type', DEFAULT['audio_ramp_type'])
         self.click_rate.value = d.get('click_rate', DEFAULT['click_rate'])
-        self.click_amplitude.value = d.get('click_amplitude', DEFAULT['click_amplitude'])
         self.click_duration.value = d.get('click_duration', DEFAULT['click_duration'])
+        self.click_polarity = d.get('click_polarity', DEFAULT['click_polarity'])
 
 class AudioProducer(Process):
     
@@ -125,7 +131,8 @@ class AudioProducer(Process):
             shared_audio_parameters: SharedAudioParameters,
             samplerate: int = 44100,
             blocksize: int = 1024,
-            channels: int = 1
+            channels: int = 1,
+            rollover_time_sec: float = 3600
         ):
 
         super().__init__()
@@ -136,7 +143,9 @@ class AudioProducer(Process):
         self.blocksize = blocksize 
         self.channels = channels
         self.shared_audio_parameters = shared_audio_parameters 
+        self.rollover_time_sec = rollover_time_sec
 
+        self.rollover_phase = int(rollover_time_sec * samplerate)
         self.phase: int = 0
         self.chunk_function = self._silence
 
@@ -145,49 +154,55 @@ class AudioProducer(Process):
     
     def _pure_tone(self) -> NDArray:
         frequency = self.shared_audio_parameters.frequency_Hz.value
-        amplitude = self.shared_audio_parameters.amplitude_dB_SPL.value
+        amplitude = self.shared_audio_parameters.amplitude_dB.value
 
         t = (np.arange(self.blocksize) + self.phase) / self.samplerate
         chunk = amplitude * np.sin(2 * np.pi * frequency * t)
         if self.channels > 1:
             chunk = np.tile(chunk[:, None], (1, self.channels))
-        self.phase = (self.phase + self.blocksize) % self.samplerate
         return chunk
 
     def _frequency_ramp(self) -> NDArray:
-        # TODO add sweep speed instead of stop freq ?
-
-        f_start = self.shared_audio_parameters.f_start.value
-        f_stop = self.shared_audio_parameters.f_stop.value
-        amplitude = self.shared_audio_parameters.amplitude_dB_SPL.value
-        method = RampType(self.shared_audio_parameters.method.value) 
+        f_start = self.shared_audio_parameters.ramp_start_Hz.value
+        f_stop = self.shared_audio_parameters.ramp_stop_Hz.value
+        ramp_duration = self.shared_audio_parameters.ramp_duration_sec.value
+        amplitude = self.shared_audio_parameters.amplitude_dB.value
+        exponent = self.shared_audio_parameters.ramp_powerlaw_exponent.value
+        method = RampType(self.shared_audio_parameters.ramp_type.value) 
 
         t = np.arange(self.blocksize + self.phase) / self.samplerate
 
         if method == RampType.LINEAR:
-            phase_array = 2 * np.pi * (f_start * t + (f_stop - f_start) / 2 * t**2)
+            k = (f_stop - f_start) / ramp_duration
+            phase_array = 2 * np.pi * (f_start * t + k/2 * t**2)
+
         elif method == RampType.LOG:
-            if f_start <= 0 or f_stop <= 0:
-                raise ValueError("Log sweep requires positive frequencies")
             k = np.log(f_stop / f_start)
-            phase_array = 2 * np.pi * f_start * (np.exp(k * t) - 1) / k
+            phase_array = 2 * np.pi * f_start * ramp_duration / k * (np.exp(k * t / ramp_duration) - 1)
+
+        elif method == RampType.POWER_LAW:
+            delta_f = f_stop - f_start
+            phase_array = 2 * np.pi * (
+                f_start * t + (delta_f / (exponent + 1)) * (t ** (exponent + 1)) / (ramp_duration ** exponent)
+            )
+
         else:
-            raise ValueError("Unsupported method. Choose 'linear' or 'log'.")
+            raise ValueError("Unsupported method. Choose 'linear', 'log' or 'power law'.")
 
         chunk = amplitude * np.sin(phase_array)
         if self.channels > 1:
             chunk = np.tile(chunk[:, None], (1, self.channels))
         
-        self.phase = (self.phase + self.blocksize) % self.samplerate
         return chunk
 
     def _white_noise(self) -> NDArray:
         
-        amplitude = self.shared_audio_parameters.amplitude_dB_SPL.value
+        amplitude = self.shared_audio_parameters.amplitude_dB.value
 
         chunk = amplitude * np.random.randn(self.blocksize).astype(np.float32)
         if self.channels > 1:
             chunk = np.tile(chunk[:, None], (1, self.channels))
+
         return chunk
     
     def _pink_noise(self) -> NDArray:
@@ -195,7 +210,7 @@ class AudioProducer(Process):
         # https://www.firstpr.com.au/dsp/pink-noise/#Filtering
         # Optimized for a 44100Hz samplerate
 
-        amplitude = self.shared_audio_parameters.amplitude_dB_SPL.value
+        amplitude = self.shared_audio_parameters.amplitude_dB.value
 
         white = np.random.randn(self.blocksize).astype(np.float32)
         pink = np.zeros_like(white)
@@ -209,12 +224,13 @@ class AudioProducer(Process):
         chunk = amplitude * pink
         if self.channels > 1:
             chunk = np.tile(chunk[:, None], (1, self.channels))
+
         return chunk
     
     def _click_train(self) -> NDArray:
 
         click_rate = self.shared_audio_parameters.click_rate.value
-        click_amplitude = self.shared_audio_parameters.click_amplitude.value
+        click_amplitude = self.shared_audio_parameters.amplitude_dB.value
         click_duration = self.shared_audio_parameters.click_duration.value
         polarity = ClickPolarity(self.shared_audio_parameters.polarity.value)
 
@@ -233,9 +249,7 @@ class AudioProducer(Process):
             elif polarity == ClickPolarity.BIPHASIC:
                 half = click_samples // 2
                 chunk[i:i + half] += click_amplitude
-                chunk[i + half:i + click_samples] -= click_amplitude
-
-        self.phase = (self.phase + self.blocksize) % interval_samples
+                chunk[i + half:i + click_samples] -= click_amplitude  
 
         if self.channels > 1:
             chunk = np.tile(chunk[:, None], (1, self.channels))
@@ -259,7 +273,9 @@ class AudioProducer(Process):
         elif current_stim == Stim.CLICK_TRAIN:
             self.chunk_function = self._click_train
 
-        return self.chunk_function()
+        chunk = self.chunk_function()
+        self.phase = (self.phase + self.blocksize) % self.rollover_phase
+        return chunk
 
     def run(self):
 
