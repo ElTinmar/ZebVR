@@ -20,8 +20,6 @@ DEFAULT = {
     'n_preys': 50,
     'prey_speed_mm_s': 0.75,
     'prey_radius_mm': 0.25,
-    'brightness_start_percent': 0.0,
-    'brightness_stop_percent': 100.0,
     'brightness_ramp_duration_sec': 1.0,
     'brightness_ramp_log_curvature': 10,
     'brightness_ramp_powerlaw_exponent': 2,

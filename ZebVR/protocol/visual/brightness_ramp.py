@@ -15,8 +15,6 @@ class BrightnessRamp(ProtocolItem):
 
     def __init__(
             self, 
-            brightness_start_percent: float = DEFAULT['brightness_start_percent'],
-            brightness_stop_percent: float = DEFAULT['brightness_stop_percent'],
             brightness_ramp_log_curvature: float = DEFAULT['brightness_ramp_log_curvature'],
             brightness_ramp_powerlaw_exponent: float = DEFAULT['brightness_ramp_powerlaw_exponent'],
             brightness_ramp_duration_sec: float = DEFAULT['brightness_ramp_duration_sec'],
@@ -28,8 +26,6 @@ class BrightnessRamp(ProtocolItem):
         ) -> None:
 
         super().__init__(*args, **kwargs)
-        self.brightness_start_percent = brightness_start_percent
-        self.brightness_stop_percent = brightness_stop_percent
         self.brightness_ramp_log_curvature = brightness_ramp_log_curvature
         self.brightness_ramp_powerlaw_exponent = brightness_ramp_powerlaw_exponent
         self.brightness_ramp_duration_sec = brightness_ramp_duration_sec
@@ -43,8 +39,6 @@ class BrightnessRamp(ProtocolItem):
         
         command = {
             'stim_select': self.STIM_SELECT,
-            'brightness_start_percent': self.brightness_start_percent,
-            'brightness_stop_percent': self.brightness_stop_percent,
             'brightness_ramp_duration_sec': self.brightness_ramp_duration_sec,
             'brightness_ramp_log_curvature': self.brightness_ramp_log_curvature,
             'brightness_ramp_powerlaw_exponent': self.brightness_ramp_powerlaw_exponent,
@@ -58,8 +52,6 @@ class BrightnessRampWidget(VisualProtocolItemWidget):
 
     def __init__(
             self, 
-            brightness_start_percent: float = DEFAULT['brightness_start_percent'],
-            brightness_stop_percent: float = DEFAULT['brightness_stop_percent'],
             brightness_ramp_duration_sec: float = DEFAULT['brightness_ramp_duration_sec'],
             brightness_ramp_log_curvature: float = DEFAULT['brightness_ramp_log_curvature'],
             brightness_ramp_powerlaw_exponent: float = DEFAULT['brightness_ramp_powerlaw_exponent'],
@@ -70,8 +62,6 @@ class BrightnessRampWidget(VisualProtocolItemWidget):
             **kwargs
         ) -> None:
         
-        self.brightness_start_percent = brightness_start_percent
-        self.brightness_stop_percent = brightness_stop_percent
         self.brightness_ramp_duration_sec = brightness_ramp_duration_sec
         self.brightness_ramp_log_curvature = brightness_ramp_log_curvature
         self.brightness_ramp_powerlaw_exponent = brightness_ramp_powerlaw_exponent
@@ -84,18 +74,6 @@ class BrightnessRampWidget(VisualProtocolItemWidget):
     def declare_components(self) -> None:
         
         super().declare_components()
-
-        self.sb_brightness_start_percent = LabeledDoubleSpinBox()
-        self.sb_brightness_start_percent.setText('Brightness start (%)')
-        self.sb_brightness_start_percent.setRange(0.0, 100.0)
-        self.sb_brightness_start_percent.setValue(self.brightness_start_percent)
-        self.sb_brightness_start_percent.valueChanged.connect(self.state_changed)
-
-        self.sb_brightness_stop_percent = LabeledDoubleSpinBox()
-        self.sb_brightness_stop_percent.setText('Brightness stop (%)')
-        self.sb_brightness_stop_percent.setRange(0.0, 100.0)
-        self.sb_brightness_stop_percent.setValue(self.brightness_stop_percent)
-        self.sb_brightness_stop_percent.valueChanged.connect(self.state_changed)
 
         self.sb_ramp_duration_sec = LabeledDoubleSpinBox()
         self.sb_ramp_duration_sec.setText('Ramp duration (sec)')
@@ -146,8 +124,6 @@ class BrightnessRampWidget(VisualProtocolItemWidget):
         super().layout_components()
 
         ramp_layout = QVBoxLayout()
-        ramp_layout.addWidget(self.sb_brightness_start_percent)
-        ramp_layout.addWidget(self.sb_brightness_stop_percent)
         ramp_layout.addWidget(self.sb_ramp_duration_sec)
         ramp_layout.addWidget(self.sb_ramp_log_curvature)
         ramp_layout.addWidget(self.sb_ramp_powerlaw_exponent)
@@ -163,8 +139,6 @@ class BrightnessRampWidget(VisualProtocolItemWidget):
     def get_state(self) -> Dict:
 
         state = super().get_state()
-        state['brightness_start_percent'] = self.sb_brightness_start_percent.value()
-        state['brightness_stop_percent'] = self.sb_brightness_stop_percent.value()
         state['brightness_ramp_duration_sec'] = self.sb_ramp_duration_sec.value()
         state['brightness_ramp_log_curvature'] = self.sb_ramp_log_curvature.value()
         state['brightness_ramp_powerlaw_exponent'] = self.sb_ramp_powerlaw_exponent.value()
@@ -175,20 +149,6 @@ class BrightnessRampWidget(VisualProtocolItemWidget):
 
         super().set_state(state)
 
-        set_from_dict(
-            dictionary = state,
-            key = 'brightness_start_percent',
-            setter = self.sb_brightness_start_percent.setValue,
-            default = self.brightness_start_percent,
-            cast = float
-        )   
-        set_from_dict(
-            dictionary = state,
-            key = 'brightness_stop_percent',
-            setter = self.sb_brightness_stop_percent.setValue,
-            default = self.brightness_stop_percent,
-            cast = float
-        )   
         set_from_dict(
             dictionary = state,
             key = 'brightness_ramp_duration_sec',
@@ -221,8 +181,6 @@ class BrightnessRampWidget(VisualProtocolItemWidget):
 
         super().from_protocol_item(protocol_item)
 
-        self.sb_brightness_start_percent.setValue(protocol_item.brightness_start_percent)
-        self.sb_brightness_stop_percent.setValue(protocol_item.brightness_stop_percent)
         self.sb_ramp_duration_sec.setValue(protocol_item.brightness_ramp_duration_sec)
         self.sb_ramp_log_curvature.setValue(protocol_item.brightness_ramp_log_curvature)
         self.sb_ramp_powerlaw_exponent.setValue(protocol_item.brightness_ramp_powerlaw_exponent)
@@ -231,8 +189,6 @@ class BrightnessRampWidget(VisualProtocolItemWidget):
     def to_protocol_item(self) -> BrightnessRamp:
 
         protocol = BrightnessRamp(
-            brightness_start_percent = self.sb_brightness_start_percent.value(),
-            brightness_stop_percent = self.sb_brightness_stop_percent.value(),
             brightness_ramp_duration_sec = self.sb_ramp_duration_sec.value(),
             brightness_ramp_log_curvature = self.sb_ramp_log_curvature.value(),
             brightness_ramp_powerlaw_exponent = self.sb_ramp_powerlaw_exponent.value(),
