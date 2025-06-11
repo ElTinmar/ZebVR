@@ -299,6 +299,8 @@ class AudioConsumer(Process):
         else:
             outdata[:] = chunk
 
+        print(outdata)
+        
     def run(self):
 
         with sd.OutputStream(
@@ -405,9 +407,10 @@ if __name__ == '__main__':
 
     q = Queue()
     s = Event()
+    channels = 2
     params = SharedAudioParameters()
-    consumer = AudioConsumer(q,s)
-    producer = AudioProducer(q,s,params)
+    consumer = AudioConsumer(q,s,channels=2)
+    producer = AudioProducer(q,s,params,channels=2)
     consumer.start()
     producer.start()
 
