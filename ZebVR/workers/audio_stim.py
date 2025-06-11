@@ -282,7 +282,7 @@ class AudioConsumer(Process):
             self,
             outdata: NDArray,
             frames: int,
-            time: Any,
+            callback_time: Any,
             status: sd.CallbackFlags
         ) -> None:
         
@@ -295,8 +295,6 @@ class AudioConsumer(Process):
             outdata.fill(0)
         else:
             outdata[:] = chunk
-
-        print(outdata)
 
     def run(self):
 
