@@ -23,6 +23,8 @@ DEFAULT = {
     'brightness_start_percent': 0.0,
     'brightness_stop_percent': 100.0,
     'brightness_ramp_duration_sec': 1.0,
+    'brightness_ramp_log_curvature': 10,
+    'brightness_ramp_powerlaw_exponent': 2,
     'brightness_ramp_type': RampType.LOG,
     'frequency_start_Hz': 440.0,
     'frequency_stop_Hz': 880.0,

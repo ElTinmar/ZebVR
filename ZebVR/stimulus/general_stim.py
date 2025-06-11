@@ -112,6 +112,8 @@ class SharedStimParameters:
         self.brightness_start_percent = RawValue('d', DEFAULT['brightness_start_percent'])
         self.brightness_stop_percent = RawValue('d', DEFAULT['brightness_stop_percent'])
         self.brightness_ramp_duration_sec = RawValue('d', DEFAULT['brightness_ramp_duration_sec'])
+        self.brightness_ramp_log_curvature = RawValue('d', DEFAULT['brightness_ramp_log_curvature'])
+        self.brightness_ramp_powerlaw_exponent = RawValue('d', DEFAULT['brightness_ramp_powerlaw_exponent'])
         self.brightness_ramp_type = RawValue('d', DEFAULT['brightness_ramp_type'])
 
     def from_dict(self, d: Dict) -> None:
@@ -143,6 +145,8 @@ class SharedStimParameters:
         self.brightness_start_percent.value = d.get('brightness_start_percent', DEFAULT['brightness_start_percent'])
         self.brightness_stop_percent.value = d.get('brightness_stop_percent', DEFAULT['brightness_stop_percent'])
         self.brightness_ramp_duration_sec.value = d.get('brightness_ramp_duration_sec', DEFAULT['brightness_ramp_duration_sec'])
+        self.brightness_ramp_log_curvature.value = d.get('brightness_ramp_log_curvature', DEFAULT['brightness_ramp_log_curvature'])
+        self.brightness_ramp_powerlaw_exponent.value = d.get('brightness_ramp_powerlaw_exponent', DEFAULT['brightness_ramp_powerlaw_exponent'])
         self.brightness_ramp_type.value = d.get('brightness_ramp_type', DEFAULT['brightness_ramp_type'])
     
 VERT_SHADER = """
@@ -233,6 +237,8 @@ class GeneralStim(VisualStim):
         uniform float u_brightness_start_percent;
         uniform float u_brightness_stop_percent;
         uniform float u_brightness_ramp_duration_sec;
+        uniform float u_brightness_ramp_log_curvature;
+        uniform float u_brightness_ramp_powerlaw_exponent;
         uniform int u_brightness_ramp_type;
 
         // constants 
@@ -412,24 +418,26 @@ class GeneralStim(VisualStim):
                 if (u_stim_select == BRIGHTNESS_RAMP) {
                     float t = mod(u_time_s-u_start_time_s, u_brightness_ramp_duration_sec);
                     float frac = clamp(t / u_brightness_ramp_duration_sec, 0.0, 1.0);
+                    float range = (u_brightness_stop_percent/100 - u_brightness_start_percent/100);
+                    float start = u_brightness_start_percent/100;
                     float color = 0;
 
                     if (u_brightness_ramp_type == LINEAR) {
-                        color = u_brightness_start_percent + (u_brightness_stop_percent - u_brightness_start_percent) * frac;
+                        color = start + range*frac;
                     }
 
                     if (u_brightness_ramp_type == LOG) {
-                        float k = 1;
-                        float log_value = log(1 + k*frac) / log(k);
-                        color = u_brightness_start_percent + (u_brightness_stop_percent - u_brightness_start_percent) * log_value;
+                        float k = u_brightness_ramp_log_curvature;
+                        float log_value = log(1 + k*frac) / log(1 + k);
+                        color = start + range*log_value;
                     }
 
                     if (u_brightness_ramp_type == POWER_LAW) {
-                        float exponent = 2; 
-                        color = u_brightness_start_percent + (u_brightness_stop_percent - u_brightness_start_percent) * pow(frac, exponent);
+                        float exponent = u_brightness_ramp_powerlaw_exponent;
+                        color = start + range*pow(frac, exponent);
                     }
 
-                    gl_FragColor = vec4(color, color, color,1);
+                    gl_FragColor = vec4(color, color, color, 1);
                 }
             }
         }
@@ -504,6 +512,8 @@ class GeneralStim(VisualStim):
         self.program['u_brightness_start_percent'] = self.shared_stim_parameters.brightness_start_percent.value
         self.program['u_brightness_stop_percent'] = self.shared_stim_parameters.brightness_stop_percent.value
         self.program['u_brightness_ramp_duration_sec'] = self.shared_stim_parameters.brightness_ramp_duration_sec.value
+        self.program['u_brightness_ramp_log_curvature'] = self.shared_stim_parameters.brightness_ramp_log_curvature.value
+        self.program['u_brightness_ramp_powerlaw_exponent'] = self.shared_stim_parameters.brightness_ramp_powerlaw_exponent.value
         self.program['u_brightness_ramp_type'] = self.shared_stim_parameters.brightness_ramp_type.value
 
         if self._last_image_path != self.shared_stim_parameters.image_path.value:
@@ -558,6 +568,8 @@ class GeneralStim(VisualStim):
             'brightness_start_percent',
             'brightness_stop_percent',
             'brightness_ramp_duration_sec',
+            'brightness_ramp_log_curvature',
+            'brightness_ramp_powerlaw_exponent',
             'brightness_ramp_type',
             'image_path',
             'image_res_px_per_mm',
@@ -628,6 +640,8 @@ class GeneralStim(VisualStim):
             f'{self.shared_stim_parameters.brightness_start_percent.value}',
             f'{self.shared_stim_parameters.brightness_stop_percent.value}',
             f'{self.shared_stim_parameters.brightness_ramp_duration_sec.value}',
+            f'{self.shared_stim_parameters.brightness_ramp_log_curvature.value}',
+            f'{self.shared_stim_parameters.brightness_ramp_powerlaw_exponent.value}',
             f'{self.shared_stim_parameters.brightness_ramp_type.value}',
             f'{self.shared_stim_parameters.image_path.value}',
             f'{self.shared_stim_parameters.image_res_px_per_mm.value}',
