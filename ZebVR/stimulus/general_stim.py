@@ -252,7 +252,7 @@ class GeneralStim(VisualStim):
         const int FOLLOWING_DOT = 9;
         const int DOT = 10;
         const int IMAGE = 11;
-        const int BRIGHTNESS_RAMP = 12;
+        const int RAMP = 12;
 
         const float PI = radians(180.0);
 
@@ -420,7 +420,7 @@ class GeneralStim(VisualStim):
                     }
                 }
 
-                if (u_stim_select == BRIGHTNESS_RAMP) {
+                if (u_stim_select == RAMP) {
                     float t = mod(u_time_s-u_start_time_s, u_brightness_ramp_duration_sec);
                     float frac = clamp(t / u_brightness_ramp_duration_sec, 0.0, 1.0);
                     float ramp_value = 0.0;

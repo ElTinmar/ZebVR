@@ -9,9 +9,9 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
-class BrightnessRamp(ProtocolItem):
+class Ramp(ProtocolItem):
 
-    STIM_SELECT = Stim.BRIGHTNESS_RAMP
+    STIM_SELECT = Stim.RAMP
 
     def __init__(
             self, 
@@ -48,7 +48,7 @@ class BrightnessRamp(ProtocolItem):
         }
         return command
     
-class BrightnessRampWidget(VisualProtocolItemWidget):
+class RampWidget(VisualProtocolItemWidget):
 
     def __init__(
             self, 
@@ -177,7 +177,7 @@ class BrightnessRampWidget(VisualProtocolItemWidget):
             default = self.brightness_ramp_type
         )
 
-    def from_protocol_item(self, protocol_item: BrightnessRamp) -> None:
+    def from_protocol_item(self, protocol_item: Ramp) -> None:
 
         super().from_protocol_item(protocol_item)
 
@@ -186,9 +186,9 @@ class BrightnessRampWidget(VisualProtocolItemWidget):
         self.sb_ramp_powerlaw_exponent.setValue(protocol_item.brightness_ramp_powerlaw_exponent)
         self.cb_ramp_type.setCurrentIndex(protocol_item.brightness_ramp_type)
 
-    def to_protocol_item(self) -> BrightnessRamp:
+    def to_protocol_item(self) -> Ramp:
 
-        protocol = BrightnessRamp(
+        protocol = Ramp(
             brightness_ramp_duration_sec = self.sb_ramp_duration_sec.value(),
             brightness_ramp_log_curvature = self.sb_ramp_log_curvature.value(),
             brightness_ramp_powerlaw_exponent = self.sb_ramp_powerlaw_exponent.value(),
@@ -200,7 +200,7 @@ class BrightnessRampWidget(VisualProtocolItemWidget):
 if __name__ == '__main__':
 
     app = QApplication([])
-    window = BrightnessRampWidget(
+    window = RampWidget(
         stop_widget = StopWidget(
             debouncer = Debouncer()
         )

@@ -1,5 +1,5 @@
 from .bright import Bright, BrightWidget
-from .brightness_ramp import BrightnessRamp, BrightnessRampWidget
+from .brightness_ramp import Ramp, RampWidget
 from .concentric_grating import ConcentricGrating, ConcentricGratingWidget
 from .dark import Dark, DarkWidget
 from .dot import Dot, FollowingDot, DotWidget, FollowingDotWidget

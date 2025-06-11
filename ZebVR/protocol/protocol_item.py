@@ -24,7 +24,7 @@ class Stim(IntEnum):
     FOLLOWING_DOT = 9
     DOT = 10
     IMAGE = 11
-    BRIGHTNESS_RAMP = 12
+    RAMP = 12
 
     # acoustic
     PURE_TONE = 20

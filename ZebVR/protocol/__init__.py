@@ -17,7 +17,7 @@ PROTOCOL_WIDGETS = [
     (visual.FollowingLoomingWidget, protocol_item.Stim.FOLLOWING_LOOMING),
     (visual.PreyCaptureWidget, protocol_item.Stim.PREY_CAPTURE),
     (visual.ConcentricGratingWidget, protocol_item.Stim.CONCENTRIC_GRATING),
-    (visual.BrightnessRampWidget, protocol_item.Stim.BRIGHTNESS_RAMP),
+    (visual.RampWidget, protocol_item.Stim.RAMP),
     (visual.ImageWidget, protocol_item.Stim.IMAGE),
     (acoustic.PureToneWidget, protocol_item.Stim.PURE_TONE),
     (acoustic.WhiteNoiseWidget, protocol_item.Stim.WHITE_NOISE),
