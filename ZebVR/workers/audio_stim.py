@@ -167,7 +167,7 @@ class AudioProducer(Process):
         exponent = self.shared_audio_parameters.ramp_powerlaw_exponent.value
         method = RampType(self.shared_audio_parameters.ramp_type.value) 
 
-        t = np.arange(self.blocksize + self.phase) / self.samplerate
+        t = (np.arange(self.blocksize) + self.phase) / self.samplerate
 
         if method == RampType.LINEAR:
             k = (f_stop - f_start) / ramp_duration
@@ -265,8 +265,8 @@ class AudioProducer(Process):
         while not self.stop_event.is_set():
             chunk = self._next_chunk()
             self.audio_queue.put(chunk)
-            time.sleep(self.blocksize/self.samplerate) # maybe a bit less?
-        
+            time.sleep(0.01) # NOTE this needs to be low enough
+
 class AudioConsumer(Process):
 
     def __init__(
@@ -303,8 +303,6 @@ class AudioConsumer(Process):
             outdata.fill(0)
         else:
             outdata[:] = chunk
-
-        print(outdata)
 
     def run(self):
 
@@ -416,20 +414,49 @@ class AudioStimWorker(WorkerNode):
 
 if __name__ == '__main__':
 
-    q = Queue()
+    q = Queue(maxsize=10) # important to set maxsize to a low value
     s = Event()
     channels = 2
     params = SharedAudioParameters()
-    consumer = AudioConsumer(q,s,channels=2)
-    producer = AudioProducer(q,s,params,channels=2)
+    consumer = AudioConsumer(q,s,channels=channels)
+    producer = AudioProducer(q,s,params,channels=channels)
     consumer.start()
     producer.start()
 
+    params.amplitude_dB.value = 0.25
+
+    print("pure tone")
     params.stim_select.value = Stim.PURE_TONE
-    params.amplitude_dB.value = 1
     params.frequency_Hz.value = 440
+    time.sleep(5)
+
+    print("frequency ramp")
+    params.stim_select.value = Stim.FREQUENCY_RAMP
+    params.ramp_type.value = RampType.LOG
+    params.ramp_start_Hz.value = 440
+    params.ramp_stop_Hz.value = 880
+    params.ramp_duration_sec.value = 5
+    time.sleep(5)
+
+    print("pink noise")
+    params.stim_select.value = Stim.PINK_NOISE
+    time.sleep(5)
     
-    time.sleep(10)
+    print("white noise")
+    params.stim_select.value = Stim.WHITE_NOISE
+    time.sleep(5)
+
+    print("silence")
+    params.stim_select.value = Stim.SILENCE
+    time.sleep(5)
+
+    print("clicks")
+    params.stim_select.value = Stim.CLICK_TRAIN
+    params.click_rate.value = 10
+    params.click_duration.value = 0.01
+    params.click_polarity.value = ClickPolarity.BIPHASIC
+    time.sleep(5)
+
     s.set()
     producer.join()
     consumer.join()
