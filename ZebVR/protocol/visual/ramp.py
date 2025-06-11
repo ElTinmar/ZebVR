@@ -54,8 +54,6 @@ class RampWidget(VisualProtocolItemWidget):
             ramp_duration_sec: float = DEFAULT['ramp_duration_sec'],
             ramp_powerlaw_exponent: float = DEFAULT['ramp_powerlaw_exponent'],
             ramp_type: RampType = DEFAULT['ramp_type'],
-            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
-            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
@@ -63,8 +61,6 @@ class RampWidget(VisualProtocolItemWidget):
         self.ramp_duration_sec = ramp_duration_sec
         self.ramp_powerlaw_exponent = ramp_powerlaw_exponent
         self.ramp_type = ramp_type
-        self.foreground_color = foreground_color 
-        self.background_color = background_color 
 
         super().__init__(*args, **kwargs)
 
