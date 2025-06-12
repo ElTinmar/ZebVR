@@ -319,14 +319,12 @@ class AudioConsumer(Process):
 
         try:
             chunk = self.audio_queue.get_nowait()
-            print(f'rms: {np.sqrt(np.mean(chunk**2))}')
+            #print(f'rms: {np.sqrt(np.mean(chunk**2))}')
         except queue.Empty:
             print('audio underrun')
             outdata.fill(0)
         else:
-            outdata[:] = chunk
-
-            
+            outdata[:] = chunk         
 
     def run(self):
 
