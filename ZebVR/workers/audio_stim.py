@@ -40,7 +40,8 @@ def plot_waveform_spectrogram_and_psd(
         samplerate: int = 44100,
         max_freq: float = 8000,
         title_prefix: str = "Audio Signal",
-        cmap: str = "magma"
+        cmap: str = "magma",
+        block: bool = False
     ) -> None:
     """
     Plot waveform, spectrogram, and power spectrum of an audio signal.
@@ -89,7 +90,7 @@ def plot_waveform_spectrogram_and_psd(
     axs[2].set_xlim(10, samplerate / 2)
     axs[2].set_ylim(np.max(psd_dB) - 60, np.max(psd_dB) + 3)
 
-    plt.show(block=False)
+    plt.show(block=block)
 
 class SharedAudioParameters:
 
