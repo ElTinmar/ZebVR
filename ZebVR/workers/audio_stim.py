@@ -14,7 +14,9 @@ from numpy.typing import NDArray
 import matplotlib.pyplot as plt
 from numba import njit
 
-# TODO log to file 
+# for pink noise generation see:
+# https://www.firstpr.com.au/dsp/pink-noise/voss-mccartney/
+# http://www.cooperbaker.com/home/code/pink%20noise/
 
 @njit
 def voss_mccartney(n_samples, n_layers=16):
