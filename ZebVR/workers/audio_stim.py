@@ -124,6 +124,8 @@ class SharedAudioParameters:
         self.click_polarity.value = d.get('click_polarity', DEFAULT['click_polarity'])
 
 class AudioProducer(Process):
+
+    RMS_SINE_NORM = np.sqrt(2)/4
     
     def __init__(
             self, 
@@ -153,13 +155,20 @@ class AudioProducer(Process):
         self.current_stim: Stim = Stim.SILENCE
         self.chunk_function = self._silence
 
+    @staticmethod
+    def normalize_rms(signal: NDArray, target_rms: float = 1):
+        current_rms = np.sqrt(np.mean(signal**2))
+        if current_rms > 0:
+            return signal * (target_rms / current_rms)
+        return signal
+
     def _silence(self) -> NDArray:
         return np.zeros((self.blocksize,), dtype=np.float32)
     
     def _pure_tone(self) -> NDArray:
         frequency = self.shared_audio_parameters.frequency_Hz.value
         t = (np.arange(self.blocksize) + self.phase) / self.samplerate
-        return np.sin(2 * np.pi * frequency * t)
+        return self.RMS_SINE_NORM * np.sin(2 * np.pi * frequency * t)
 
     def _frequency_ramp(self) -> NDArray:
         f_start = self.shared_audio_parameters.ramp_start_Hz.value
@@ -187,10 +196,10 @@ class AudioProducer(Process):
         else:
             raise ValueError("Unsupported method. Choose 'linear', 'log' or 'power law'.")
         
-        return np.sin(phase_array)
+        return self.RMS_SINE_NORM * np.sin(phase_array)
 
     def _white_noise(self) -> NDArray:
-        return np.random.randn(self.blocksize).astype(np.float32)
+        return self.normalize_rms(np.random.randn(self.blocksize).astype(np.float32))
     
     def _pink_noise(self) -> NDArray:
         # pink noise approximation using Paul Kellet's economy filter
@@ -206,10 +215,9 @@ class AudioProducer(Process):
             x2 = 0.57000 * x2 + white[i] * 1.0526913
             pink[i] = x0 + x1 + x2 + white[i] * 0.1848
 
-        return pink
+        return self.normalize_rms(pink)
     
     def _click_train(self) -> NDArray:
-        # TODO this needs fixing
 
         click_rate = self.shared_audio_parameters.click_rate.value
         click_duration = self.shared_audio_parameters.click_duration.value
@@ -220,22 +228,23 @@ class AudioProducer(Process):
 
         if click_samples >= interval_samples:
             raise ValueError("Click duration too long for click rate")
-
+        
         chunk = np.zeros(self.blocksize, dtype=np.float32)
-        for i in range(self.phase, self.phase + self.blocksize, interval_samples):
-            j = i % self.blocksize
+        for i in range(self.blocksize):
+            
+            if self.phase + i % interval_samples == 0:
 
-            if j + click_samples >= self.blocksize:
-                break
+                if polarity == ClickPolarity.POSITIVE:
+                    chunk[i:i + click_samples] += 1
 
-            if polarity == ClickPolarity.POSITIVE:
-                chunk[j:j + click_samples] += 1
+                elif polarity == ClickPolarity.BIPHASIC:
+                    half = click_samples // 2
+                    chunk[i:i + half] += 1
+                    chunk[i + half:i + click_samples] -= 1  
 
-            elif polarity == ClickPolarity.BIPHASIC:
-                half = click_samples // 2
-                chunk[j:j + half] += 1
-                chunk[j + half:j + click_samples] -= 1
-
+                else:
+                    raise ValueError("Unsupported click type, choose 'positive', 'biphasic'")
+                
         return chunk
     
     def _next_chunk(self) -> NDArray:
