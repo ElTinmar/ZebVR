@@ -136,7 +136,7 @@ class AudioProducer(Process):
             blocksize: int = 1024,
             channels: int = 1,
             rollover_time_sec: float = 3600,
-            units_per_dB: float = 1.0
+            units_per_dB: float = 1/120
         ):
 
         super().__init__()
@@ -218,6 +218,7 @@ class AudioProducer(Process):
         return self.normalize_rms(pink)
     
     def _click_train(self) -> NDArray:
+        # TODO handle block boundaries better
 
         click_rate = self.shared_audio_parameters.click_rate.value
         click_duration = self.shared_audio_parameters.click_duration.value
@@ -232,7 +233,7 @@ class AudioProducer(Process):
         chunk = np.zeros(self.blocksize, dtype=np.float32)
         for i in range(self.blocksize):
             
-            if self.phase + i % interval_samples == 0:
+            if (self.phase + i) % interval_samples == 0:
 
                 if polarity == ClickPolarity.POSITIVE:
                     chunk[i:i + click_samples] += 1
@@ -282,7 +283,6 @@ class AudioProducer(Process):
         while not self.stop_event.is_set():
             chunk = self._next_chunk()
             self.audio_queue.put(chunk, block=True)
-            time.sleep(0.01) # NOTE this needs to be low enough
 
 class AudioConsumer(Process):
 
@@ -338,7 +338,7 @@ class AudioStimWorker(WorkerNode):
 
     def __init__(
             self,
-            units_per_dB: float = 1,
+            units_per_dB: float = 1/120,
             samplerate: int = 44100,
             blocksize: int = 1024,
             channels: int = 1,
@@ -438,7 +438,7 @@ def clear_queue(q: Queue) -> None:
 
 if __name__ == '__main__':
 
-    q = Queue(maxsize=10) # important to set maxsize to a low value
+    q = Queue(maxsize=2) # double-buffering
     s = Event()
     channels = 2
     params = SharedAudioParameters()
@@ -447,7 +447,7 @@ if __name__ == '__main__':
     consumer.start()
     producer.start()
 
-    params.amplitude_dB.value = 0.25
+    params.amplitude_dB.value = 10
 
     print("pure tone")
     params.stim_select.value = Stim.PURE_TONE
@@ -476,8 +476,8 @@ if __name__ == '__main__':
 
     print("clicks")
     params.stim_select.value = Stim.CLICK_TRAIN
-    params.click_rate.value = 10
-    params.click_duration.value = 0.01
+    params.click_rate.value = 20
+    params.click_duration.value = 0.001
     params.click_polarity.value = ClickPolarity.BIPHASIC
     time.sleep(5)
 
