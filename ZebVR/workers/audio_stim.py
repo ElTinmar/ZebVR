@@ -14,9 +14,9 @@ from numpy.typing import NDArray
 import matplotlib.pyplot as plt
 from numba import njit
 
-# for pink noise generation see:
-# https://www.firstpr.com.au/dsp/pink-noise/voss-mccartney/
-# http://www.cooperbaker.com/home/code/pink%20noise/
+# For pink noise generation see:
+# Voss-McCartney method: https://www.firstpr.com.au/dsp/pink-noise/voss-mccartney/
+# IIR filter bank: http://www.cooperbaker.com/home/code/pink%20noise/
 
 @njit
 def voss_mccartney(n_samples, n_layers=16):
@@ -203,23 +203,6 @@ class AudioProducer(Process):
         return self.normalize_rms(np.random.randn(self.blocksize).astype(np.float32))
     
     def _pink_noise(self) -> NDArray:
-        # pink noise approximation using Paul Kellet's economy filter
-        # https://www.firstpr.com.au/dsp/pink-noise/#Filtering
-        # Optimized for a 44100Hz samplerate
-
-        white = np.random.randn(self.blocksize).astype(np.float32)
-        pink = np.zeros_like(white)
-        x0, x1, x2 = 0.0, 0.0, 0.0
-        for i in range(self.blocksize):
-            x0 = 0.99765 * x0 + white[i] * 0.0990460
-            x1 = 0.96300 * x1 + white[i] * 0.2965164
-            x2 = 0.57000 * x2 + white[i] * 1.0526913
-            pink[i] = x0 + x1 + x2 + white[i] * 0.1848
-
-        return self.normalize_rms(pink)
-    
-    def _pink_noise_voss(self) -> NDArray:
-
         pink = voss_mccartney(self.blocksize)
         return self.normalize_rms(pink.astype(np.float32))
     
@@ -274,7 +257,7 @@ class AudioProducer(Process):
         elif self.current_stim == Stim.WHITE_NOISE:
             self.chunk_function = self._white_noise
         elif self.current_stim == Stim.PINK_NOISE:
-            self.chunk_function = self._pink_noise_voss
+            self.chunk_function = self._pink_noise
         elif self.current_stim == Stim.CLICK_TRAIN:
             self.chunk_function = self._click_train
         else:
