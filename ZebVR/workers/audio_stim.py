@@ -125,7 +125,7 @@ class SharedAudioParameters:
 
 class AudioProducer(Process):
 
-    RMS_SINE_NORM = np.sqrt(2)/4
+    RMS_SINE_NORM = np.sqrt(2)
     
     def __init__(
             self, 
@@ -133,7 +133,7 @@ class AudioProducer(Process):
             stop_event: EventType,
             shared_audio_parameters: SharedAudioParameters,
             samplerate: int = 44100,
-            blocksize: int = 1024,
+            blocksize: int = 256,
             channels: int = 1,
             rollover_time_sec: float = 3600,
             units_per_dB: float = 1/120
@@ -295,7 +295,7 @@ class AudioConsumer(Process):
             audio_queue: Queue, 
             stop_event: EventType,
             samplerate: int = 44100,
-            blocksize: int = 1024,
+            blocksize: int = 256,
             channels: int = 1
         ):
 
@@ -320,11 +320,14 @@ class AudioConsumer(Process):
 
         try:
             chunk = self.audio_queue.get_nowait()
+            print(f'rms: {np.sqrt(np.mean(chunk**2))}')
         except queue.Empty:
             print('audio underrun')
             outdata.fill(0)
         else:
             outdata[:] = chunk
+
+            
 
     def run(self):
 
@@ -345,7 +348,7 @@ class AudioStimWorker(WorkerNode):
             self,
             units_per_dB: float = 1/120,
             samplerate: int = 44100,
-            blocksize: int = 1024,
+            blocksize: int = 256,
             channels: int = 1,
             timings_file: str = 'audio.csv',
             rollover_time_sec: float = 3600,  
@@ -454,9 +457,11 @@ if __name__ == '__main__':
     q = Queue(maxsize=2) # double-buffering
     s = Event()
     channels = 2
+    blocksize = 256
+    samplerate = 44100
     params = SharedAudioParameters()
-    consumer = AudioConsumer(q,s,channels=channels)
-    producer = AudioProducer(q,s,params,channels=channels)
+    consumer = AudioConsumer(q,s,channels=channels, blocksize=blocksize, samplerate=samplerate)
+    producer = AudioProducer(q,s,params,channels=channels, blocksize=blocksize, samplerate=samplerate)
     consumer.start()
     producer.start()
 
