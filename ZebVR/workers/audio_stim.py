@@ -226,7 +226,6 @@ class AudioProducer(Process):
 
         interval_samples = int(self.samplerate / click_rate)
         click_samples = int(self.samplerate * click_duration)
-
         if click_samples >= interval_samples:
             raise ValueError("Click duration too long for click rate")
 
