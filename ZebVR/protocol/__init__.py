@@ -23,6 +23,7 @@ PROTOCOL_WIDGETS = [
     (acoustic.PureToneWidget, protocol_item.Stim.PURE_TONE),
     (acoustic.WhiteNoiseWidget, protocol_item.Stim.WHITE_NOISE),
     (acoustic.PinkNoiseWidget, protocol_item.Stim.PINK_NOISE),
+    (acoustic.BrownNoiseWidget, protocol_item.Stim.BROWN_NOISE),
     (acoustic.ClickTrainWidget, protocol_item.Stim.CLICK_TRAIN),
     (acoustic.FrequencyRampWidget, protocol_item.Stim.FREQUENCY_RAMP),
     (acoustic.SilenceWidget, protocol_item.Stim.SILENCE),

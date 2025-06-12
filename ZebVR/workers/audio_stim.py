@@ -34,7 +34,7 @@ def voss_mccartney(n_samples, n_layers=16):
             counters[j] -= 1
         out[i] = layers.sum()
     return out
-
+    
 def plot_waveform_spectrogram_and_psd(
         signal: np.ndarray,
         samplerate: int = 44100,
@@ -200,11 +200,16 @@ class AudioProducer(Process):
         return self.RMS_SINE_NORM * np.sin(phase_array)
 
     def _white_noise(self) -> NDArray:
-        return self.normalize_rms(np.random.randn(self.blocksize).astype(np.float32))
-    
+        white = np.random.randn(self.blocksize)
+        return self.normalize_rms(white.astype(np.float32))
+
     def _pink_noise(self) -> NDArray:
         pink = voss_mccartney(self.blocksize)
         return self.normalize_rms(pink.astype(np.float32))
+    
+    def _brown_noise(self) -> NDArray:
+        brown = np.cumsum(np.random.randn(self.blocksize))
+        return self.normalize_rms(brown.astype(np.float32))
     
     def _click_train(self) -> NDArray:
         # TODO handle block boundaries better
@@ -258,6 +263,8 @@ class AudioProducer(Process):
             self.chunk_function = self._white_noise
         elif self.current_stim == Stim.PINK_NOISE:
             self.chunk_function = self._pink_noise
+        elif self.current_stim == Stim.BROWN_NOISE:
+            self.chunk_function = self._brown_noise
         elif self.current_stim == Stim.CLICK_TRAIN:
             self.chunk_function = self._click_train
         else:
@@ -468,7 +475,7 @@ if __name__ == '__main__':
     params.ramp_start_Hz.value = 440
     params.ramp_stop_Hz.value = 880
     params.ramp_duration_sec.value = 2.5
-    time.sleep(5)
+    time.sleep(2.5)
 
     print("pink noise")
     params.stim_select.value = Stim.PINK_NOISE
@@ -476,6 +483,10 @@ if __name__ == '__main__':
     
     print("white noise")
     params.stim_select.value = Stim.WHITE_NOISE
+    time.sleep(5)
+
+    print("brown noise")
+    params.stim_select.value = Stim.BROWN_NOISE
     time.sleep(5)
 
     print("silence")

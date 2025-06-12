@@ -31,8 +31,9 @@ class Stim(IntEnum):
     FREQUENCY_RAMP = 21
     WHITE_NOISE = 22
     PINK_NOISE = 23
-    CLICK_TRAIN = 24
-    SILENCE = 25
+    BROWN_NOISE = 24
+    CLICK_TRAIN = 25
+    SILENCE = 26
 
     def __str__(self):
         return self.name

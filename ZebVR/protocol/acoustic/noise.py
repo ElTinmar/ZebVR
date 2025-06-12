@@ -59,6 +59,30 @@ class PinkNoise(ProtocolItem):
         }
         return command
 
+class BrownNoise(ProtocolItem):
+
+    STIM_SELECT = Stim.BROWN_NOISE
+
+    def __init__(
+            self, 
+            amplitude_dB: float = DEFAULT['amplitude_dB'],
+            *args,
+            **kwargs
+        ) -> None:
+
+        super().__init__(*args, **kwargs)
+
+        self.amplitude_dB = amplitude_dB
+
+    def start(self) -> Dict:
+
+        super().start()
+        
+        command = {
+            'stim_select': self.STIM_SELECT,
+            'amplitude_dB': self.amplitude_dB
+        }
+        return command
 
 class WhiteNoiseWidget(AudioProtocolItemWidget):
 
@@ -87,6 +111,20 @@ class PinkNoiseWidget(AudioProtocolItemWidget):
             amplitude_dB = self.sb_amplitude_dB.value(),
             stop_condition = self.stop_widget.to_stop_condition()
         )
+
+class BrownNoiseWidget(AudioProtocolItemWidget):
+
+    def layout_components(self) -> None:
+        
+        super().layout_components()
+        self.main_layout.addWidget(self.stop_widget)
+
+    def to_protocol_item(self) -> BrownNoise:
+
+        return BrownNoise(
+            amplitude_dB = self.sb_amplitude_dB.value(),
+            stop_condition = self.stop_widget.to_stop_condition()
+        )
     
 if __name__ == '__main__':
 
@@ -106,5 +144,12 @@ if __name__ == '__main__':
     )
     window1.show()
 
+    window2 = BrownNoiseWidget(
+        stop_widget = StopWidget(
+            debouncer = Debouncer()
+        )
+    )
+    window2.show()
+    
     app.exec()
     
