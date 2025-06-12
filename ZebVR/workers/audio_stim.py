@@ -12,83 +12,26 @@ import sounddevice as sd
 import numpy as np
 from numpy.typing import NDArray
 import matplotlib.pyplot as plt
-from scipy.optimize import lsq_linear
-
-def generate_pink_filter_coeffs(fs=44100, n_filters=6, n_freqs=500, f_min=10, margin=2):
-    f_max = fs / 2
-    freqs = np.logspace(np.log10(f_min), np.log10(f_max), n_freqs)
-    w = 2 * np.pi * freqs / fs
-
-    # Log-spaced cutoff frequencies, avoid edges by margin
-    fc_poles = np.logspace(np.log10(f_min * margin), np.log10(f_max / margin), n_filters)
-    a_coeffs = np.exp(-2 * np.pi * fc_poles / fs)
-
-    # Build matrix A with frequency responses (magnitude squared) of each filter (no (1 - a) term)
-    A = []
-    for a in a_coeffs:
-        H_mag_sq = 1 / (1 + a**2 - 2 * a * np.cos(w))
-        A.append(H_mag_sq)
-    A = np.array(A).T  # shape: (n_freqs, n_filters)
-
-    # Add flat white noise component
-    A = np.column_stack((A, np.ones(n_freqs)))
-
-    # Target pink noise power spectrum (normalized)
-    target = 1 / freqs
-    target /= np.linalg.norm(target)
-
-    # Solve least squares: minimize ||A @ gains - target||
-    result = lsq_linear(A, target)
-    gains = result.x
-
-    # Compute the output spectrum from the fitted filters
-    output_spectrum = A @ gains
-
-    # Print results
-    print("Optimized filter coefficients (a) and input gains (g):")
-    for i, (a, g) in enumerate(zip(a_coeffs, gains[:-1])):
-        print(f"Filter {i}: a = {a:.6f}, input gain g = {g:.6f}")
-    print(f"White noise gain = {gains[-1]:.6f}")
-
-    # Plot results
-    plt.figure(figsize=(8, 5))
-    plt.loglog(freqs, target, '--', label='Ideal 1/f spectrum')
-    plt.loglog(freqs, output_spectrum, label='Optimized filter sum')
-    plt.xlabel('Frequency (Hz)')
-    plt.ylabel('Power (a.u.)')
-    plt.title('Pink Noise Filter Optimization')
-    plt.grid(True, which='both')
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-
-    return a_coeffs, gains, freqs, output_spectrum, target
-
+from numba import njit
 
 # TODO log to file 
 
-# debug ramps 
-def linear_sweep(f_start, f_end, duration, sample_rate):
-    t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
-    k = (f_end - f_start) / duration
-    phase = 2 * np.pi * (f_start * t + 0.5 * k * t**2)
-    return np.sin(phase)
+@njit
+def voss_mccartney(n_samples, n_layers=16):
+    """Voss-McCartney pink noise generator."""
+    out = np.zeros(n_samples)
+    layers = np.zeros(n_layers)
+    counters = np.zeros(n_layers, dtype=np.int32)
+    rand = np.random.normal
 
-def log_sweep(f_start, f_end, duration, sample_rate):
-    t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
-    beta = np.log(f_end / f_start)
-    phase = 2 * np.pi * f_start * duration / beta * (np.exp(beta * t / duration) - 1)
-    return np.sin(phase)
-
-def powerlaw_sweep(f_start, f_end, duration, sample_rate, exponent=2):
-    t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
-    delta_f = f_end - f_start
-    phase = 2 * np.pi * (
-        f_start * t + (delta_f / (exponent + 1)) * (t ** (exponent + 1)) / (duration ** exponent)
-    )
-    return np.sin(phase)
-# - debug ramps
-
+    for i in range(n_samples):
+        for j in range(n_layers):
+            if counters[j] == 0:
+                layers[j] = rand()
+                counters[j] = 2 ** j
+            counters[j] -= 1
+        out[i] = layers.sum()
+    return out
 
 def plot_waveform_spectrogram_and_psd(
         signal: np.ndarray,
@@ -208,6 +151,8 @@ class AudioProducer(Process):
         self.current_stim: Stim = Stim.SILENCE
         self.chunk_function = self._silence
 
+        voss_mccartney(self.blocksize)  # warm up the JIT compiler
+
     @staticmethod
     def normalize_rms(signal: NDArray, target_rms: float = 1):
         current_rms = np.sqrt(np.mean(signal**2))
@@ -270,6 +215,11 @@ class AudioProducer(Process):
 
         return self.normalize_rms(pink)
     
+    def _pink_noise_voss(self) -> NDArray:
+
+        pink = voss_mccartney(self.blocksize)
+        return self.normalize_rms(pink.astype(np.float32))
+    
     def _click_train(self) -> NDArray:
         # TODO handle block boundaries better
 
@@ -321,7 +271,7 @@ class AudioProducer(Process):
         elif self.current_stim == Stim.WHITE_NOISE:
             self.chunk_function = self._white_noise
         elif self.current_stim == Stim.PINK_NOISE:
-            self.chunk_function = self._pink_noise
+            self.chunk_function = self._pink_noise_voss
         elif self.current_stim == Stim.CLICK_TRAIN:
             self.chunk_function = self._click_train
         else:
