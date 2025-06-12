@@ -31,7 +31,7 @@ DEFAULT = {
     'audio_ramp_start_Hz': 440.0,
     'audio_ramp_stop_Hz': 880.0,
     'audio_ramp_duration_sec': 1.0,
-    'audio_ramp_powerlaw_exponent': 1.0,
+    'audio_ramp_powerlaw_exponent': 1.67,
     'audio_ramp_type': RampType.LOG,
     'click_rate': 10.0,
     'click_duration': 0.01,

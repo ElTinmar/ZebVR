@@ -437,6 +437,9 @@ class AudioStimWorker(WorkerNode):
         if control is None:
             return
 
+        # TODO add time to the parameters and use that to reset the phase
+        # that way, specifying the same stimulus again also resets the phase
+
         self.shared_audio_parameters.from_dict(control)
 
         # Write to file here? Log only if there is a change?
@@ -472,9 +475,10 @@ if __name__ == '__main__':
     print("frequency ramp")
     params.stim_select.value = Stim.FREQUENCY_RAMP
     params.ramp_type.value = RampType.LOG
+    params.ramp_powerlaw_exponent = 1.67
     params.ramp_start_Hz.value = 440
     params.ramp_stop_Hz.value = 880
-    params.ramp_duration_sec.value = 5
+    params.ramp_duration_sec.value = 2.5
     time.sleep(5)
 
     print("pink noise")
