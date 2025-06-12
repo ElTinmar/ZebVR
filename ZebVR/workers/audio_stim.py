@@ -141,7 +141,7 @@ class AudioProducer(Process):
 
         super().__init__()
 
-        self.stop_event = stop_event
+        self.audio_stop_event = stop_event
         self.audio_queue = audio_queue
         self.samplerate = samplerate
         self.blocksize = blocksize 
@@ -284,7 +284,7 @@ class AudioProducer(Process):
 
     def run(self):
 
-        while not self.stop_event.is_set():
+        while not self.audio_stop_event.is_set():
             chunk = self._next_chunk()
             self.audio_queue.put(chunk, block=True)
 
@@ -302,7 +302,7 @@ class AudioConsumer(Process):
         super().__init__()
 
         self.audio_queue = audio_queue
-        self.stop_event = stop_event
+        self.audio_stop_event = stop_event
         self.samplerate = samplerate
         self.blocksize = blocksize 
         self.channels = channels
@@ -336,7 +336,7 @@ class AudioConsumer(Process):
                 dtype = 'float32'
             ):
 
-            while not self.stop_event.is_set():
+            while not self.audio_stop_event.is_set():
                 time.sleep(0.1)  
 
 class AudioStimWorker(WorkerNode):
@@ -362,12 +362,12 @@ class AudioStimWorker(WorkerNode):
         self.blocksize = blocksize
         self.channels = channels    
 
-        self.stop_event = Event()
+        self.audio_stop_event = Event() 
         self.audio_queue = Queue(maxsize=2)
         self.shared_audio_parameters = SharedAudioParameters()
         self.audio_producer = AudioProducer(
             audio_queue = self.audio_queue,
-            stop_event = self.stop_event,
+            stop_event = self.audio_stop_event,
             shared_audio_parameters = self.shared_audio_parameters,
             samplerate = self.samplerate,
             blocksize = self.blocksize,
@@ -377,7 +377,7 @@ class AudioStimWorker(WorkerNode):
         )
         self.audio_consumer = AudioConsumer(
             audio_queue = self.audio_queue,
-            stop_event = self.stop_event,
+            stop_event = self.audio_stop_event,
             samplerate = self.samplerate,
             blocksize = self.blocksize,
             channels = self.channels
@@ -410,9 +410,18 @@ class AudioStimWorker(WorkerNode):
 
     def cleanup(self) -> None:
 
-        super().cleanup()
+        super().cleanup() # should this go at the end?
         
-        self.stop_event.set()
+        self.audio_stop_event.set()
+
+        # make sure queue is empty before joining
+        time.sleep(0.5)
+        try:
+            while True:
+                q.get_nowait()
+        except queue.Empty:
+            pass
+
         self.audio_consumer.join()
         self.audio_producer.join()
         self.fd.close()
