@@ -229,23 +229,27 @@ class AudioProducer(Process):
 
         if click_samples >= interval_samples:
             raise ValueError("Click duration too long for click rate")
-        
+
         chunk = np.zeros(self.blocksize, dtype=np.float32)
-        for i in range(self.blocksize):
+        first_click = (-self.phase) % interval_samples
+        click_times = np.arange(
+            first_click,  
+            self.blocksize,                
+            interval_samples          
+        )
+        for click_pos in click_times:
+
+            if polarity == ClickPolarity.POSITIVE:
+                chunk[click_pos:click_pos + click_samples] += 1
+
+            elif polarity == ClickPolarity.BIPHASIC:
+                half = click_samples // 2
+                chunk[click_pos:click_pos + half] += 1
+                chunk[click_pos + half:click_pos + click_samples] -= 1  
+
+            else:
+                raise ValueError("Unsupported click type, choose 'positive', 'biphasic'")
             
-            if (self.phase + i) % interval_samples == 0:
-
-                if polarity == ClickPolarity.POSITIVE:
-                    chunk[i:i + click_samples] += 1
-
-                elif polarity == ClickPolarity.BIPHASIC:
-                    half = click_samples // 2
-                    chunk[i:i + half] += 1
-                    chunk[i + half:i + click_samples] -= 1  
-
-                else:
-                    raise ValueError("Unsupported click type, choose 'positive', 'biphasic'")
-                
         return chunk
     
     def _next_chunk(self) -> NDArray:
@@ -317,6 +321,7 @@ class AudioConsumer(Process):
         try:
             chunk = self.audio_queue.get_nowait()
         except queue.Empty:
+            print('audio underrun')
             outdata.fill(0)
         else:
             outdata[:] = chunk
@@ -358,7 +363,7 @@ class AudioStimWorker(WorkerNode):
         self.channels = channels    
 
         self.stop_event = Event()
-        self.audio_queue = Queue()
+        self.audio_queue = Queue(maxsize=2)
         self.shared_audio_parameters = SharedAudioParameters()
         self.audio_producer = AudioProducer(
             audio_queue = self.audio_queue,
@@ -382,7 +387,6 @@ class AudioStimWorker(WorkerNode):
         self.timings_file = filename
 
     def initialize(self) -> None:
-
         prefix, ext = os.path.splitext(self.timings_file)
         timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
         while os.path.exists(timings_file):
