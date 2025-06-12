@@ -14,56 +14,55 @@ from numpy.typing import NDArray
 import matplotlib.pyplot as plt
 from scipy.optimize import lsq_linear
 
-def generate_pink_filter_coeffs(fs=44100, n_filters=6, n_freqs=500, f_min=10):
+def generate_pink_filter_coeffs(fs=44100, n_filters=6, n_freqs=500, f_min=10, margin=2):
     f_max = fs / 2
     freqs = np.logspace(np.log10(f_min), np.log10(f_max), n_freqs)
+    w = 2 * np.pi * freqs / fs
 
-    # Choose log-spaced poles (cutoffs)
-    fc_poles = np.logspace(np.log10(f_min), np.log10(f_max), n_filters)
+    # Log-spaced cutoff frequencies, avoid edges by margin
+    fc_poles = np.logspace(np.log10(f_min * margin), np.log10(f_max / margin), n_filters)
     a_coeffs = np.exp(-2 * np.pi * fc_poles / fs)
 
-    # Frequency response of each 1-pole filter: |H(f)|^2
-    w = 2 * np.pi * freqs / fs
+    # Build matrix A with frequency responses (magnitude squared) of each filter (no (1 - a) term)
     A = []
     for a in a_coeffs:
-        # Transfer function: H(e^jw) = (1 - a) / (1 - a * e^{-jw})
-        # Magnitude squared:
-        H_mag_sq = (1 - a)**2 / (1 + a**2 - 2 * a * np.cos(w))
+        H_mag_sq = 1 / (1 + a**2 - 2 * a * np.cos(w))
         A.append(H_mag_sq)
     A = np.array(A).T  # shape: (n_freqs, n_filters)
-    
-    # Add a flat white-noise term (last column = 1s)
-    A = np.column_stack((A, np.ones(len(freqs))))
 
-    # Target pink noise: power ∝ 1/f
-    target_spectrum = 1 / freqs
-    target_spectrum /= np.linalg.norm(target_spectrum)  # normalize for numerical stability
+    # Add flat white noise component
+    A = np.column_stack((A, np.ones(n_freqs)))
 
-    # Solve least-squares: A @ g ≈ target
-    result = lsq_linear(A, target_spectrum, bounds=(0, np.inf))
+    # Target pink noise power spectrum (normalized)
+    target = 1 / freqs
+    target /= np.linalg.norm(target)
+
+    # Solve least squares: minimize ||A @ gains - target||
+    result = lsq_linear(A, target)
     gains = result.x
-    
+
+    # Compute the output spectrum from the fitted filters
     output_spectrum = A @ gains
 
-    # Display results
-    print("Optimized coefficients:")
+    # Print results
+    print("Optimized filter coefficients (a) and input gains (g):")
     for i, (a, g) in enumerate(zip(a_coeffs, gains[:-1])):
-        print(f"b{i} = {a:.6f} * b{i} + white * {g:.7f};")
-    print(f"tmp = sum(b_i) + white * {gains[-1]:.7f};")
+        print(f"Filter {i}: a = {a:.6f}, input gain g = {g:.6f}")
+    print(f"White noise gain = {gains[-1]:.6f}")
 
-    # Plot to visualize accuracy
+    # Plot results
     plt.figure(figsize=(8, 5))
-    plt.loglog(freqs, target_spectrum, label='Ideal 1/f', linestyle='--')
-    plt.loglog(freqs, output_spectrum, label='Fitted Filterbank')
+    plt.loglog(freqs, target, '--', label='Ideal 1/f spectrum')
+    plt.loglog(freqs, output_spectrum, label='Optimized filter sum')
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('Power (a.u.)')
-    plt.title('Pink Noise Filterbank Approximation')
-    plt.legend()
+    plt.title('Pink Noise Filter Optimization')
     plt.grid(True, which='both')
+    plt.legend()
     plt.tight_layout()
     plt.show()
 
-    return a_coeffs, gains, freqs, output_spectrum, target_spectrum
+    return a_coeffs, gains, freqs, output_spectrum, target
 
 
 # TODO log to file 
