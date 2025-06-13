@@ -551,19 +551,13 @@ def clear_queue(q: Queue) -> None:
 
 if __name__ == '__main__':
 
-    sd.default.device = None, 4
-    sd.default.samplerate = 44100
-    sd.default.channels = None, 2
-    sd.default.dtype = None, 'float32'
-    sd.default.latency = None, 'low'
-
     q = Queue(maxsize=2) # double-buffering
     s = Event()
     channels = 2
     blocksize = 256
     samplerate = 44100
     params = SharedAudioParameters()
-    consumer = AudioConsumer(q,s,channels=channels, blocksize=blocksize, samplerate=samplerate)
+    consumer = AudioConsumer(q,s,channels=channels, device_index=4, blocksize=blocksize, samplerate=samplerate)
     producer = AudioProducer(q,s,params,channels=channels, blocksize=blocksize, samplerate=samplerate)
     consumer.start()
     producer.start()
