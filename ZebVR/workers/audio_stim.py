@@ -39,8 +39,20 @@ def voss_mccartney(n_samples, n_layers=16):
 
 def audio_file_generator(filename, samplerate, channels, blocksize):
     """
-    Generator yielding blocks of decoded samples from `filename`.
+    Generator that yields fixed-size blocks of decoded and resampled audio samples from a file.
+
+    Parameters:
+        filename (str): Path to the input audio or video file.
+        samplerate (int): Desired output sample rate (in Hz).
+        channels (int): Desired number of output audio channels (e.g., 1 for mono, 2 for stereo).
+        blocksize (int): Number of audio samples per block (per channel) to yield.
+
+    Yields:
+        np.ndarray: A NumPy array of shape (blocksize, channels) and dtype float32, 
+                    containing PCM audio samples in the range [-1.0, 1.0]. 
+                    The last block is zero-padded if the file ends mid-block.
     """
+    
     with av.open(filename) as container:
 
         audio_stream = container.streams.audio[0]
