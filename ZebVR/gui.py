@@ -341,8 +341,8 @@ class MainGui(QMainWindow):
         return self.settings
 
     def update_audio_widget(self):
-        ...
-        
+        self.settings['audio'] = self.audio_widget.get_state()
+
     def update_camera_settings(self):
         self.settings['camera'] = self.camera_controller.get_state()
 
