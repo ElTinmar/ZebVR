@@ -41,16 +41,16 @@ def audio_file_generator(filename, samplerate, channels, blocksize):
     """
     Generator yielding blocks of decoded samples from `filename`.
     """
-    container = av.open(filename)
-    audio_stream = container.streams.audio[0]
-    resampler = av.audio.resampler.AudioResampler(
-        format = 'flt',
-        layout = av.audio.layout.AudioLayout(channels),
-        rate = samplerate
-    )
+    with av.open(filename) as container:
 
-    buffer = np.zeros((0, channels), dtype=np.float32)
-    try:
+        audio_stream = container.streams.audio[0]
+        resampler = av.audio.resampler.AudioResampler(
+            format = 'flt',
+            layout = av.audio.layout.AudioLayout(channels),
+            rate = samplerate
+        )
+
+        buffer = np.zeros((0, channels), dtype=np.float32)
         for frame in container.decode(audio_stream):
             for resampled in resampler.resample(frame):
                 samples = resampled.to_ndarray().reshape((resampled.samples,-1))
@@ -62,13 +62,9 @@ def audio_file_generator(filename, samplerate, channels, blocksize):
 
         # final block
         if buffer.shape[0] > 0:
-            pad_len = blocksize - buffer.shape[0]
-            pad = np.zeros((pad_len, channels), dtype=np.float32)
-            final = np.vstack((buffer, pad))
+            final = np.zeros((blocksize, channels), dtype=np.float32)
+            final[:buffer.shape[0]] = buffer
             yield final
-            
-    finally:
-        container.close()
 
 def plot_waveform_spectrogram_and_psd(
         signal: np.ndarray,
