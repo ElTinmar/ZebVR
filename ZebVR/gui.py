@@ -128,6 +128,7 @@ class MainGui(QMainWindow):
         self.tabs.setTabPosition(QTabWidget.West)
         self.tabs.addTab(self.camera_widget, "Camera")
         self.tabs.addTab(self.projector_widget, "Projector")
+        self.tabs.addTab(self.audio_widget, "Audio")
         self.tabs.addTab(self.registration_widget, "Registration")
         self.tabs.addTab(self.calibration_widget, "Calibration")
         self.tabs.addTab(self.background_widget, "Background")
