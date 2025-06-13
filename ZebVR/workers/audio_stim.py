@@ -52,7 +52,7 @@ def audio_file_generator(filename, samplerate, channels, blocksize):
                     containing PCM audio samples in the range [-1.0, 1.0]. 
                     The last block is zero-padded if the file ends mid-block.
     """
-    
+
     with av.open(filename) as container:
 
         audio_stream = container.streams.audio[0]
@@ -254,7 +254,8 @@ class AudioProducer(Process):
         chunk = np.tile(chunk[:, None], (1, self.channels))
         return chunk
     
-    def _audio_file(self) -> np.ndarray:
+    def _audio_file(self) -> NDArray:
+        # NOTE: probable underrun on file opening
     
         filename = self.shared_audio_parameters.audio_file_path.value
         if filename != self._file_name or self._file_gen is None:
