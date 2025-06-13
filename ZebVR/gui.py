@@ -75,7 +75,7 @@ class MainGui(QMainWindow):
         self.projector_controller.state_changed.connect(self.update_projector_settings)
 
         self.audio_widget = AudioWidget()
-        self.audio_widget.state_changed.connect(self.update_audio_widget)
+        self.audio_widget.state_changed.connect(self.update_audio_settings)
 
         self.registration_widget = RegistrationWidget()
         self.registration_widget.state_changed.connect(self.update_registration_settings)
@@ -217,6 +217,7 @@ class MainGui(QMainWindow):
             widgets_to_show = [
                 self.camera_widget,
                 self.projector_widget, 
+                self.audio_widget, 
                 self.calibration_widget, 
                 self.background_widget,
                 self.identity_widget, 
@@ -238,6 +239,7 @@ class MainGui(QMainWindow):
             widgets_to_show = [
                 self.camera_widget,
                 self.projector_widget,
+                self.audio_widget,
                 self.calibration_widget,
                 self.registration_widget,
                 self.sequencer_widget,
@@ -263,6 +265,7 @@ class MainGui(QMainWindow):
 
             widgets_to_hide = [
                 self.projector_widget, 
+                self.audio_widget,
                 self.calibration_widget, 
                 self.background_widget,
                 self.identity_widget,
@@ -289,6 +292,7 @@ class MainGui(QMainWindow):
                 self.registration_widget,
                 self.calibration_widget,
                 self.projector_widget, 
+                self.audio_widget,
                 self.sequencer_widget
             ]
 
@@ -321,6 +325,7 @@ class MainGui(QMainWindow):
         setters = {
             'camera': self.camera_widget.set_state,
             'projector': self.projector_widget.set_state,
+            'audio': self.audio_widget.set_state,
             'registration': self.registration_widget.set_state,
             'calibration': self.calibration_widget.set_state,
             'background': self.background_widget.set_state,
@@ -341,7 +346,7 @@ class MainGui(QMainWindow):
         self.refresh_settings()
         return self.settings
 
-    def update_audio_widget(self):
+    def update_audio_settings(self):
         self.settings['audio'] = self.audio_widget.get_state()
 
     def update_camera_settings(self):
@@ -380,6 +385,7 @@ class MainGui(QMainWindow):
     def refresh_settings(self):
         self.update_camera_settings()
         self.update_projector_settings()
+        self.update_audio_settings()
         self.update_registration_settings()
         self.update_calibration_settings()
         self.update_background_settings()
@@ -628,6 +634,7 @@ class MainGui(QMainWindow):
         # is executed
         self.camera_widget.close()
         self.projector_widget.close()
+        self.audio_widget.close()
         self.registration_widget.close()
         self.calibration_widget.close()
         self.background_widget.close()
