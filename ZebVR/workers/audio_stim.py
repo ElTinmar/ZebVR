@@ -542,47 +542,47 @@ if __name__ == '__main__':
 
     params.amplitude_dB.value = 10
 
-    # print("pure tone")
-    # params.stim_select.value = Stim.PURE_TONE
-    # params.frequency_Hz.value = 440
-    # time.sleep(5)
+    print("pure tone")
+    params.stim_select.value = Stim.PURE_TONE
+    params.frequency_Hz.value = 440
+    time.sleep(5)
 
-    # print("frequency ramp")
-    # params.stim_select.value = Stim.FREQUENCY_RAMP
-    # params.ramp_type.value = RampType.LOG
-    # params.ramp_powerlaw_exponent = 1.67
-    # params.ramp_start_Hz.value = 440
-    # params.ramp_stop_Hz.value = 880
-    # params.ramp_duration_sec.value = 2.5
-    # time.sleep(2.5)
+    print("frequency ramp")
+    params.stim_select.value = Stim.FREQUENCY_RAMP
+    params.ramp_type.value = RampType.LOG
+    params.ramp_powerlaw_exponent = 1.67
+    params.ramp_start_Hz.value = 440
+    params.ramp_stop_Hz.value = 880
+    params.ramp_duration_sec.value = 2.5
+    time.sleep(2.5)
 
-    # print("pink noise")
-    # params.stim_select.value = Stim.PINK_NOISE
-    # time.sleep(5)
+    print("pink noise")
+    params.stim_select.value = Stim.PINK_NOISE
+    time.sleep(5)
     
-    # print("white noise")
-    # params.stim_select.value = Stim.WHITE_NOISE
-    # time.sleep(5)
+    print("white noise")
+    params.stim_select.value = Stim.WHITE_NOISE
+    time.sleep(5)
 
-    # print("brown noise")
-    # params.stim_select.value = Stim.BROWN_NOISE
-    # time.sleep(5)
+    print("brown noise")
+    params.stim_select.value = Stim.BROWN_NOISE
+    time.sleep(5)
 
-    # print("silence")
-    # params.stim_select.value = Stim.SILENCE
-    # time.sleep(5)
+    print("silence")
+    params.stim_select.value = Stim.SILENCE
+    time.sleep(5)
 
-    # print("clicks")
-    # params.stim_select.value = Stim.CLICK_TRAIN
-    # params.click_rate.value = 20
-    # params.click_duration.value = 0.001
-    # params.click_polarity.value = ClickPolarity.BIPHASIC
-    # time.sleep(5)
+    print("clicks")
+    params.stim_select.value = Stim.CLICK_TRAIN
+    params.click_rate.value = 20
+    params.click_duration.value = 0.001
+    params.click_polarity.value = ClickPolarity.BIPHASIC
+    time.sleep(5)
 
     print("audio file")
     params.amplitude_dB.value = 120
     params.stim_select.value = Stim.AUDIO_FILE
-    time.sleep(10)
+    time.sleep(6)
 
     s.set()
     clear_queue(q)
