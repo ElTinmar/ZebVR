@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
 )
 from PyQt5.QtCore import pyqtSignal
-from qt_widgets import LabeledComboBox, LabeledSpinBox, NDarray_to_QPixmap
+from qt_widgets import LabeledComboBox, LabeledDoubleSpinBox, LabeledSpinBox
 
 from typing import Dict
 import sounddevice as sd
@@ -45,6 +45,25 @@ class AudioWidget(QWidget):
         self.samplerate_spinbox.setValue(self.output_devices[0]['default_samplerate'])
         self.samplerate_spinbox.setEnabled(False)
 
+        self.blocksize_spinbox = LabeledSpinBox()
+        self.blocksize_spinbox.setText('blocksize')
+        self.blocksize_spinbox.setRange(256, 2048)
+        self.blocksize_spinbox.setValue(256)
+        self.blocksize_spinbox.valueChanged.connect(self.state_changed)
+
+        self.units_per_dB_spinbox = LabeledDoubleSpinBox()
+        self.units_per_dB_spinbox.setText('calibration')
+        self.units_per_dB_spinbox.setRange(0, 10)
+        self.units_per_dB_spinbox.setSingleStep(0.05)
+        self.units_per_dB_spinbox.setValue(1/120)
+        self.units_per_dB_spinbox.valueChanged.connect(self.state_changed)
+
+        self.rollover_time_spinbox = LabeledSpinBox()
+        self.rollover_time_spinbox.setText('rollover time (s)')
+        self.rollover_time_spinbox.setRange(1, 100_000)
+        self.rollover_time_spinbox.setValue(3600)
+        self.rollover_time_spinbox.valueChanged.connect(self.state_changed)
+
     def enable_audio(self) -> None:
 
         if self.enabled_checkbox.isChecked():
@@ -80,7 +99,10 @@ class AudioWidget(QWidget):
         self.main_layout.addWidget(self.enabled_checkbox)
         self.main_layout.addWidget(self.device_combo)
         self.main_layout.addWidget(self.channels_spinbox)
+        self.main_layout.addWidget(self.blocksize_spinbox)
         self.main_layout.addWidget(self.samplerate_spinbox)
+        self.main_layout.addWidget(self.units_per_dB_spinbox)
+        self.main_layout.addWidget(self.rollover_time_spinbox)
         self.main_layout.addStretch()
 
     def set_state(self, state: Dict):
@@ -88,6 +110,9 @@ class AudioWidget(QWidget):
         self.channels_spinbox.setValue(state.get('channels', self.output_devices[0][['max_output_channels']]))
         self.enabled_checkbox.setChecked(state.get('enabled', True))
         self.samplerate_spinbox.setValue(state.get('samplerate', self.output_devices[0][['default_samplerate']]))
+        self.blocksize_spinbox.setValue(state.get('blocksize', 256))
+        self.units_per_dB_spinbox.setValue(state.get('units_per_dB', 1/120))
+        self.rollover_time_spinbox.setValue(state.get('rollover_time_sec', 3600))
 
     def get_state(self):
         state = {}
@@ -95,6 +120,9 @@ class AudioWidget(QWidget):
         state['device_index'] = self.output_devices[self.device_combo.currentIndex()]['index']
         state['channels'] = self.channels_spinbox.value()
         state['samplerate'] = self.samplerate_spinbox.value()
+        state['blocksize'] = self.blocksize_spinbox.value()
+        state['units_per_dB'] = self.units_per_dB_spinbox.value()
+        state['rollover_time_sec'] = self.rollover_time_spinbox.value()
         state['enabled'] = self.enabled_checkbox.isChecked()
         return state
 

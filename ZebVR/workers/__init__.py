@@ -12,3 +12,4 @@ from .image_filter import *
 from .tracking_saver import *
 from .crop import *
 from .temperature_logger import *
+from .audio_stim import *

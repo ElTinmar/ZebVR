@@ -371,6 +371,7 @@ class AudioConsumer(Process):
             self, 
             audio_queue: Queue, 
             stop_event: EventType,
+            device_index: int,
             samplerate: int = 44100,
             blocksize: int = 256,
             channels: int = 1
@@ -380,9 +381,21 @@ class AudioConsumer(Process):
 
         self.audio_queue = audio_queue
         self.audio_stop_event = stop_event
+        self.device_index = device_index
         self.samplerate = samplerate
         self.blocksize = blocksize 
         self.channels = channels
+
+        sd.check_output_settings(
+            device = device_index,
+            channels = channels,
+            samplerate = samplerate
+        )
+        sd.default.device = None, device_index
+        sd.default.samplerate = samplerate
+        sd.default.channels = None, channels
+        sd.default.dtype = None, 'float32'
+        sd.default.latency = None, 'low'
 
     def audio_callback(
             self,
@@ -421,6 +434,7 @@ class AudioStimWorker(WorkerNode):
 
     def __init__(
             self,
+            device_index: int = 0,
             units_per_dB: float = 1/120,
             samplerate: int = 44100,
             blocksize: int = 256,
@@ -434,6 +448,7 @@ class AudioStimWorker(WorkerNode):
         super().__init__(*args, **kwargs)
 
         self.units_per_dB = units_per_dB
+        self.device_index = device_index
         self.rollover_time_sec = rollover_time_sec
         self.samplerate = samplerate
         self.timings_file = timings_file
@@ -443,28 +458,12 @@ class AudioStimWorker(WorkerNode):
         self.audio_stop_event = Event() 
         self.audio_queue = Queue(maxsize=2)
         self.shared_audio_parameters = SharedAudioParameters()
-        self.audio_producer = AudioProducer(
-            audio_queue = self.audio_queue,
-            stop_event = self.audio_stop_event,
-            shared_audio_parameters = self.shared_audio_parameters,
-            samplerate = self.samplerate,
-            blocksize = self.blocksize,
-            channels = self.channels,
-            rollover_time_sec = rollover_time_sec,
-            units_per_dB  = units_per_dB
-        )
-        self.audio_consumer = AudioConsumer(
-            audio_queue = self.audio_queue,
-            stop_event = self.audio_stop_event,
-            samplerate = self.samplerate,
-            blocksize = self.blocksize,
-            channels = self.channels
-        )
 
     def set_filename(self, filename:str):
         self.timings_file = filename
 
     def initialize(self) -> None:
+
         prefix, ext = os.path.splitext(self.timings_file)
         timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
         while os.path.exists(timings_file):
@@ -481,6 +480,25 @@ class AudioStimWorker(WorkerNode):
         )
         self.fd.write(','.join(headers) + '\n')
 
+        self.audio_producer = AudioProducer(
+            audio_queue = self.audio_queue,
+            stop_event = self.audio_stop_event,
+            shared_audio_parameters = self.shared_audio_parameters,
+            samplerate = self.samplerate,
+            blocksize = self.blocksize,
+            channels = self.channels,
+            rollover_time_sec = self.rollover_time_sec,
+            units_per_dB  = self.units_per_dB
+        )
+        self.audio_consumer = AudioConsumer(
+            audio_queue = self.audio_queue,
+            stop_event = self.audio_stop_event,
+            device_index = self.device_index,
+            samplerate = self.samplerate,
+            blocksize = self.blocksize,
+            channels = self.channels
+        )
+    
         self.audio_consumer.start()
         self.audio_producer.start()
 
@@ -496,7 +514,7 @@ class AudioStimWorker(WorkerNode):
         time.sleep(0.5)
         try:
             while True:
-                q.get_nowait()
+                self.audio_queue.get_nowait()
         except queue.Empty:
             pass
 
@@ -511,9 +529,10 @@ class AudioStimWorker(WorkerNode):
     def process_metadata(self, metadata) -> None:
         # this runs in the worker process
         
-        control: Dict = metadata['stim_control']
+        control: Dict = metadata.get('audio_stim_control', None)
         if control is None:
             return
+        print(control)
 
         # TODO add time to the parameters and use that to reset the phase
         # that way, specifying the same stimulus again also resets the phase

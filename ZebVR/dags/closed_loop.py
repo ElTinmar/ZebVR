@@ -14,6 +14,7 @@ from tracker import (
 from ..workers import (
     BackgroundSubWorker,
     CropWorker, 
+    AudioStimWorker,
     CameraWorker, 
     TrackerWorker, 
     ImageSaverWorker, 
@@ -370,6 +371,20 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         profile = False
     )
 
+    audio_stim_worker = AudioStimWorker(
+        units_per_dB = settings['audio']['units_per_dB'],
+        device_index = settings['audio']['device_index'],
+        samplerate = settings['audio']['samplerate'], 
+        blocksize = settings['audio']['blocksize'], 
+        channels = settings['audio']['channels'],
+        timings_file = 'audio.csv', # TODO add
+        rollover_time_sec = settings['audio']['rollover_time_sec'],
+        name = 'audio_stim', 
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        receive_data_timeout = 1.0,
+    )
+
     stim_control_worker = StimGUI(
         name = 'stim_gui', 
         logger = worker_logger, 
@@ -495,6 +510,13 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             queue = QueueMP(), 
             name = 'stim_control'
         )
+        if settings['audio']['enabled']:
+            dag.connect_metadata(
+                sender = protocol_worker, 
+                receiver = audio_stim_worker, 
+                queue = QueueMP(), 
+                name = 'audio_stim_control'
+            )
         for i in range(settings['identity']['n_animals']):
             dag.connect_metadata(
                 sender = tracker_worker_list[i], 
@@ -509,6 +531,13 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             queue = QueueMP(), 
             name = 'stim_control'
         )
+        if settings['audio']['enabled']:
+            dag.connect_metadata(
+                sender = stim_control_worker, 
+                receiver = audio_stim_worker, 
+                queue = QueueMP(), 
+                name = 'audio_stim_control'
+            )
         
     for i in range(settings['identity']['n_animals']):
         dag.connect_metadata(

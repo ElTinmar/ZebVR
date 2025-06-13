@@ -39,6 +39,7 @@ class StimGUI(WorkerNode):
         if self.window.is_updated():
             res = {}
             res['stim_control'] = self.window.get_state()
+            res['audio_stim_control'] = self.window.get_state()
             self.window.set_updated(False)
             return res       
         else:

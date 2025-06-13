@@ -68,4 +68,5 @@ class Protocol(WorkerNode):
         
         res = {}
         res['stim_control'] = command
+        res['audio_stim_control'] = command
         return res
