@@ -36,7 +36,40 @@ def voss_mccartney(n_samples, n_layers=16):
             counters[j] -= 1
         out[i] = layers.sum()
     return out
-    
+
+def audio_file_generator(filename, samplerate, channels, blocksize):
+    """
+    Generator yielding blocks of decoded samples from `filename`.
+    """
+    container = av.open(filename)
+    audio_stream = container.streams.audio[0]
+    resampler = av.audio.resampler.AudioResampler(
+        format = 'flt',
+        layout = av.audio.layout.AudioLayout(channels),
+        rate = samplerate
+    )
+
+    buffer = np.zeros((0, channels), dtype=np.float32)
+    try:
+        for frame in container.decode(audio_stream):
+            for resampled in resampler.resample(frame):
+                samples = resampled.to_ndarray().reshape((resampled.samples,-1))
+                buffer = np.vstack((buffer, samples))
+                
+                while buffer.shape[0] >= blocksize:
+                    yield buffer[:blocksize, :]
+                    buffer = buffer[blocksize:, :]
+
+        # final block
+        if buffer.shape[0] > 0:
+            pad_len = blocksize - buffer.shape[0]
+            pad = np.zeros((pad_len, channels), dtype=np.float32)
+            final = np.vstack((buffer, pad))
+            yield final
+            
+    finally:
+        container.close()
+
 def plot_waveform_spectrogram_and_psd(
         signal: np.ndarray,
         samplerate: int = 44100,
@@ -214,58 +247,19 @@ class AudioProducer(Process):
         return chunk
     
     def _audio_file(self) -> np.ndarray:
+    
         filename = self.shared_audio_parameters.audio_file_path.value
-
-        # Reinitialize generator on filename change
         if filename != self._file_name or self._file_gen is None:
             self._file_name = filename
-            self._file_gen = self._make_file_generator(filename)
+            self._file_gen = audio_file_generator(filename, self.samplerate, self.channels, self.blocksize)
 
         try:
-            block = next(self._file_gen)
-        except StopIteration:
-            # End of file: loop
-            self._file_gen = self._make_file_generator(filename)
-            block = next(self._file_gen)
-        return block
+            chunk = next(self._file_gen)
+        except StopIteration: 
+            self._file_gen = audio_file_generator(filename, self.samplerate, self.channels, self.blocksize)
+            chunk = next(self._file_gen)
 
-    def _make_file_generator(self, filename):
-        """
-        Generator yielding blocks of decoded samples from `filename`.
-        """
-        container = av.open(filename)
-        audio_stream = container.streams.audio[0]
-        resampler = av.audio.resampler.AudioResampler(
-            format = 'flt',
-            layout = av.audio.layout.AudioLayout(self.channels),
-            rate = self.samplerate
-        )
-        buffer = np.zeros((0, self.channels), dtype=np.float32)
-
-        try:
-            for frame in container.decode(audio_stream):
-                for resampled in resampler.resample(frame):
-                    samples = resampled.to_ndarray().reshape((resampled.samples,-1))
-                    buffer = np.vstack((buffer, samples))
-                    
-                while buffer.shape[0] >= self.blocksize:
-                    if self.channels == 1:
-                        yield buffer[:self.blocksize, 0]
-                    else:
-                        yield buffer[:self.blocksize]
-                    buffer = buffer[self.blocksize:, :]
-
-                # final partial block
-                if buffer.shape[0] > 0:
-                    pad_len = self.blocksize - buffer.shape[0]
-                    pad = np.zeros((pad_len, self.channels), dtype=np.float32)
-                    final = np.vstack((buffer, pad))
-                    if self.channels == 1:
-                        yield final[:, 0]
-                    else:
-                        yield final
-        finally:
-            container.close()
+        return chunk
 
     def _white_noise(self) -> NDArray:
         white = np.random.randn(self.blocksize)
