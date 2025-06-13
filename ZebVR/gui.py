@@ -38,7 +38,8 @@ from .widgets import (
     SequencerWidget,
     SettingsWidget,
     TemperatureWidget,
-    LogsWidget
+    LogsWidget,
+    AudioWidget
 )
 from .dags import closed_loop, open_loop, video_recording, tracking
 
@@ -72,6 +73,9 @@ class MainGui(QMainWindow):
         self.projector_widget = ProjectorWidget()
         self.projector_controller = ProjectorController(self.projector_widget)
         self.projector_controller.state_changed.connect(self.update_projector_settings)
+
+        self.audio_widget = AudioWidget()
+        self.audio_widget.state_changed.connect(self.update_audio_widget)
 
         self.registration_widget = RegistrationWidget()
         self.registration_widget.state_changed.connect(self.update_registration_settings)
@@ -336,6 +340,9 @@ class MainGui(QMainWindow):
         self.refresh_settings()
         return self.settings
 
+    def update_audio_widget(self):
+        ...
+        
     def update_camera_settings(self):
         self.settings['camera'] = self.camera_controller.get_state()
 
