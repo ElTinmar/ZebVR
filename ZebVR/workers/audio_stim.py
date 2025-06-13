@@ -172,13 +172,16 @@ class AudioProducer(Process):
         return signal
 
     def _silence(self) -> NDArray:
-        return np.zeros((self.blocksize,), dtype=np.float32)
+        return np.zeros((self.blocksize, self.channels), dtype=np.float32)
     
     def _pure_tone(self) -> NDArray:
         frequency = self.shared_audio_parameters.frequency_Hz.value
         t = (np.arange(self.blocksize) + self.phase) / self.samplerate
-        return self.RMS_SINE_NORM * np.sin(2 * np.pi * frequency * t)
-
+        chunk = self.RMS_SINE_NORM * np.sin(2 * np.pi * frequency * t)
+        chunk = chunk.astype(np.float32)
+        chunk = np.tile(chunk[:, None], (1, self.channels))
+        return chunk
+    
     def _frequency_ramp(self) -> NDArray:
         f_start = self.shared_audio_parameters.ramp_start_Hz.value
         f_stop = self.shared_audio_parameters.ramp_stop_Hz.value
@@ -205,11 +208,10 @@ class AudioProducer(Process):
         else:
             raise ValueError("Unsupported method. Choose 'linear', 'log' or 'power law'.")
         
-        return self.RMS_SINE_NORM * np.sin(phase_array)
-
-    def _white_noise(self) -> NDArray:
-        white = np.random.randn(self.blocksize)
-        return self.normalize_rms(white.astype(np.float32))
+        chunk = self.RMS_SINE_NORM * np.sin(phase_array)
+        chunk = chunk.astype(np.float32)
+        chunk = np.tile(chunk[:, None], (1, self.channels))
+        return chunk
     
     def _audio_file(self) -> np.ndarray:
         filename = self.shared_audio_parameters.audio_file_path.value
@@ -234,44 +236,57 @@ class AudioProducer(Process):
         container = av.open(filename)
         audio_stream = container.streams.audio[0]
         resampler = av.audio.resampler.AudioResampler(
-            format='flt',
-            layout='stereo' if self.channels > 1 else 'mono',
-            rate=self.samplerate
+            format = 'flt',
+            layout = av.audio.layout.AudioLayout(self.channels),
+            rate = self.samplerate
         )
-        packet_iter = container.demux(audio_stream)
         buffer = np.zeros((0, self.channels), dtype=np.float32)
 
         try:
-            for packet in packet_iter:
-                for frame in packet.decode():
-                    for resampled in resampler.resample(frame):
-                        samples = resampled.to_ndarray().T.astype(np.float32)
-                        buffer = np.vstack((buffer, samples))
-                        while buffer.shape[0] >= self.blocksize:
-                            if self.channels == 1:
-                                yield buffer[:self.blocksize, 0]
-                            else:
-                                yield buffer[:self.blocksize]
-                            buffer = buffer[self.blocksize:, :]
-            # final partial block
-            if buffer.shape[0] > 0:
-                pad_len = self.blocksize - buffer.shape[0]
-                pad = np.zeros((pad_len, self.channels), dtype=np.float32)
-                final = np.vstack((buffer, pad))
-                if self.channels == 1:
-                    yield final[:, 0]
-                else:
-                    yield final
+            for frame in container.decode(audio_stream):
+                for resampled in resampler.resample(frame):
+                    samples = resampled.to_ndarray().reshape((resampled.samples,-1))
+                    buffer = np.vstack((buffer, samples))
+                    
+                while buffer.shape[0] >= self.blocksize:
+                    if self.channels == 1:
+                        yield buffer[:self.blocksize, 0]
+                    else:
+                        yield buffer[:self.blocksize]
+                    buffer = buffer[self.blocksize:, :]
+
+                # final partial block
+                if buffer.shape[0] > 0:
+                    pad_len = self.blocksize - buffer.shape[0]
+                    pad = np.zeros((pad_len, self.channels), dtype=np.float32)
+                    final = np.vstack((buffer, pad))
+                    if self.channels == 1:
+                        yield final[:, 0]
+                    else:
+                        yield final
         finally:
             container.close()
 
+    def _white_noise(self) -> NDArray:
+        white = np.random.randn(self.blocksize)
+        chunk = self.normalize_rms(white.astype(np.float32))
+        chunk = chunk.astype(np.float32)
+        chunk = np.tile(chunk[:, None], (1, self.channels))
+        return chunk
+    
     def _pink_noise(self) -> NDArray:
         pink = voss_mccartney(self.blocksize)
-        return self.normalize_rms(pink.astype(np.float32))
+        chunk = self.normalize_rms(pink.astype(np.float32))
+        chunk = chunk.astype(np.float32)
+        chunk = np.tile(chunk[:, None], (1, self.channels))
+        return chunk
     
     def _brown_noise(self) -> NDArray:
         brown = np.cumsum(np.random.randn(self.blocksize))
-        return self.normalize_rms(brown.astype(np.float32))
+        chunk = self.normalize_rms(brown.astype(np.float32))
+        chunk = chunk.astype(np.float32)
+        chunk = np.tile(chunk[:, None], (1, self.channels))
+        return chunk
     
     def _click_train(self) -> NDArray:
         # TODO handle block boundaries better
@@ -304,7 +319,9 @@ class AudioProducer(Process):
 
             else:
                 raise ValueError("Unsupported click type, choose 'positive', 'biphasic'")
-            
+        
+        chunk = chunk.astype(np.float32)
+        chunk = np.tile(chunk[:, None], (1, self.channels))
         return chunk
     
     def _next_chunk(self) -> NDArray:
@@ -335,8 +352,6 @@ class AudioProducer(Process):
             self.chunk_function = self._silence
 
         chunk = self.chunk_function()
-        chunk = chunk.astype(np.float32)
-        chunk = np.tile(chunk[:, None], (1, self.channels))
         chunk = amplitude_dB * self.units_per_dB * chunk
         self.phase = (self.phase + self.blocksize) % self.rollover_phase
         return chunk
@@ -527,10 +542,10 @@ if __name__ == '__main__':
 
     params.amplitude_dB.value = 10
 
-    print("pure tone")
-    params.stim_select.value = Stim.PURE_TONE
-    params.frequency_Hz.value = 440
-    time.sleep(5)
+    # print("pure tone")
+    # params.stim_select.value = Stim.PURE_TONE
+    # params.frequency_Hz.value = 440
+    # time.sleep(5)
 
     # print("frequency ramp")
     # params.stim_select.value = Stim.FREQUENCY_RAMP
@@ -565,8 +580,9 @@ if __name__ == '__main__':
     # time.sleep(5)
 
     print("audio file")
+    params.amplitude_dB.value = 120
     params.stim_select.value = Stim.AUDIO_FILE
-    time.sleep(5)
+    time.sleep(10)
 
     s.set()
     clear_queue(q)
