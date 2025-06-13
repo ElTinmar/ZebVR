@@ -12,6 +12,7 @@ dependencies:
 - snakeviz
 - cupy
 - ffmpeg == 4.4.2 # old version necessary for spinnaker
+- av
 - pyserial
 - pyqtgraph
 - pip:

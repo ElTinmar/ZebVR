@@ -13,6 +13,8 @@ import numpy as np
 from numpy.typing import NDArray
 import matplotlib.pyplot as plt
 from numba import njit
+import av
+from ZebVR.utils import SharedString
 
 # For pink noise generation see:
 # Voss-McCartney method: https://www.firstpr.com.au/dsp/pink-noise/voss-mccartney/
@@ -107,6 +109,7 @@ class SharedAudioParameters:
         self.click_rate = RawValue('d', DEFAULT['click_rate'])
         self.click_duration = RawValue('d', DEFAULT['click_duration'])
         self.click_polarity = RawValue('d', DEFAULT['click_polarity'])
+        self.audio_file_path = SharedString(initializer = DEFAULT['audio_file_path'])
 
     def from_dict(self, d: Dict) -> None:
 
@@ -121,6 +124,7 @@ class SharedAudioParameters:
         self.click_rate.value = d.get('click_rate', DEFAULT['click_rate'])
         self.click_duration.value = d.get('click_duration', DEFAULT['click_duration'])
         self.click_polarity.value = d.get('click_polarity', DEFAULT['click_polarity'])
+        self.audio_file_path.value = d.get('audio_file_path', DEFAULT['audio_file_path'])
 
 class AudioProducer(Process):
 
@@ -153,6 +157,10 @@ class AudioProducer(Process):
         self.phase: int = 0
         self.current_stim: Stim = Stim.SILENCE
         self.chunk_function = self._silence
+
+        # For file-based streaming
+        self._file_gen = None
+        self._file_name = None
 
         voss_mccartney(self.blocksize)  # warm up the JIT compiler
 
@@ -203,9 +211,59 @@ class AudioProducer(Process):
         white = np.random.randn(self.blocksize)
         return self.normalize_rms(white.astype(np.float32))
     
-    def _audio_file(self) -> NDArray:
-        print('not implemented yet')
-        return self._silence() 
+    def _audio_file(self) -> np.ndarray:
+        filename = self.shared_audio_parameters.audio_file_path.value
+
+        # Reinitialize generator on filename change
+        if filename != self._file_name or self._file_gen is None:
+            self._file_name = filename
+            self._file_gen = self._make_file_generator(filename)
+
+        try:
+            block = next(self._file_gen)
+        except StopIteration:
+            # End of file: loop
+            self._file_gen = self._make_file_generator(filename)
+            block = next(self._file_gen)
+        return block
+
+    def _make_file_generator(self, filename):
+        """
+        Generator yielding blocks of decoded samples from `filename`.
+        """
+        container = av.open(filename)
+        audio_stream = container.streams.audio[0]
+        resampler = av.audio.resampler.AudioResampler(
+            format='flt',
+            layout='stereo' if self.channels > 1 else 'mono',
+            rate=self.samplerate
+        )
+        packet_iter = container.demux(audio_stream)
+        buffer = np.zeros((0, self.channels), dtype=np.float32)
+
+        try:
+            for packet in packet_iter:
+                for frame in packet.decode():
+                    for resampled in resampler.resample(frame):
+                        samples = resampled.to_ndarray().T.astype(np.float32)
+                        buffer = np.vstack((buffer, samples))
+                        while buffer.shape[0] >= self.blocksize:
+                            if self.channels == 1:
+                                yield buffer[:self.blocksize, 0]
+                            else:
+                                yield buffer[:self.blocksize]
+                            buffer = buffer[self.blocksize:, :]
+            # final partial block
+            if buffer.shape[0] > 0:
+                pad_len = self.blocksize - buffer.shape[0]
+                pad = np.zeros((pad_len, self.channels), dtype=np.float32)
+                final = np.vstack((buffer, pad))
+                if self.channels == 1:
+                    yield final[:, 0]
+                else:
+                    yield final
+        finally:
+            container.close()
 
     def _pink_noise(self) -> NDArray:
         pink = voss_mccartney(self.blocksize)
@@ -474,42 +532,42 @@ if __name__ == '__main__':
     params.frequency_Hz.value = 440
     time.sleep(5)
 
-    print("frequency ramp")
-    params.stim_select.value = Stim.FREQUENCY_RAMP
-    params.ramp_type.value = RampType.LOG
-    params.ramp_powerlaw_exponent = 1.67
-    params.ramp_start_Hz.value = 440
-    params.ramp_stop_Hz.value = 880
-    params.ramp_duration_sec.value = 2.5
-    time.sleep(2.5)
+    # print("frequency ramp")
+    # params.stim_select.value = Stim.FREQUENCY_RAMP
+    # params.ramp_type.value = RampType.LOG
+    # params.ramp_powerlaw_exponent = 1.67
+    # params.ramp_start_Hz.value = 440
+    # params.ramp_stop_Hz.value = 880
+    # params.ramp_duration_sec.value = 2.5
+    # time.sleep(2.5)
 
-    print("pink noise")
-    params.stim_select.value = Stim.PINK_NOISE
-    time.sleep(5)
+    # print("pink noise")
+    # params.stim_select.value = Stim.PINK_NOISE
+    # time.sleep(5)
     
-    print("white noise")
-    params.stim_select.value = Stim.WHITE_NOISE
-    time.sleep(5)
+    # print("white noise")
+    # params.stim_select.value = Stim.WHITE_NOISE
+    # time.sleep(5)
 
-    print("brown noise")
-    params.stim_select.value = Stim.BROWN_NOISE
-    time.sleep(5)
+    # print("brown noise")
+    # params.stim_select.value = Stim.BROWN_NOISE
+    # time.sleep(5)
 
-    print("silence")
-    params.stim_select.value = Stim.SILENCE
-    time.sleep(5)
+    # print("silence")
+    # params.stim_select.value = Stim.SILENCE
+    # time.sleep(5)
 
-    print("clicks")
-    params.stim_select.value = Stim.CLICK_TRAIN
-    params.click_rate.value = 20
-    params.click_duration.value = 0.001
-    params.click_polarity.value = ClickPolarity.BIPHASIC
-    time.sleep(5)
+    # print("clicks")
+    # params.stim_select.value = Stim.CLICK_TRAIN
+    # params.click_rate.value = 20
+    # params.click_duration.value = 0.001
+    # params.click_polarity.value = ClickPolarity.BIPHASIC
+    # time.sleep(5)
 
     print("audio file")
     params.stim_select.value = Stim.AUDIO_FILE
     time.sleep(5)
-    
+
     s.set()
     clear_queue(q)
     producer.join()
