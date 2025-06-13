@@ -81,6 +81,7 @@ class AudioWidget(QWidget):
         self.main_layout.addWidget(self.device_combo)
         self.main_layout.addWidget(self.channels_spinbox)
         self.main_layout.addWidget(self.samplerate_spinbox)
+        self.main_layout.addStretch()
 
     def set_state(self, state: Dict):
         self.device_combo.setCurrentIndex(state.get('index', 0))
