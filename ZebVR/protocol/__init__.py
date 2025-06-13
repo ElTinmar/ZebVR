@@ -27,5 +27,6 @@ PROTOCOL_WIDGETS = [
     (acoustic.ClickTrainWidget, protocol_item.Stim.CLICK_TRAIN),
     (acoustic.FrequencyRampWidget, protocol_item.Stim.FREQUENCY_RAMP),
     (acoustic.SilenceWidget, protocol_item.Stim.SILENCE),
+    (acoustic.AudioFileWidget, protocol_item.Stim.AUDIO_FILE),
 ]
 PROTOCOL_WIDGETS.sort(key = lambda x: x[1])

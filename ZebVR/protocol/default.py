@@ -36,4 +36,5 @@ DEFAULT = {
     'click_rate': 10.0,
     'click_duration': 0.01,
     'click_polarity': 0,
+    'audio_file_path': 'ZebVR/resources/danionella_cerebrum_pnas.2314017121.wav',
 }

@@ -34,6 +34,7 @@ class Stim(IntEnum):
     BROWN_NOISE = 24
     CLICK_TRAIN = 25
     SILENCE = 26
+    AUDIO_FILE = 27
 
     def __str__(self):
         return self.name

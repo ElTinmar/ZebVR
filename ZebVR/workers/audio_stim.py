@@ -202,6 +202,10 @@ class AudioProducer(Process):
     def _white_noise(self) -> NDArray:
         white = np.random.randn(self.blocksize)
         return self.normalize_rms(white.astype(np.float32))
+    
+    def _audio_file(self) -> NDArray:
+        print('not implemented yet')
+        return self._silence() 
 
     def _pink_noise(self) -> NDArray:
         pink = voss_mccartney(self.blocksize)
@@ -267,6 +271,8 @@ class AudioProducer(Process):
             self.chunk_function = self._brown_noise
         elif self.current_stim == Stim.CLICK_TRAIN:
             self.chunk_function = self._click_train
+        elif self.current_stim == Stim.AUDIO_FILE:
+            self.chunk_function = self._audio_file
         else:
             self.chunk_function = self._silence
 
@@ -500,6 +506,10 @@ if __name__ == '__main__':
     params.click_polarity.value = ClickPolarity.BIPHASIC
     time.sleep(5)
 
+    print("audio file")
+    params.stim_select.value = Stim.AUDIO_FILE
+    time.sleep(5)
+    
     s.set()
     clear_queue(q)
     producer.join()
