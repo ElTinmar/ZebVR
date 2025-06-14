@@ -16,6 +16,9 @@ from numba import njit
 import av
 from ZebVR.utils import SharedString
 
+# TODO barrier to check everyone up and running
+# TODO log timings 
+
 # For pink noise generation see:
 # Voss-McCartney method: https://www.firstpr.com.au/dsp/pink-noise/voss-mccartney/
 # IIR filter bank: http://www.cooperbaker.com/home/code/pink%20noise/
@@ -243,9 +246,6 @@ class AudioProducer(Process):
             phase_array = 2 * np.pi * (
                 f_start * t + (delta_f / (exponent + 1)) * (t ** (exponent + 1)) / (ramp_duration ** exponent)
             )
-
-        else:
-            raise ValueError("Unsupported method. Choose 'linear', 'log' or 'power law'.")
         
         chunk = self.RMS_SINE_NORM * np.sin(phase_array)
         chunk = chunk.astype(np.float32)
@@ -299,7 +299,7 @@ class AudioProducer(Process):
         interval_samples = int(self.samplerate / click_rate)
         click_samples = int(self.samplerate * click_duration)
         if click_samples >= interval_samples:
-            raise ValueError("Click duration too long for click rate")
+            return self._silence()
 
         chunk = np.zeros(self.blocksize, dtype=np.float32)
         first_click = (-self.phase) % interval_samples
@@ -317,9 +317,6 @@ class AudioProducer(Process):
                 half = click_samples // 2
                 chunk[click_pos:click_pos + half] += 1
                 chunk[click_pos + half:click_pos + click_samples] -= 1  
-
-            else:
-                raise ValueError("Unsupported click type, choose 'positive', 'biphasic'")
         
         chunk = chunk.astype(np.float32)
         chunk = np.tile(chunk[:, None], (1, self.channels))

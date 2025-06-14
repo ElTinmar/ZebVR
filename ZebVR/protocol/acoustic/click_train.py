@@ -79,8 +79,8 @@ class ClickTrainWidget(AudioProtocolItemWidget):
         self.sb_click_rate.valueChanged.connect(self.state_changed)
 
         self.sb_click_duration = LabeledDoubleSpinBox()
-        self.sb_click_duration.setText('Click duration (ms)')
-        self.sb_click_duration.setRange(0.1, 1000.0)
+        self.sb_click_duration.setText('Click duration (s)')
+        self.sb_click_duration.setRange(0.0001, 1)
         self.sb_click_duration.setValue(self.click_duration)
         self.sb_click_duration.valueChanged.connect(self.state_changed)
 
