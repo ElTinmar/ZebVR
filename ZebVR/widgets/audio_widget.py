@@ -54,7 +54,7 @@ class AudioWidget(QWidget):
         self.units_per_dB_spinbox = LabeledDoubleSpinBox()
         self.units_per_dB_spinbox.setText('calibration')
         self.units_per_dB_spinbox.setRange(0, 10)
-        self.units_per_dB_spinbox.setSingleStep(0.05)
+        self.units_per_dB_spinbox.setSingleStep(0.005)
         self.units_per_dB_spinbox.setValue(1/120)
         self.units_per_dB_spinbox.valueChanged.connect(self.state_changed)
 
