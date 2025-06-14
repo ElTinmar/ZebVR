@@ -18,6 +18,11 @@ class AudioWidget(QWidget):
 
         super().__init__(*args, **kwargs)
         self.output_devices = [device for device in sd.query_devices() if device['max_output_channels'] > 0]
+        self.default_device = 0
+        for index, device in enumerate(self.output_devices):
+            if device['index'] == sd.default.device[1]:
+                self.default_device = index
+
         self.declare_components()
         self.layout_components()   
         self.enable_audio()
@@ -32,6 +37,7 @@ class AudioWidget(QWidget):
         self.device_combo.setText('output device')
         self.device_combo.addItems([device['name'] for device in self.output_devices])
         self.device_combo.currentIndexChanged.connect(self.device_changed)
+        self.device_combo.setCurrentIndex(self.default_device)
 
         self.channels_spinbox = LabeledSpinBox()
         self.channels_spinbox.setText('channels')
@@ -112,10 +118,10 @@ class AudioWidget(QWidget):
         self.main_layout.addStretch()
 
     def set_state(self, state: Dict):
-        self.device_combo.setCurrentIndex(state.get('index', 0))
-        self.channels_spinbox.setValue(state.get('channels', self.output_devices[0]['max_output_channels']))
+        self.device_combo.setCurrentIndex(state.get('index', self.default_device))
+        self.channels_spinbox.setValue(state.get('channels', self.output_devices[self.default_device]['max_output_channels']))
         self.enabled_checkbox.setChecked(state.get('enabled', True))
-        self.samplerate_spinbox.setValue(state.get('samplerate', self.output_devices[0]['default_samplerate']))
+        self.samplerate_spinbox.setValue(state.get('samplerate', self.output_devices[self.default_device]['default_samplerate']))
         self.blocksize_spinbox.setValue(state.get('blocksize', 256))
         self.units_per_dB_spinbox.setValue(state.get('units_per_dB', 1/120))
         self.rollover_time_spinbox.setValue(state.get('rollover_time_sec', 3600))
