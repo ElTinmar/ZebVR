@@ -415,7 +415,7 @@ class AudioConsumer(Process):
             print('audio underrun')
             outdata.fill(0)
         else:
-            outdata[:] = chunk         
+            outdata[:] = chunk       
 
     def run(self):
 
@@ -532,7 +532,6 @@ class AudioStimWorker(WorkerNode):
         control: Dict = metadata.get('audio_stim_control', None)
         if control is None:
             return
-        print(control)
 
         # TODO add time to the parameters and use that to reset the phase
         # that way, specifying the same stimulus again also resets the phase
