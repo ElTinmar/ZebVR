@@ -113,9 +113,9 @@ class AudioWidget(QWidget):
 
     def set_state(self, state: Dict):
         self.device_combo.setCurrentIndex(state.get('index', 0))
-        self.channels_spinbox.setValue(state.get('channels', self.output_devices[0][['max_output_channels']]))
+        self.channels_spinbox.setValue(state.get('channels', self.output_devices[0]['max_output_channels']))
         self.enabled_checkbox.setChecked(state.get('enabled', True))
-        self.samplerate_spinbox.setValue(state.get('samplerate', self.output_devices[0][['default_samplerate']]))
+        self.samplerate_spinbox.setValue(state.get('samplerate', self.output_devices[0]['default_samplerate']))
         self.blocksize_spinbox.setValue(state.get('blocksize', 256))
         self.units_per_dB_spinbox.setValue(state.get('units_per_dB', 1/120))
         self.rollover_time_spinbox.setValue(state.get('rollover_time_sec', 3600))
