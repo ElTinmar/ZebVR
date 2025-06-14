@@ -10,6 +10,7 @@ from tracker import (
 )
 from ..workers import (
     CameraWorker, 
+    AudioStimWorker,
     DummyTrackerWorker,
     ImageSaverWorker, 
     VideoSaverWorker,
@@ -246,6 +247,20 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         receive_data_timeout = 1.0,
         profile = False
     )
+    
+    audio_stim_worker = AudioStimWorker(
+        units_per_dB = settings['audio']['units_per_dB'],
+        device_index = settings['audio']['device_index'],
+        samplerate = settings['audio']['samplerate'], 
+        blocksize = settings['audio']['blocksize'], 
+        channels = settings['audio']['channels'],
+        timings_file = 'audio.csv', # TODO add
+        rollover_time_sec = settings['audio']['rollover_time_sec'],
+        name = 'audio_stim', 
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        receive_data_timeout = 1.0,
+    )
 
     stim_control_worker = StimGUI(
         name = 'stim_gui', 
@@ -343,6 +358,13 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             queue = QueueMP(), 
             name = 'stim_control'
         )
+        if settings['audio']['enabled']:
+            dag.connect_metadata(
+                sender = protocol_worker, 
+                receiver = audio_stim_worker, 
+                queue = QueueMP(), 
+                name = 'audio_stim_control'
+            )
 
     else:
 
@@ -352,6 +374,13 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             queue = QueueMP(), 
             name = 'stim_control'
         )
+        if settings['audio']['enabled']:
+            dag.connect_metadata(
+                sender = stim_control_worker, 
+                receiver = audio_stim_worker, 
+                queue = QueueMP(), 
+                name = 'audio_stim_control'
+            )
 
     dag.add_node(queue_monitor_worker)
     dag.add_node(temperature_logger)
