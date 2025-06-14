@@ -504,9 +504,12 @@ class AudioStimWorker(WorkerNode):
             channels = self.channels
         )
 
+        print('starting audio consumer')
         self.audio_consumer.start()
+        print('starting audio producer')
         self.audio_producer.start()
         self.audio_barrier.wait()
+        print('audio initialization done')
 
         super().initialize()
 
