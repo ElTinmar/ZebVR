@@ -84,7 +84,7 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
 
         self.sb_ramp_stop_Hz = LabeledDoubleSpinBox()
         self.sb_ramp_stop_Hz.setText('Frequency stop (Hz)')
-        self.sb_ramp_stop_Hz.setRange(0.1, 10000.0)
+        self.sb_ramp_stop_Hz.setRange(1, 100_000)
         self.sb_ramp_stop_Hz.setValue(self.ramp_stop_Hz)
         self.sb_ramp_stop_Hz.valueChanged.connect(self.state_changed)
 
@@ -145,7 +145,7 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
         state['ramp_stop_Hz'] = self.sb_ramp_stop_Hz.value()
         state['ramp_duration_sec'] = self.sb_ramp_duration_sec.value()
         state['ramp_powerlaw_exponent'] = self.sb_ramp_powerlaw_exponent.value()
-        state['ramp_type'] = self.cb_ramp_type.currentIndex()
+        state['ramp_type'] = self.RAMPS[self.cb_ramp_type.currentIndex()]
         return state
 
     def set_state(self, state: Dict) -> None:
@@ -180,6 +180,7 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
             default = self.ramp_powerlaw_exponent,
             cast = float
         )
+        # TODO this is likely wrong
         set_from_dict(
             dictionary = state,
             key = 'ramp_type',
