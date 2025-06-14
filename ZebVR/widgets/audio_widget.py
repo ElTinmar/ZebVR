@@ -69,9 +69,15 @@ class AudioWidget(QWidget):
         if self.enabled_checkbox.isChecked():
             self.device_combo.setEnabled(True)
             self.channels_spinbox.setEnabled(True)
+            self.blocksize_spinbox.setEnabled(True)
+            self.units_per_dB_spinbox.setEnabled(True)
+            self.rollover_time_spinbox.setEnabled(True)
         else:
             self.device_combo.setEnabled(False)
             self.channels_spinbox.setEnabled(False)
+            self.blocksize_spinbox.setEnabled(False)
+            self.units_per_dB_spinbox.setEnabled(False)
+            self.rollover_time_spinbox.setEnabled(False)
 
         self.state_changed.emit()
 
