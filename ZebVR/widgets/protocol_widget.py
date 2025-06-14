@@ -95,13 +95,18 @@ class StimWidget(QWidget):
 
     def get_state(self) -> Dict:
         state = {}
-        state['stim_select'] = self.cmb_stim_select.currentIndex() 
+        state['stim_select'] = PROTOCOL_WIDGETS[self.cmb_stim_select.currentIndex()][1]
         current_widget = self.stack.currentWidget()
         state.update(current_widget.get_state())
         return state
 
     def set_state(self, state: Dict) -> None:
-        self.cmb_stim_select.setCurrentIndex(state.get('stim_select', Stim.DARK)) 
+        stim_idx = state.get('stim_select', Stim.DARK)
+        for i, (_, stim) in enumerate(PROTOCOL_WIDGETS):
+            if stim == stim_idx:
+                self.cmb_stim_select.setCurrentIndex(i)
+                break
+
         current_widget = self.stack.currentWidget()
         current_widget.set_state(state)
 

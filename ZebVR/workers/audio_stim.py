@@ -203,8 +203,6 @@ class AudioProducer(Process):
         self._file_gen = None
         self._file_name = None
 
-        voss_mccartney(self.blocksize)  # warm up the JIT compiler
-
     @staticmethod
     def normalize_rms(signal: NDArray, target_rms: float = 1):
         current_rms = np.sqrt(np.mean(signal**2))
@@ -357,9 +355,12 @@ class AudioProducer(Process):
         chunk = self.chunk_function()
         chunk = amplitude_dB * self.units_per_dB * chunk
         self.phase = (self.phase + self.blocksize) % self.rollover_phase
+
         return chunk
 
     def run(self):
+
+        voss_mccartney(self.blocksize)  # warm up the JIT compiler
 
         while not self.audio_stop_event.is_set():
             chunk = self._next_chunk()
@@ -386,17 +387,6 @@ class AudioConsumer(Process):
         self.blocksize = blocksize 
         self.channels = channels
 
-        sd.check_output_settings(
-            device = device_index,
-            channels = channels,
-            samplerate = samplerate
-        )
-        sd.default.device = None, device_index
-        sd.default.samplerate = samplerate
-        sd.default.channels = None, channels
-        sd.default.dtype = None, 'float32'
-        sd.default.latency = None, 'low'
-
     def audio_callback(
             self,
             outdata: NDArray,
@@ -418,6 +408,13 @@ class AudioConsumer(Process):
             outdata[:] = chunk       
 
     def run(self):
+
+        import sounddevice as sd 
+        sd.default.device = None, self.device_index
+        sd.default.samplerate = self.samplerate
+        sd.default.channels = None, self.channels
+        sd.default.dtype = None, 'float32'
+        sd.default.latency = None, 'low'
 
         with sd.OutputStream(
                 callback = self.audio_callback,
