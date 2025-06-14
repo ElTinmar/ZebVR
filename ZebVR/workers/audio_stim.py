@@ -1,7 +1,7 @@
 from dagline import WorkerNode
 import matplotlib.pyplot as plt
 from scipy.signal import spectrogram, welch
-from multiprocessing import RawValue, Process, Queue, Event
+from multiprocessing import RawValue, Process, Queue, Event, Barrier
 from multiprocessing.synchronize  import Event as EventType
 import queue
 from ZebVR.protocol import DEFAULT, Stim, ClickPolarity, RampType
@@ -178,6 +178,7 @@ class AudioProducer(Process):
             self, 
             audio_queue: Queue, 
             stop_event: EventType,
+            barrier,
             shared_audio_parameters: SharedAudioParameters,
             samplerate: int = 44100,
             blocksize: int = 256,
@@ -189,6 +190,7 @@ class AudioProducer(Process):
         super().__init__()
 
         self.audio_stop_event = stop_event
+        self.barrier = barrier
         self.audio_queue = audio_queue
         self.samplerate = samplerate
         self.blocksize = blocksize 
@@ -358,6 +360,7 @@ class AudioProducer(Process):
     def run(self):
 
         voss_mccartney(self.blocksize)  # warm up the JIT compiler
+        self.barrier.wait()
 
         while not self.audio_stop_event.is_set():
             chunk = self._next_chunk()
@@ -369,6 +372,7 @@ class AudioConsumer(Process):
             self, 
             audio_queue: Queue, 
             stop_event: EventType,
+            barrier,
             device_index: int,
             samplerate: int = 44100,
             blocksize: int = 256,
@@ -378,6 +382,7 @@ class AudioConsumer(Process):
         super().__init__()
 
         self.audio_queue = audio_queue
+        self.barrier = barrier
         self.audio_stop_event = stop_event
         self.device_index = device_index
         self.samplerate = samplerate
@@ -421,6 +426,8 @@ class AudioConsumer(Process):
                 dtype = 'float32'
             ):
 
+            self.barrier.wait()
+
             while not self.audio_stop_event.is_set():
                 time.sleep(0.1)  
 
@@ -450,6 +457,7 @@ class AudioStimWorker(WorkerNode):
         self.channels = channels    
 
         self.audio_stop_event = Event() 
+        self.audio_barrier = Barrier(3)
         self.audio_queue = Queue(maxsize=2)
         self.shared_audio_parameters = SharedAudioParameters()
 
@@ -477,6 +485,7 @@ class AudioStimWorker(WorkerNode):
         self.audio_producer = AudioProducer(
             audio_queue = self.audio_queue,
             stop_event = self.audio_stop_event,
+            barrier = self.audio_barrier,
             shared_audio_parameters = self.shared_audio_parameters,
             samplerate = self.samplerate,
             blocksize = self.blocksize,
@@ -486,15 +495,17 @@ class AudioStimWorker(WorkerNode):
         )
         self.audio_consumer = AudioConsumer(
             audio_queue = self.audio_queue,
+            barrier = self.audio_barrier,
             stop_event = self.audio_stop_event,
             device_index = self.device_index,
             samplerate = self.samplerate,
             blocksize = self.blocksize,
             channels = self.channels
         )
-    
+
         self.audio_consumer.start()
         self.audio_producer.start()
+        self.audio_barrier.wait()
 
         super().initialize()
 
