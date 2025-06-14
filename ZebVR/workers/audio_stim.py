@@ -233,8 +233,9 @@ class AudioProducer(Process):
         exponent = self.shared_audio_parameters.ramp_powerlaw_exponent.value
         method = RampType(self.shared_audio_parameters.ramp_type.value) 
 
-        ramp_samples = ramp_duration * self.samplerate
+        ramp_samples = int(ramp_duration * self.samplerate)
         t = (np.arange(self.blocksize) + (self.phase % ramp_samples)) / self.samplerate
+        # enveloppe = 
 
         if method == RampType.LINEAR:
             k = (f_stop - f_start) / ramp_duration
