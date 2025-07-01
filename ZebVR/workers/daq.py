@@ -68,7 +68,7 @@ class DAQ_Worker(WorkerNode):
         
 if __name__ == '__main__':
 
-    from dagline import ProcessingDAG, send_strategy
+    from dagline import ProcessingDAG, send_strategy, receive_strategy
     from ipc_tools import QueueMP
     from multiprocessing_logger import Logger
     import time
@@ -93,6 +93,7 @@ if __name__ == '__main__':
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        #send_metadata_strategy = send_strategy.DISPATCH
     )
     source = NullNode(        
         name = 'source',
@@ -103,6 +104,7 @@ if __name__ == '__main__':
         name = 'sink',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        #receive_metadata_strategy = receive_strategy.POLL
     )
 
     input_queue = QueueMP()
@@ -125,14 +127,17 @@ if __name__ == '__main__':
     dag.start()
     input_queue.put(
         {
-            'arduino': [
-                ('/dev/ttyACM0', 'digital_write', (4, True)),
-                ('/dev/ttyACM0', 'pwm_write', (9, 0.25))
-            ],
-            'labjack': [
-                (320043003, 'digital_read', (0,)),
-                (320043003, 'pwm_write', (4, 0.5)),
-                (320043003, 'pwm_write', (5, 0.15))
+            #'arduino': [
+            #    ('/dev/ttyACM0', 'digital_write', (4, True)),
+            #    ('/dev/ttyACM0', 'pwm_write', (9, 0.25))
+            #],
+            #'labjack': [
+            #    (320043003, 'digital_read', (0,)),
+            #    (320043003, 'pwm_write', (4, 0.5)),
+            #    (320043003, 'pwm_write', (5, 0.15))
+            #],
+            'ni': [
+                (0, 'digital_write', (0, True))
             ]
         }
     )
