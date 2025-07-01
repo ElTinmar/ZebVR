@@ -3,12 +3,18 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QPushButton,
     QGroupBox,
-    QCheckBox
+    QCheckBox,
+    QLayout,
+    QApplication
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict, List
-from qt_widgets import LabeledSpinBox
-from daq_tools import Arduino_SoftTiming, LabJackU3_SoftTiming, NI_SoftTiming, BoardInfo
+from daq_tools import (
+    Arduino_SoftTiming, 
+    LabJackU3_SoftTiming, 
+    NI_SoftTiming, 
+    BoardInfo
+)
 
 class DaqWidget(QWidget):
 
@@ -18,8 +24,11 @@ class DaqWidget(QWidget):
 
         super().__init__(*args, **kwargs)
         self.arduino_boards: List[BoardInfo] = []
+        self.arduino_checkboxes: List[QCheckBox] = []
         self.labjack_boards: List[BoardInfo] = []
+        self.labjack_checkboxes: List[QCheckBox] = []
         self.ni_boards: List[BoardInfo] = []
+        self.ni_checkboxes: List[QCheckBox] = []
 
         self.create_components()
         self.layout_components()
@@ -31,14 +40,9 @@ class DaqWidget(QWidget):
         self.refresh.clicked.connect(self.refresh_boards)
 
         self.arduino_group = QGroupBox("Arduino")
-        self.arduino_checkboxes: List[QCheckBox] = []
-
         self.labjack_group = QGroupBox("Labjack")
-        self.labjack_checkboxes: List[QCheckBox] = []
-
         self.ni_group = QGroupBox("National Instruments")
-        self.ni_checkboxes: List[QCheckBox] = []
-
+        
     def layout_components(self) -> None:
         
         self.arduino_layout = QVBoxLayout()
@@ -60,16 +64,50 @@ class DaqWidget(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
+        
+        state['arduino'] = []
+        for checkbox, board in zip(self.arduino_checkboxes, self.arduino_boards):
+            if checkbox.isChecked():
+                state['arduino'].append(board.id)
+        
+        state['labjack'] = []
+        for checkbox, board in zip(self.labjack_checkboxes, self.labjack_boards):
+            if checkbox.isChecked():
+                state['labjack'].append(board.id)
+
+        state['ni'] = []
+        for checkbox, board in zip(self.ni_checkboxes, self.ni_boards):
+            if checkbox.isChecked():
+                state['ni'].append(board.id)
+
         return state
     
     def set_state(self, state: Dict) -> None:
 
-        setters = {
-        }
+        setters = {}
 
         for key, setter in setters.items():
             if key in state:
                 setter(state[key])
+
+    def _refresh(
+            self, 
+            boards: List[BoardInfo], 
+            checkboxes: List[QCheckBox], 
+            layout: QLayout
+        ) -> None:
+        """relies on side-effect"""
+        
+        for checkbox in checkboxes:
+            layout.removeWidget(checkbox)
+            checkbox.deleteLater()
+        checkboxes.clear()
+
+        for board in boards:
+            checkbox = QCheckBox(f'{board.name} - {str(board.id)}')
+            checkbox.stateChanged.connect(self.state_changed.emit)
+            checkboxes.append(checkbox)
+            layout.addWidget(checkbox)
 
     def refresh_boards(self) -> None:
         
@@ -78,33 +116,15 @@ class DaqWidget(QWidget):
         self.labjack_boards = LabJackU3_SoftTiming.list_boards()
         self.ni_boards = NI_SoftTiming.list_boards()
 
-        # update widgets
-        for checkbox in self.arduino_checkboxes:
-            self.arduino_layout.removeWidget(checkbox)
-            checkbox.deleteLater()
-        self.arduino_checkboxes = []
+        self._refresh(self.arduino_boards, self.arduino_checkboxes, self.arduino_layout)
+        self._refresh(self.labjack_boards, self.labjack_checkboxes, self.labjack_layout)
+        self._refresh(self.ni_boards, self.ni_checkboxes, self.ni_layout)
 
-        for checkbox in self.labjack_checkboxes:
-            self.labjack_layout.removeWidget(checkbox)
-            checkbox.deleteLater()
-        self.labjack_checkboxes = []
+if __name__ == "__main__":
 
-        for checkbox in self.ni_checkboxes:
-            self.ni_layout.removeWidget(checkbox)
-            checkbox.deleteLater()
-        self.ni_checkboxes = []
+    app = QApplication([])
+    widget = DaqWidget()
+    widget.show()
+    app.exec_()
 
-        for board in self.arduino_boards:
-            checkbox = QCheckBox(f'{board.name} - {str(board.id)}')
-            self.arduino_checkboxes.append(checkbox)
-            self.arduino_layout.addWidget(checkbox)
-        
-        for board in self.labjack_boards:
-            checkbox = QCheckBox(f'{board.name} - {str(board.id)}')
-            self.labjack_checkboxes.append(checkbox)
-            self.labjack_layout.addWidget(checkbox)
-
-        for board in self.ni_boards:
-            checkbox = QCheckBox(f'{board.name} - {str(board.id)}')
-            self.ni_checkboxes.append(checkbox)
-            self.ni_layout.addWidget(checkbox)
+    print(widget.get_state())
