@@ -45,7 +45,8 @@ class DAQ_Worker(WorkerNode):
     def process_metadata(self, metadata: Dict) -> Optional[Dict]:
         '''Implementing a kind of RPC mechanism'''
         
-        control = metadata['daq_input']
+        #control = metadata['daq_input']
+        control = metadata
         
         if control:
 
@@ -93,18 +94,20 @@ if __name__ == '__main__':
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
-        #send_metadata_strategy = send_strategy.DISPATCH
+        send_metadata_strategy = send_strategy.DISPATCH
+        receive_metadata_strategy = receive_strategy.POLL
     )
     source = NullNode(        
         name = 'source',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        #send_metadata_strategy = send_strategy.
     )
     sink = NullNode(        
         name = 'sink',
         logger = worker_logger, 
         logger_queues = queue_logger,
-        #receive_metadata_strategy = receive_strategy.POLL
+        receive_metadata_strategy = receive_strategy.POLL
     )
 
     input_queue = QueueMP()
