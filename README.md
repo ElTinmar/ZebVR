@@ -13,7 +13,15 @@ This program is meant to run on Ubuntu >= 22.04
 ### Dependencies
 
 ```bash
-sudo apt-get install libportaudio2
+sudo apt-get install libportaudio2 build-essential libusb-1.0-0-dev
+```
+
+### Labjack exodriver
+
+```bash
+git clone https://github.com/labjack/exodriver.git
+cd exodriver/
+sudo ./install.sh
 ```
 
 ### Get code from github and create conda environment
