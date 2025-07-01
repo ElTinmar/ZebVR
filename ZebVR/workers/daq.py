@@ -136,7 +136,7 @@ if __name__ == '__main__':
             ]
         }
     )
-    print(output_queue.get())
+    print(output_queue.get()) # doesnt work with metadata 
     time.sleep(1)
 
     dag.stop()
