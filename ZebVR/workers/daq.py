@@ -8,7 +8,9 @@ class DAQ_Worker(WorkerNode):
 
     def __init__(
             self, 
-            arduino_ports: List,
+            arduino_IDs: List,
+            labjack_IDs: List,
+            national_instruments_IDs: List,
             *args, 
             **kwargs
         ):
