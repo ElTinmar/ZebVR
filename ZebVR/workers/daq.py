@@ -94,20 +94,20 @@ if __name__ == '__main__':
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
-        send_metadata_strategy = send_strategy.DISPATCH
+        send_metadata_strategy = send_strategy.DISPATCH,
         receive_metadata_strategy = receive_strategy.POLL
     )
     source = NullNode(        
         name = 'source',
         logger = worker_logger, 
         logger_queues = queue_logger,
-        #send_metadata_strategy = send_strategy.
+        #send_metadata_strategy = send_strategy.DISPATCH
     )
     sink = NullNode(        
         name = 'sink',
         logger = worker_logger, 
         logger_queues = queue_logger,
-        receive_metadata_strategy = receive_strategy.POLL
+        #receive_metadata_strategy = receive_strategy.POLL
     )
 
     input_queue = QueueMP()
@@ -119,7 +119,6 @@ if __name__ == '__main__':
         queue = input_queue, 
         name = 'daq_input'
     )
-
     dag.connect_metadata(
         sender = daq_worker, 
         receiver = sink, 
@@ -144,8 +143,11 @@ if __name__ == '__main__':
             ]
         }
     )
-    print(output_queue.get()) # doesnt work with metadata 
+    #print(output_queue.get()) # doesnt work with metadata 
     time.sleep(1)
+
+    #input_queue.cancel_join_thread()
+    #output_queue.cancel_join_thread()
 
     dag.stop()
         
