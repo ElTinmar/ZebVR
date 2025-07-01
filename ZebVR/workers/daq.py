@@ -3,8 +3,6 @@ from numpy.typing import NDArray
 from typing import Dict, Optional, List, Union
 from daq_tools import Arduino_SoftTiming, LabJackU3_SoftTiming, NI_SoftTiming
 
-# TODO work in progress
-
 class DAQ_Worker(WorkerNode):
 
     def __init__(
@@ -42,9 +40,14 @@ class DAQ_Worker(WorkerNode):
             ni.close()
 
     def process_data(self, data: Dict) -> NDArray:
+        pass
+        
+    def process_metadata(self, metadata: Dict) -> Optional[Dict]:
         '''Implementing a kind of RPC mechanism'''
         
-        if data:
+        control = metadata['daq_input']
+        
+        if control:
 
             result = {}
 
@@ -55,7 +58,7 @@ class DAQ_Worker(WorkerNode):
             ]:
 
                 result[name] = []
-                commands = data.get(name, [])
+                commands = control.get(name, [])
                 for board_id, operation, args in commands:
                     method = getattr(devices[board_id], operation, None)
                     if method:
@@ -63,12 +66,9 @@ class DAQ_Worker(WorkerNode):
 
             return result
         
-    def process_metadata(self, metadata: Dict) -> Optional[Dict]:
-        pass
-        
 if __name__ == '__main__':
 
-    from dagline import ProcessingDAG
+    from dagline import ProcessingDAG, send_strategy
     from ipc_tools import QueueMP
     from multiprocessing_logger import Logger
     import time
@@ -108,14 +108,14 @@ if __name__ == '__main__':
     input_queue = QueueMP()
     output_queue = QueueMP()
 
-    dag.connect_data(
+    dag.connect_metadata(
         sender = source, 
         receiver = daq_worker, 
         queue = input_queue, 
         name = 'daq_input'
     )
 
-    dag.connect_data(
+    dag.connect_metadata(
         sender = daq_worker, 
         receiver = sink, 
         queue = output_queue, 
