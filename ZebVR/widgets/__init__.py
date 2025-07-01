@@ -15,7 +15,7 @@ from .tracking_widget import *
 from .video_recording_widget import *
 from .log_output_widget import *
 from .settings_widget import *
-
+from .daq_widget import *
 from .protocol_widget import *
 from .display_widget import *
 from .tracking_settings_widget import *

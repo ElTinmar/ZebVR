@@ -39,7 +39,8 @@ from .widgets import (
     SettingsWidget,
     TemperatureWidget,
     LogsWidget,
-    AudioWidget
+    AudioWidget,
+    DaqWidget
 )
 from .dags import closed_loop, open_loop, video_recording, tracking
 
@@ -76,6 +77,9 @@ class MainGui(QMainWindow):
 
         self.audio_widget = AudioWidget()
         self.audio_widget.state_changed.connect(self.update_audio_settings)
+
+        self.daq_widget = DaqWidget()
+        self.daq_widget.state_changed.connect(self.update_daq_settings)
 
         self.registration_widget = RegistrationWidget()
         self.registration_widget.state_changed.connect(self.update_registration_settings)
@@ -129,6 +133,7 @@ class MainGui(QMainWindow):
         self.tabs.addTab(self.camera_widget, "Camera")
         self.tabs.addTab(self.projector_widget, "Projector")
         self.tabs.addTab(self.audio_widget, "Audio")
+        self.tabs.addTab(self.daq_widget, "DAQs")
         self.tabs.addTab(self.registration_widget, "Registration")
         self.tabs.addTab(self.calibration_widget, "Calibration")
         self.tabs.addTab(self.background_widget, "Background")
@@ -218,6 +223,7 @@ class MainGui(QMainWindow):
                 self.camera_widget,
                 self.projector_widget, 
                 self.audio_widget, 
+                self.daq_widget,
                 self.calibration_widget, 
                 self.background_widget,
                 self.identity_widget, 
@@ -240,6 +246,7 @@ class MainGui(QMainWindow):
                 self.camera_widget,
                 self.projector_widget,
                 self.audio_widget,
+                self.daq_widget,
                 self.calibration_widget,
                 self.registration_widget,
                 self.sequencer_widget,
@@ -266,6 +273,7 @@ class MainGui(QMainWindow):
             widgets_to_hide = [
                 self.projector_widget, 
                 self.audio_widget,
+                self.daq_widget,
                 self.calibration_widget, 
                 self.background_widget,
                 self.identity_widget,
@@ -293,6 +301,7 @@ class MainGui(QMainWindow):
                 self.calibration_widget,
                 self.projector_widget, 
                 self.audio_widget,
+                self.daq_widget,
                 self.sequencer_widget
             ]
 
@@ -349,6 +358,9 @@ class MainGui(QMainWindow):
     def update_audio_settings(self):
         self.settings['audio'] = self.audio_widget.get_state()
 
+    def update_daq_settings(self):
+        self.settings['daq'] = self.daq_widget.get_state()
+
     def update_camera_settings(self):
         self.settings['camera'] = self.camera_controller.get_state()
 
@@ -386,6 +398,7 @@ class MainGui(QMainWindow):
         self.update_camera_settings()
         self.update_projector_settings()
         self.update_audio_settings()
+        self.update_daq_settings()
         self.update_registration_settings()
         self.update_calibration_settings()
         self.update_background_settings()
@@ -635,6 +648,7 @@ class MainGui(QMainWindow):
         self.camera_widget.close()
         self.projector_widget.close()
         self.audio_widget.close()
+        self.daq_widget.close()
         self.registration_widget.close()
         self.calibration_widget.close()
         self.background_widget.close()
