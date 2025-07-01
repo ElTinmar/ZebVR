@@ -32,5 +32,6 @@ dependencies:
   - git+https://github.com/ElTinmar/image_saver.git@main
   - git+https://github.com/ElTinmar/dagline.git@main
   - git+https://github.com/ElTinmar/TemperatureSensor.git@main    
+  - git+https://github.com/ElTinmar/daq_tools.git@main
   - PyOpenGL 
   - PyOpenGL_accelerate

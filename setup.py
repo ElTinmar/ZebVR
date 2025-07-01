@@ -20,6 +20,7 @@ setup(
         "camera_tools @ git+https://github.com/ElTinmar/camera_tools.git@main",
         "ipc_tools @ git+https://github.com/ElTinmar/ipc_tools.git@main",
         "image_saver @ git+https://github.com/ElTinmar/image_saver.git@main",
-        "dagline @ git+https://github.com/ElTinmar/dagline.git@main"
+        "dagline @ git+https://github.com/ElTinmar/dagline.git@main",
+        "daq_tools @ git+https://github.com/ElTinmar/daq_tools.git@main",
     ]
 )
