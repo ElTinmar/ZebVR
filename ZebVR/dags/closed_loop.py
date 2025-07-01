@@ -28,6 +28,7 @@ from ..workers import (
     ImageFilterWorker, 
     TrackingSaver,
     TemperatureLoggerWorker,
+    DAQ_Worker,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -241,6 +242,15 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         filename = settings['temperature']['csv_filename'],
         serial_port = settings['temperature']['serial_port'],
         name = 'temperature_logger',
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+    )
+
+    daq_worker = DAQ_Worker(
+        arduino_IDs = settings['daq']['arduino'],
+        labjack_IDs = settings['daq']['labjack'],
+        national_instruments_IDs = settings['daq']['ni'],
+        name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
     )

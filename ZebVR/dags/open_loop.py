@@ -20,6 +20,7 @@ from ..workers import (
     QueueMonitor,
     ImageFilterWorker, 
     TemperatureLoggerWorker,
+    DAQ_Worker,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -269,6 +270,15 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         receive_data_timeout = 1.0,
         profile = False
     ) 
+
+    daq_worker = DAQ_Worker(
+        arduino_IDs = settings['daq']['arduino'],
+        labjack_IDs = settings['daq']['labjack'],
+        national_instruments_IDs = settings['daq']['ni'],
+        name = 'daq',
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+    )
 
     # connect DAG -----------------------------------------------------------------------
 
