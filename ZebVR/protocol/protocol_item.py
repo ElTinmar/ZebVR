@@ -36,6 +36,10 @@ class Stim(IntEnum):
     SILENCE = 26
     AUDIO_FILE = 27
 
+    # daq
+    TTL_PULSE = 30
+    PWM = 31
+
     def __str__(self):
         return self.name
     
