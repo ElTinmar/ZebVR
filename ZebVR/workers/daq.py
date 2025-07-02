@@ -1,29 +1,29 @@
 from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional, List, Union
-from daq_tools import Arduino_SoftTiming, LabJackU3_SoftTiming, NI_SoftTiming
+from daq_tools import Arduino_SoftTiming, LabJackU3_SoftTiming, NI_SoftTiming, BoardInfo
 
 class DAQ_Worker(WorkerNode):
 
     def __init__(
             self, 
-            arduino_IDs: List[Union[int, str]],
-            labjack_IDs: List[Union[int, str]],
-            national_instruments_IDs: List[Union[int, str]],
+            arduino_boards: List[BoardInfo],
+            labjack_boards: List[BoardInfo],
+            national_instruments_boards: List[BoardInfo],
             *args, 
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
-        self.arduino_IDs = arduino_IDs
-        self.labjack_IDs = labjack_IDs
-        self.national_instruments_IDs = national_instruments_IDs
+        self.arduino_boards = arduino_boards
+        self.labjack_boards = labjack_boards
+        self.national_instruments_boards = national_instruments_boards
 
     def initialize(self) -> None:
 
-        self.arduinos = {board_id: Arduino_SoftTiming(board_id) for board_id in self.arduino_IDs}
-        self.labjacks = {board_id: LabJackU3_SoftTiming(board_id) for board_id in self.labjack_IDs}
-        self.nis = {board_id: NI_SoftTiming(board_id) for board_id in self.national_instruments_IDs}
+        self.arduinos = {board.id: Arduino_SoftTiming(board.id) for board in self.arduino_boards}
+        self.labjacks = {board.id: LabJackU3_SoftTiming(board.id) for board in self.labjack_boards}
+        self.nis = {board.id: NI_SoftTiming(board.id) for board in self.national_instruments_boards}
         
         super().initialize()
 
@@ -90,9 +90,9 @@ if __name__ == '__main__':
         send_metadata_strategy = send_strategy.BROADCAST,
     )
     daq_worker = DAQ_Worker(
-        arduino_IDs = [board.id for board in Arduino_SoftTiming.list_boards()],
-        labjack_IDs = [board.id for board in LabJackU3_SoftTiming.list_boards()],
-        national_instruments_IDs = [board.id for board in NI_SoftTiming.list_boards()],
+        arduino_boards = Arduino_SoftTiming.list_boards(),
+        labjack_boards = LabJackU3_SoftTiming.list_boards(),
+        national_instruments_boards = NI_SoftTiming.list_boards(),
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
