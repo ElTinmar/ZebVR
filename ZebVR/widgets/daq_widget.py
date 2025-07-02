@@ -69,23 +69,17 @@ class DaqWidget(QWidget):
         state['arduino'] = []
         for checkbox, board in zip(self.arduino_checkboxes, self.arduino_boards):
             if checkbox.isChecked():
-                with Arduino_SoftTiming(board.id) as ardu:
-                    channels = ardu.list_channels()
-                state['arduino'].append({board.id: channels})
+                state['arduino'].append(board)
         
         state['labjack'] = []
         for checkbox, board in zip(self.labjack_checkboxes, self.labjack_boards):
             if checkbox.isChecked():
-                with LabJackU3_SoftTiming(board.id) as lj:
-                    channels = lj.list_channels()
-                state['labjack'].append({board.id: channels})
+                state['labjack'].append(board)
 
         state['ni'] = []
         for checkbox, board in zip(self.ni_checkboxes, self.ni_boards):
             if checkbox.isChecked():
-                with NI_SoftTiming(board.id) as ni:
-                    channels = ni.list_channels()
-                state['ni'].append({board.id: channels})
+                state['ni'].append(board)
 
         return state
     
