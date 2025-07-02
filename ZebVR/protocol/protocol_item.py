@@ -38,7 +38,8 @@ class Stim(IntEnum):
 
     # daq
     TTL_PULSE = 30
-    PWM = 31
+    DIGITAL_OUTPUT = 31
+    PWM_OUTPUT = 32
 
     def __str__(self):
         return self.name
