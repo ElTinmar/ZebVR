@@ -1,8 +1,6 @@
 from dagline import WorkerNode
-from numpy.typing import NDArray
-from typing import Dict, Optional, List, Union
+from typing import Dict, Optional, List
 from daq_tools import (
-    SoftwareTimingDAQ,
     Arduino_SoftTiming, 
     LabJackU3_SoftTiming, 
     NI_SoftTiming, 
@@ -43,7 +41,7 @@ class DAQ_Worker(WorkerNode):
 
         super().cleanup()
 
-    def process_data(self, data: Dict) -> NDArray:
+    def process_data(self, data: Dict) -> None:
         pass
         
     def process_metadata(self, metadata: Dict) -> Optional[List]:
