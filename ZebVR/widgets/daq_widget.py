@@ -62,7 +62,6 @@ class DaqWidget(QWidget):
         layout.addStretch()
 
     def get_state(self) -> Dict:
-        # send full info about the daq including channel listing
 
         state = {}
         
