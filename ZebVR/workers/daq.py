@@ -2,6 +2,7 @@ from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional, List, Union
 from daq_tools import (
+    SoftwareTimingDAQ,
     Arduino_SoftTiming, 
     LabJackU3_SoftTiming, 
     NI_SoftTiming, 
@@ -14,7 +15,7 @@ class DAQ_Worker(WorkerNode):
 
     def __init__(
             self, 
-            daq_boards: List[BoardInfo],
+            daq_boards: Dict[BoardType, List[BoardInfo]],
             *args, 
             **kwargs
         ):
@@ -25,15 +26,10 @@ class DAQ_Worker(WorkerNode):
     def initialize(self) -> None:
 
         self.daqs = {}
-        for board in self.daq_boards:
-            if board.board_type not in self.daqs:
-                self.daqs[board.board_type] = {
-                    board.id: board_type_constructors[board.board_type](board.id)
-                }
-            else:
-                self.daqs[board.board_type].update({
-                    board.id: board_type_constructors[board.board_type](board.id)
-                }) 
+        for board_type, board_list in self.daq_boards.items():
+            self.daqs[board_type] = {}
+            for board in board_list:
+                self.daqs[board_type][board.id] = board_type_constructors[board_type](board.id)
 
         print(self.daqs)
 
@@ -41,8 +37,8 @@ class DAQ_Worker(WorkerNode):
 
     def cleanup(self) -> None:
         
-        for board_type in self.daqs.values():
-            for board in board_type.values():
+        for board_dict in self.daqs.values():
+            for board in board_dict.values():
                 board.close()
 
         super().cleanup()
@@ -87,7 +83,11 @@ if __name__ == '__main__':
     
     # create worker nodes
 
-    daq_boards = Arduino_SoftTiming.list_boards() + LabJackU3_SoftTiming.list_boards() + NI_SoftTiming.list_boards()
+    daq_boards = {
+        BoardType.ARDUINO: Arduino_SoftTiming.list_boards(), 
+        BoardType.LABJACK: LabJackU3_SoftTiming.list_boards(), 
+        BoardType.NATIONAL_INSTRUMENTS: NI_SoftTiming.list_boards()
+    }
     source = EmptyNode(        
         name = 'source',
         logger = worker_logger, 

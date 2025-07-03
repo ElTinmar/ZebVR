@@ -13,7 +13,8 @@ from daq_tools import (
     Arduino_SoftTiming, 
     LabJackU3_SoftTiming, 
     NI_SoftTiming, 
-    BoardInfo
+    BoardInfo,
+    BoardType
 )
 
 class DaqWidget(QWidget):
@@ -61,21 +62,24 @@ class DaqWidget(QWidget):
         layout.addWidget(self.ni_group)
         layout.addStretch()
 
-    def get_state(self) -> List[BoardInfo]:
+    def get_state(self) -> Dict[BoardType, List[BoardInfo]]:
 
-        state = []
+        state = {}
         
+        state[BoardType.ARDUINO] = []
         for checkbox, board in zip(self.arduino_checkboxes, self.arduino_boards):
             if checkbox.isChecked():
-                state.append(board)
-        
+                state[BoardType.ARDUINO].append(board)
+
+        state[BoardType.LABJACK] = []
         for checkbox, board in zip(self.labjack_checkboxes, self.labjack_boards):
             if checkbox.isChecked():
-                state.append(board)
+                state[BoardType.LABJACK].append(board)
 
+        state[BoardType.NATIONAL_INSTRUMENTS] = []
         for checkbox, board in zip(self.ni_checkboxes, self.ni_boards):
             if checkbox.isChecked():
-                state.append(board)
+                state[BoardType.NATIONAL_INSTRUMENTS].append(board)
 
         return state
     

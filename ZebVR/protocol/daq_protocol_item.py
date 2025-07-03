@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
 )
 from ..utils import set_from_dict
-from daq_tools import BoardInfo
+from daq_tools import BoardInfo, BoardType
 
 class DAQ_ProtocolItemWidget(ProtocolItemWidget):
     
@@ -16,7 +16,7 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
 
     def __init__(
             self,
-            daq_boards: List[BoardInfo], 
+            daq_boards: Dict[BoardType, List[BoardInfo]],
             *args,
             **kwargs
         ) -> None:
