@@ -60,10 +60,10 @@ class DAQ_Worker(WorkerNode):
 
             result = []
 
-            for board_type, board_id, operation, args in control:
+            for board_type, board_id, operation, args, kwargs in control:
                 method = getattr(self.daqs[board_type][board_id], operation, None)
                 if method:
-                    result.append((board_type, board_id, operation, args, method(*args)))
+                    result.append((board_type, board_id, operation, args, kwargs, method(*args, **kwargs)))
 
             return result
 
@@ -133,12 +133,12 @@ if __name__ == '__main__':
 
     # highjack queues for testing
     input_queue.put([
-        (BoardType.ARDUINO, '/dev/ttyACM0', 'digital_write', (4, True)),
-        (BoardType.ARDUINO, '/dev/ttyACM0', 'pwm_write', (9, 0.25)),
-        (BoardType.LABJACK, 320043003, 'digital_read', (0,)),
-        (BoardType.LABJACK, 320043003, 'pwm_write', (4, 0.5)),
-        (BoardType.LABJACK, 320043003, 'pwm_write', (5, 0.15)),
-        (BoardType.NATIONAL_INSTRUMENTS, 0, 'digital_write', (0, True))
+        (BoardType.ARDUINO, '/dev/ttyACM0', 'digital_write', (4, True), {}),
+        (BoardType.ARDUINO, '/dev/ttyACM0', 'pwm_pulse', (9,), {'duration': 3, 'duty_cycle': 0.25, 'blocking': False}),
+        (BoardType.LABJACK, 320043003, 'digital_read', (0,), {}),
+        (BoardType.LABJACK, 320043003, 'pwm_write', (4, 0.5), {}),
+        (BoardType.LABJACK, 320043003, 'pwm_write', (5, 0.15), {}),
+        (BoardType.NATIONAL_INSTRUMENTS, 0, 'digital_write', (0, True), {})
     ])
        
     print(output_queue.get()) 
