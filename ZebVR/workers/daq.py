@@ -24,12 +24,19 @@ class DAQ_Worker(WorkerNode):
 
     def initialize(self) -> None:
 
-        self.daqs = {
-            board.board_type: {
-                board.id: board_type_constructors[board.board_type](board.id)
-            } for board in self.daq_boards
-        }
-        
+        self.daqs = {}
+        for board in self.daq_boards:
+            if board.board_type not in self.daqs:
+                self.daqs[board.board_type] = {
+                    board.id: board_type_constructors[board.board_type](board.id)
+                }
+            else:
+                self.daqs[board.board_type].update({
+                    board.id: board_type_constructors[board.board_type](board.id)
+                }) 
+
+        print(self.daqs)
+
         super().initialize()
 
     def cleanup(self) -> None:
@@ -131,7 +138,7 @@ if __name__ == '__main__':
         (BoardType.LABJACK, 320043003, 'digital_read', (0,)),
         (BoardType.LABJACK, 320043003, 'pwm_write', (4, 0.5)),
         (BoardType.LABJACK, 320043003, 'pwm_write', (5, 0.15)),
-        #(BoardType.NATIONAL_INSTRUMENTS, 0, 'digital_write', (0, True))
+        (BoardType.NATIONAL_INSTRUMENTS, 0, 'digital_write', (0, True))
     ])
        
     print(output_queue.get()) 
