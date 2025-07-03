@@ -1,49 +1,49 @@
 from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional, List, Union
-from daq_tools import Arduino_SoftTiming, LabJackU3_SoftTiming, NI_SoftTiming, BoardInfo
+from daq_tools import (
+    Arduino_SoftTiming, 
+    LabJackU3_SoftTiming, 
+    NI_SoftTiming, 
+    BoardInfo, 
+    BoardType,
+    board_type_constructors
+)
 
 class DAQ_Worker(WorkerNode):
 
     def __init__(
             self, 
-            arduino_boards: List[BoardInfo],
-            labjack_boards: List[BoardInfo],
-            national_instruments_boards: List[BoardInfo],
+            daq_boards: List[BoardInfo],
             *args, 
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
-        self.arduino_boards = arduino_boards
-        self.labjack_boards = labjack_boards
-        self.national_instruments_boards = national_instruments_boards
+        self.daq_boards = daq_boards
 
     def initialize(self) -> None:
 
-        self.arduinos = {board.id: Arduino_SoftTiming(board.id) for board in self.arduino_boards}
-        self.labjacks = {board.id: LabJackU3_SoftTiming(board.id) for board in self.labjack_boards}
-        self.nis = {board.id: NI_SoftTiming(board.id) for board in self.national_instruments_boards}
+        self.daqs = {
+            board.board_type: {
+                board.id: board_type_constructors[board.board_type](board.id)
+            } for board in self.daq_boards
+        }
         
         super().initialize()
 
     def cleanup(self) -> None:
         
-        for arduino in self.arduinos.values():
-            arduino.close()
-    
-        for labjack in self.labjacks.values():
-            labjack.close()
-    
-        for ni in self.nis.values():
-            ni.close()
+        for board_type in self.daqs.values():
+            for board in board_type.values():
+                board.close()
 
         super().cleanup()
 
     def process_data(self, data: Dict) -> NDArray:
         pass
         
-    def process_metadata(self, metadata: Dict) -> Optional[Dict]:
+    def process_metadata(self, metadata: Dict) -> Optional[List]:
         '''Implementing a kind of RPC mechanism'''
         
         #control = metadata['daq_input']
@@ -51,20 +51,12 @@ class DAQ_Worker(WorkerNode):
         
         if control:
 
-            result = {}
+            result = []
 
-            for name, devices in [
-                ('arduino', self.arduinos),
-                ('labjack', self.labjacks),
-                ('ni', self.nis),
-            ]:
-
-                result[name] = []
-                commands = control.get(name, [])
-                for board_id, operation, args in commands:
-                    method = getattr(devices[board_id], operation, None)
-                    if method:
-                        result[name].append((board_id, operation, args, method(*args)))
+            for board_type, board_id, operation, args in control:
+                method = getattr(self.daqs[board_type][board_id], operation, None)
+                if method:
+                    result.append((board_type, board_id, operation, args, method(*args)))
 
             return result
 
@@ -83,6 +75,8 @@ if __name__ == '__main__':
     queue_logger = Logger('daq_queue.txt', Logger.INFO)
     
     # create worker nodes
+
+    daq_boards = Arduino_SoftTiming.list_boards() + LabJackU3_SoftTiming.list_boards() + NI_SoftTiming.list_boards()
     source = EmptyNode(        
         name = 'source',
         logger = worker_logger, 
@@ -90,9 +84,7 @@ if __name__ == '__main__':
         send_metadata_strategy = send_strategy.BROADCAST,
     )
     daq_worker = DAQ_Worker(
-        arduino_boards = Arduino_SoftTiming.list_boards(),
-        labjack_boards = LabJackU3_SoftTiming.list_boards(),
-        national_instruments_boards = NI_SoftTiming.list_boards(),
+        daq_boards = daq_boards,
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -133,22 +125,15 @@ if __name__ == '__main__':
     dag.start()
 
     # highjack queues for testing
-    input_queue.put(
-        {
-            'arduino': [
-                ('/dev/ttyACM0', 'digital_write', (4, True)),
-                ('/dev/ttyACM0', 'pwm_write', (9, 0.25))
-            ],
-            'labjack': [
-                (320043003, 'digital_read', (0,)),
-                (320043003, 'pwm_write', (4, 0.5)),
-                (320043003, 'pwm_write', (5, 0.15))
-            ],
-            #'ni': [
-            #    (0, 'digital_write', (0, True))
-            #]
-        }
-    )
+    input_queue.put([
+        (BoardType.ARDUINO, '/dev/ttyACM0', 'digital_write', (4, True)),
+        (BoardType.ARDUINO, '/dev/ttyACM0', 'pwm_write', (9, 0.25)),
+        (BoardType.LABJACK, 320043003, 'digital_read', (0,)),
+        (BoardType.LABJACK, 320043003, 'pwm_write', (4, 0.5)),
+        (BoardType.LABJACK, 320043003, 'pwm_write', (5, 0.15)),
+        #(BoardType.NATIONAL_INSTRUMENTS, 0, 'digital_write', (0, True))
+    ])
+       
     print(output_queue.get()) 
     time.sleep(1)
     print(output_queue.qsize())

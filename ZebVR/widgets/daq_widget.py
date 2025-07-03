@@ -61,24 +61,21 @@ class DaqWidget(QWidget):
         layout.addWidget(self.ni_group)
         layout.addStretch()
 
-    def get_state(self) -> Dict:
+    def get_state(self) -> List[BoardInfo]:
 
-        state = {}
+        state = []
         
-        state['arduino'] = []
         for checkbox, board in zip(self.arduino_checkboxes, self.arduino_boards):
             if checkbox.isChecked():
-                state['arduino'].append(board)
+                state.append(board)
         
-        state['labjack'] = []
         for checkbox, board in zip(self.labjack_checkboxes, self.labjack_boards):
             if checkbox.isChecked():
-                state['labjack'].append(board)
+                state.append(board)
 
-        state['ni'] = []
         for checkbox, board in zip(self.ni_checkboxes, self.ni_boards):
             if checkbox.isChecked():
-                state['ni'].append(board)
+                state.append(board)
 
         return state
     

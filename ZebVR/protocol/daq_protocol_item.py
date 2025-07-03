@@ -1,6 +1,6 @@
 from .protocol_item import ProtocolItem, ProtocolItemWidget
 from .default import DEFAULT
-from typing import Tuple, Dict, Union
+from typing import Tuple, Dict, Union, List
 from qt_widgets import LabeledDoubleSpinBox
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
 )
 from ..utils import set_from_dict
+from daq_tools import BoardInfo
 
 class DAQ_ProtocolItemWidget(ProtocolItemWidget):
     
@@ -15,14 +16,12 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
 
     def __init__(
             self,
-            daq_board_type: str = DEFAULT['daq_board_type'],
-            daq_board_id: Union[int, str] = DEFAULT['daq_board_id'],
+            daq_boards: List[BoardInfo], 
             *args,
             **kwargs
         ) -> None:
 
-        self.daq_board_type = daq_board_type
-        self.daq_board_id = daq_board_id
+        self.daq_boards = daq_boards
 
         super().__init__(*args, **kwargs)
 
@@ -30,12 +29,6 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
 
         super().declare_components()
 
-        self.sb_amplitude_dB = LabeledDoubleSpinBox()
-        self.sb_amplitude_dB.setText('amplitude (dB)')
-        self.sb_amplitude_dB.setRange(0, 200)
-        self.sb_amplitude_dB.setSingleStep(1)
-        self.sb_amplitude_dB.setValue(self.amplitude_dB)
-        self.sb_amplitude_dB.valueChanged.connect(self.state_changed)
 
     def layout_components(self) -> None:
 
