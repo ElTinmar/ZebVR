@@ -61,10 +61,14 @@ class DAQ_Worker(WorkerNode):
             result = []
 
             for board_type, board_id, operation, args, kwargs in control:
-                method = getattr(self.daqs[board_type][board_id], operation, None)
-                if method:
-                    result.append((board_type, board_id, operation, args, kwargs, method(*args, **kwargs)))
-
+                try:
+                    method = getattr(self.daqs[board_type][board_id], operation, None)
+                    if method:
+                        result.append((board_type, board_id, operation, args, kwargs, method(*args, **kwargs)))
+                except KeyError:
+                    # TODO log something?
+                    return
+                
             return result
 
 
