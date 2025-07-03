@@ -1,4 +1,5 @@
 from .protocol_item import RampType
+from daq_tools import BoardType
 
 DEFAULT = {
     'foreground_color': (0.2, 0.2, 0.2, 1.0),
@@ -39,6 +40,6 @@ DEFAULT = {
     'audio_file_path': 'ZebVR/resources/danionella_cerebrum_pnas.2314017121.wav',
     'daq_DO_channel': [0],
     'daq_ttl_duration_msec': 10,
-    'daq_board_type': 'arduino',
+    'daq_type': BoardType.ARDUINO,
     'daq_board_id': '/dev/ttyACM0'
 }
