@@ -1,4 +1,11 @@
-from ...protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer
+from ...protocol import (
+    Stim, 
+    ProtocolItem,
+    VisualProtocolItem, 
+    VisualProtocolItemWidget, 
+    StopWidget, 
+    Debouncer
+)
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox
 from PyQt5.QtWidgets import (
@@ -9,7 +16,7 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
-class OMR(ProtocolItem):
+class OMR(VisualProtocolItem):
     
     STIM_SELECT = Stim.OMR
     
@@ -18,8 +25,6 @@ class OMR(ProtocolItem):
             omr_spatial_period_mm: float = DEFAULT['omr_spatial_period_mm'],
             omr_angle_deg: float = DEFAULT['omr_angle_deg'],
             omr_speed_mm_per_sec: float = DEFAULT['omr_speed_mm_per_sec'],
-            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
-            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
@@ -28,8 +33,6 @@ class OMR(ProtocolItem):
         self.omr_spatial_period_mm = omr_spatial_period_mm
         self.omr_angle_deg = omr_angle_deg
         self.omr_speed_mm_per_sec = omr_speed_mm_per_sec
-        self.foreground_color = foreground_color
-        self.background_color = background_color 
     
     def start(self) -> Dict:
 
@@ -134,13 +137,14 @@ class OMR_Widget(VisualProtocolItemWidget):
             cast = float
         )
 
-    def from_protocol_item(self, protocol_item: OMR) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
 
-        self.sb_omr_spatial_freq.setValue(protocol_item.omr_spatial_period_mm)
-        self.sb_omr_angle.setValue(protocol_item.omr_angle_deg)
-        self.sb_omr_speed.setValue(protocol_item.omr_speed_mm_per_sec)  
+        if isinstance(protocol_item, OMR):
+            self.sb_omr_spatial_freq.setValue(protocol_item.omr_spatial_period_mm)
+            self.sb_omr_angle.setValue(protocol_item.omr_angle_deg)
+            self.sb_omr_speed.setValue(protocol_item.omr_speed_mm_per_sec)  
 
     def to_protocol_item(self) -> OMR:
         

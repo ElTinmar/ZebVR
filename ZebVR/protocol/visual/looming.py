@@ -1,4 +1,11 @@
-from ...protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer
+from ...protocol import (
+    Stim, 
+    ProtocolItem, 
+    VisualProtocolItem,
+    VisualProtocolItemWidget, 
+    StopWidget, 
+    Debouncer
+)
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox
 from PyQt5.QtWidgets import (
@@ -9,14 +16,12 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
-class Looming(ProtocolItem):
+class Looming(VisualProtocolItem):
 
     STIM_SELECT = Stim.LOOMING
 
     def __init__(
             self, 
-            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
-            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             looming_center_mm: Tuple[float, float] = DEFAULT['looming_center_mm'],
             looming_period_sec: float = DEFAULT['looming_period_sec'],
             looming_expansion_time_sec: float = DEFAULT['looming_expansion_time_sec'],
@@ -26,8 +31,6 @@ class Looming(ProtocolItem):
         ) -> None:
 
         super().__init__(*args, **kwargs)
-        self.foreground_color = foreground_color 
-        self.background_color = background_color
         self.looming_center_mm = looming_center_mm
         self.looming_period_sec = looming_period_sec 
         self.looming_expansion_time_sec = looming_expansion_time_sec
@@ -176,15 +179,16 @@ class LoomingWidget(VisualProtocolItemWidget):
             cast = float
         )
 
-    def from_protocol_item(self, protocol_item: Looming) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
 
-        self.sb_looming_center_mm_x.setValue(protocol_item.looming_center_mm[0])
-        self.sb_looming_center_mm_y.setValue(protocol_item.looming_center_mm[1])
-        self.sb_looming_period_sec.setValue(protocol_item.looming_period_sec)
-        self.sb_looming_expansion_time_sec.setValue(protocol_item.looming_expansion_time_sec)
-        self.sb_looming_expansion_speed_mm_per_sec.setValue(protocol_item.looming_expansion_speed_mm_per_sec)
+        if isinstance(protocol_item, Looming):
+            self.sb_looming_center_mm_x.setValue(protocol_item.looming_center_mm[0])
+            self.sb_looming_center_mm_y.setValue(protocol_item.looming_center_mm[1])
+            self.sb_looming_period_sec.setValue(protocol_item.looming_period_sec)
+            self.sb_looming_expansion_time_sec.setValue(protocol_item.looming_expansion_time_sec)
+            self.sb_looming_expansion_speed_mm_per_sec.setValue(protocol_item.looming_expansion_speed_mm_per_sec)
 
     def to_protocol_item(self) -> Looming:
         

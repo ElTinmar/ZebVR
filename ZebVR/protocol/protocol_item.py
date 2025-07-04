@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple, Union
 from abc import ABC
 from enum import IntEnum
 from .stop_condition import StopCondition, Pause, StopWidget
@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import (
     QVBoxLayout
 )
 from ..utils import set_from_dict
+from daq_tools import BoardType
+from .default import DEFAULT
 
 class Stim(IntEnum):
 
@@ -78,6 +80,48 @@ class ProtocolItem(ABC):
 
     def set_stop_condition(self, stop_condition: StopCondition):
         self.stop_condition = stop_condition
+
+
+class DAQ_ProtocolItem(ProtocolItem):
+
+    def __init__(
+            self,
+            daq_type: BoardType = DEFAULT['daq_type'],
+            daq_board_id: Union[str, int] = DEFAULT['daq_board_id'],
+            *args, 
+            **kwargs
+        ):
+
+        super().__init__(*args, **kwargs)
+        self.daq_type = daq_type
+        self.daq_board_id = daq_board_id
+
+
+class AudioProtocolItem(ProtocolItem):
+
+    def __init__(
+            self,
+            amplitude_dB: float = DEFAULT['amplitude_dB'],
+            *args, 
+            **kwargs
+        ):
+
+        super().__init__(*args, **kwargs)
+        self.amplitude_dB = amplitude_dB
+
+class VisualProtocolItem(ProtocolItem):
+    
+    def __init__(
+            self,
+            foreground_color: Tuple[float,float,float,float] = DEFAULT['foreground_color'],
+            background_color: Tuple[float,float,float,float] = DEFAULT['background_color'],
+            *args, 
+            **kwargs
+        ):
+
+        super().__init__(*args, **kwargs)
+        self.foreground_color = foreground_color
+        self.background_color = background_color
 
 class ProtocolItemWidget(QWidget):
     

@@ -1,4 +1,11 @@
-from ...protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer
+from ...protocol import (
+    Stim, 
+    ProtocolItem, 
+    VisualProtocolItem,
+    VisualProtocolItemWidget, 
+    StopWidget, 
+    Debouncer
+)
 from typing import Tuple, Dict
 from PyQt5.QtWidgets import (
     QGroupBox, 
@@ -9,23 +16,19 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
-class Phototaxis(ProtocolItem):
+class Phototaxis(VisualProtocolItem):
 
     STIM_SELECT = Stim.PHOTOTAXIS
 
     def __init__(
             self, 
             phototaxis_polarity: int = DEFAULT['phototaxis_polarity'],
-            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
-            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
 
         super().__init__(*args, **kwargs)
         self.phototaxis_polarity = phototaxis_polarity
-        self.foreground_color = foreground_color
-        self.background_color = background_color 
 
     def start(self) -> Dict:
 
@@ -92,11 +95,12 @@ class PhototaxisWidget(VisualProtocolItemWidget):
             cast = lambda x: bool((x+1)/2)
         )
 
-    def from_protocol_item(self, protocol_item: Phototaxis) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
 
-        self.chb_phototaxis_polarity.setChecked(protocol_item.phototaxis_polarity == 1) 
+        if isinstance(protocol_item, Phototaxis):
+            self.chb_phototaxis_polarity.setChecked(protocol_item.phototaxis_polarity == 1) 
 
     def to_protocol_item(self) -> Phototaxis:
         

@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
 
 from qt_widgets import LabeledComboBox
 from .default import DEFAULT
-from .protocol_item import ProtocolItem, ProtocolItemWidget
+from .protocol_item import ProtocolItem, DAQ_ProtocolItem, ProtocolItemWidget
 from ..utils import set_from_dict
 from daq_tools import (
     BoardInfo,
@@ -89,20 +89,24 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
         set_from_dict(
             dictionary = state,
             key = 'daq_type',
-            setter = self.daq_type_cb.setCurrentIndex,
+            setter = self.daq_type_cb.setCurrentText,
             default = self.daq_type,
+            cast = str
         )
 
         set_from_dict(
             dictionary = state,
             key = 'board_id',
-            setter = self.daq_board_id_cb.setCurrentIndex,
-            default = self.daq_board_id
+            setter = self.daq_board_id_cb.setCurrentText,
+            default = self.daq_board_id,
+            cast = str
         )
 
-
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
-        self.daq_type_cb.setValue(protocol_item.daq_type)
+        
+        if isinstance(protocol_item, DAQ_ProtocolItem):
+            self.daq_type_cb.setCurrentText(str(protocol_item.daq_type))
+            self.daq_board_id_cb.setCurrentText(str(protocol_item.daq_board_id))
 
-    def to_protocol_item(self) -> ProtocolItem:
+    def to_protocol_item(self) -> DAQ_ProtocolItem:
         ...

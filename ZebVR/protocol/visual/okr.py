@@ -1,4 +1,11 @@
-from ...protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer
+from ...protocol import (
+    Stim, 
+    ProtocolItem, 
+    VisualProtocolItem,
+    VisualProtocolItemWidget, 
+    StopWidget, 
+    Debouncer
+)
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox
 from PyQt5.QtWidgets import (
@@ -9,7 +16,7 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
-class OKR(ProtocolItem):
+class OKR(VisualProtocolItem):
 
     STIM_SELECT = Stim.OKR
 
@@ -17,8 +24,6 @@ class OKR(ProtocolItem):
             self, 
             okr_spatial_frequency_deg: float = DEFAULT['okr_spatial_frequency_deg'],
             okr_speed_deg_per_sec: float = DEFAULT['okr_speed_deg_per_sec'],
-            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
-            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
@@ -26,8 +31,6 @@ class OKR(ProtocolItem):
         super().__init__(*args, **kwargs)
         self.okr_spatial_frequency_deg = okr_spatial_frequency_deg
         self.okr_speed_deg_per_sec = okr_speed_deg_per_sec
-        self.foreground_color = foreground_color
-        self.background_color = background_color 
 
     def start(self) -> Dict:
 
@@ -114,12 +117,13 @@ class OKR_Widget(VisualProtocolItemWidget):
             cast = float
         )
 
-    def from_protocol_item(self, protocol_item: OKR) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
 
-        self.sb_okr_spatial_freq.setValue(protocol_item.okr_spatial_frequency_deg)
-        self.sb_okr_speed.setValue(protocol_item.okr_speed_deg_per_sec)
+        if isinstance(protocol_item, OKR):
+            self.sb_okr_spatial_freq.setValue(protocol_item.okr_spatial_frequency_deg)
+            self.sb_okr_speed.setValue(protocol_item.okr_speed_deg_per_sec)
 
     def to_protocol_item(self) -> OKR:
         

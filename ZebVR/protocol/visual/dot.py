@@ -1,4 +1,11 @@
-from ...protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer
+from ...protocol import (
+    Stim, 
+    ProtocolItem, 
+    VisualProtocolItem,
+    VisualProtocolItemWidget, 
+    StopWidget, 
+    Debouncer
+)
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox
 from PyQt5.QtWidgets import (
@@ -9,14 +16,12 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
-class Dot(ProtocolItem):
+class Dot(VisualProtocolItem):
 
     STIM_SELECT = Stim.DOT
 
     def __init__(
             self, 
-            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
-            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             dot_center_mm: Tuple[float, float] = DEFAULT['dot_center_mm'],
             dot_radius_mm: float = DEFAULT['dot_radius_mm'],
             *args,
@@ -24,8 +29,6 @@ class Dot(ProtocolItem):
         ) -> None:
 
         super().__init__(*args, **kwargs)
-        self.foreground_color = foreground_color 
-        self.background_color = background_color
         self.dot_center_mm = dot_center_mm
         self.dot_radius_mm = dot_radius_mm 
 
@@ -137,13 +140,14 @@ class DotWidget(VisualProtocolItemWidget):
             cast = float
         )
 
-    def from_protocol_item(self, protocol_item: Dot) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
 
-        self.sb_dot_center_mm_x.setValue(protocol_item.dot_center_mm[0])
-        self.sb_dot_center_mm_y.setValue(protocol_item.dot_center_mm[1])
-        self.sb_dot_radius_mm.setValue(protocol_item.dot_radius_mm)
+        if isinstance(protocol_item, Dot):
+            self.sb_dot_center_mm_x.setValue(protocol_item.dot_center_mm[0])
+            self.sb_dot_center_mm_y.setValue(protocol_item.dot_center_mm[1])
+            self.sb_dot_radius_mm.setValue(protocol_item.dot_radius_mm)
 
     def to_protocol_item(self) -> Dot:
         

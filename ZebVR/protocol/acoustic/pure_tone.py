@@ -1,4 +1,11 @@
-from ZebVR.protocol import Stim, ProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer
+from ZebVR.protocol import (
+    Stim, 
+    ProtocolItem, 
+    AudioProtocolItem,
+    AudioProtocolItemWidget, 
+    StopWidget, 
+    Debouncer
+)
 from typing import Dict
 from qt_widgets import LabeledDoubleSpinBox
 from PyQt5.QtWidgets import (
@@ -9,14 +16,13 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
-class PureTone(ProtocolItem):
+class PureTone(AudioProtocolItem):
 
     STIM_SELECT = Stim.PURE_TONE
 
     def __init__(
             self, 
             frequency_Hz: float = DEFAULT['frequency_Hz'],
-            amplitude_dB: float = DEFAULT['amplitude_dB'],
             *args,
             **kwargs
         ) -> None:
@@ -24,7 +30,6 @@ class PureTone(ProtocolItem):
         super().__init__(*args, **kwargs)
 
         self.frequency_Hz = frequency_Hz
-        self.amplitude_dB = amplitude_dB
 
     def start(self) -> Dict:
 
@@ -92,10 +97,12 @@ class PureToneWidget(AudioProtocolItemWidget):
             cast = float
         )
 
-    def from_protocol_item(self, protocol_item: PureTone) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
-        self.sb_frequency_Hz.setValue(protocol_item.frequency_Hz)
+    
+        if isinstance(protocol_item, PureTone):
+            self.sb_frequency_Hz.setValue(protocol_item.frequency_Hz)
 
     def to_protocol_item(self) -> PureTone:
         

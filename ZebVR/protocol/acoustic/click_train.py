@@ -1,4 +1,11 @@
-from ZebVR.protocol import Stim, ProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer
+from ZebVR.protocol import (
+    Stim, 
+    ProtocolItem, 
+    AudioProtocolItem,
+    AudioProtocolItemWidget, 
+    StopWidget, 
+    Debouncer
+)
 from typing import Dict
 from PyQt5.QtWidgets import (
     QApplication, 
@@ -17,7 +24,7 @@ class ClickPolarity(IntEnum):
     def __str__(self) -> str:
         return self.name
 
-class ClickTrain(ProtocolItem):
+class ClickTrain(AudioProtocolItem):
 
     STIM_SELECT = Stim.CLICK_TRAIN
 
@@ -26,7 +33,6 @@ class ClickTrain(ProtocolItem):
             click_rate: float = DEFAULT['click_rate'],
             click_duration: float = DEFAULT['click_duration'],
             click_polarity: ClickPolarity = DEFAULT['click_polarity'],
-            amplitude_dB: float = DEFAULT['amplitude_dB'],
             *args,
             **kwargs
         ) -> None:
@@ -34,7 +40,6 @@ class ClickTrain(ProtocolItem):
         super().__init__(*args, **kwargs)
 
         self.click_rate = click_rate
-        self.amplitude_dB = amplitude_dB
         self.click_duration = click_duration
         self.click_polarity = click_polarity
 
@@ -140,14 +145,15 @@ class ClickTrainWidget(AudioProtocolItemWidget):
             default = self.click_polarity
         )
 
-    def from_protocol_item(self, protocol_item: ClickTrain) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
         
         super().from_protocol_item(protocol_item)
 
-        self.sb_click_rate.setValue(protocol_item.click_rate)
-        self.sb_click_duration.setValue(protocol_item.click_duration)
-        self.cb_click_polarity.setCurrentIndex(protocol_item.click_polarity)
-    
+        if isinstance(protocol_item, ClickTrain):
+            self.sb_click_rate.setValue(protocol_item.click_rate)
+            self.sb_click_duration.setValue(protocol_item.click_duration)
+            self.cb_click_polarity.setCurrentIndex(protocol_item.click_polarity)
+        
     def to_protocol_item(self) -> ClickTrain:
 
         protocol = ClickTrain(

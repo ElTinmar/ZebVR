@@ -1,4 +1,4 @@
-from .protocol_item import ProtocolItem, ProtocolItemWidget
+from .protocol_item import VisualProtocolItem, ProtocolItem, ProtocolItemWidget
 from .default import DEFAULT
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox
@@ -195,16 +195,17 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
         
-        self.sb_foreground_color_R.setValue(protocol_item.foreground_color[0])
-        self.sb_foreground_color_G.setValue(protocol_item.foreground_color[1])
-        self.sb_foreground_color_B.setValue(protocol_item.foreground_color[2])
-        self.sb_foreground_color_A.setValue(protocol_item.foreground_color[3])
-        
-        self.sb_background_color_R.setValue(protocol_item.background_color[0])
-        self.sb_background_color_G.setValue(protocol_item.background_color[1])
-        self.sb_background_color_B.setValue(protocol_item.background_color[2])
-        self.sb_background_color_A.setValue(protocol_item.background_color[3])  
+        if isinstance(protocol_item, VisualProtocolItem):
+            self.sb_foreground_color_R.setValue(protocol_item.foreground_color[0])
+            self.sb_foreground_color_G.setValue(protocol_item.foreground_color[1])
+            self.sb_foreground_color_B.setValue(protocol_item.foreground_color[2])
+            self.sb_foreground_color_A.setValue(protocol_item.foreground_color[3])
+            
+            self.sb_background_color_R.setValue(protocol_item.background_color[0])
+            self.sb_background_color_G.setValue(protocol_item.background_color[1])
+            self.sb_background_color_B.setValue(protocol_item.background_color[2])
+            self.sb_background_color_A.setValue(protocol_item.background_color[3])  
 
-    def to_protocol_item(self) -> ProtocolItem:
+    def to_protocol_item(self) -> VisualProtocolItem:
         ...
 

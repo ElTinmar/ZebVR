@@ -1,4 +1,11 @@
-from ...protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer
+from ...protocol import (
+    Stim, 
+    ProtocolItem,
+    VisualProtocolItem, 
+    VisualProtocolItemWidget, 
+    StopWidget, 
+    Debouncer
+)
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton
 from PyQt5.QtWidgets import (
@@ -8,7 +15,7 @@ from PyQt5.QtWidgets import (
 )
 from ...utils import set_from_dict
 from ..default import DEFAULT
-class Image(ProtocolItem):
+class Image(VisualProtocolItem):
 
     STIM_SELECT = Stim.IMAGE
 
@@ -17,16 +24,12 @@ class Image(ProtocolItem):
             image_path: str = DEFAULT['image_path'],
             image_res_px_per_mm: float = DEFAULT['image_res_px_per_mm'],
             image_offset_mm: Tuple[float, float] = DEFAULT['image_offset_mm'],
-            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
-            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
 
         super().__init__(*args, **kwargs)
         self.image_path = image_path
-        self.foreground_color = foreground_color
-        self.background_color = background_color 
         self.image_res_px_per_mm = image_res_px_per_mm
         self.image_offset_mm = image_offset_mm
 
@@ -126,7 +129,6 @@ class ImageWidget(VisualProtocolItemWidget):
             key = 'image_path',
             setter = self.fs_image_path.setText,
             default = self.image_path,
-            cast = float
         )
         set_from_dict(
             dictionary = state,
@@ -150,14 +152,15 @@ class ImageWidget(VisualProtocolItemWidget):
             cast = lambda x: float(x[1])
         )
 
-    def from_protocol_item(self, protocol_item: Image) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
 
-        self.fs_image_path.setText(protocol_item.image_path)
-        self.sb_image_res_px_per_mm.setValue(protocol_item.image_res_px_per_mm)
-        self.sb_image_offset_mm_x.setValue(protocol_item.image_offset_mm[0])
-        self.sb_image_offset_mm_y.setValue(protocol_item.image_offset_mm[1])
+        if isinstance(protocol_item, Image):
+            self.fs_image_path.setText(protocol_item.image_path)
+            self.sb_image_res_px_per_mm.setValue(protocol_item.image_res_px_per_mm)
+            self.sb_image_offset_mm_x.setValue(protocol_item.image_offset_mm[0])
+            self.sb_image_offset_mm_y.setValue(protocol_item.image_offset_mm[1])
 
     def to_protocol_item(self) -> Image:
         

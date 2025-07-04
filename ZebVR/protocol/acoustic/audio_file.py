@@ -1,4 +1,11 @@
-from ...protocol import Stim, ProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer
+from ...protocol import (
+    Stim, 
+    ProtocolItem, 
+    AudioProtocolItem, 
+    AudioProtocolItemWidget, 
+    StopWidget, 
+    Debouncer
+)
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton
 from PyQt5.QtWidgets import (
@@ -9,21 +16,19 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
-class AudioFile(ProtocolItem):
+class AudioFile(AudioProtocolItem):
 
     STIM_SELECT = Stim.IMAGE
 
     def __init__(
             self, 
             audio_file_path: str = DEFAULT['audio_file_path'],
-            amplitude_dB: float = DEFAULT['amplitude_dB'],
             *args,
             **kwargs
         ) -> None:
 
         super().__init__(*args, **kwargs)
         self.audio_file_path = audio_file_path
-        self.amplitude_dB = amplitude_dB
 
     def start(self) -> Dict:
 
@@ -87,14 +92,14 @@ class AudioFileWidget(AudioProtocolItemWidget):
             key = 'audio_file_path',
             setter = self.fs_audio_file_path.setText,
             default = self.audio_file_path,
-            cast = float
         )
 
-    def from_protocol_item(self, protocol_item: AudioFile) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
 
-        self.fs_audio_file_path.setText(protocol_item.audio_file_path)
+        if isinstance(protocol_item, AudioFile):
+            self.fs_audio_file_path.setText(protocol_item.audio_file_path)
 
     def to_protocol_item(self) -> AudioFile:
         

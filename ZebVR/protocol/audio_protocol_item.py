@@ -1,4 +1,4 @@
-from .protocol_item import ProtocolItem, ProtocolItemWidget
+from .protocol_item import AudioProtocolItem, ProtocolItem, ProtocolItemWidget
 from .default import DEFAULT
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox
@@ -60,8 +60,10 @@ class AudioProtocolItemWidget(ProtocolItemWidget):
         )
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
-        self.sb_amplitude_dB.setValue(protocol_item.amplitude_dB)
+        
+        if isinstance(protocol_item, AudioProtocolItem):
+            self.sb_amplitude_dB.setValue(protocol_item.amplitude_dB)
 
-    def to_protocol_item(self) -> ProtocolItem:
+    def to_protocol_item(self) -> AudioProtocolItem:
         ...
 

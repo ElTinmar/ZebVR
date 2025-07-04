@@ -1,4 +1,11 @@
-from ...protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer
+from ...protocol import (
+    Stim, 
+    ProtocolItem, 
+    VisualProtocolItem,
+    VisualProtocolItemWidget, 
+    StopWidget, 
+    Debouncer
+)
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox
 from PyQt5.QtWidgets import (
@@ -9,7 +16,7 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
-class ConcentricGrating(ProtocolItem):
+class ConcentricGrating(VisualProtocolItem):
 
     STIM_SELECT = Stim.CONCENTRIC_GRATING
 
@@ -17,8 +24,6 @@ class ConcentricGrating(ProtocolItem):
             self, 
             spatial_period_mm: float = DEFAULT['concentric_spatial_period_mm'],
             speed_mm_per_sec: float = DEFAULT['concentric_speed_mm_per_sec'],
-            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
-            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
@@ -26,8 +31,6 @@ class ConcentricGrating(ProtocolItem):
         super().__init__(*args, **kwargs)
         self.spatial_period_mm = spatial_period_mm
         self.speed_mm_per_sec = speed_mm_per_sec
-        self.foreground_color = foreground_color
-        self.background_color = background_color 
 
     def start(self) -> Dict:
 
@@ -114,12 +117,13 @@ class ConcentricGratingWidget(VisualProtocolItemWidget):
             cast = float
         )
 
-    def from_protocol_item(self, protocol_item: ConcentricGrating) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
 
-        self.sb_concentric_spatial_freq.setValue(protocol_item.spatial_period_mm)
-        self.sb_concentric_speed.setValue(protocol_item.speed_mm_per_sec)
+        if isinstance(protocol_item, ConcentricGrating):
+            self.sb_concentric_spatial_freq.setValue(protocol_item.spatial_period_mm)
+            self.sb_concentric_speed.setValue(protocol_item.speed_mm_per_sec)
 
     def to_protocol_item(self) -> ConcentricGrating:
         

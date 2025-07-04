@@ -1,4 +1,12 @@
-from ZebVR.protocol import Stim, ProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer, RampType
+from ZebVR.protocol import (
+    Stim, 
+    ProtocolItem, 
+    AudioProtocolItem,
+    AudioProtocolItemWidget, 
+    StopWidget, 
+    Debouncer, 
+    RampType
+)
 from typing import Dict
 from PyQt5.QtWidgets import (
     QApplication, 
@@ -9,13 +17,12 @@ from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox
 from ..default import DEFAULT
 from ...utils import set_from_dict
 
-class FrequencyRamp(ProtocolItem):
+class FrequencyRamp(AudioProtocolItem):
 
     STIM_SELECT = Stim.FREQUENCY_RAMP
 
     def __init__(
             self, 
-            amplitude_dB: float = DEFAULT['amplitude_dB'],
             ramp_start_Hz: float = DEFAULT['audio_ramp_start_Hz'],
             ramp_stop_Hz: float = DEFAULT['audio_ramp_stop_Hz'],
             ramp_duration_sec: float = DEFAULT['audio_ramp_duration_sec'],
@@ -29,7 +36,6 @@ class FrequencyRamp(ProtocolItem):
 
         self.ramp_start_Hz = ramp_start_Hz
         self.ramp_stop_Hz = ramp_stop_Hz 
-        self.amplitude_dB = amplitude_dB
         self.ramp_duration_sec = ramp_duration_sec
         self.ramp_powerlaw_exponent = ramp_powerlaw_exponent
         self.ramp_type = ramp_type
@@ -188,15 +194,16 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
             default = self.ramp_type
         )
 
-    def from_protocol_item(self, protocol_item: FrequencyRamp) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
 
-        self.sb_ramp_start_Hz.setValue(protocol_item.ramp_start_Hz)
-        self.sb_ramp_stop_Hz.setValue(protocol_item.ramp_stop_Hz)
-        self.cb_ramp_type.setCurrentIndex(protocol_item.ramp_type)
-        self.sb_ramp_duration_sec.setValue(protocol_item.ramp_duration_sec)
-        self.sb_ramp_powerlaw_exponent.setValue(protocol_item.ramp_powerlaw_exponent)
+        if isinstance(protocol_item, FrequencyRamp):
+            self.sb_ramp_start_Hz.setValue(protocol_item.ramp_start_Hz)
+            self.sb_ramp_stop_Hz.setValue(protocol_item.ramp_stop_Hz)
+            self.cb_ramp_type.setCurrentIndex(protocol_item.ramp_type)
+            self.sb_ramp_duration_sec.setValue(protocol_item.ramp_duration_sec)
+            self.sb_ramp_powerlaw_exponent.setValue(protocol_item.ramp_powerlaw_exponent)
 
     def to_protocol_item(self) -> FrequencyRamp:
 

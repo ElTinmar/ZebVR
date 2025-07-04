@@ -6,7 +6,7 @@ from daq_tools import (
     NI_SoftTiming, 
     BoardInfo, 
     BoardType,
-    board_type_constructors
+    DAQ_CONSTRUCTORS
 )
 
 class DAQ_Worker(WorkerNode):
@@ -27,7 +27,7 @@ class DAQ_Worker(WorkerNode):
         for board_type, board_list in self.daq_boards.items():
             self.daqs[board_type] = {}
             for board in board_list:
-                self.daqs[board_type][board.id] = board_type_constructors[board_type](board.id)
+                self.daqs[board_type][board.id] = DAQ_CONSTRUCTORS[board_type](board.id)
 
         print(self.daqs)
 

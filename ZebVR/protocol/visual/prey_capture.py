@@ -1,4 +1,11 @@
-from ZebVR.protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer
+from ZebVR.protocol import (
+    Stim, 
+    ProtocolItem, 
+    VisualProtocolItem,
+    VisualProtocolItemWidget, 
+    StopWidget, 
+    Debouncer
+)
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
 from PyQt5.QtWidgets import (
@@ -10,14 +17,12 @@ from ZebVR.utils import set_from_dict
 from ZebVR import MAX_PREY
 from ..default import DEFAULT
 
-class PreyCapture(ProtocolItem):
+class PreyCapture(VisualProtocolItem):
 
     STIM_SELECT = Stim.PREY_CAPTURE
 
     def __init__(
-            self, 
-            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
-            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
+            self,
             n_preys: int = DEFAULT['n_preys'],
             prey_speed_mm_s: float = DEFAULT['prey_speed_mm_s'],
             prey_radius_mm: float = DEFAULT['prey_radius_mm'],
@@ -26,8 +31,6 @@ class PreyCapture(ProtocolItem):
         ) -> None:
 
         super().__init__(*args, **kwargs)
-        self.foreground_color = foreground_color 
-        self.background_color = background_color
         self.n_preys = n_preys
         self.prey_speed_mm_s = prey_speed_mm_s 
         self.prey_radius_mm = prey_radius_mm
@@ -137,13 +140,14 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
             cast = float
         )
 
-    def from_protocol_item(self, protocol_item: PreyCapture) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
 
-        self.sb_n_preys.setValue(protocol_item.n_preys)
-        self.sb_prey_speed_mm_s.setValue(protocol_item.prey_speed_mm_s)
-        self.sb_prey_radius_mm.setValue(protocol_item.prey_radius_mm)
+        if isinstance(protocol_item, PreyCapture):
+            self.sb_n_preys.setValue(protocol_item.n_preys)
+            self.sb_prey_speed_mm_s.setValue(protocol_item.prey_speed_mm_s)
+            self.sb_prey_radius_mm.setValue(protocol_item.prey_radius_mm)
         
     def to_protocol_item(self) -> PreyCapture:
         

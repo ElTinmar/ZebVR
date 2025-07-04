@@ -1,4 +1,12 @@
-from ...protocol import Stim, ProtocolItem, VisualProtocolItemWidget, StopWidget, Debouncer, RampType
+from ...protocol import (
+    Stim, 
+    ProtocolItem, 
+    VisualProtocolItem,
+    VisualProtocolItemWidget, 
+    StopWidget, 
+    Debouncer, 
+    RampType
+)
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox
 from PyQt5.QtWidgets import (
@@ -9,7 +17,7 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
-class Ramp(ProtocolItem):
+class Ramp(VisualProtocolItem):
 
     STIM_SELECT = Stim.RAMP
 
@@ -18,8 +26,6 @@ class Ramp(ProtocolItem):
             ramp_powerlaw_exponent: float = DEFAULT['ramp_powerlaw_exponent'],
             ramp_duration_sec: float = DEFAULT['ramp_duration_sec'],
             ramp_type: RampType = DEFAULT['ramp_type'],
-            foreground_color: Tuple[float, float, float, float] = DEFAULT['foreground_color'],
-            background_color: Tuple[float, float, float, float] = DEFAULT['background_color'],
             *args,
             **kwargs
         ) -> None:
@@ -28,8 +34,6 @@ class Ramp(ProtocolItem):
         self.ramp_powerlaw_exponent = ramp_powerlaw_exponent
         self.ramp_duration_sec = ramp_duration_sec
         self.ramp_type = ramp_type
-        self.foreground_color = foreground_color 
-        self.background_color = background_color 
 
     def start(self) -> Dict:
 
@@ -149,13 +153,14 @@ class RampWidget(VisualProtocolItemWidget):
             default = self.ramp_type
         )
 
-    def from_protocol_item(self, protocol_item: Ramp) -> None:
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
-
-        self.sb_ramp_duration_sec.setValue(protocol_item.ramp_duration_sec)
-        self.sb_ramp_powerlaw_exponent.setValue(protocol_item.ramp_powerlaw_exponent)
-        self.cb_ramp_type.setCurrentIndex(protocol_item.ramp_type)
+        
+        if isinstance(protocol_item, Ramp):
+            self.sb_ramp_duration_sec.setValue(protocol_item.ramp_duration_sec)
+            self.sb_ramp_powerlaw_exponent.setValue(protocol_item.ramp_powerlaw_exponent)
+            self.cb_ramp_type.setCurrentIndex(protocol_item.ramp_type)
 
     def to_protocol_item(self) -> Ramp:
 
