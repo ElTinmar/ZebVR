@@ -62,7 +62,7 @@ class Pause(StopCondition):
     def __init__(self, pause_sec: float = 0) -> None:
         super().__init__()
         self.pause_sec = pause_sec
-        self.time_start = None
+        self.time_start = 0
 
     def start(self) -> None:
         self.time_start = time.perf_counter()

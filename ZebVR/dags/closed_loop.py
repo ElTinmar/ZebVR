@@ -247,9 +247,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     )
 
     daq_worker = DAQ_Worker(
-        arduino_IDs = settings['daq']['arduino'],
-        labjack_IDs = settings['daq']['labjack'],
-        national_instruments_IDs = settings['daq']['ni'],
+        daq_boards = settings['daq'],
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,

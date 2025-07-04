@@ -1,4 +1,4 @@
-from .protocol_item import RampType
+from .stim import RampType
 from daq_tools import BoardType
 
 DEFAULT = {
