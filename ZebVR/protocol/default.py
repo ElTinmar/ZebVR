@@ -27,8 +27,8 @@ DEFAULT = {
     'image_path': 'ZebVR/resources/checkerboard.png',
     'image_res_px_per_mm': 43,
     'image_offset_mm': (0,0),
-    'frequency_Hz': 440.0,
     'amplitude_dB': 60.0,
+    'frequency_Hz': 440.0,
     'audio_ramp_start_Hz': 440.0,
     'audio_ramp_stop_Hz': 880.0,
     'audio_ramp_duration_sec': 1.0,
@@ -38,8 +38,8 @@ DEFAULT = {
     'click_duration': 0.01,
     'click_polarity': 0,
     'audio_file_path': 'ZebVR/resources/danionella_cerebrum_pnas.2314017121.wav',
-    'daq_DO_channel': [0],
+    'daq_board_type': BoardType.ARDUINO,
+    'daq_board_id': '/dev/ttyACM0',
+    'daq_DO_channel': [],
     'daq_ttl_duration_msec': 10,
-    'daq_type': BoardType.ARDUINO,
-    'daq_board_id': '/dev/ttyACM0'
 }

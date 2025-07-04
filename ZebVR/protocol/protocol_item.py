@@ -39,14 +39,14 @@ class DAQ_ProtocolItem(ProtocolItem):
 
     def __init__(
             self,
-            daq_type: BoardType = DEFAULT['daq_type'],
+            daq_board_type: BoardType = DEFAULT['daq_board_type'],
             daq_board_id: Union[str, int] = DEFAULT['daq_board_id'],
             *args, 
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
-        self.daq_type = daq_type
+        self.daq_board_type = daq_board_type
         self.daq_board_id = daq_board_id
 
 

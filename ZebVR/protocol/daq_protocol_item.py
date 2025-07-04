@@ -22,7 +22,7 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
     def __init__(
             self,
             daq_boards: Dict[BoardType, List[BoardInfo]],
-            daq_type: BoardType = DEFAULT['daq_type'],
+            daq_type: BoardType = DEFAULT['daq_board_type'],
             daq_board_id: Union[str, int] = DEFAULT['daq_board_id'],
             *args,
             **kwargs
@@ -52,7 +52,7 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
         self.daq_board_id_cb.setText('DAQ Board ID')
         for board in self.daq_boards[self.current_board_type]:
             self.daq_board_id_cb.addItem(str(board.id))
-        self.daq_board_id_cb.currentIndexChanged.connect(self.on_daq_board_id_change)
+        self.daq_board_id_cb.currentIndexChanged.connect(self.on_board_id_change)
         self.current_board = self.daq_boards[self.current_board_type][self.daq_board_id_cb.currentIndex()]
 
     def on_board_type_change(self):
@@ -64,16 +64,17 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
 
         self.state_changed.emit()
 
-    def on_daq_board_id_change(self):
+    def on_board_id_change(self):
 
-        # add logic in daughter class
+        # add logic in daughter class / emit signal
         self.current_board = self.daq_boards[self.current_board_type][self.daq_board_id_cb.currentIndex()]
-        self.state_changed.emit()
+      
 
     def layout_components(self) -> None:
 
         super().layout_components()
         self.main_layout.addWidget(self.daq_type_cb)
+        self.main_layout.addWidget(self.daq_board_id_cb)
 
     def get_state(self) -> Dict:
 
