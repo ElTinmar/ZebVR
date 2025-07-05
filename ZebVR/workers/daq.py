@@ -86,8 +86,6 @@ class DAQ_Worker(WorkerNode):
             for board in board_list:
                 self.daqs[board_type][board.id] = DAQ_CONSTRUCTORS[board_type](board.id)
 
-        print(self.daqs)
-
         super().initialize()
 
     def cleanup(self) -> None:
