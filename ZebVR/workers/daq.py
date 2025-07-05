@@ -8,6 +8,63 @@ from daq_tools import (
     BoardType,
     DAQ_CONSTRUCTORS
 )
+from multiprocessing import Process, Event, Queue
+from multiprocessing.synchronize import Event as EventType
+
+# TODO: one process that does the current job of DAQ_worker
+# DAQ worker needs to interpret STIM_SELECT and send command to class DAQ_Process
+
+class DAQ_Process(Process):
+    
+    def ___init__(
+            self, 
+            daq_boards: Dict[BoardType, List[BoardInfo]],
+            stop_event: EventType, 
+            queue_in: Queue, 
+            queue_out: Queue
+        ) -> None:
+        
+        self.daq_boards = daq_boards
+        self.stop_event = stop_event
+        self.queue_in = queue_in
+        self.queue_out = queue_out
+
+    def initialize(self) -> None:
+
+        self.daqs = {}
+        for board_type, board_list in self.daq_boards.items():
+            self.daqs[board_type] = {}
+            for board in board_list:
+                self.daqs[board_type][board.id] = DAQ_CONSTRUCTORS[board_type](board.id)
+
+    def cleanup(self) -> None:
+
+        for board_dict in self.daqs.values():
+            for board in board_dict.values():
+                board.close()
+
+    def run(self) -> None:
+
+        self.initialize()
+
+        while not self.stop_event.is_set():
+            
+            command = self.queue_in.get()
+            result = []
+
+            for board_type, board_id, operation, args, kwargs in command:
+                try:
+                    method = getattr(self.daqs[board_type][board_id], operation, None)
+                    if method:
+                        result.append((board_type, board_id, operation, args, kwargs, method(*args, **kwargs)))
+                except KeyError:
+                    # TODO log something?
+                    return
+                
+            self.queue_out.put(result)
+        
+        self.cleanup()
+
 
 class DAQ_Worker(WorkerNode):
 
@@ -16,7 +73,7 @@ class DAQ_Worker(WorkerNode):
             daq_boards: Dict[BoardType, List[BoardInfo]],
             *args, 
             **kwargs
-        ):
+        ) -> None:
 
         super().__init__(*args, **kwargs)
         self.daq_boards = daq_boards
