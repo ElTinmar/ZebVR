@@ -51,8 +51,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
             num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
             logger = queue_logger,
             name = 'camera_to_converter',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_converter_to_saver = MonitoredQueue(
@@ -60,8 +59,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
             num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
             logger = queue_logger,
             name = 'converter_to_saver',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_save_image = MonitoredQueue(
@@ -69,8 +67,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
             num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
             logger = queue_logger,
             name = 'camera_to_image_saver',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_display_image = MonitoredQueue(
@@ -78,8 +75,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
             num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
             logger = queue_logger,
             name = 'image_saver_to_display',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_cam_to_background = MonitoredQueue(ModifiableRingBuffer(
@@ -87,16 +83,14 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         #copy=False, # you probably don't need to copy if processing is fast enough
         logger = queue_logger,
         name = 'background_to_crop',
-        t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-    ))
+            ))
 
     queue_background_to_cropper = MonitoredQueue(ModifiableRingBuffer(
         num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
         #copy=False, # you probably don't need to copy if processing is fast enough
         logger = queue_logger,
         name = 'background_to_crop',
-        t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-    ))
+            ))
 
     queue_crop_to_tracker = []
     queue_tracking_to_stim = []
@@ -111,8 +105,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
                 #copy=False, # you probably don't need to copy if processing is fast enough
                 logger = queue_logger,
                 name = 'background_to_trackers',
-                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-            ))
+                            ))
         )
 
         queue_tracking_to_stim.append(
@@ -120,8 +113,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
                 num_bytes = 200*1024**2,
                 logger = queue_logger,
                 name = 'tracker_to_stim',
-                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-            ))
+                            ))
         )
 
         queue_tracking_to_overlay.append(
@@ -129,8 +121,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
                 num_bytes = 200*1024**2,
                 logger = queue_logger,
                 name = 'tracker_to_overlay',
-                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-            ))
+                            ))
         )
 
         queue_tracking_to_saver.append(
@@ -138,8 +129,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
                 num_bytes = 200*1024**2,
                 logger = queue_logger,
                 name = 'tracker_to_overlay',
-                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-            ))
+                            ))
         )
 
     queue_trigger_metadata = MonitoredQueue(
@@ -147,8 +137,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
             num_bytes = 200*1024**2,
             logger = queue_logger,
             name = 'tracker_to_protocol',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     # create workers -----------------------------------------------------------------------

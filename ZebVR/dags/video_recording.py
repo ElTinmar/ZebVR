@@ -30,8 +30,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
             num_bytes = 500*1024**2, 
             logger = queue_logger,
             name = 'camera_to_background',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_display_image = MonitoredQueue(
@@ -39,8 +38,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'image_saver_to_display',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_camera_to_converter = MonitoredQueue(
@@ -48,8 +46,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'camera_to_converter',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_converter_to_saver = MonitoredQueue(
@@ -57,8 +54,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'converter_to_saver',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_save_image = MonitoredQueue(
@@ -66,8 +62,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
             num_bytes = 500*1024**2,
             logger = queue_logger,
             name = 'camera_to_image_saver',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     # create workers -----------------------------------------------------------------------

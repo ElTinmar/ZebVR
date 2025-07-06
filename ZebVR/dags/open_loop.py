@@ -44,8 +44,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2, # TODO add a widget for that?
             logger = queue_logger,
             name = 'camera_to_tracker',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_camera_to_converter = MonitoredQueue(
@@ -53,8 +52,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
             logger = queue_logger,
             name = 'camera_to_converter',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_converter_to_saver = MonitoredQueue(
@@ -62,8 +60,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
             logger = queue_logger,
             name = 'converter_to_saver',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_save_image = MonitoredQueue(
@@ -71,8 +68,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
             logger = queue_logger,
             name = 'camera_to_image_saver',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_display_image = MonitoredQueue(
@@ -80,8 +76,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
             logger = queue_logger,
             name = 'image_saver_to_display',
-            t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-        )
+                    )
     )
 
     queue_tracking_to_stim = []
@@ -91,8 +86,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
                 num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
                 logger = queue_logger,
                 name = 'tracker_to_stim',
-                t_refresh = 1e-6 * settings['logs']['queue_refresh_time_microsec']
-            ))
+                            ))
         )
 
     # create workers -----------------------------------------------------------------------
