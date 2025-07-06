@@ -18,11 +18,14 @@ sudo apt-get install libportaudio2 build-essential libusb-1.0-0-dev
 
 ### Labjack exodriver
 
+Ubuntu
 ```bash
 git clone https://github.com/labjack/exodriver.git
 cd exodriver/
 sudo ./install.sh
 ```
+
+Windows: https://files.labjack.com/installers/LJM/Windows/x86_64/release/LabJack_2024-05-16.exe
 
 ### Get code from github and create conda environment
 
