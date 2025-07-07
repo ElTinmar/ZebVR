@@ -23,6 +23,8 @@ Ubuntu
 git clone https://github.com/labjack/exodriver.git
 cd exodriver/
 sudo ./install.sh
+cd .. 
+rm -rf exodriver
 ```
 
 Windows: https://files.labjack.com/installers/LJM/Windows/x86_64/release/LabJack_2024-05-16.exe
@@ -176,3 +178,8 @@ if error 56 No Devices Found, reinstall SDK (requires sudo)
 ```bash
 python setup_ximea.py --only-sdk
 ```
+
+## modprobe: ERROR: could not insert 'ximea_cam_pcie': Key was rejected by service
+
+Disable secure boot?
+
