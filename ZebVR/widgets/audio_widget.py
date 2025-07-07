@@ -36,8 +36,8 @@ class AudioWidget(QWidget):
         self.device_combo = LabeledComboBox()
         self.device_combo.setText('output device')
         self.device_combo.addItems([device['name'] for device in self.output_devices])
-        self.device_combo.currentIndexChanged.connect(self.device_changed)
         self.device_combo.setCurrentIndex(self.default_device)
+        self.device_combo.currentIndexChanged.connect(self.device_changed)
 
         self.channels_spinbox = LabeledSpinBox()
         self.channels_spinbox.setText('channels')
