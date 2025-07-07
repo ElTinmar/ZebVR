@@ -52,7 +52,7 @@ class TrackingDisplay(WorkerNode):
             return
             
         # restrict update freq to save resources
-        if time.monotonic() - self.prev_time > 1/self.fps:
+        if time.perf_counter() - self.prev_time > 1/self.fps:
 
             image_to_display = None
             
@@ -138,7 +138,7 @@ class TrackingDisplay(WorkerNode):
                     image=image_to_display
                 )
 
-            self.prev_time = time.monotonic()
+            self.prev_time = time.perf_counter()
 
     def process_metadata(self, metadata: Dict) -> Optional[Dict]:
         pass

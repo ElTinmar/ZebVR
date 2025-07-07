@@ -39,7 +39,7 @@ class Display(WorkerNode):
             self.first_timestamp = data['timestamp'].copy()
 
         # restrict update freq to save resources
-        if time.monotonic() - self.prev_time > 1/self.fps:
+        if time.perf_counter() - self.prev_time > 1/self.fps:
 
             self.window.set_state(
                 index = data['index'],
@@ -47,7 +47,7 @@ class Display(WorkerNode):
                 image_rgb = data['image']
             )
 
-            self.prev_time = time.monotonic()
+            self.prev_time = time.perf_counter()
 
         return data
 
