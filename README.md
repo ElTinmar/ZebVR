@@ -181,5 +181,5 @@ python setup_ximea.py --only-sdk
 
 ## modprobe: ERROR: could not insert 'ximea_cam_pcie': Key was rejected by service
 
-Disable secure boot?
+Disable secure boot in the BIOS
 
