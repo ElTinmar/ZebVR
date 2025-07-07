@@ -24,6 +24,7 @@ def download() -> None:
 
     print('Downloading toy data...')
     urlretrieve(FOLDER_URL, DESTINATION, reporthook=download_progress_hook)
+    print('\nDownload complete')
 
 def extract() -> None:
     print(f'Extracting {DESTINATION}...')
