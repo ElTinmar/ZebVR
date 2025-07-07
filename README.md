@@ -183,3 +183,10 @@ python setup_ximea.py --only-sdk
 
 Disable secure boot in the BIOS
 
+## module not found
+
+Try refreshing the environment
+
+```
+conda env update -f ZebVR3.yml
+```
