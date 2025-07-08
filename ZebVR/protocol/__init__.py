@@ -1,3 +1,4 @@
+from typing import List, Tuple, Type
 from .stim import *
 from .protocol_item import *
 from .visual_protocol_item import *
@@ -9,7 +10,7 @@ from .acoustic import *
 from .daq import *
 from .default import *
 
-PROTOCOL_WIDGETS = [
+PROTOCOL_WIDGETS: List[Tuple[Type[ProtocolItemWidget], Stim]] = [
     (visual.DarkWidget, Stim.DARK),
     (visual.BrightWidget, Stim.BRIGHT),
     (visual.PhototaxisWidget, Stim.PHOTOTAXIS),
