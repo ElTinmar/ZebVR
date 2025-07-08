@@ -28,11 +28,12 @@ class Stim(IntEnum):
     AUDIO_FILE = 27
 
     # daq
-    DIGITAL_OUTPUT = 30
-    ANALOG_OUTPUT = 31
-    PWM_OUTPUT = 32
-    TTL_PULSE = 33
+    DIGITAL_WRITE = 30
+    ANALOG_WRITE = 31
+    PWM_WRITE = 32
+    DIGITAL_PULSE = 33
     PWM_PULSE = 34
+    ANALOG_PULSE = 35
 
     def __str__(self):
         return self.name

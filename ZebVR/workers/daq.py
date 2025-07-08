@@ -8,63 +8,7 @@ from daq_tools import (
     BoardType,
     DAQ_CONSTRUCTORS
 )
-from multiprocessing import Process, Event, Queue
-from multiprocessing.synchronize import Event as EventType
-
-# TODO: one process that does the current job of DAQ_worker
-# DAQ worker needs to interpret STIM_SELECT and send command to class DAQ_Process
-
-class DAQ_Process(Process):
-    
-    def ___init__(
-            self, 
-            daq_boards: Dict[BoardType, List[BoardInfo]],
-            stop_event: EventType, 
-            queue_in: Queue, 
-            queue_out: Queue
-        ) -> None:
-        
-        self.daq_boards = daq_boards
-        self.stop_event = stop_event
-        self.queue_in = queue_in
-        self.queue_out = queue_out
-
-    def initialize(self) -> None:
-
-        self.daqs = {}
-        for board_type, board_list in self.daq_boards.items():
-            self.daqs[board_type] = {}
-            for board in board_list:
-                self.daqs[board_type][board.id] = DAQ_CONSTRUCTORS[board_type](board.id)
-
-    def cleanup(self) -> None:
-
-        for board_dict in self.daqs.values():
-            for board in board_dict.values():
-                board.close()
-
-    def run(self) -> None:
-
-        self.initialize()
-
-        while not self.stop_event.is_set():
-            
-            command = self.queue_in.get()
-            result = []
-
-            for board_type, board_id, operation, args, kwargs in command:
-                try:
-                    method = getattr(self.daqs[board_type][board_id], operation, None)
-                    if method:
-                        result.append((board_type, board_id, operation, args, kwargs, method(*args, **kwargs)))
-                except KeyError:
-                    # TODO log something?
-                    return
-                
-            self.queue_out.put(result)
-        
-        self.cleanup()
-
+from ZebVR.protocol import Stim
 
 class DAQ_Worker(WorkerNode):
 
@@ -100,7 +44,7 @@ class DAQ_Worker(WorkerNode):
         pass
         
     def process_metadata(self, metadata: Dict) -> Optional[List]:
-        '''Implementing a kind of RPC mechanism'''
+        # TODO accept either stim select or tuple style commands
         
         #control = metadata['daq_input']
         control = metadata
@@ -109,15 +53,72 @@ class DAQ_Worker(WorkerNode):
 
             result = []
 
-            for board_type, board_id, operation, args, kwargs in control:
-                try:
-                    method = getattr(self.daqs[board_type][board_id], operation, None)
-                    if method:
-                        result.append((board_type, board_id, operation, args, kwargs, method(*args, **kwargs)))
-                except KeyError:
-                    # TODO log something?
-                    return
-                
+            if isinstance(control, list):
+
+                for board_type, board_id, operation, args, kwargs in control:
+                    try:
+                        method = getattr(self.daqs[board_type][board_id], operation, None)
+                        if method:
+                            result.append((board_type, board_id, operation, args, kwargs, method(*args, **kwargs)))
+                    except KeyError:
+                        # TODO log something?
+                        return
+                    
+
+            elif isinstance(control, dict):
+
+                stim = control.get('stim_select')
+                board_type = control.get('board_type')
+                board_id = control.get('board_id')
+                channels = control.get('channels', [])
+
+                analog_value = control.get('analog_value')
+                digital_level = control.get('digital_level')
+                pulse_duration = control.get('pulse_duration_msec')
+                duty_cycle = control.get('duty_cycle')
+
+                if stim == Stim.ANALOG_WRITE:
+                    for c in channels:
+                        self.daqs[board_type][board_id].analog_write(c, analog_value)
+
+                elif stim == Stim.DIGITAL_WRITE:
+                    for c in channels:
+                        self.daqs[board_type][board_id].digital_write(c, digital_level)
+
+                elif stim == Stim.PWM_WRITE:
+                    for c in channels:
+                        self.daqs[board_type][board_id].pwm_write(c, duty_cycle)
+
+                elif stim == Stim.ANALOG_PULSE:
+                    for c in channels:
+                        self.daqs[board_type][board_id].analog_pulse(
+                            c, 
+                            pulse_duration, 
+                            analog_value, 
+                            blocking = False
+                        )
+
+                elif stim == Stim.DIGITAL_PULSE:
+                    for c in channels:
+                        self.daqs[board_type][board_id].digital_pulse(
+                            c, 
+                            pulse_duration, 
+                            digital_level, 
+                            blocking = False
+                        )
+
+                elif stim == Stim.PWM_PULSE:
+                    for c in channels:
+                        self.daqs[board_type][board_id].pwm_pulse(
+                            c, 
+                            pulse_duration, 
+                            duty_cycle, 
+                            blocking = False
+                        )
+
+                else:
+                    pass
+
             return result
 
 

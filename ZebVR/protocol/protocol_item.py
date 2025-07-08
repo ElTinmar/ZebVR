@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, Tuple, Union
+from typing import Optional, Dict, Any, Tuple, Union, List
 from abc import ABC
 from .stop_condition import StopCondition, Pause, StopWidget
 from PyQt5.QtCore import pyqtSignal
@@ -39,16 +39,17 @@ class DAQ_ProtocolItem(ProtocolItem):
 
     def __init__(
             self,
-            daq_board_type: BoardType = DEFAULT['daq_board_type'],
-            daq_board_id: Union[str, int] = DEFAULT['daq_board_id'],
+            board_type: BoardType = DEFAULT['daq_board_type'],
+            board_id: Union[str, int] = DEFAULT['daq_board_id'],
+            channels: List[int] = DEFAULT['daq_channels'],
             *args, 
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
-        self.daq_board_type = daq_board_type
-        self.daq_board_id = daq_board_id
-
+        self.board_type = board_type
+        self.board_id = board_id
+        self.channels = channels
 
 class AudioProtocolItem(ProtocolItem):
 
