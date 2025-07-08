@@ -30,7 +30,7 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
 
     def __init__(
             self,
-            boards: Dict[BoardType, List[BoardInfo]] = DEFAULT['daq_boards'],
+            boards: Dict[BoardType, List[BoardInfo]],
             board_type: BoardType = DEFAULT['daq_board_type'],
             board_id: Union[str, int] = DEFAULT['daq_board_id'],
             channels: List = DEFAULT['daq_channels'],
@@ -38,8 +38,16 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
             **kwargs
         ) -> None:
 
+        if not boards:
+            raise ValueError("`boards` must be a non-empty dictionary mapping BoardType to list of BoardInfo.")
+        
+        for btype, list_boards in boards.items():
+            if not list_boards:
+                raise ValueError(f"board-type: {btype} has no board.")
+
         self.boards = boards
         self.board_types = list(boards.keys())
+
         self.board_type = board_type
         self.board_id = board_id
         self.channels = channels
