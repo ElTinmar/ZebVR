@@ -56,11 +56,14 @@ class StimWidget(QWidget):
         self.cmb_stim_select.currentIndexChanged.connect(self.stim_changed)
 
         for constructor, _ in PROTOCOL_WIDGETS:
-            if self.daq_boards and issubclass(constructor, DAQ_ProtocolItemWidget):
-                widget = constructor(
-                    boards = self.daq_boards,
-                    stop_widget = StopWidget(self.debouncer, self.background_image)
-                )
+            if issubclass(constructor, DAQ_ProtocolItemWidget):
+                if self.daq_boards:
+                    widget = constructor(
+                        boards = self.daq_boards,
+                        stop_widget = StopWidget(self.debouncer, self.background_image)
+                    )
+                else:
+                    continue
             else:
                 widget = constructor(stop_widget = StopWidget(self.debouncer, self.background_image))
             widget.state_changed.connect(self.on_change)
