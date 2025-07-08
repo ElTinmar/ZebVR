@@ -38,6 +38,7 @@ DEFAULT = {
     'click_duration': 0.01,
     'click_polarity': 0,
     'audio_file_path': 'ZebVR/resources/danionella_cerebrum_pnas.2314017121.wav',
+    'daq_boards': {},
     'daq_board_type': BoardType.ARDUINO,
     'daq_board_id': '/dev/ttyACM0',
     'daq_channels': [],

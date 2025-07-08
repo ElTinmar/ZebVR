@@ -30,7 +30,7 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
 
     def __init__(
             self,
-            boards: Dict[BoardType, List[BoardInfo]],
+            boards: Dict[BoardType, List[BoardInfo]] = DEFAULT['daq_boards'],
             board_type: BoardType = DEFAULT['daq_board_type'],
             board_id: Union[str, int] = DEFAULT['daq_board_id'],
             channels: List = DEFAULT['daq_channels'],
