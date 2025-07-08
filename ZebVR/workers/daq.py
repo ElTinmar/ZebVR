@@ -46,26 +46,24 @@ class DAQ_Worker(WorkerNode):
     def process_metadata(self, metadata: Dict) -> Optional[List]:
         # TODO accept either stim select or tuple style commands
         
-        #control = metadata['daq_input']
-        control = metadata
-        
-        if control:
+        result = []
 
-            result = []
+        if isinstance(control, list):
 
-            if isinstance(control, list):
+            for board_type, board_id, operation, args, kwargs in control:
+                try:
+                    method = getattr(self.daqs[board_type][board_id], operation, None)
+                    if method:
+                        result.append((board_type, board_id, operation, args, kwargs, method(*args, **kwargs)))
+                except KeyError:
+                    # TODO log something?
+                    return
+                
+        else:
 
-                for board_type, board_id, operation, args, kwargs in control:
-                    try:
-                        method = getattr(self.daqs[board_type][board_id], operation, None)
-                        if method:
-                            result.append((board_type, board_id, operation, args, kwargs, method(*args, **kwargs)))
-                    except KeyError:
-                        # TODO log something?
-                        return
-                    
+            control: Dict = metadata.get('audio_stim_control', None)
 
-            elif isinstance(control, dict):
+            if control:
 
                 stim = control.get('stim_select')
                 board_type = control.get('board_type')
@@ -119,7 +117,7 @@ class DAQ_Worker(WorkerNode):
                 else:
                     pass
 
-            return result
+        return result
 
 
 if __name__ == '__main__':
