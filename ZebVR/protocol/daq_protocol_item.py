@@ -44,6 +44,9 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
         self.board_id = board_id
         self.channels = channels
 
+        self.current_board_type = None
+        self.current_board = None
+
         super().__init__(*args, **kwargs)
 
     def declare_components(self) -> None:
@@ -56,33 +59,45 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
         for bt in self.board_types:
             self.board_type_cb.addItem(str(bt))
         self.board_type_cb.currentIndexChanged.connect(self.on_board_type_change)
-        self.current_board_type = self.board_types[self.board_type_cb.currentIndex()]
+        if self.board_types:
+            self.current_board_type = self.board_types[self.board_type_cb.currentIndex()]
         
         # board ID
         self.board_id_cb = LabeledComboBox()
         self.board_id_cb.setText('DAQ Board ID')
-        for board in self.boards[self.current_board_type]:
-            self.board_id_cb.addItem(str(board.id))
-        self.board_id_cb.currentIndexChanged.connect(self.on_board_id_change)
-        self.current_board = self.boards[self.current_board_type][self.board_id_cb.currentIndex()]
 
+        if self.current_board_type is not None:
+            board_list = self.boards.get(self.current_board_type, [])
+            for board in board_list:
+                self.board_id_cb.addItem(str(board.id))
+            if board_list:
+                self.current_board = board_list[self.board_id_cb.currentIndex()]
+
+        self.board_id_cb.currentIndexChanged.connect(self.on_board_id_change)
+       
         # channels
         self.channel_list = QListWidget()
         self.channel_list.setSelectionMode(QListWidget.MultiSelection)
 
     def on_board_type_change(self):
 
-        self.current_board_type = self.board_types[self.board_type_cb.currentIndex()]
-        self.board_id_cb.clear()
-        for board in self.boards[self.current_board_type]:
-            self.board_id_cb.addItem(str(board.id))
+        if self.board_types:
+            self.current_board_type = self.board_types[self.board_type_cb.currentIndex()]
+
+            self.board_id_cb.clear()
+            board_list = self.boards.get(self.current_board_type, [])
+            for board in board_list:
+                self.board_id_cb.addItem(str(board.id))
 
         self.state_changed.emit()
 
     def on_board_id_change(self):
 
         # add logic in daughter class / emit signal
-        self.current_board = self.boards[self.current_board_type][self.board_id_cb.currentIndex()]
+        if self.current_board_type is not None:
+            board_list = self.boards.get(self.current_board_type, [])
+            if board_list:
+                self.current_board = self.boards[self.current_board_type][self.board_id_cb.currentIndex()]
       
     def layout_components(self) -> None:
 
@@ -97,8 +112,8 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
         channels = [int(widget.text()) for widget in channel_list_widget]
 
         state = super().get_state()
-        state['board_type'] = self.current_board_type
-        state['board_id'] = self.current_board.id
+        state['board_type'] = self.current_board_type 
+        state['board_id'] = self.current_board.id if self.current_board is not None else -1
         state['channels'] = channels
         return state
 
