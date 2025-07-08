@@ -258,6 +258,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
     )
 
     stim_control_worker = StimGUI(
+        daq_boards = settings['daq'],
         name = 'stim_gui', 
         logger = worker_logger, 
         logger_queues = queue_logger,

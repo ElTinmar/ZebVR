@@ -1,12 +1,9 @@
-from typing import Deque
-from qt_widgets import LabeledSpinBox
-from collections import deque
-from typing import Deque, Dict, Optional
-import random
+from typing import Deque, List, Dict, Optional
 from numpy.typing import NDArray
+from collections import deque
+import random
 import os
 import numpy as np
-
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QApplication,
@@ -17,8 +14,14 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout
 )
+
+from qt_widgets import LabeledSpinBox
 from .protocol_widget import StimWidget
 from ..protocol import ProtocolItem, Debouncer
+from daq_tools import (
+    BoardInfo,
+    BoardType
+)
 
 class SequencerWidget(QWidget):
 
@@ -28,12 +31,14 @@ class SequencerWidget(QWidget):
 
     def __init__(
             self,
+            daq_boards: Dict[BoardType, List[BoardInfo]] = {},
             *args,
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
 
+        self.daq_boards = daq_boards
         self.background_image = None
         if os.path.exists(self.DEFAULT_BACKGROUND_FILE):
             self.background_image = np.load(self.DEFAULT_BACKGROUND_FILE)
@@ -42,6 +47,16 @@ class SequencerWidget(QWidget):
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Sequencer')
+
+    def set_daq_boards(self, daq_boards: Dict[BoardType, List[BoardInfo]]):
+
+        self.daq_boards = daq_boards
+
+        # reset all stim widgets
+        for i in range(self.list.count()):
+            item = self.list.item(i)
+            stim = self.list.itemWidget(item)
+            stim.set_daq_boards(self.daq_boards)
 
     def declare_components(self) -> None:
 
@@ -119,7 +134,7 @@ class SequencerWidget(QWidget):
             del item
 
         for state in states:
-            new_widget = StimWidget(self.debouncer, self.background_image)
+            new_widget = StimWidget(self.debouncer, self.daq_boards, self.background_image)
             new_widget.set_state(state)
             new_widget.state_changed.connect(self.state_changed.emit)
             new_widget.size_changed.connect(self.on_size_change)
@@ -153,7 +168,7 @@ class SequencerWidget(QWidget):
     
     def add_stim_widget(self, protocol_item: Optional[ProtocolItem] = None):
 
-        stim = StimWidget(self.debouncer, self.background_image)
+        stim = StimWidget(self.debouncer,self.daq_boards, self.background_image)
         stim.state_changed.connect(self.state_changed.emit)
         stim.size_changed.connect(self.on_size_change)
 
