@@ -360,6 +360,7 @@ class MainGui(QMainWindow):
 
     def update_daq_settings(self):
         self.settings['daq'] = self.daq_widget.get_state()
+        self.sequencer_widget.set_daq_boards(self.settings['daq'])
 
     def update_camera_settings(self):
         self.settings['camera'] = self.camera_controller.get_state()
