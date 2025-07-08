@@ -57,6 +57,8 @@ class SequencerWidget(QWidget):
             stim.blockSignals(True)
             stim.set_daq_boards(self.daq_boards)
             stim.blockSignals(False)
+            
+        self.state_changed.emit()
 
     def declare_components(self) -> None:
 
