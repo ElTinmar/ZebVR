@@ -66,20 +66,23 @@ class DaqWidget(QWidget):
 
         state = {}
         
-        state[BoardType.ARDUINO] = []
-        for checkbox, board in zip(self.arduino_checkboxes, self.arduino_boards):
-            if checkbox.isChecked():
-                state[BoardType.ARDUINO].append(board)
+        if self.arduino_boards:
+            state[BoardType.ARDUINO] = []
+            for checkbox, board in zip(self.arduino_checkboxes, self.arduino_boards):
+                if checkbox.isChecked():
+                    state[BoardType.ARDUINO].append(board)
 
-        state[BoardType.LABJACK] = []
-        for checkbox, board in zip(self.labjack_checkboxes, self.labjack_boards):
-            if checkbox.isChecked():
-                state[BoardType.LABJACK].append(board)
+        if self.labjack_boards:
+            state[BoardType.LABJACK] = []
+            for checkbox, board in zip(self.labjack_checkboxes, self.labjack_boards):
+                if checkbox.isChecked():
+                    state[BoardType.LABJACK].append(board)
 
-        state[BoardType.NATIONAL_INSTRUMENTS] = []
-        for checkbox, board in zip(self.ni_checkboxes, self.ni_boards):
-            if checkbox.isChecked():
-                state[BoardType.NATIONAL_INSTRUMENTS].append(board)
+        if self.ni_boards:
+            state[BoardType.NATIONAL_INSTRUMENTS] = []
+            for checkbox, board in zip(self.ni_checkboxes, self.ni_boards):
+                if checkbox.isChecked():
+                    state[BoardType.NATIONAL_INSTRUMENTS].append(board)
 
         return state
     
