@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import spectrogram, welch
 from multiprocessing import RawValue, Process, Queue, Event, Barrier
 from multiprocessing.synchronize  import Event as EventType
+from multiprocessing.synchronize  import Barrier as BarrierType
 import queue
 from ZebVR.protocol import DEFAULT, Stim, ClickPolarity, RampType
 from typing import Dict, Any
@@ -178,7 +179,7 @@ class AudioProducer(Process):
             self, 
             audio_queue: Queue, 
             stop_event: EventType,
-            barrier,
+            barrier: BarrierType,
             shared_audio_parameters: SharedAudioParameters,
             samplerate: int = 44100,
             blocksize: int = 256,
@@ -374,7 +375,7 @@ class AudioConsumer(Process):
             self, 
             audio_queue: Queue, 
             stop_event: EventType,
-            barrier,
+            barrier: BarrierType,
             device_index: int,
             samplerate: int = 44100,
             blocksize: int = 256,
