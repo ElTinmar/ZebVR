@@ -1,10 +1,14 @@
 from dagline import WorkerNode
 from numpy.typing import NDArray
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, List
 import time
 from ..widgets import StimWidget
 from ..protocol import Debouncer
 from PyQt5.QtWidgets import QApplication
+from daq_tools import (
+    BoardInfo,
+    BoardType
+)
 
 class StimGUI(WorkerNode):
     
@@ -12,24 +16,27 @@ class StimGUI(WorkerNode):
 
     def __init__(
             self, 
+            daq_boards: Dict[BoardType, List[BoardInfo]] = {},
             *args, 
             **kwargs
         ):
 
         super().__init__(*args, **kwargs)
 
+        self.daq_boards = daq_boards
         self.debouncer = Debouncer(self.DEFAULT_DEBOUNCER_LENGTH)
 
     def initialize(self) -> None:
         super().initialize()
         self.app = QApplication([])
         self.window = StimWidget(
+            daq_boards = self.daq_boards,
             debouncer = self.debouncer,
         )
         #self.window.stack.currentWidget().stop_widget.setVisible(False)
         self.window.show()
     
-    def process_data(self, data: None) -> NDArray:
+    def process_data(self, data: None) -> None:
         self.app.processEvents()
         self.app.sendPostedEvents()
         time.sleep(0.01)
