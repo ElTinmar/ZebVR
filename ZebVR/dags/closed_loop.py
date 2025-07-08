@@ -514,6 +514,12 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
                 queue = QueueMP(), 
                 name = 'audio_stim_control'
             )
+        dag.connect_metadata(
+            sender = protocol_worker, 
+            receiver = daq_worker, 
+            queue = QueueMP(), 
+            name = 'daq_stim_control'
+        )
         for i in range(settings['identity']['n_animals']):
             dag.connect_metadata(
                 sender = tracker_worker_list[i], 
@@ -535,6 +541,12 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
                 queue = QueueMP(), 
                 name = 'audio_stim_control'
             )
+        dag.connect_metadata(
+            sender = stim_control_worker, 
+            receiver = daq_worker, 
+            queue = QueueMP(), 
+            name = 'daq_stim_control'
+        )
         
     for i in range(settings['identity']['n_animals']):
         dag.connect_metadata(
