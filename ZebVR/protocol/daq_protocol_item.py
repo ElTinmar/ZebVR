@@ -14,6 +14,8 @@ from daq_tools import (
     BoardType
 )
 
+# TODO better class hierarchy. 
+
 def select_items_by_text(list_widget: QListWidget, texts: List[str]):
     for i in range(list_widget.count()):
         item = list_widget.item(i)
@@ -136,3 +138,4 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
     def to_protocol_item(self) -> DAQ_ProtocolItem:
         ...
 
+# class DAQ_PulseProtocolItemWidget(DAQ_ProtocolItemWidget):

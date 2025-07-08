@@ -6,6 +6,7 @@ from .daq_protocol_item import *
 from .stop_condition import *
 from .visual import *
 from .acoustic import *
+from .daq import *
 from .default import *
 
 PROTOCOL_WIDGETS = [
@@ -30,5 +31,11 @@ PROTOCOL_WIDGETS = [
     (acoustic.FrequencyRampWidget, Stim.FREQUENCY_RAMP),
     (acoustic.SilenceWidget, Stim.SILENCE),
     (acoustic.AudioFileWidget, Stim.AUDIO_FILE),
+    (daq.AnalogPulseWidget, Stim.ANALOG_PULSE),
+    (daq.AnalogWriteWidget, Stim.ANALOG_WRITE),
+    (daq.DigitalPulseWidget, Stim.DIGITAL_PULSE),
+    (daq.DigitalWriteWidget, Stim.DIGITAL_WRITE),
+    (daq.PWM_PulseWidget, Stim.PWM_PULSE),
+    (daq.PWM_WriteWidget, Stim.PWM_WRITE),
 ]
 PROTOCOL_WIDGETS.sort(key = lambda x: x[1])
