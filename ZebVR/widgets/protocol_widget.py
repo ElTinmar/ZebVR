@@ -91,6 +91,7 @@ class StimWidget(QWidget):
         self.daq_boards = daq_boards
 
         # reset everything
+        current_stim = self.cmb_stim_select.currentText()
         self.cmb_stim_select.clear()
         
         while self.stack.count():
@@ -121,8 +122,8 @@ class StimWidget(QWidget):
             self.protocol_item_widgets.append(widget)
             self.stack.addWidget(widget)
 
-        # Reset to the first item
-        self.cmb_stim_select.setCurrentIndex(0)
+        # Reset combobox
+        self.cmb_stim_select.setCurrentText(current_stim)
         self.stim_changed()
         
     def set_background_image(self, image: NDArray) -> None:

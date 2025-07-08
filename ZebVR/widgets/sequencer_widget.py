@@ -51,12 +51,12 @@ class SequencerWidget(QWidget):
     def set_daq_boards(self, daq_boards: Dict[BoardType, List[BoardInfo]]):
 
         self.daq_boards = daq_boards
-
-        # reset all stim widgets
         for i in range(self.list.count()):
             item = self.list.item(i)
             stim = self.list.itemWidget(item)
+            stim.blockSignals(True)
             stim.set_daq_boards(self.daq_boards)
+            stim.blockSignals(False)
 
     def declare_components(self) -> None:
 
