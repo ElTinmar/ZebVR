@@ -48,9 +48,9 @@ class DAQ_Worker(WorkerNode):
         
         result = []
 
-        if isinstance(control, list):
+        if isinstance(metadata, list):
 
-            for board_type, board_id, operation, args, kwargs in control:
+            for board_type, board_id, operation, args, kwargs in metadata:
                 try:
                     method = getattr(self.daqs[board_type][board_id], operation, None)
                     if method:
@@ -61,8 +61,7 @@ class DAQ_Worker(WorkerNode):
                 
         else:
 
-            control: Dict = metadata.get('audio_stim_control', None)
-
+            control = metadata.get('daq_stim_control', None)
             if control:
 
                 stim = control.get('stim_select')
