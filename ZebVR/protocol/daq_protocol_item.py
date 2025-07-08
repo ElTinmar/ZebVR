@@ -135,3 +135,4 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
 
     def to_protocol_item(self) -> DAQ_ProtocolItem:
         ...
+

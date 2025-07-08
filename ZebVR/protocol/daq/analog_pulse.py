@@ -16,7 +16,7 @@ from qt_widgets import LabeledDoubleSpinBox
 from ..default import DEFAULT
 from ...utils import set_from_dict
 
-class Analog_Pulse(DAQ_ProtocolItem):
+class AnalogPulse(DAQ_ProtocolItem):
 
     STIM_SELECT = Stim.ANALOG_PULSE
 
@@ -46,7 +46,7 @@ class Analog_Pulse(DAQ_ProtocolItem):
         }
         return command
     
-class Analog_PulseWidget(DAQ_ProtocolItemWidget):
+class AnalogPulseWidget(DAQ_ProtocolItemWidget):
 
     def __init__(
             self, 
@@ -126,16 +126,16 @@ class Analog_PulseWidget(DAQ_ProtocolItemWidget):
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
         super().from_protocol_item(protocol_item)
-        if isinstance(protocol_item, Analog_Pulse):
+        if isinstance(protocol_item, AnalogPulse):
             self.sb_pulse_duration_msec.setValue(protocol_item.pulse_duration_msec)
             self.sb_analog_value.setValue(protocol_item.analog_value)
 
-    def to_protocol_item(self) -> Analog_Pulse:
+    def to_protocol_item(self) -> AnalogPulse:
 
         channel_list_widget = self.channel_list.selectedItems()
         channels = [int(widget.text()) for widget in channel_list_widget]
     
-        return Analog_Pulse(
+        return AnalogPulse(
             board_type = self.current_board_type,
             board_id = self.current_board.id,
             channels = channels,
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     }
 
     app = QApplication([])
-    window = Analog_PulseWidget(
+    window = AnalogPulseWidget(
         boards = boards,
         stop_widget = StopWidget(
             debouncer = Debouncer()
