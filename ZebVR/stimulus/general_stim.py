@@ -10,7 +10,7 @@ from geometry import AffineTransform2D
 from ZebVR import MAX_PREY
 from ZebVR.protocol import DEFAULT, Stim
 import cv2
-from ZebVR.utils import SharedString
+from ZebVR.utils import SharedString, get_time_ns
 from multiprocessing import Queue
 import queue
 
@@ -583,7 +583,7 @@ class GeneralStim(VisualStim):
     def on_timer(self, event):
         # this runs in the display process
 
-        timestamp = time.perf_counter_ns()
+        timestamp = get_time_ns()
         timestamp_sec = 1e-9*timestamp
         time_sec = timestamp_sec % self.rollover_time_sec
 
@@ -592,7 +592,7 @@ class GeneralStim(VisualStim):
         # log stim parameters on change as close as possible to hardware
         if self.stim_change_counter != self.shared_stim_parameters.stim_change_counter.value:
             stim_log = self.shared_stim_parameters.to_dict()
-            stim_log.update({'timestamp': time.perf_counter_ns()})
+            stim_log.update({'timestamp': get_time_ns()})
             if self.log_queue is not None:
                 self.log_queue.put(stim_log)
             self.stim_change_counter = self.shared_stim_parameters.stim_change_counter.value
@@ -699,7 +699,7 @@ class GeneralStim(VisualStim):
         if control is None:
             return log_message
         
-        timestamp = time.perf_counter_ns()
+        timestamp = get_time_ns()
         timestamp_sec = 1e-9*timestamp
         time_sec = timestamp_sec % self.rollover_time_sec
         control['time_sec'] = time_sec

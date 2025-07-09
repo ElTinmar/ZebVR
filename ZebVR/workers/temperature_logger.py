@@ -2,6 +2,7 @@ from ds18b20 import read_temperature_celsius, CommunicationError
 from dagline import WorkerNode
 import time
 from typing import Any
+from ZebVR.utils import get_time_ns
 
 class TemperatureLoggerWorker(WorkerNode):
 
@@ -42,7 +43,7 @@ class TemperatureLoggerWorker(WorkerNode):
             time.sleep(1)
             return
 
-        timestamp = time.perf_counter_ns()
+        timestamp = get_time_ns()
         self.fd.write(f"{timestamp}, {temperature}\n")
 
     def process_metadata(self, metadata) -> Any:

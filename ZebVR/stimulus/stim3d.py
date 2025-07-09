@@ -10,6 +10,7 @@ import numpy as np
 from dataclasses import dataclass
 from geometry import AffineTransform2D
 from multiprocessing import Event 
+from ZebVR.utils import get_time_ns
 
 @dataclass
 class SharedFishState:
@@ -560,7 +561,7 @@ class Stim3D(app.Canvas):
             
             fields = data['tracking'].dtype.names
 
-            print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
+            print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(get_time_ns() - data['timestamp'])}")
 
             if 'body' in fields and data['tracking']['body']['success']:
                 self.shared_fish_state.fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body']['centroid_global']).squeeze()

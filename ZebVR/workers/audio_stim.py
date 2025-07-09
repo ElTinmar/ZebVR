@@ -15,7 +15,7 @@ from numpy.typing import NDArray
 import matplotlib.pyplot as plt
 from numba import njit
 import av
-from ZebVR.utils import SharedString
+from ZebVR.utils import SharedString, get_time_ns
 
 # TODO barrier to check everyone up and running
 # TODO log timings 
@@ -397,7 +397,7 @@ class AudioProducer(Process):
             # this is likely the best place to log.
             if self.stim_change_counter != self.shared_audio_parameters.stim_change_counter.value:
                 stim_log = self.shared_audio_parameters.to_dict()
-                stim_log.update({'timestamp': time.perf_counter_ns()})
+                stim_log.update({'timestamp': get_time_ns()})
                 self.log_queue.put(stim_log)
                 self.stim_change_counter = self.shared_audio_parameters.stim_change_counter.value
                 

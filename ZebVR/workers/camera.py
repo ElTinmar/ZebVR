@@ -4,6 +4,7 @@ from dagline import WorkerNode
 import time
 from typing import Callable, Any
 import numpy as np
+from ZebVR.utils import get_time_ns
 
 class CameraWorker(WorkerNode):
 
@@ -50,7 +51,7 @@ class CameraWorker(WorkerNode):
     def process_data(self, data: None): 
 
         frame = self.cam.get_frame()
-        timestamp = time.perf_counter_ns()
+        timestamp = get_time_ns()
         
         if frame:
             img = frame['image']

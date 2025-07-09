@@ -2,6 +2,7 @@ import time
 import numpy as np 
 import os
 from dagline import WorkerNode
+from ZebVR.utils import get_time_ns
 
 class TrackingSaver(WorkerNode):
 
@@ -115,7 +116,7 @@ class TrackingSaver(WorkerNode):
             print(f'ValueError: {err}')
             return None
 
-        latency = 1e-6*(time.perf_counter_ns() - data['timestamp'])
+        latency = 1e-6*(get_time_ns() - data['timestamp'])
         #print(f"frame {data['index']}, fish {data['identity']}: latency {latency}")
 
         row = (

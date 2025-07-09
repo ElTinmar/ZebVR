@@ -19,6 +19,7 @@ try:
 except ImportError:
     XIMEA_ENABLED = False
     constructor = OpenCV_Webcam
+from ZebVR.utils import get_time_ns
 
 # Estimation of hardware timings
 # ------------------------------ 
@@ -165,7 +166,7 @@ class Flash2(VisualStim):
         self.program['on'] = self.on.value
         self.update()
         if self.on.value:
-            curr_time = time.perf_counter_ns()
+            curr_time = get_time_ns()
             if (curr_time - self.tlast)*1e-9 >= 5:
                 print("-"*40) 
             print(f"latency {1e-6*(curr_time - self.timestamp.value)}, detected: {self.on.value}")
