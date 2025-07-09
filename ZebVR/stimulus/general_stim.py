@@ -114,6 +114,38 @@ class SharedStimParameters:
         self.ramp_powerlaw_exponent.value = d.get('ramp_powerlaw_exponent', DEFAULT['ramp_powerlaw_exponent'])
         self.ramp_type.value = d.get('ramp_type', DEFAULT['ramp_type'])
     
+    def to_dict(self) -> Dict: 
+
+        return {
+            'start_time_sec': self.start_time_sec.value,
+            'stim_select': self.stim_select.value,
+            'foreground_color': list(self.foreground_color),
+            'background_color': list(self.background_color),
+            'phototaxis_polarity': self.phototaxis_polarity.value,
+            'omr_spatial_period_mm': self.omr_spatial_period_mm.value,
+            'omr_angle_deg': self.omr_angle_deg.value,
+            'omr_speed_mm_per_sec': self.omr_speed_mm_per_sec.value,
+            'concentric_spatial_period_mm': self.concentric_spatial_period_mm.value,
+            'concentric_speed_mm_per_sec': self.concentric_speed_mm_per_sec.value,
+            'okr_spatial_frequency_deg': self.okr_spatial_frequency_deg.value,
+            'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec.value,
+            'looming_center_mm': list(self.looming_center_mm),
+            'looming_period_sec': self.looming_period_sec.value,
+            'looming_expansion_time_sec': self.looming_expansion_time_sec.value,
+            'looming_expansion_speed_mm_per_sec': self.looming_expansion_speed_mm_per_sec.value,
+            'dot_center_mm': list(self.dot_center_mm),
+            'dot_radius_mm': self.dot_radius_mm.value,
+            'n_preys': self.n_preys.value,
+            'prey_speed_mm_s': self.prey_speed_mm_s.value,
+            'prey_radius_mm': self.prey_radius_mm.value,
+            'image_path': self.image_path.value,
+            'image_res_px_per_mm': self.image_res_px_per_mm.value,
+            'image_offset_mm': list(self.image_offset_mm),
+            'ramp_duration_sec': self.ramp_duration_sec.value,
+            'ramp_powerlaw_exponent': self.ramp_powerlaw_exponent.value,
+            'ramp_type': self.ramp_type.value,
+        }
+
 VERT_SHADER = """
 attribute vec2 a_position;
 

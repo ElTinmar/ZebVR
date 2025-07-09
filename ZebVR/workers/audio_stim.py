@@ -173,9 +173,23 @@ class SharedAudioParameters:
         self.click_polarity.value = d.get('click_polarity', DEFAULT['click_polarity'])
         self.audio_file_path.value = d.get('audio_file_path', DEFAULT['audio_file_path'])
 
-    def to_dict(self) -> Dict: ...
-        # TODO
+    def to_dict(self) -> Dict: 
         
+        return {
+            'stim_select': self.stim_select.value,
+            'frequency_Hz': self.frequency_Hz.value,
+            'amplitude_dB': self.amplitude_dB.value,
+            'ramp_start_Hz': self.ramp_start_Hz.value,
+            'ramp_stop_Hz': self.ramp_stop_Hz.value,
+            'ramp_duration_sec': self.ramp_duration_sec.value,
+            'ramp_powerlaw_exponent': self.ramp_powerlaw_exponent.value,
+            'ramp_type': self.ramp_type.value,
+            'click_rate': self.click_rate.value,
+            'click_duration': self.click_duration.value,
+            'click_polarity': self.click_polarity.value,
+            'audio_file_path': self.audio_file_path.value,
+        }
+
 class AudioProducer(Process):
 
     RMS_SINE_NORM = np.sqrt(2)
