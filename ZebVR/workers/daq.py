@@ -74,6 +74,8 @@ class DAQ_Worker(WorkerNode):
                 pulse_duration = control.get('pulse_duration_msec')
                 duty_cycle = control.get('duty_cycle')
 
+                # TODO log timestamp and parameters here 
+
                 if stim == Stim.ANALOG_WRITE:
                     for c in channels:
                         self.daqs[board_type][board_id].analog_write(c, analog_value)
