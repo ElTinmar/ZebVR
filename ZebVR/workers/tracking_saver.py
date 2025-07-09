@@ -58,10 +58,14 @@ class TrackingSaver(WorkerNode):
 
     def cleanup(self):
         super().cleanup()
-        self.fd.close()
+        if self.fd is not None:
+            self.fd.close()
 
     def process_data(self, data) -> None:
-
+        
+        if self.fd is None:
+            return
+        
         if data is None:
             return
 
@@ -131,6 +135,7 @@ class TrackingSaver(WorkerNode):
         ) \
         + tuple(f"{skeleton_interp[i,0]}" for i in range(self.num_tail_points_interp)) \
         + tuple(f"{skeleton_interp[i,1]}" for i in range(self.num_tail_points_interp)) 
+
         self.fd.write(','.join(row) + '\n')
         
     def process_metadata(self, metadata) -> None:
