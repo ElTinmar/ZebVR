@@ -143,6 +143,7 @@ class SharedAudioParameters:
 
     def __init__(self):
         
+        self.stim_change_counter =  RawValue('d', 0)
         self.stim_select = RawValue('d', Stim.SILENCE)
         self.frequency_Hz = RawValue('d', DEFAULT['frequency_Hz'])
         self.amplitude_dB = RawValue('d', DEFAULT['amplitude_dB'])
@@ -158,6 +159,7 @@ class SharedAudioParameters:
 
     def from_dict(self, d: Dict) -> None:
 
+        self.stim_change_counter.value += 1 # TODO filter audio stim?
         self.stim_select.value = d.get('stim_select', Stim.SILENCE)
         self.frequency_Hz.value = d.get('frequency_Hz', DEFAULT['frequency_Hz'])
         self.amplitude_dB.value = d.get('amplitude_dB', DEFAULT['amplitude_dB'])
@@ -171,6 +173,9 @@ class SharedAudioParameters:
         self.click_polarity.value = d.get('click_polarity', DEFAULT['click_polarity'])
         self.audio_file_path.value = d.get('audio_file_path', DEFAULT['audio_file_path'])
 
+    def to_dict(self) -> Dict: ...
+        # TODO
+        
 class AudioProducer(Process):
 
     RMS_SINE_NORM = np.sqrt(2)
@@ -203,6 +208,7 @@ class AudioProducer(Process):
         self.rollover_phase = int(rollover_time_sec * samplerate)
         self.phase: int = 0
         self.current_stim: Stim = Stim.SILENCE
+        self.stim_change_counter = 0
         self.chunk_function = self._silence
 
         # For file-based streaming
@@ -358,6 +364,12 @@ class AudioProducer(Process):
         chunk = amplitude_dB * self.units_per_dB * chunk
         self.phase = (self.phase + self.blocksize) % self.rollover_phase
 
+        if self.stim_change_counter != self.shared_audio_parameters.stim_change_counter.value:
+            # TODO stim was changed, log timestamps and parameters here, before update
+            # log(time.perf_counter_ns, self.shared_audio_parameters.to_dict)
+            print('audio stim changed')
+            self.stim_change_counter = self.shared_audio_parameters.stim_change_counter.value
+            
         return chunk
 
     def run(self):
@@ -407,7 +419,8 @@ class AudioConsumer(Process):
             chunk = self.audio_queue.get_nowait()
             # print(f'rms: {np.sqrt(np.mean(chunk**2))}')
         except queue.Empty:
-            print('audio underrun')
+            # TODO log audio underrun?
+            # print('audio underrun')
             outdata.fill(0)
         else:
             outdata[:] = chunk       

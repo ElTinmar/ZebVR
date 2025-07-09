@@ -54,6 +54,7 @@ class SharedStimParameters:
 
     def __init__(self):
         
+        self.stim_change_counter = RawValue('d', 0) 
         self.start_time_sec = RawValue('d', 0) 
         self.stim_select = RawValue('d', Stim.DARK) 
         self.foreground_color = RawArray('d', DEFAULT['foreground_color'])
@@ -83,7 +84,8 @@ class SharedStimParameters:
         self.ramp_type = RawValue('d', DEFAULT['ramp_type'])
 
     def from_dict(self, d: Dict) -> None:
-
+        
+        self.stim_change_counter.value += 1 # TODO filter on VISUAL STIM only 
         self.start_time_sec.value = d.get('time_sec', 0)
         self.stim_select.value = d.get('stim_select', Stim.DARK)
         self.foreground_color[:] = d.get('foreground_color', DEFAULT['foreground_color'])
@@ -429,6 +431,7 @@ class GeneralStim(VisualStim):
 
         self.shared_fish_state = [SharedFishState(num_tail_points_interp) for _ in  ROI_identities]
         self.shared_stim_parameters = SharedStimParameters()
+        self.stim_change_counter = 0
 
         self.refresh_rate = refresh_rate
         self.fd = None
@@ -575,6 +578,13 @@ class GeneralStim(VisualStim):
         time_sec = timestamp_sec % self.rollover_time_sec
 
         self.update_shader_variables(time_sec)
+
+        if self.stim_change_counter != self.shared_stim_parameters.stim_change_counter.value:
+            # TODO stim was changed, log timestamps and parameters here, before update
+            #print('visual stim changed')
+            self.stim_change_counter = self.shared_stim_parameters.stim_change_counter.value
+
+
         self.update()
 
         row = (
@@ -680,4 +690,4 @@ class GeneralStim(VisualStim):
 
         self.shared_stim_parameters.from_dict(control)
 
-        # TODO log to stim file only if there is a change here? 
+        # TODO log to stim file only if there is a change 
