@@ -11,30 +11,8 @@ from ZebVR import MAX_PREY
 from ZebVR.protocol import DEFAULT, Stim
 import cv2
 from ZebVR.utils import SharedString
-# TODO: map to sRGB except for image?
-
-# debug ramps 
-def linear_ramp(t, duration, start=0.5, stop=1):
-    frac = np.clip(t/duration, 0 , 1)
-    return start + (stop - start) * frac
-
-def log_ramp(t, duration, k=2, start=0.5, stop=1):
-    frac = np.clip(t/duration, 0 , 1)
-    log_value = np.log(1 + frac*k) / np.log(1+k)
-    return  start + (stop - start) * log_value
-
-def exp_ramp(t, duration, start=0.5, stop=1):
-    frac = np.clip(t / duration, 0, 1)
-    # Avoid zero start to prevent division by zero or zero exponentiation
-    if start == 0:
-        raise ValueError("start must be > 0 for exponential ramp")
-    return start * (stop / start) ** frac
-
-def powerlaw_ramp(t, duration, n=2, start=0.5, stop=1):
-    frac = np.clip(t/duration, 0 , 1)
-    return  start + (stop - start) * frac**n
-# - debug ramps
-
+from multiprocessing import Queue
+import queue
 
 @dataclass
 class SharedFishState:
@@ -611,11 +589,13 @@ class GeneralStim(VisualStim):
 
         self.update_shader_variables(time_sec)
 
+        # log stim parameters on change as close as possible to hardware
         if self.stim_change_counter != self.shared_stim_parameters.stim_change_counter.value:
-            # TODO stim was changed, log timestamps and parameters here, before update
-            #print('visual stim changed')
+            stim_log = self.shared_stim_parameters.to_dict()
+            stim_log.update({'timestamp': time.perf_counter_ns()})
+            if self.log_queue is not None:
+                self.log_queue.put(stim_log)
             self.stim_change_counter = self.shared_stim_parameters.stim_change_counter.value
-
 
         self.update()
 
@@ -665,8 +645,6 @@ class GeneralStim(VisualStim):
                 return
             
             fields = data['tracking'].dtype.names
-
-            print(f"frame {data['index']}, fish {data['identity']}: latency {1e-6*(time.perf_counter_ns() - data['timestamp'])}")
             ID = data['identity']
 
             if 'body' in fields and data['tracking']['body']['success']:
@@ -709,11 +687,17 @@ class GeneralStim(VisualStim):
 
     def process_metadata(self, metadata) -> None:
         # this runs in the worker process
+
+        log_message = None
+        try:
+            if self.log_queue is not None:
+                log_message = self.log_queue.get_nowait()
+        except queue.Empty:
+            pass
         
-        control: Dict = metadata['stim_control']
-        
+        control: Dict = metadata['stim_control']  
         if control is None:
-            return
+            return log_message
         
         timestamp = time.perf_counter_ns()
         timestamp_sec = 1e-9*timestamp
@@ -721,5 +705,4 @@ class GeneralStim(VisualStim):
         control['time_sec'] = time_sec
 
         self.shared_stim_parameters.from_dict(control)
-
-        # TODO log to stim file only if there is a change 
+        return log_message
