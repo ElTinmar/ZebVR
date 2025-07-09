@@ -77,6 +77,7 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
         # channels
         self.channel_list = QListWidget()
         self.channel_list.setSelectionMode(QListWidget.MultiSelection)
+        self.channel_list.itemSelectionChanged.connect(self.state_changed)
 
     def on_board_type_change(self):
 
