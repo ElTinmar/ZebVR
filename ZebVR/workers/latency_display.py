@@ -12,7 +12,7 @@ from collections import deque
 
 LATENCY_THRESHOLD_MS = 20.0
 MAX_HISTORY = 30
-MAX_HIST_SAMPLES = 1000
+MAX_HIST_SAMPLES = 500
 
 class LatencyText(QWidget):
     def __init__(
