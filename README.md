@@ -163,6 +163,10 @@ canvas.close()
 
 ## Troubleshooting
 
+### PCIe Camera No LED 
+
+Make sure the power switch on the PCIe adapapter board is on 24V
+
 ### Ximea Error 57
 
 if error 57 device already open, or if program is slower than usual
