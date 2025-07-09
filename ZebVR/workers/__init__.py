@@ -14,3 +14,4 @@ from .crop import *
 from .temperature_logger import *
 from .audio_stim import *
 from .daq import *
+from .latency_display import LatencyDisplay

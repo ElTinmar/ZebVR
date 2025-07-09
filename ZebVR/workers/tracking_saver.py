@@ -61,7 +61,7 @@ class TrackingSaver(WorkerNode):
         if self.fd is not None:
             self.fd.close()
 
-    def process_data(self, data) -> None:
+    def process_data(self, data):
         
         if self.fd is None:
             return
@@ -116,7 +116,7 @@ class TrackingSaver(WorkerNode):
             return None
 
         latency = 1e-6*(time.perf_counter_ns() - data['timestamp'])
-        print(f"frame {data['index']}, fish {data['identity']}: latency {latency}")
+        #print(f"frame {data['index']}, fish {data['identity']}: latency {latency}")
 
         row = (
             f"{data['index']}",
@@ -141,7 +141,12 @@ class TrackingSaver(WorkerNode):
 
         self.fd.write(','.join(row) + '\n')
 
-        return latency
+        res = {
+            'frame': data['index'],
+            'fish_id': data['identity'],
+            'latency': latency
+        }
+        return res
         
     def process_metadata(self, metadata) -> None:
         pass

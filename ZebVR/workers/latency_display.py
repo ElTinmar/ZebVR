@@ -1,65 +1,59 @@
 import sys
 import queue
-import random
 import numpy as np
-
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QLabel, QTextEdit, QVBoxLayout, QHBoxLayout
 )
-from PyQt5.QtCore import QTimer, pyqtSignal, QObject
+from PyQt5.QtCore import QTimer
 import pyqtgraph as pg
+from dagline import WorkerNode
+from typing import Dict, Optional
+from collections import deque
 
-LATENCY_THRESHOLD_MS = 14.0
+LATENCY_THRESHOLD_MS = 20.0
 MAX_HISTORY = 30
 MAX_HIST_SAMPLES = 1000
 
-class LatencyCollector(QObject):
-    new_latency = pyqtSignal(int, int, float)
-
-    def report_latency(self, frame, fish_id, latency):
-        self.new_latency.emit(frame, fish_id, latency)
-
-
-class LatencyDisplay(QWidget):
-    def __init__(self, history_size=MAX_HISTORY):
+class LatencyText(QWidget):
+    def __init__(
+            self, 
+            history_size: int = MAX_HISTORY
+        ):
         super().__init__()
         self.text = QTextEdit()
         self.text.setReadOnly(True)
-        self.history_size = history_size
-        self.history = []
-        self.q = queue.Queue()
+        self.data = deque(maxlen = history_size)
 
         layout = QVBoxLayout()
         layout.addWidget(QLabel("Recent Latency:"))
         layout.addWidget(self.text)
         self.setLayout(layout)
 
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_display)
-        self.timer.start(1/30) 
-
     def receive_latency(self, frame, fish_id, latency):
         msg = f"frame {frame}, fish {fish_id}: latency {latency:.3f}"
-        self.q.put((latency, msg))
+        self.data.append((latency, msg))
+
+    @staticmethod
+    def highlight_msg(msg: str, flag: bool):
+        out = msg
+        if flag:
+            out = f'<span style="color:red">{msg}</span>'
+        return out 
 
     def update_display(self):
-        while not self.q.empty():
-            latency, msg = self.q.get_nowait()
-            if len(self.history) >= self.history_size:
-                self.history.pop(0)
-            if latency > LATENCY_THRESHOLD_MS:
-                msg = f'<span style="color:red">{msg}</span>'
-            self.history.append(msg)
-
-        self.text.setHtml("<br>".join(self.history))
-
+        text = [self.highlight_msg(msg, latency > LATENCY_THRESHOLD_MS) for latency, msg in self.data]
+        self.text.setHtml("<br>".join(text))
 
 class LatencyHistogram(QWidget):
-    def __init__(self, max_samples=MAX_HIST_SAMPLES):
+    
+    def __init__(
+            self, 
+            num_samples: int = MAX_HIST_SAMPLES
+        ):
+
         super().__init__()
-        self.latencies = []
-        self.max_samples = max_samples
-        self.q = queue.Queue()
+
+        self.data = deque(maxlen = num_samples)
 
         self.plot_widget = pg.PlotWidget()
         self.plot_widget.enableAutoRange(axis='x', enable=True)
@@ -73,60 +67,76 @@ class LatencyHistogram(QWidget):
         layout.addWidget(self.plot_widget)
         self.setLayout(layout)
 
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_histogram)
-        self.timer.start(200)  # Update every 200 ms
-
-    def receive_latency(self, frame, fish_id, latency):
-        self.q.put(latency)
+    def receive_latency(self, latency):
+        self.data.append(latency)
 
     def update_histogram(self):
-        while not self.q.empty():
-            val = self.q.get_nowait()
-            self.latencies.append(val)
-            if len(self.latencies) > self.max_samples:
-                self.latencies.pop(0)
+        if self.data:
+            counts, bins = np.histogram(self.data, bins='auto')
+            self.hist_plot.setData(bins, counts)
 
-        if self.latencies:
-            counts, bins = np.histogram(self.latencies, bins='auto')
-            self.hist_plot.setData(bins, counts, stepMode=True, fillLevel=0, brush=(150, 150, 255, 150))
+class LatencyWidget(QWidget):
 
+    def __init__(
+            self,
+            refresh_frequency,
+        ):
 
-class LatencyMonitor(QWidget):
-    def __init__(self):
         super().__init__()
-        self.setWindowTitle("Latency Monitor")
-        self.resize(800, 400)
 
-        self.collector = LatencyCollector()
-        self.display = LatencyDisplay()
+        self.text_display = LatencyText()
         self.histogram = LatencyHistogram()
 
-        # Connect both widgets to the same signal
-        self.collector.new_latency.connect(self.display.receive_latency)
-        self.collector.new_latency.connect(self.histogram.receive_latency)
-
         layout = QHBoxLayout()
-        layout.addWidget(self.display, 2)
+        layout.addWidget(self.text_display, 2)
         layout.addWidget(self.histogram, 3)
         self.setLayout(layout)
 
-        # Simulate latency input
-        self.frame_counter = 0
-        self.sim_timer = QTimer()
-        self.sim_timer.timeout.connect(self.simulate_latency)
-        self.sim_timer.start(1000/100)  # 100 Hz input
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_display)
+        self.timer.start(1000/refresh_frequency) 
 
-    def simulate_latency(self):
-        latency = random.uniform(10, 13)
-        if random.random() < 0.1:
-            latency += random.uniform(3, 6)  # occasional spike
-        self.collector.report_latency(self.frame_counter, 0, latency)
-        self.frame_counter += 1
+    def add_data(self, frame, fish_id, latency):
+        self.text_display.receive_latency(frame, fish_id, latency)
+        self.histogram.receive_latency(latency)
 
+    def update_display(self):
+        self.text_display.update_display()
+        self.histogram.update_histogram()
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    monitor = LatencyMonitor()
-    monitor.show()
-    sys.exit(app.exec_())
+class LatencyDisplay(WorkerNode):
+
+    def __init__(
+            self, 
+            refresh_frequency: int = 30,
+            *args, 
+            **kwargs
+        ):
+
+        super().__init__(*args, **kwargs)
+        self.refresh_frequency = refresh_frequency
+
+    def initialize(self) -> None:
+
+        super().initialize()
+
+        self.app = QApplication([])
+        self.window = LatencyWidget(self.refresh_frequency)
+        self.window.show()
+
+    def process_data(self, data):
+             
+        self.app.processEvents()
+        self.app.sendPostedEvents()
+
+        if data is not None:
+            self.window.add_data(
+                    data['frame'],
+                    data['fish_id'],
+                    data['latency']
+                )
+
+    def process_metadata(self, metadata: Dict) -> Optional[Dict]:
+        pass
+        
+

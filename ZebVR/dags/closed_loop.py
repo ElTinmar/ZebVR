@@ -29,6 +29,7 @@ from ..workers import (
     TrackingSaver,
     TemperatureLoggerWorker,
     DAQ_Worker,
+    LatencyDisplay,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -310,6 +311,12 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         receive_data_timeout = 1.0,
     )
 
+    tracking_latency_display = LatencyDisplay(
+        name = 'tracking_latency_display',
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+    )
+
     # tracking display -----------------------------------------
     overlay = SingleFishOverlay_opencv()
 
@@ -497,6 +504,13 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             queue = queue_tracking_to_saver[i], 
             name = 'tracker_output_saver'
         )
+
+    dag.connect_data(
+        sender = tracking_saver_worker, 
+        receiver = tracking_latency_display, 
+        queue = QueueMP(), 
+        name = 'tracking_latency'
+    )
 
     # metadata
     if settings['main']['record']:
