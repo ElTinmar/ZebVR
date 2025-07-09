@@ -174,7 +174,7 @@ class SharedAudioParameters:
         self.audio_file_path.value = d.get('audio_file_path', DEFAULT['audio_file_path'])
 
     def to_dict(self) -> Dict: 
-        
+
         return {
             'stim_select': self.stim_select.value,
             'frequency_Hz': self.frequency_Hz.value,
@@ -196,7 +196,8 @@ class AudioProducer(Process):
     
     def __init__(
             self, 
-            audio_queue: Queue, 
+            audio_queue: Queue,
+            log_queue: Queue, 
             stop_event: EventType,
             barrier: BarrierType,
             shared_audio_parameters: SharedAudioParameters,
@@ -212,6 +213,7 @@ class AudioProducer(Process):
         self.audio_stop_event = stop_event
         self.barrier = barrier
         self.audio_queue = audio_queue
+        self.log_queue = log_queue
         self.samplerate = samplerate
         self.blocksize = blocksize 
         self.channels = channels
@@ -379,9 +381,9 @@ class AudioProducer(Process):
         self.phase = (self.phase + self.blocksize) % self.rollover_phase
 
         if self.stim_change_counter != self.shared_audio_parameters.stim_change_counter.value:
-            # TODO stim was changed, log timestamps and parameters here, before update
-            # log(time.perf_counter_ns, self.shared_audio_parameters.to_dict)
-            print('audio stim changed')
+            stim_log = self.shared_audio_parameters.to_dict()
+            stim_log.update({'timestamp': time.perf_counter_ns()})
+            self.log_queue.put(stim_log)
             self.stim_change_counter = self.shared_audio_parameters.stim_change_counter.value
             
         return chunk
@@ -489,6 +491,7 @@ class AudioStimWorker(WorkerNode):
         self.audio_stop_event = Event() 
         self.audio_barrier = Barrier(3)
         self.audio_queue = Queue(maxsize=2)
+        self.log_queue = Queue()
         self.shared_audio_parameters = SharedAudioParameters()
 
     def set_filename(self, filename:str):
@@ -514,6 +517,7 @@ class AudioStimWorker(WorkerNode):
 
         self.audio_producer = AudioProducer(
             audio_queue = self.audio_queue,
+            log_queue = self.log_queue,
             stop_event = self.audio_stop_event,
             barrier = self.audio_barrier,
             shared_audio_parameters = self.shared_audio_parameters,
@@ -566,15 +570,19 @@ class AudioStimWorker(WorkerNode):
     
     def process_metadata(self, metadata) -> None:
         # this runs in the worker process
+
+        log_message = None
+        try:
+            log_message = self.log_queue.get_nowait()
+        except queue.Empty:
+            pass
         
         control: Dict = metadata.get('audio_stim_control', None)
         if control is None:
-            return
+            return log_message
 
         # TODO add time to the parameters and use that to reset the phase
         # that way, specifying the same stimulus again also resets the phase
-
         self.shared_audio_parameters.from_dict(control)
 
-        # Write to file here? Log only if there is a change?
-        # implement the logic in SharedAudioParameters?
+        return log_message
