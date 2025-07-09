@@ -6,6 +6,7 @@ from numpy.typing import NDArray
 import numpy as np 
 from multiprocessing import Event
 from geometry import AffineTransform2D
+from multiprocessing import Queue
 
 class VisualStim(app.Canvas):
 
@@ -36,6 +37,7 @@ class VisualStim(app.Canvas):
             self.pix_per_mm = pix_per_mm
             self.use_fullscreen = fullscreen
             self.initialized = Event()
+            self.log_queue = None
 
     def initialize(self):
         # this needs to happen in the process where the window is displayed
@@ -65,6 +67,9 @@ class VisualStim(app.Canvas):
         
         #NOTE don't forget to call self.initialized.set() in subclass
 
+    def set_log_queue(self, log_queue: Queue):
+        self.log_queue = log_queue
+
     def cleanup(self):
         self.initialized.clear()
             
@@ -83,10 +88,18 @@ class VisualStim(app.Canvas):
     
 class VisualStimWorker(WorkerNode):
 
-    def __init__(self, stim: VisualStim, *args, **kwargs):
+    def __init__(
+            self, 
+            stim: VisualStim, 
+            *args, 
+            **kwargs
+        ):
+
         super().__init__(*args, **kwargs)
         self.stim = stim
         self.display_process = None
+        self.log_queue = Queue()
+        self.stim.set_log_queue(self.log_queue)
 
     def run(self) -> None:
         self.stim.initialize()
