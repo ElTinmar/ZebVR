@@ -115,11 +115,14 @@ class TrackingSaver(WorkerNode):
             print(f'ValueError: {err}')
             return None
 
+        latency = 1e-6*(time.perf_counter_ns() - data['timestamp'])
+        print(f"frame {data['index']}, fish {data['identity']}: latency {latency}")
+
         row = (
             f"{data['index']}",
             f"{data['timestamp']}",
             f"{data['identity']}",
-            f"{1e-6*(time.perf_counter_ns() - data['timestamp'])}",
+            f"{latency}",
             f"{fish_centroid[0]}",
             f"{fish_centroid[1]}",
             f"{fish_caudorostral_axis[0]}",
@@ -137,6 +140,8 @@ class TrackingSaver(WorkerNode):
         + tuple(f"{skeleton_interp[i,1]}" for i in range(self.num_tail_points_interp)) 
 
         self.fd.write(','.join(row) + '\n')
+
+        return latency
         
     def process_metadata(self, metadata) -> None:
         pass
