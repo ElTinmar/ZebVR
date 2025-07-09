@@ -380,12 +380,6 @@ class AudioProducer(Process):
         chunk = amplitude_dB * self.units_per_dB * chunk
         self.phase = (self.phase + self.blocksize) % self.rollover_phase
 
-        if self.stim_change_counter != self.shared_audio_parameters.stim_change_counter.value:
-            stim_log = self.shared_audio_parameters.to_dict()
-            stim_log.update({'timestamp': time.perf_counter_ns()})
-            self.log_queue.put(stim_log)
-            self.stim_change_counter = self.shared_audio_parameters.stim_change_counter.value
-            
         return chunk
 
     def run(self):
@@ -395,6 +389,18 @@ class AudioProducer(Process):
 
         while not self.audio_stop_event.is_set():
             chunk = self._next_chunk()
+
+            # Logging as close as possible to hardware. 
+            # There is still a small delay between Producer and Consumer,
+            # as well as hardware delay to output sound, but that should be 
+            # roughly constant. Since the consumer does not know audio parameters,
+            # this is likely the best place to log.
+            if self.stim_change_counter != self.shared_audio_parameters.stim_change_counter.value:
+                stim_log = self.shared_audio_parameters.to_dict()
+                stim_log.update({'timestamp': time.perf_counter_ns()})
+                self.log_queue.put(stim_log)
+                self.stim_change_counter = self.shared_audio_parameters.stim_change_counter.value
+                
             self.audio_queue.put(chunk, block=True)
 
 class AudioConsumer(Process):
