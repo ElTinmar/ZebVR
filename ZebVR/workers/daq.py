@@ -28,7 +28,7 @@ class DAQ_Worker(WorkerNode):
         for board_type, board_list in self.daq_boards.items():
             self.daqs[board_type] = {}
             for board in board_list:
-                self.daqs[board_type][board.id] = DAQ_CONSTRUCTORS[board_type](board.id)
+                self.daqs[board_type][board.id] = DAQ_CONSTRUCTORS[board_type](board_id = board.id)
 
         super().initialize()
 
