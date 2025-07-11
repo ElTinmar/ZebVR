@@ -584,19 +584,19 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         sender = stim_worker,
         receiver = stim_saver,
         queue = queue_stim_saver, 
-        name = 'stim_logger'
+        name = 'visual_stim_logger'
     )
     dag.connect_metadata(
         sender = daq_worker,
         receiver = stim_saver,
         queue = queue_stim_saver, 
-        name = 'stim_logger'
+        name = 'daq_stim_logger'
     )
     dag.connect_metadata(
         sender = audio_stim_worker,
         receiver = stim_saver,
         queue = queue_stim_saver, 
-        name = 'stim_logger'
+        name = 'audio_stim_logger'
     )
 
     # isolated nodes

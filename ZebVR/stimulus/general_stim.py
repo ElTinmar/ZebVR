@@ -640,7 +640,7 @@ class GeneralStim(VisualStim):
             print(f'ValueError: {err}')
             return None
 
-    def process_metadata(self, metadata) -> None:
+    def process_metadata(self, metadata):
         # this runs in the worker process
 
         log_message = None
