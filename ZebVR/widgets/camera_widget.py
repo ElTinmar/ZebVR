@@ -13,8 +13,9 @@ from PyQt5.QtGui import QImage
 import numpy as np
 import cv2
 import os
+from pathlib import Path
 from functools import partial
-from typing import Dict, Optional, Callable
+from typing import Dict, Optional, Callable, Union
 from numpy.typing import NDArray
 from enum import IntEnum
 
@@ -316,11 +317,11 @@ class CameraController(QObject):
         # initialize view
         self.view.on_source_change()
 
-    def on_source_changed(self, camera_model: int, cam_ind: int, filename: str):
+    def on_source_changed(self, camera_model: int, cam_ind: int, filename: Union[Path, str]):
 
         self.camera_model = camera_model
         self.camera_index = cam_ind
-        self.filename = filename
+        self.filename = Path(filename)
 
         if camera_model==CameraModel.ZERO_GRAY:
             self.camera_constructor = partial(ZeroCam, shape=(2048,2048), dtype=np.uint8)
@@ -340,8 +341,8 @@ class CameraController(QObject):
         elif camera_model==CameraModel.SPINNAKER and SPINNAKER_ENABLED:
             self.camera_constructor = partial(SpinnakerCamera, dev_id=cam_ind)
 
-        elif camera_model==CameraModel.MOVIE and os.path.exists(filename):
-            self.camera_constructor = partial(MovieFileCam, filename=filename)
+        elif camera_model==CameraModel.MOVIE and self.filename.exists():
+            self.camera_constructor = partial(MovieFileCam, filename=str(self.filename))
 
         elif camera_model==CameraModel.XIMEA and XIMEA_ENABLED:
             self.camera_constructor = partial(XimeaCamera_Transport, dev_id=cam_ind)

@@ -5,8 +5,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
-import os
-
+from pathlib import Path 
 from .tracking_widget import TrackingWidget
 from .video_recording_widget import VideoOutputWidget
 from .experiment_data_widget import ExperimentDataWidget
@@ -16,7 +15,7 @@ class SettingsWidget(QWidget):
 
     state_changed = pyqtSignal()
     prefix_changed = pyqtSignal(str)
-    OUTPUT_FOLDER: str = 'output/data'
+    OUTPUT_FOLDER: Path = Path('output/data')
 
     def __init__(self, *args, **kwargs):
 
@@ -45,8 +44,8 @@ class SettingsWidget(QWidget):
         self.experiment_data_widget.experiment_data()
 
     def update_prefix(self, prefix) -> None:
-        self.prefix = os.path.join(self.OUTPUT_FOLDER, prefix)
-        self.prefix_changed.emit(prefix)
+        self.prefix = self.OUTPUT_FOLDER / prefix
+        self.prefix_changed.emit(str(prefix))
 
     def force_videorecording(self, force: bool):
         self.video_recording_widget.force_checked(force)

@@ -30,6 +30,7 @@ from ..workers import (
     TemperatureLoggerWorker,
     DAQ_Worker,
     LatencyDisplay,
+    StimSaver,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -141,6 +142,8 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             name = 'tracker_to_protocol',
                     )
     )
+
+    queue_stim_saver = QueueMP()
 
     # create workers -----------------------------------------------------------------------
     camera_worker = CameraWorker(
@@ -399,6 +402,14 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         profile = False
     ) 
 
+    stim_saver = StimSaver(
+        filename = 'stimulus.json',
+        name = 'stim_saver', 
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        receive_data_timeout = 1.0,
+    )
+
     # connect DAG -----------------------------------------------------------------------
     # data
     dag.connect_data(
@@ -570,6 +581,25 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             queue = QueueMP(), # multiple queues
             name = f'tracker_control_{i}'
         )
+
+    dag.connect_metadata(
+        sender = stim_worker,
+        receiver = stim_saver,
+        queue = queue_stim_saver, 
+        name = 'stim_logger'
+    )
+    dag.connect_metadata(
+        sender = daq_worker,
+        receiver = stim_saver,
+        queue = queue_stim_saver, 
+        name = 'stim_logger'
+    )
+    dag.connect_metadata(
+        sender = audio_stim_worker,
+        receiver = stim_saver,
+        queue = queue_stim_saver, 
+        name = 'stim_logger'
+    )
 
     # isolated nodes
     dag.add_node(queue_monitor_worker)

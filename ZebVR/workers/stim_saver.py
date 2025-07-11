@@ -2,7 +2,7 @@ import json
 from dagline import WorkerNode
 from ZebVR.utils import append_timestamp_to_filename
 
-class TrackingSaver(WorkerNode):
+class StimSaver(WorkerNode):
 
     def __init__(
             self, 
@@ -35,6 +35,8 @@ class TrackingSaver(WorkerNode):
         pass
         
     def process_metadata(self, metadata) -> None:
+
+        print(metadata)
 
         if self.fd is None:
             return

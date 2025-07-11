@@ -7,14 +7,13 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
-import os
-
+from pathlib import Path
 from qt_widgets import LabeledEditLine
 
 class StimOutputWidget(QWidget):
 
     state_changed = pyqtSignal()
-    CSV_FOLDER: str = 'output/data'
+    FOLDER: Path = Path('output/data')
 
     def __init__(self, *args, **kwargs):
 
@@ -30,13 +29,13 @@ class StimOutputWidget(QWidget):
 
         self.edt_filename = LabeledEditLine()
         self.edt_filename.setLabel('result file:')
-        self.edt_filename.setText('stim.csv')
+        self.edt_filename.setText('stim.json')
         self.edt_filename.textChanged.connect(self.state_changed)
 
     def update_prefix(self, prefix: str):
 
-        self.filename = os.path.join(self.CSV_FOLDER, f'stim_{prefix}.csv')
-        self.edt_filename.setText(self.filename)
+        self.filename = self.FOLDER / f'stim_{prefix}.json'
+        self.edt_filename.setText(str(self.filename))
         self.state_changed.emit()
 
     def layout_components(self) -> None:
@@ -51,13 +50,13 @@ class StimOutputWidget(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
-        state['csv_filename'] = self.edt_filename.text()
+        state['filename'] = self.edt_filename.text()
         return state
     
     def set_state(self, state: Dict) -> None:
 
         setters = {
-            'csv_filename': self.edt_filename.setText
+            'filename': self.edt_filename.setText
         }
         
         for key, setter in setters.items():

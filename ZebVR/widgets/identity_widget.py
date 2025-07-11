@@ -11,7 +11,7 @@ from typing import Dict
 from numpy.typing import NDArray
 import numpy as np
 import cv2
-import os
+from pathlib import Path
 from geometry import SimilarityTransform2D
 
 from qt_widgets import (
@@ -25,7 +25,7 @@ class IdentityWidget(QWidget):
 
     state_changed = pyqtSignal()
     PREVIEW_HEIGHT: int = 512
-    DEFAULT_FILE = 'ZebVR/default/background.npy'
+    DEFAULT_FILE: Path = Path('ZebVR/default/background.npy')
 
     font = cv2.FONT_HERSHEY_SIMPLEX
     fontweight = 2
@@ -39,7 +39,7 @@ class IdentityWidget(QWidget):
 
         super().__init__(*args, **kwargs)
 
-        if os.path.exists(self.DEFAULT_FILE):
+        if self.DEFAULT_FILE.exists():
             self.image = np.load(self.DEFAULT_FILE)
         else:
             self.image = np.zeros((512,512), dtype=np.uint8)

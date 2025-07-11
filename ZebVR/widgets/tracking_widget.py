@@ -8,14 +8,13 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
-import os
-
+from pathlib import Path
 from qt_widgets import LabeledSpinBox, FileOpenLabeledEditButton, LabeledEditLine
 
 class TrackingWidget(QWidget):
 
     state_changed = pyqtSignal()
-    CSV_FOLDER: str = 'output/data'
+    CSV_FOLDER: Path = Path('output/data')
     DEFAULT_TRACKING_FILE =  'ZebVR/default/tracking.json'
 
     def __init__(self, *args, **kwargs):
@@ -56,8 +55,8 @@ class TrackingWidget(QWidget):
 
     def update_prefix(self, prefix: str):
 
-        self.filename = os.path.join(self.CSV_FOLDER, f'tracking_{prefix}.csv')
-        self.edt_filename.setText(self.filename)
+        self.filename = self.CSV_FOLDER / f'tracking_{prefix}.csv'
+        self.edt_filename.setText(str(self.filename))
         self.state_changed.emit()
 
     def layout_components(self) -> None:

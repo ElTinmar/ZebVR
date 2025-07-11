@@ -11,8 +11,8 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPixmap
-from typing import Dict
-import os
+from typing import Dict, List
+from pathlib import Path
 import json
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEditButton
@@ -26,11 +26,11 @@ class CalibrationWidget(QWidget):
     calibration_signal = pyqtSignal()
     check_calibration_signal = pyqtSignal()
     state_changed = pyqtSignal()
-    checkerboard_tooltip = "Printed checkerboard target size (internal corners)"
 
-    CALIBRATION_CHECK_DIAMETER_MM  = [15, 30, 45, 60] #TODO make a list out of that
-    DEFAULT_FILE = 'ZebVR/default/calibration.json'
-    PIXMAP_HEIGHT = 192
+    CHECKERBOARD_TOOLTIP: str = "Printed checkerboard target size (internal corners)"
+    CALIBRATION_CHECK_DIAMETER_MM: List[float]  = [15, 30, 45, 60] 
+    DEFAULT_FILE: Path = Path('ZebVR/default/calibration.json')
+    PIXMAP_HEIGHT: int = 192
 
     def __init__(self, *args, **kwargs)  -> None:
 
@@ -61,14 +61,14 @@ class CalibrationWidget(QWidget):
         self.checkerboard_grid_size_x.setRange(0, 20)
         self.checkerboard_grid_size_x.setValue(9)
         self.checkerboard_grid_size_x.valueChanged.connect(self.state_changed)
-        self.checkerboard_grid_size_x.setToolTip(self.checkerboard_tooltip)
+        self.checkerboard_grid_size_x.setToolTip(self.CHECKERBOARD_TOOLTIP)
 
         self.checkerboard_grid_size_y = LabeledSpinBox()
         self.checkerboard_grid_size_y.setText('# inner corner Y:')
         self.checkerboard_grid_size_y.setRange(0, 20)
         self.checkerboard_grid_size_y.setValue(6)
         self.checkerboard_grid_size_y.valueChanged.connect(self.state_changed)
-        self.checkerboard_grid_size_y.setToolTip(self.checkerboard_tooltip)
+        self.checkerboard_grid_size_y.setToolTip(self.CHECKERBOARD_TOOLTIP)
 
         self.camera_fps = LabeledDoubleSpinBox()
         self.camera_fps.setText('camera FPS:')
@@ -102,7 +102,7 @@ class CalibrationWidget(QWidget):
 
         self.calibration_file = FileSaveLabeledEditButton()
         self.calibration_file.setLabel('calibration file:')
-        self.calibration_file.setDefault(self.DEFAULT_FILE)
+        self.calibration_file.setDefault(str(self.DEFAULT_FILE))
         self.calibration_file.textChanged.connect(self.state_changed)
 
         self.calibration = QPushButton('calibration')
@@ -117,7 +117,7 @@ class CalibrationWidget(QWidget):
         self.pix_per_mm.setValue(0)
         self.pix_per_mm.valueChanged.connect(self.state_changed)
 
-        if os.path.exists(self.DEFAULT_FILE):
+        if self.DEFAULT_FILE.exists():
             with open(self.DEFAULT_FILE, 'r') as f:
                 pix_per_mm = json.load(f)
             self.pix_per_mm.setValue(pix_per_mm)

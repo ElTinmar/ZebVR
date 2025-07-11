@@ -2,7 +2,7 @@ from typing import Deque, List, Dict, Optional
 from numpy.typing import NDArray
 from collections import deque
 import random
-import os
+from pathlib import Path 
 import numpy as np
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -26,8 +26,8 @@ from daq_tools import (
 class SequencerWidget(QWidget):
 
     state_changed = pyqtSignal()
-    DEFAULT_DEBOUNCER_LENGTH = 5
-    DEFAULT_BACKGROUND_FILE = 'ZebVR/default/background.npy'
+    DEFAULT_DEBOUNCER_LENGTH: int = 5
+    DEFAULT_BACKGROUND_FILE: Path = Path('ZebVR/default/background.npy')
 
     def __init__(
             self,
@@ -40,7 +40,7 @@ class SequencerWidget(QWidget):
 
         self.daq_boards = daq_boards
         self.background_image = None
-        if os.path.exists(self.DEFAULT_BACKGROUND_FILE):
+        if self.DEFAULT_BACKGROUND_FILE.exists():
             self.background_image = np.load(self.DEFAULT_BACKGROUND_FILE)
             
         self.debouncer = Debouncer(self.DEFAULT_DEBOUNCER_LENGTH)

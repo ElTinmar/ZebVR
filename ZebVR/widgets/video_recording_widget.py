@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
-import os
+from pathlib import Path
 
 from qt_widgets import LabeledSpinBox, LabeledDoubleSpinBox, LabeledComboBox, FileSaveLabeledEditButton
 
@@ -19,7 +19,7 @@ class VideoOutputWidget(QWidget):
 
     state_changed = pyqtSignal()
     DEFAULT_VIDEOFILE: str = 'video.mp4'
-    VIDEO_FOLDER: str = 'output/video'
+    VIDEO_FOLDER: Path = Path('output/video')
 
     def __init__(self, *args, **kwargs):
 
@@ -122,8 +122,8 @@ class VideoOutputWidget(QWidget):
         self.video_stack.addWidget(self.image_series)
 
     def update_prefix(self, prefix: str) -> None:
-        filename = os.path.join(self.VIDEO_FOLDER, f'{prefix}.mp4')
-        self.video_file.setText(filename)
+        filename = self.VIDEO_FOLDER / f'{prefix}.mp4'
+        self.video_file.setText(str(filename))
         self.state_changed.emit()
 
     def force_checked(self, checked: bool):

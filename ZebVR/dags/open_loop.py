@@ -21,6 +21,7 @@ from ..workers import (
     ImageFilterWorker, 
     TemperatureLoggerWorker,
     DAQ_Worker,
+    StimSaver,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -88,6 +89,8 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
                 name = 'tracker_to_stim',
                             ))
         )
+
+    queue_stim_saver = QueueMP()
 
     # create workers -----------------------------------------------------------------------
     camera_worker = CameraWorker(
@@ -230,7 +233,6 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         refresh_rate = settings['projector']['fps'],
         vsync = True,
         fullscreen = settings['projector']['fullscreen'],
-        timings_file = settings['settings']['stim_output']['csv_filename'],
         num_tail_points_interp = settings['settings']['tracking']['n_tail_pts_interp']
     )
 
@@ -249,7 +251,6 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         samplerate = settings['audio']['samplerate'], 
         blocksize = settings['audio']['blocksize'], 
         channels = settings['audio']['channels'],
-        timings_file = 'audio.csv', # TODO add
         rollover_time_sec = settings['audio']['rollover_time_sec'],
         name = 'audio_stim', 
         logger = worker_logger, 
@@ -271,6 +272,14 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
+    )
+
+    stim_saver = StimSaver(
+        filename = settings['settings']['stim_output']['filename'], # TODO json
+        name = 'stim_saver', 
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        receive_data_timeout = 1.0,
     )
 
     # connect DAG -----------------------------------------------------------------------
@@ -396,7 +405,26 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             queue = QueueMP(), 
             name = 'daq_stim_control'
         )
-        
+
+    dag.connect_metadata(
+        sender = stim_worker,
+        receiver = stim_saver,
+        queue = queue_stim_saver, 
+        name = 'visual_stim_logger'
+    )
+    dag.connect_metadata(
+        sender = daq_worker,
+        receiver = stim_saver,
+        queue = queue_stim_saver, 
+        name = 'daq_stim_logger'
+    )
+    dag.connect_metadata(
+        sender = audio_stim_worker,
+        receiver = stim_saver,
+        queue = queue_stim_saver, 
+        name = 'audio_stim_logger'
+    )
+
     dag.add_node(queue_monitor_worker)
     dag.add_node(temperature_logger)
 

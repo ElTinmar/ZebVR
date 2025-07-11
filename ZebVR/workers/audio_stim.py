@@ -173,22 +173,41 @@ class SharedAudioParameters:
         self.click_polarity.value = d.get('click_polarity', DEFAULT['click_polarity'])
         self.audio_file_path.value = d.get('audio_file_path', DEFAULT['audio_file_path'])
 
-    def to_dict(self) -> Dict: 
+    def to_dict(self) -> Dict:
 
-        return {
+        res = {
             'stim_select': self.stim_select.value,
-            'frequency_Hz': self.frequency_Hz.value,
+            'timestamp': get_time_ns(),
             'amplitude_dB': self.amplitude_dB.value,
-            'ramp_start_Hz': self.ramp_start_Hz.value,
-            'ramp_stop_Hz': self.ramp_stop_Hz.value,
-            'ramp_duration_sec': self.ramp_duration_sec.value,
-            'ramp_powerlaw_exponent': self.ramp_powerlaw_exponent.value,
-            'ramp_type': self.ramp_type.value,
-            'click_rate': self.click_rate.value,
-            'click_duration': self.click_duration.value,
-            'click_polarity': self.click_polarity.value,
-            'audio_file_path': self.audio_file_path.value,
         }
+
+        if self.stim_select.value == Stim.PURE_TONE:
+            res.update({
+                'frequency_Hz': self.frequency_Hz.value
+            })
+        
+        elif self.stim_select.value == Stim.CLICK_TRAIN:
+            res.update({
+                'click_rate': self.click_rate.value,
+                'click_duration': self.click_duration.value,
+                'click_polarity': self.click_polarity.value,
+            })
+
+        elif self.stim_select.value == Stim.FREQUENCY_RAMP:
+            res.update({
+                'ramp_start_Hz': self.ramp_start_Hz.value,
+                'ramp_stop_Hz': self.ramp_stop_Hz.value,
+                'ramp_duration_sec': self.ramp_duration_sec.value,
+                'ramp_powerlaw_exponent': self.ramp_powerlaw_exponent.value,
+                'ramp_type': self.ramp_type.value,
+            })
+
+        elif self.stim_select.value == Stim.AUDIO_FILE:
+            res.update({
+                'audio_file_path': self.audio_file_path.value,
+            })
+
+        return res
 
 class AudioProducer(Process):
 
@@ -397,7 +416,6 @@ class AudioProducer(Process):
             # this is likely the best place to log.
             if self.stim_change_counter != self.shared_audio_parameters.stim_change_counter.value:
                 stim_log = self.shared_audio_parameters.to_dict()
-                stim_log.update({'timestamp': get_time_ns()})
                 self.log_queue.put(stim_log)
                 self.stim_change_counter = self.shared_audio_parameters.stim_change_counter.value
                 
@@ -478,7 +496,6 @@ class AudioStimWorker(WorkerNode):
             samplerate: int = 44100,
             blocksize: int = 256,
             channels: int = 1,
-            timings_file: str = 'audio.csv',
             rollover_time_sec: float = 3600,  
             *args, 
             **kwargs
@@ -490,7 +507,6 @@ class AudioStimWorker(WorkerNode):
         self.device_index = device_index
         self.rollover_time_sec = rollover_time_sec
         self.samplerate = samplerate
-        self.timings_file = timings_file
         self.blocksize = blocksize
         self.channels = channels    
 
@@ -499,27 +515,8 @@ class AudioStimWorker(WorkerNode):
         self.audio_queue = Queue(maxsize=2)
         self.log_queue = Queue()
         self.shared_audio_parameters = SharedAudioParameters()
-
-    def set_filename(self, filename:str):
-        self.timings_file = filename
-
+        
     def initialize(self) -> None:
-
-        prefix, ext = os.path.splitext(self.timings_file)
-        timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
-        while os.path.exists(timings_file):
-            time.sleep(1)
-            timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
-
-        self.fd = open(timings_file, 'w')
-        headers = (
-            'timestamp',
-            'time_sec',
-            'stim_id',          
-            'start_time_sec',
-            'phototaxis_polarity',
-        )
-        self.fd.write(','.join(headers) + '\n')
 
         self.audio_producer = AudioProducer(
             audio_queue = self.audio_queue,
@@ -568,7 +565,6 @@ class AudioStimWorker(WorkerNode):
 
         self.audio_consumer.join()
         self.audio_producer.join()
-        self.fd.close()
 
     def process_data(self, data: Any) -> None:
         # could be used to do something with fish position

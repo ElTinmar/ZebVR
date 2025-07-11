@@ -91,38 +91,77 @@ class SharedStimParameters:
         self.ramp_duration_sec.value = d.get('ramp_duration_sec', DEFAULT['ramp_duration_sec'])
         self.ramp_powerlaw_exponent.value = d.get('ramp_powerlaw_exponent', DEFAULT['ramp_powerlaw_exponent'])
         self.ramp_type.value = d.get('ramp_type', DEFAULT['ramp_type'])
-    
+
     def to_dict(self) -> Dict: 
 
-        return {
-            'start_time_sec': self.start_time_sec.value,
+        res = {
             'stim_select': self.stim_select.value,
+            'timestamp': get_time_ns(),
+            'start_time_sec': self.start_time_sec.value,
             'foreground_color': list(self.foreground_color),
             'background_color': list(self.background_color),
-            'phototaxis_polarity': self.phototaxis_polarity.value,
-            'omr_spatial_period_mm': self.omr_spatial_period_mm.value,
-            'omr_angle_deg': self.omr_angle_deg.value,
-            'omr_speed_mm_per_sec': self.omr_speed_mm_per_sec.value,
-            'concentric_spatial_period_mm': self.concentric_spatial_period_mm.value,
-            'concentric_speed_mm_per_sec': self.concentric_speed_mm_per_sec.value,
-            'okr_spatial_frequency_deg': self.okr_spatial_frequency_deg.value,
-            'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec.value,
-            'looming_center_mm': list(self.looming_center_mm),
-            'looming_period_sec': self.looming_period_sec.value,
-            'looming_expansion_time_sec': self.looming_expansion_time_sec.value,
-            'looming_expansion_speed_mm_per_sec': self.looming_expansion_speed_mm_per_sec.value,
-            'dot_center_mm': list(self.dot_center_mm),
-            'dot_radius_mm': self.dot_radius_mm.value,
-            'n_preys': self.n_preys.value,
-            'prey_speed_mm_s': self.prey_speed_mm_s.value,
-            'prey_radius_mm': self.prey_radius_mm.value,
-            'image_path': self.image_path.value,
-            'image_res_px_per_mm': self.image_res_px_per_mm.value,
-            'image_offset_mm': list(self.image_offset_mm),
-            'ramp_duration_sec': self.ramp_duration_sec.value,
-            'ramp_powerlaw_exponent': self.ramp_powerlaw_exponent.value,
-            'ramp_type': self.ramp_type.value,
         }
+
+        if self.stim_select.value == Stim.PHOTOTAXIS:
+            res.update({
+                'phototaxis_polarity': self.phototaxis_polarity.value,
+            })
+
+        if self.stim_select.value == Stim.OMR:
+            res.update({
+                'omr_spatial_period_mm': self.omr_spatial_period_mm.value,
+                'omr_angle_deg': self.omr_angle_deg.value,
+                'omr_speed_mm_per_sec': self.omr_speed_mm_per_sec.value,
+            })
+
+        if self.stim_select.value == Stim.CONCENTRIC_GRATING:
+            res.update({
+                'concentric_spatial_period_mm': self.concentric_spatial_period_mm.value,
+                'concentric_speed_mm_per_sec': self.concentric_speed_mm_per_sec.value,
+            })
+
+        if self.stim_select.value == Stim.OKR:
+            res.update({
+                'okr_spatial_frequency_deg': self.okr_spatial_frequency_deg.value,
+                'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec.value,
+            })
+
+        if self.stim_select.value in [Stim.LOOMING, Stim.FOLLOWING_LOOMING]:
+            res.update({
+                'looming_center_mm': list(self.looming_center_mm),
+                'looming_period_sec': self.looming_period_sec.value,
+                'looming_expansion_time_sec': self.looming_expansion_time_sec.value,
+                'looming_expansion_speed_mm_per_sec': self.looming_expansion_speed_mm_per_sec.value,
+            })
+
+        if self.stim_select.value in [Stim.DOT, Stim.FOLLOWING_DOT]:
+            res.update({
+                'dot_center_mm': list(self.dot_center_mm),
+                'dot_radius_mm': self.dot_radius_mm.value,
+            })
+
+        if self.stim_select.value == Stim.PREY_CAPTURE:
+            res.update({
+                'n_preys': self.n_preys.value,
+                'prey_speed_mm_s': self.prey_speed_mm_s.value,
+                'prey_radius_mm': self.prey_radius_mm.value,
+            })
+
+        if self.stim_select.value == Stim.IMAGE:
+            res.update({
+                'image_path': self.image_path.value,
+                'image_res_px_per_mm': self.image_res_px_per_mm.value,
+                'image_offset_mm': list(self.image_offset_mm),
+            })
+
+        if self.stim_select.value == Stim.RAMP:
+            res.update({
+                'ramp_duration_sec': self.ramp_duration_sec.value,
+                'ramp_powerlaw_exponent': self.ramp_powerlaw_exponent.value,
+                'ramp_type': self.ramp_type.value,
+            })
+
+        return res
 
 VERT_SHADER = """
 attribute vec2 a_position;
@@ -148,7 +187,6 @@ class GeneralStim(VisualStim):
             refresh_rate: int = 120,
             vsync: bool = False,
             fullscreen: bool = True,
-            timings_file: str = 'stim.csv',
             num_tail_points_interp: int = 40,
             rollover_time_sec: float = 3600 # TODO add that to a gui somewhere
         ) -> None:
@@ -444,12 +482,8 @@ class GeneralStim(VisualStim):
         self.stim_change_counter = 0
 
         self.refresh_rate = refresh_rate
-        self.fd = None
-        self.timings_file = timings_file
         self.tstart = 0
 
-    def set_filename(self, filename:str):
-        self.timings_file = filename
 
     def update_shader_variables(self, time_s: float):
         # communication between CPU and GPU for every frame drawn
@@ -512,49 +546,6 @@ class GeneralStim(VisualStim):
 
         super().initialize()
         
-        # init file name
-        prefix, ext = os.path.splitext(self.timings_file)
-        timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
-        while os.path.exists(timings_file):
-            time.sleep(1)
-            timings_file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
-
-        # write csv headers
-        self.fd = open(timings_file, 'w')
-        headers = (
-            'timestamp',
-            'time_sec',
-            'stim_id',          
-            'start_time_sec',
-            'phototaxis_polarity',
-            'omr_spatial_period_mm',
-            'omr_angle_deg',
-            'omr_speed_mm_per_sec',
-            'concentric_spatial_period_mm',
-            'concentric_speed_mm_per_sec',
-            'okr_spatial_frequency_deg',
-            'okr_speed_deg_per_sec',
-            'looming_center_mm_x',
-            'looming_center_mm_y',
-            'looming_period_sec',
-            'looming_expansion_time_sec',
-            'looming_expansion_speed_mm_per_sec',
-            'dot_center_mm_x',
-            'dot_center_mm_y',
-            'dot_radius_mm',
-            'n_prey',
-            'prey_speed_mm_s',
-            'prey_radius_mm',
-            'ramp_duration_sec',
-            'ramp_powerlaw_exponent',
-            'ramp_type',
-            'image_path',
-            'image_res_px_per_mm',
-            'image_offset_mm_x',
-            'image_offset_mm_y',
-        )
-        self.fd.write(','.join(headers) + '\n')
-        
         # init shader
         np.random.seed(0)
         x = np.random.randint(0, self.camera_resolution[0], MAX_PREY)
@@ -573,7 +564,6 @@ class GeneralStim(VisualStim):
 
     def cleanup(self):
         super().cleanup()
-        self.fd.close()
 
     def on_draw(self, event):
         super().on_draw(event)
@@ -592,46 +582,11 @@ class GeneralStim(VisualStim):
         # log stim parameters on change as close as possible to hardware
         if self.stim_change_counter != self.shared_stim_parameters.stim_change_counter.value:
             stim_log = self.shared_stim_parameters.to_dict()
-            stim_log.update({'timestamp': get_time_ns()})
             if self.log_queue is not None:
                 self.log_queue.put(stim_log)
             self.stim_change_counter = self.shared_stim_parameters.stim_change_counter.value
 
         self.update()
-
-        row = (
-            f'{timestamp}',
-            f'{time_sec}',
-            f'{self.shared_stim_parameters.stim_select.value}',
-            f'{self.shared_stim_parameters.start_time_sec.value}',
-            f'{self.shared_stim_parameters.phototaxis_polarity.value}',
-            f'{self.shared_stim_parameters.omr_spatial_period_mm.value}',
-            f'{self.shared_stim_parameters.omr_angle_deg.value}',
-            f'{self.shared_stim_parameters.omr_speed_mm_per_sec.value}',
-            f'{self.shared_stim_parameters.concentric_spatial_period_mm.value}',
-            f'{self.shared_stim_parameters.concentric_speed_mm_per_sec.value}',
-            f'{self.shared_stim_parameters.okr_spatial_frequency_deg.value}',
-            f'{self.shared_stim_parameters.okr_speed_deg_per_sec.value}',
-            f'{self.shared_stim_parameters.looming_center_mm[0]}',
-            f'{self.shared_stim_parameters.looming_center_mm[1]}',
-            f'{self.shared_stim_parameters.looming_period_sec.value}',
-            f'{self.shared_stim_parameters.looming_expansion_time_sec.value}',
-            f'{self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value}',
-            f'{self.shared_stim_parameters.dot_center_mm[0]}',
-            f'{self.shared_stim_parameters.dot_center_mm[1]}',
-            f'{self.shared_stim_parameters.dot_radius_mm.value}',
-            f'{self.shared_stim_parameters.n_preys.value}',
-            f'{self.shared_stim_parameters.prey_speed_mm_s.value}',
-            f'{self.shared_stim_parameters.prey_radius_mm.value}',
-            f'{self.shared_stim_parameters.ramp_duration_sec.value}',
-            f'{self.shared_stim_parameters.ramp_powerlaw_exponent.value}',
-            f'{self.shared_stim_parameters.ramp_type.value}',
-            f'{self.shared_stim_parameters.image_path.value}',
-            f'{self.shared_stim_parameters.image_res_px_per_mm.value}',
-            f'{self.shared_stim_parameters.image_offset_mm[0]}',
-            f'{self.shared_stim_parameters.image_offset_mm[1]}',
-        )
-        self.fd.write(','.join(row) + '\n')
 
     def process_data(self, data) -> None:
         # this runs in the worker process

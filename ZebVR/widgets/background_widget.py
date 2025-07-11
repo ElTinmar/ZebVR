@@ -12,8 +12,7 @@ from typing import Dict
 from numpy.typing import NDArray
 import numpy as np
 import cv2
-import os
-
+from pathlib import Path
 from qt_widgets import (
     LabeledDoubleSpinBox, 
     LabeledSpinBox, 
@@ -29,7 +28,7 @@ class BackgroundWidget(QWidget):
     state_changed = pyqtSignal()
     
     PREVIEW_HEIGHT: int = 512
-    DEFAULT_FILE = 'ZebVR/default/background.npy'
+    DEFAULT_FILE: Path  = Path('ZebVR/default/background.npy')
 
     def __init__(self, *args, **kwargs):
 
@@ -88,14 +87,14 @@ class BackgroundWidget(QWidget):
 
         self.background_file = FileSaveLabeledEditButton()
         self.background_file.setLabel('background file:')
-        self.background_file.setDefault(self.DEFAULT_FILE)
+        self.background_file.setDefault(str(Self.DEFAULT_FILE))
         self.background_file.textChanged.connect(self.state_changed)
 
         self.background = QPushButton('background')
         self.background.clicked.connect(self.background_signal)
 
         self.image = QLabel()
-        if os.path.exists(self.DEFAULT_FILE):
+        if self.DEFAULT_FILE.exists():
             self.set_image(np.load(self.DEFAULT_FILE))
         else:
             self.set_image(np.zeros((512,512), dtype=np.uint8))

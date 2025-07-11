@@ -1,5 +1,5 @@
 from dagline import WorkerNode
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Union
 from daq_tools import (
     Arduino_SoftTiming, 
     LabJackU3_SoftTiming, 
@@ -9,6 +9,7 @@ from daq_tools import (
     DAQ_CONSTRUCTORS
 )
 from ZebVR.protocol import Stim
+from ZebVR.utils import get_time_ns
 
 class DAQ_Worker(WorkerNode):
 
@@ -43,12 +44,14 @@ class DAQ_Worker(WorkerNode):
     def process_data(self, data: Dict) -> None:
         pass
         
-    def process_metadata(self, metadata: Dict) -> Optional[List]:
+    def process_metadata(self, metadata: Dict) -> Optional[Union[List, Dict]]:
         # TODO accept either stim select or tuple style commands
         
-        result = []
+        result = None
 
         if isinstance(metadata, list):
+
+            result = []
 
             for board_type, board_id, operation, args, kwargs in metadata:
                 try:
@@ -74,19 +77,28 @@ class DAQ_Worker(WorkerNode):
                 pulse_duration = control.get('pulse_duration_msec')
                 duty_cycle = control.get('duty_cycle')
 
-                # TODO log timestamp and parameters here 
+                result = {
+                    'stim_select': stim,
+                    'timestamp': get_time_ns(),
+                    'board_type': board_type,
+                    'board_id': board_id,
+                    'channels': channels
+                }
 
                 if stim == Stim.ANALOG_WRITE:
                     for c in channels:
                         self.daqs[board_type][board_id].analog_write(c, analog_value)
+                    result.update({'analog_value': analog_value})
 
                 elif stim == Stim.DIGITAL_WRITE:
                     for c in channels:
                         self.daqs[board_type][board_id].digital_write(c, digital_level)
+                    result.update({'digital_level': digital_level})
 
                 elif stim == Stim.PWM_WRITE:
                     for c in channels:
                         self.daqs[board_type][board_id].pwm_write(c, duty_cycle)
+                    result.update({'duty_cycle': duty_cycle})
 
                 elif stim == Stim.ANALOG_PULSE:
                     for c in channels:
@@ -96,6 +108,10 @@ class DAQ_Worker(WorkerNode):
                             analog_value, 
                             blocking = False
                         )
+                    result.update({
+                        'analog_value': analog_value,
+                        'pulse_duration': pulse_duration
+                    })
 
                 elif stim == Stim.DIGITAL_PULSE:
                     for c in channels:
@@ -105,6 +121,11 @@ class DAQ_Worker(WorkerNode):
                             digital_level, 
                             blocking = False
                         )
+                    result.update({
+                        'digital_level': digital_level,
+                        'pulse_duration': pulse_duration
+                    })
+
 
                 elif stim == Stim.PWM_PULSE:
                     for c in channels:
@@ -114,6 +135,10 @@ class DAQ_Worker(WorkerNode):
                             duty_cycle, 
                             blocking = False
                         )
+                    result.update({
+                        'duty_cycle': duty_cycle,
+                        'pulse_duration': pulse_duration
+                    })
 
                 else:
                     pass

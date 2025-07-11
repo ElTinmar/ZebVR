@@ -1,15 +1,17 @@
 from dagline import WorkerNode
 import numpy as np
 from numpy.typing import NDArray
-from typing import Any
+from typing import Any, Union
 import cv2
 import os
+from pathlib import Path
 from video_tools import (
     FFMPEG_VideoWriter_CPU_YUV420P, 
     FFMPEG_VideoWriter_GPU_YUV420P,
     FFMPEG_VideoWriter_CPU_Grayscale
 )
 import time
+from ZebVR.utils import append_timestamp_to_filename
 
 # TODO: check zarr, maybe try cv2.imwrite
 
@@ -17,7 +19,7 @@ class ImageSaverWorker(WorkerNode):
 
     def __init__(
             self, 
-            folder: str, 
+            folder: Union[str, Path], 
             decimation: int = 1,
             zero_padding: int = 8, 
             resize: float = 0.25,
@@ -28,7 +30,7 @@ class ImageSaverWorker(WorkerNode):
 
         super().__init__(*args, **kwargs)
         
-        self.folder = folder
+        self.folder = Path(folder)
         self.decimation = decimation
         self.resize = resize
         self.zero_padding = zero_padding
@@ -36,7 +38,7 @@ class ImageSaverWorker(WorkerNode):
 
     def initialize(self) -> None:
         super().initialize()
-        if not os.path.exists(self.folder):
+        if not self.folder.exists():
             os.mkdir(self.folder)
 
     def process_data(self, data: NDArray) -> None:
@@ -48,7 +50,7 @@ class ImageSaverWorker(WorkerNode):
             
             image_resized = cv2.resize(data['image'],None,None,self.resize,self.resize,cv2.INTER_NEAREST)
             metadata = data[['index','timestamp']]
-            filename = os.path.join(self.folder, f"{data['index']:0{self.zero_padding}}")
+            filename = self.folder / f"{data['index']:0{self.zero_padding}}"
             
             if self.compress:
                 np.savez_compressed(filename, image=image_resized, metadata=metadata)
@@ -70,7 +72,7 @@ class VideoSaverWorker(WorkerNode):
             self, 
             height: int, # final height of the recorded video: images will be rescaled to that size
             width: int, # final width of the recorded video: images will be rescaled to that size
-            filename: str, 
+            filename: Union[str, Path], 
             decimation: int = 1,
             fps: int = 30,
             video_quality: int = 23,
@@ -85,16 +87,9 @@ class VideoSaverWorker(WorkerNode):
 
         super().__init__(*args, **kwargs)
         
-        # init file name: add timestamp
-        prefix, ext = os.path.splitext(filename)
-        video_filename = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
-        while os.path.exists(video_filename):
-            time.sleep(1)
-            video_filename = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
-
-        prefix, ext = os.path.splitext(video_filename)
+        video_filename = append_timestamp_to_filename(filename)
         self.video_filename = video_filename
-        self.timings_filename = prefix + '.csv'
+        self.timings_filename = video_filename.stem + '.csv'
         self.fps = fps
         self.height = 2*(height//2) # some video_codecs require images with even size
         self.width = 2*(width//2)

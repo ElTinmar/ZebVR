@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QRunnable, QThreadPool, QTimer, pyqtSignal
 import pyqtgraph as pg
 from collections import deque
-import os
+from pathlib import Path
 from typing import Dict
 
 from ..serial_utils import list_serial_devices, SerialDevice
@@ -33,7 +33,7 @@ class TemperatureWidget(QWidget):
     LINE_COL = (50,50,50,255)
     LINE_WIDTH = 2
     TARGET_COL = (0,255,0,100)
-    CSV_FOLDER: str = 'output/data'
+    CSV_FOLDER: Path = Path('output/data')
     THREAD_TIMEOUT_MSEC = 500
 
     def __init__(self,*args,**kwargs):
@@ -63,7 +63,6 @@ class TemperatureWidget(QWidget):
         self.refresh = QPushButton('Refresh serial devices')
         self.refresh.clicked.connect(self.refresh_serial)
 
-
         self.temperature_label = QLabel()
 
         self.temperature_curve = pg.plot()
@@ -80,7 +79,6 @@ class TemperatureWidget(QWidget):
         )
         self.temperature_curve.addItem(target_temp_zone)
         self.temperature_curve_data = self.temperature_curve.plot(pen=pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH))
-
 
         self.serial_ports = QComboBox()
         self.serial_ports.currentIndexChanged.connect(self.serial_changed)
@@ -131,8 +129,8 @@ class TemperatureWidget(QWidget):
             self.serial_ports.addItem(f"{ser_port} - {description}")
 
     def set_prefix(self, prefix: str) -> None:
-        self.filename = os.path.join(self.CSV_FOLDER, f'temperature_{prefix}.csv')
-        self.edt_filename.setText(self.filename)
+        self.filename = self.CSV_FOLDER / f'temperature_{prefix}.csv'
+        self.edt_filename.setText(str(self.filename))
         self.state_changed.emit()
 
     def get_state(self) -> Dict:
