@@ -244,6 +244,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        send_metadata_strategy = send_strategy.DISPATCH
     )
 
     # background subtraction ------------------------------------
@@ -374,7 +375,8 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0,
-        profile = False
+        profile = False,
+        send_metadata_strategy = send_strategy.DISPATCH
     )
 
     audio_stim_worker = AudioStimWorker(
@@ -388,6 +390,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0,
+        send_metadata_strategy = send_strategy.DISPATCH
     )
 
     stim_control_worker = StimGUI(
@@ -406,6 +409,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0,
+        receive_metadata_strategy = receive_strategy.POLL
     )
 
     # connect DAG -----------------------------------------------------------------------
