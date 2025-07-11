@@ -5,7 +5,7 @@ from multiprocessing import RawValue, Process, Queue, Event, Barrier
 from multiprocessing.synchronize  import Event as EventType
 from multiprocessing.synchronize  import Barrier as BarrierType
 import queue
-from ZebVR.protocol import DEFAULT, Stim, ClickPolarity, RampType
+from ZebVR.protocol import DEFAULT, Stim, ClickPolarity, RampType, AUDIO_STIMS
 from typing import Dict, Any
 import time
 import os
@@ -159,7 +159,7 @@ class SharedAudioParameters:
 
     def from_dict(self, d: Dict) -> None:
 
-        self.stim_change_counter.value += 1 # TODO filter audio stim?
+        self.stim_change_counter.value += 1 
         self.stim_select.value = d.get('stim_select', Stim.SILENCE)
         self.frequency_Hz.value = d.get('frequency_Hz', DEFAULT['frequency_Hz'])
         self.amplitude_dB.value = d.get('amplitude_dB', DEFAULT['amplitude_dB'])
@@ -582,9 +582,8 @@ class AudioStimWorker(WorkerNode):
         control: Dict = metadata.get('audio_stim_control', None)
         if control is None:
             return log_message
-
-        # TODO add time to the parameters and use that to reset the phase
-        # that way, specifying the same stimulus again also resets the phase
-        self.shared_audio_parameters.from_dict(control)
+        
+        if control.get('stim_select') in AUDIO_STIMS:
+            self.shared_audio_parameters.from_dict(control)
 
         return log_message

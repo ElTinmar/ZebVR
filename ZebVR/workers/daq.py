@@ -8,7 +8,7 @@ from daq_tools import (
     BoardType,
     DAQ_CONSTRUCTORS
 )
-from ZebVR.protocol import Stim
+from ZebVR.protocol import Stim, DAQ_STIMS
 from ZebVR.utils import get_time_ns
 
 class DAQ_Worker(WorkerNode):
@@ -68,6 +68,9 @@ class DAQ_Worker(WorkerNode):
             if control:
 
                 stim = control.get('stim_select')
+                if stim not in DAQ_STIMS:
+                    return
+                
                 board_type = control.get('board_type')
                 board_id = control.get('board_id')
                 channels = control.get('channels', [])

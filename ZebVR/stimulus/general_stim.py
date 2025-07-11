@@ -8,7 +8,7 @@ import os
 from dataclasses import dataclass
 from geometry import AffineTransform2D
 from ZebVR import MAX_PREY
-from ZebVR.protocol import DEFAULT, Stim
+from ZebVR.protocol import DEFAULT, Stim, VISUAL_STIMS
 import cv2
 from ZebVR.utils import SharedString, get_time_ns
 from multiprocessing import Queue
@@ -654,10 +654,11 @@ class GeneralStim(VisualStim):
         if control is None:
             return log_message
         
-        timestamp = get_time_ns()
-        timestamp_sec = 1e-9*timestamp
-        time_sec = timestamp_sec % self.rollover_time_sec
-        control['time_sec'] = time_sec
+        if control.get('stim_select') in VISUAL_STIMS:
+            timestamp = get_time_ns()
+            timestamp_sec = 1e-9*timestamp
+            time_sec = timestamp_sec % self.rollover_time_sec
+            control['time_sec'] = time_sec
+            self.shared_stim_parameters.from_dict(control)
 
-        self.shared_stim_parameters.from_dict(control)
         return log_message

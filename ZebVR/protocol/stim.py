@@ -38,6 +38,9 @@ class Stim(IntEnum):
     def __str__(self):
         return self.name
     
+VISUAL_STIMS = [s for s in Stim if 0 <= s.value <= 12]
+AUDIO_STIMS = [s for s in Stim if 20 <= s.value <= 27]
+DAQ_STIMS =  [s for s in Stim if 30 <= s.value <= 35]
 
 class RampType(IntEnum):
     LINEAR = 0
