@@ -588,9 +588,10 @@ class MainGui(QMainWindow):
         self.projector_controller.set_checker(False)
 
         pprint.pprint(self.settings)
+
         prefix = Path(self.settings['settings']['prefix'])
         filename = prefix.with_suffix('.metadata')
-        filename = append_timestamp_to_filename(filename)
+        filename = append_timestamp_to_filename(filename)       
         with open(filename,'w') as fp:
             pprint.pprint(self.settings, fp) 
 
