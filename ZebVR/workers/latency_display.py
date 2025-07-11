@@ -94,7 +94,7 @@ class LatencyWidget(QWidget):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_display)
-        self.timer.start(1000/refresh_frequency) 
+        self.timer.start(1000//refresh_frequency) 
 
     def add_data(self, frame, fish_id, latency):
         self.text_display.receive_latency(frame, fish_id, latency)

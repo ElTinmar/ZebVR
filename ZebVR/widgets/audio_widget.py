@@ -48,7 +48,7 @@ class AudioWidget(QWidget):
         self.samplerate_spinbox = LabeledSpinBox()
         self.samplerate_spinbox.setText('samplerate')
         self.samplerate_spinbox.setRange(8000, 192_000)
-        self.samplerate_spinbox.setValue(self.output_devices[0]['default_samplerate'])
+        self.samplerate_spinbox.setValue(int(self.output_devices[0]['default_samplerate']))
         self.samplerate_spinbox.setEnabled(False)
 
         self.blocksize_spinbox = LabeledSpinBox()

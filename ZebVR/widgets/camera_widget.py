@@ -59,7 +59,7 @@ class CameraWidget(QWidget):
     PREVIEW_HEIGHT: int = 480
     REFRESH_RATE = 30
 
-    def __init__(self,*args,**kwargs):
+    def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         
@@ -80,7 +80,7 @@ class CameraWidget(QWidget):
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.set_pixmap)
-        self.timer.start(1000/self.REFRESH_RATE) 
+        self.timer.start(1000//self.REFRESH_RATE) 
 
     def declare_components(self) -> None:
 
