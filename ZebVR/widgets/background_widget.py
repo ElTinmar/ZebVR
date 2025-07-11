@@ -87,7 +87,7 @@ class BackgroundWidget(QWidget):
 
         self.background_file = FileSaveLabeledEditButton()
         self.background_file.setLabel('background file:')
-        self.background_file.setDefault(str(Self.DEFAULT_FILE))
+        self.background_file.setDefault(str(self.DEFAULT_FILE))
         self.background_file.textChanged.connect(self.state_changed)
 
         self.background = QPushButton('background')

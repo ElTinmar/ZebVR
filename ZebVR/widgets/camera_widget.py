@@ -231,7 +231,7 @@ class CameraWidget(QWidget):
 
         setters = {
             'camera_index': self.camera_id.setValue,
-            'movie_file': self.filename.setText,
+            'movie_file': lambda x: self.filename.setText(str(x)),
             'camera_model': self.camera_model.setCurrentIndex,
             'num_channels': lambda x: self.num_channels.setText(str(x)),
         }

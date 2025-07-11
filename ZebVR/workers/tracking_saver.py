@@ -1,8 +1,6 @@
-import time
 import numpy as np 
-import os
 from dagline import WorkerNode
-from ZebVR.utils import get_time_ns
+from ZebVR.utils import get_time_ns, append_timestamp_to_filename
 
 class TrackingSaver(WorkerNode):
 
@@ -27,11 +25,7 @@ class TrackingSaver(WorkerNode):
         super().initialize()
         
         # init file name
-        prefix, ext = os.path.splitext(self.filename)
-        file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
-        while os.path.exists(file):
-            time.sleep(1)
-            file = prefix + time.strftime('_%a_%d_%b_%Y_%Hh%Mmin%Ssec') + ext
+        file = append_timestamp_to_filename(self.filename)
 
         # write csv headers
         self.fd = open(file, 'w')

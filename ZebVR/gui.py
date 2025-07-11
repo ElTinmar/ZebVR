@@ -4,6 +4,7 @@ import time
 import json
 import pickle
 import pprint
+from pathlib import Path 
 
 import cv2
 import numpy as np
@@ -42,6 +43,7 @@ from .widgets import (
     AudioWidget,
     DaqWidget
 )
+from .utils import append_timestamp_to_filename
 from .dags import closed_loop, open_loop, video_recording, tracking
 
         
@@ -586,7 +588,9 @@ class MainGui(QMainWindow):
         self.projector_controller.set_checker(False)
 
         pprint.pprint(self.settings)
-        filename = self.settings['settings']['prefix'] + '.metadata'
+        prefix = Path(self.settings['settings']['prefix'])
+        filename = prefix.with_suffix('.metadata')
+        filename = append_timestamp_to_filename(filename)
         with open(filename,'w') as fp:
             pprint.pprint(self.settings, fp) 
 

@@ -365,7 +365,6 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         refresh_rate = settings['projector']['fps'],
         vsync = True,
         fullscreen = settings['projector']['fullscreen'],
-        timings_file = settings['settings']['stim_output']['csv_filename'],
         num_tail_points_interp = settings['settings']['tracking']['n_tail_pts_interp']
     )
 
@@ -384,7 +383,6 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         samplerate = settings['audio']['samplerate'], 
         blocksize = settings['audio']['blocksize'], 
         channels = settings['audio']['channels'],
-        timings_file = 'audio.csv', # TODO add
         rollover_time_sec = settings['audio']['rollover_time_sec'],
         name = 'audio_stim', 
         logger = worker_logger, 
@@ -403,7 +401,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     ) 
 
     stim_saver = StimSaver(
-        filename = 'stimulus.json',
+        filename = settings['settings']['stim_output']['filename'],
         name = 'stim_saver', 
         logger = worker_logger, 
         logger_queues = queue_logger,
