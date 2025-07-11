@@ -2,7 +2,7 @@ from ds18b20 import read_temperature_celsius, CommunicationError
 from dagline import WorkerNode
 import time
 from typing import Any
-from ZebVR.utils import get_time_ns
+from ZebVR.utils import get_time_ns, append_timestamp_to_filename
 
 class TemperatureLoggerWorker(WorkerNode):
 
@@ -25,7 +25,8 @@ class TemperatureLoggerWorker(WorkerNode):
 
     def initialize(self) -> None:
         super().initialize()
-        self.fd = open(self.filename, 'w')
+        filename = append_timestamp_to_filename(self.filename)
+        self.fd = open(filename, 'w')
         headers = ('timestamp', 'temperature_celsius')
         self.fd.write(','.join(headers) + '\n')
 
