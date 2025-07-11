@@ -86,7 +86,7 @@ class Thresholder(WorkerNode):
             (data['index'], data['timestamp'], detected),
             dtype=np.dtype([
                 ('index', int),
-                ('timestamp', np.float64),
+                ('timestamp', np.int64),
                 ('detected', np.bool_)
             ])
         )

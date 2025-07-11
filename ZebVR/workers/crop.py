@@ -29,7 +29,7 @@ class CropWorker(WorkerNode):
                 (data['index'], data['timestamp'], crop, origin, shape, n),
                 dtype=([
                     ('index', int),
-                    ('timestamp', np.float64),
+                    ('timestamp', np.int64),
                     ('image', crop.dtype, crop.shape),
                     ('origin', np.int32, (2,)),
                     ('shape', np.int32, (2,)),

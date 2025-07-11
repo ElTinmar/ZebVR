@@ -69,7 +69,7 @@ class DummyTrackerWorker(WorkerNode):
             (index, timestamp, self.tracking, self.origin, self.shape, self.indentity),
             dtype=np.dtype([
                 ('index', int),
-                ('timestamp', np.float64),
+                ('timestamp', np.int64),
                 ('tracking', self.tracking.dtype),
                 ('origin', np.int32, (2,)),
                 ('shape', np.int32, (2,)),
@@ -116,7 +116,7 @@ class TrackerWorker(WorkerNode):
             (data['index'], data['timestamp'], tracking, data['origin'], data['shape'], data['identity']),
             dtype=np.dtype([
                 ('index', int),
-                ('timestamp', np.float64),
+                ('timestamp', np.int64),
                 ('tracking', tracking.dtype),
                 ('origin', np.int32, (2,)),
                 ('shape', np.int32, (2,)),
