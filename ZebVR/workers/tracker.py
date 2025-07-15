@@ -115,7 +115,12 @@ class TrackerWorker(WorkerNode):
 
         T = SimilarityTransform2D.translation(data['origin'][0], data['origin'][1])
 
-        tracking = self.tracker.track(data['image'], self.background_image, None, T)
+        background = self.background_image[
+            data['origin'][1]:data['origin'][1]+data['shape'][0],
+            data['origin'][0]:data['origin'][0]+data['shape'][1],
+        ]
+        
+        tracking = self.tracker.track(data['image'], background, None, T)
         
         msg = np.array(
             (data['index'], data['timestamp'], tracking, data['origin'], data['shape'], data['identity']),
