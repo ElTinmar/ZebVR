@@ -144,7 +144,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
 
     background_worker = BackgroundSubWorker(
         background, 
-        name = f'background{i}', 
+        name = f'background', 
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0, 
