@@ -149,9 +149,7 @@ class TrackerWorker(WorkerNode):
 
             if control is None:
                 continue
-            
-            print(control)
-            
+                        
             if ENABLE_KALMAN:
                 # TODO : parametrize this with a widget
                 animal = AnimalTrackerKalman(
