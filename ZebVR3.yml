@@ -1,4 +1,4 @@
-name: ZebVR3
+name: ZebVR3_lesspixels
 channels:
 - conda-forge
 dependencies:
