@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Tuple
 from PyQt5.QtWidgets import (
     QWidget, 
     QApplication,
@@ -24,6 +24,7 @@ class Animal(QWidget):
 
     def __init__(
             self,
+            image_shape: Tuple[int, int],
             pix_per_mm: float = 30,
             *args,
             **kwargs
@@ -31,6 +32,7 @@ class Animal(QWidget):
 
         super().__init__(*args, **kwargs)
         self.pix_per_mm = pix_per_mm
+        self.image_shape = image_shape
         self.declare_components()
         self.layout_components()
 
@@ -128,18 +130,20 @@ class Animal(QWidget):
         self.animal_crop_offset_y_mm.setValue(0.0)
         self.animal_crop_offset_y_mm.valueChanged.connect(self.state_changed)
 
+        width_mm = self.image_shape[1] / self.pix_per_mm
         self.animal_crop_width_mm = LabeledDoubleSpinBox()
         self.animal_crop_width_mm.setText('crop width (mm)')
         self.animal_crop_width_mm.setRange(0,100)
         self.animal_crop_width_mm.setSingleStep(0.05)
-        self.animal_crop_width_mm.setValue(0)
+        self.animal_crop_width_mm.setValue(width_mm)
         self.animal_crop_width_mm.valueChanged.connect(self.state_changed)
 
+        height_mm = self.image_shape[0] / self.pix_per_mm
         self.animal_crop_height_mm = LabeledDoubleSpinBox()
         self.animal_crop_height_mm.setText('crop height (mm)')
         self.animal_crop_height_mm.setRange(0,1000)
         self.animal_crop_height_mm.setSingleStep(0.05)
-        self.animal_crop_height_mm.setValue(0)
+        self.animal_crop_height_mm.setValue(height_mm)
         self.animal_crop_height_mm.valueChanged.connect(self.state_changed)
 
         self.animal_blur_sz_mm = LabeledDoubleSpinBox()
@@ -808,6 +812,7 @@ class TrackerWidget(QWidget):
 
     def __init__(
             self,
+            image_shape: Tuple[int, int],
             settings_file: Path = Path('tracking.json'),
             n_animals: int = 1,
             pix_per_mm: float = 30,
@@ -819,6 +824,7 @@ class TrackerWidget(QWidget):
         self.updated = True
         self.settings_file = settings_file
         self.n_animals = n_animals
+        self.image_shape = image_shape
         self.pix_per_mm = pix_per_mm 
             
         self.declare_components()
@@ -853,7 +859,10 @@ class TrackerWidget(QWidget):
         self.apply_to_all.setChecked(True)
         self.apply_to_all.stateChanged.connect(self.apply_to_all_changed)
 
-        self.animal = Animal(pix_per_mm=self.pix_per_mm)
+        self.animal = Animal(
+            image_shape = self.image_shape, 
+            pix_per_mm = self.pix_per_mm
+        )
         self.animal.state_changed.connect(self.on_change)
 
         self.body = Body(pix_per_mm=self.pix_per_mm)
@@ -1065,6 +1074,6 @@ class TrackerWidget(QWidget):
 if __name__ == "__main__":
 
     app = QApplication([])
-    main = TrackerWidget()
+    main = TrackerWidget(image_shape=(300,300))
     main.show()
     app.exec_()

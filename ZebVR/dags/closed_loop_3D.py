@@ -292,6 +292,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
     tracker_control_worker = TrackerGui(
         n_animals = settings['identity']['n_animals'],
         settings_file = settings['settings']['tracking']['tracker_settings_file'],
+        image_shape = (settings['camera']['height_value'], settings['camera']['width_value']),
         pix_per_mm = settings['calibration']['pix_per_mm'],
         name = 'tracker_gui',  
         logger = worker_logger, 

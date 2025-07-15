@@ -19,6 +19,7 @@ from ..workers import (
     TrackingSaver,
     TemperatureLoggerWorker
 )
+from ..utils import tracker_from_json
 
 DEFAULT_QUEUE_SIZE_MB = 500
 
@@ -160,11 +161,17 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     )
 
     # tracking --------------------------------------------------
+    tracker = tracker_from_json(
+        filename = settings['settings']['tracking']['tracker_settings_file'],
+        cam_fps = settings['camera']['framerate_value'],
+        cam_pix_per_mm = settings['calibration']['pix_per_mm']
+    )
+
     tracker_worker_list = []
     for i in range(settings['identity']['n_animals']):
         tracker_worker_list.append(
             TrackerWorker(
-                SingleFishTracker_CPU(), 
+                tracker, 
                 cam_fps = settings['camera']['framerate_value'],
                 cam_width = settings['camera']['width_value'],
                 cam_height = settings['camera']['height_value'],
@@ -180,6 +187,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     tracker_control_worker = TrackerGui(
         n_animals = settings['identity']['n_animals'],
         settings_file = settings['settings']['tracking']['tracker_settings_file'],
+        image_shape = (settings['camera']['height_value'],  settings['camera']['width_value']),
         pix_per_mm = settings['calibration']['pix_per_mm'],
         name = 'tracker_gui',  
         logger = worker_logger, 
