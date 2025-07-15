@@ -4,6 +4,7 @@ from numpy.typing import NDArray
 import time
 import cv2
 from pathlib import Path
+from image_tools import im2single, im2gray
 
 # TODO control this with a widget
 ENABLE_KALMAN = False
@@ -100,7 +101,7 @@ class TrackerWorker(WorkerNode):
         super().__init__(*args, **kwargs)
         self.tracker = tracker
         self.background_image_file = Path(background_image_file)
-        self.background_image = np.load(self.background_image_file)
+        self.background_image = im2single(im2gray(np.load(self.background_image_file)))
         self.cam_width = cam_width 
         self.cam_height = cam_height
         self.cam_fps = cam_fps
