@@ -23,7 +23,7 @@ class CropWorker(WorkerNode):
         res = {}
         for n, roi in enumerate(self.ROI_identities):
             x,y,w,h = roi
-            crop = im2single(im2gray(data['image'][y:y+h,x:x+w])) # put that in camera worker?
+            crop = im2single(im2gray(data['image'][y:y+h,x:x+w])) 
             origin = np.array((x,y), dtype = np.int32)
             shape = np.array((h,w), dtype = np.int32) 
             res[f'cropper_output_{n}'] = np.array(
