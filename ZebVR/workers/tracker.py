@@ -1,8 +1,9 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 import numpy as np
 from numpy.typing import NDArray
 import time
 import cv2
+from pathlib import Path
 
 # TODO control this with a widget
 ENABLE_KALMAN = False
@@ -87,6 +88,7 @@ class TrackerWorker(WorkerNode):
     def __init__(
             self, 
             tracker: SingleFishTracker, 
+            background_image_file: Union[Path, str],
             cam_fps: float,
             cam_width: int,
             cam_height: int,
@@ -97,6 +99,8 @@ class TrackerWorker(WorkerNode):
 
         super().__init__(*args, **kwargs)
         self.tracker = tracker
+        self.background_image_file = Path(background_image_file)
+        self.background_image = np.load(self.background_image_file)
         self.cam_width = cam_width 
         self.cam_height = cam_height
         self.cam_fps = cam_fps
@@ -110,7 +114,7 @@ class TrackerWorker(WorkerNode):
 
         T = SimilarityTransform2D.translation(data['origin'][0], data['origin'][1])
 
-        tracking = self.tracker.track(data['image'], None, T)
+        tracking = self.tracker.track(data['image'], self.background_image, None, T)
         
         msg = np.array(
             (data['index'], data['timestamp'], tracking, data['origin'], data['shape'], data['identity']),

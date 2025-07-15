@@ -34,19 +34,12 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     queue_logger = Logger(settings['logs']['log']['queue_logfile'], Logger.INFO)
 
     # create queues -----------------------------------------------------------------------            
-    queue_cam_to_background = MonitoredQueue(ModifiableRingBuffer(
+    queue_cam_to_crop = MonitoredQueue(ModifiableRingBuffer(
         num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
         #copy=False, # you probably don't need to copy if processing is fast enough
         logger = queue_logger,
-        name = 'background_to_crop',
-            ))
-
-    queue_background_to_cropper = MonitoredQueue(ModifiableRingBuffer(
-        num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
-        #copy=False, # you probably don't need to copy if processing is fast enough
-        logger = queue_logger,
-        name = 'background_to_crop',
-            ))
+        name = 'cam_to_crop',
+    ))
 
     queue_crop_to_tracker = []
     queue_tracking_to_stim = []
@@ -60,8 +53,8 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
                 num_bytes = DEFAULT_QUEUE_SIZE_MB*1024**2,
                 #copy=False, # you probably don't need to copy if processing is fast enough
                 logger = queue_logger,
-                name = 'background_to_trackers',
-                            ))
+                name = 'crop_to_trackers',
+            ))
         )
         
         queue_tracking_to_stim.append(
@@ -107,11 +100,10 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     )
 
     queues = {
-        queue_cam_to_background: 'camera to background',
-        queue_background_to_cropper: 'backgroud_to_cropper',
+        queue_cam_to_crop: 'camera to cropper',
     }
-    queues.update({q: f'tracking to stim {n}' for n,q in enumerate(queue_tracking_to_stim)})
     queues.update({q: f'crop to tracker {n}' for n,q in enumerate(queue_crop_to_tracker)})
+    queues.update({q: f'tracking to stim {n}' for n,q in enumerate(queue_tracking_to_stim)})
     queues.update({q: f'tracking to overlay {n}' for n,q in enumerate(queue_tracking_to_overlay)})
     queues.update({q: f'tracking to saver {n}' for n,q in enumerate(queue_tracking_to_saver)})
 
@@ -129,26 +121,6 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         name = 'temperature_logger',
         logger = worker_logger, 
         logger_queues = queue_logger,
-    )
-
-    # background subtraction ------------------------------------
-    if settings['background']['bckgsub_polarity'] == 'dark on bright':
-        background_polarity = Polarity.DARK_ON_BRIGHT  
-    else:
-        background_polarity = Polarity.BRIGHT_ON_DARK
-
-    background = BackgroundImage(
-        image_file_name = settings['background']['background_file'],
-        polarity = background_polarity,
-        use_gpu = settings['settings']['tracking']['background_gpu']
-    )
-
-    background_worker = BackgroundSubWorker(
-        background, 
-        name = f'background', 
-        logger = worker_logger, 
-        logger_queues = queue_logger,
-        receive_data_timeout = 1.0, 
     )
 
     cropper = CropWorker(
@@ -172,6 +144,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         tracker_worker_list.append(
             TrackerWorker(
                 tracker, 
+                background_image_file = settings['background']['background_file'],
                 cam_fps = settings['camera']['framerate_value'],
                 cam_width = settings['camera']['width_value'],
                 cam_height = settings['camera']['height_value'],
@@ -223,16 +196,9 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     # data
     dag.connect_data(
         sender = camera_worker, 
-        receiver = background_worker, 
-        queue = queue_cam_to_background, 
-        name = 'cam_output1'
-    )
-
-    dag.connect_data(
-        sender = background_worker, 
         receiver = cropper, 
-        queue = queue_background_to_cropper, 
-        name = 'background_to_crop'
+        queue = queue_cam_to_crop, 
+        name = 'cam_output1'
     )
 
     for i in range(settings['identity']['n_animals']):

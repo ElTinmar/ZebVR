@@ -1,6 +1,7 @@
 from dagline import WorkerNode
 from typing import Any, List, Tuple
 import numpy as np
+from image_tools import im2gray, im2single
 
 class CropWorker(WorkerNode):
 
@@ -22,7 +23,7 @@ class CropWorker(WorkerNode):
         res = {}
         for n, roi in enumerate(self.ROI_identities):
             x,y,w,h = roi
-            crop = data['image'][y:y+h,x:x+w]
+            crop = im2single(im2gray(data['image'][y:y+h,x:x+w])) # put that in camera worker?
             origin = np.array((x,y), dtype = np.int32)
             shape = np.array((h,w), dtype = np.int32) 
             res[f'cropper_output_{n}'] = np.array(

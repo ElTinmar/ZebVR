@@ -20,7 +20,7 @@ dependencies:
   - statsmodels  
   - psutil
   - git+https://github.com/ElTinmar/video_tools.git@main#egg=video_tools[gpu]
-  - git+https://github.com/ElTinmar/tracker.git@main
+  - git+https://github.com/ElTinmar/tracker.git@feature/uselesspixels
   - git+https://github.com/ElTinmar/Lightcrafter.git@main  
   - git+https://github.com/ElTinmar/ViewSonicProjectorRS232.git@main
   - git+https://github.com/ElTinmar/email.git@main
