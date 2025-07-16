@@ -12,7 +12,6 @@ from tracker import (
     SingleFishOverlay_opencv, 
 )
 from ..workers import (
-    BackgroundSubWorker,
     CropWorker, 
     AudioStimWorker,
     CameraWorker, 

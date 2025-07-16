@@ -1,4 +1,3 @@
-from .background import BackgroundSubWorker
 from .camera import CameraWorker
 from .display import Display
 from .image_saver import ImageSaverWorker,VideoSaverWorker

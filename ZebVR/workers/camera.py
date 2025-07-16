@@ -59,8 +59,8 @@ class CameraWorker(WorkerNode):
                 (frame['index'], timestamp, frame['timestamp'], img), # not using the timestamp from the camera
                 dtype=np.dtype([
                     ('index', int),
-                    ('timestamp', np.float64),
-                    ('camera_timestamp', np.float32),
+                    ('timestamp', np.int64),
+                    ('camera_timestamp', np.float64),
                     ('image', img.dtype, img.shape)
                 ])
             )
