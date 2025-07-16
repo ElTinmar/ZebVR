@@ -3,14 +3,9 @@ import numpy as np
 
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
-from video_tools import BackgroundImage, Polarity
 from dagline import ProcessingDAG, receive_strategy, send_strategy
 from geometry import AffineTransform2D
-
-from tracker import (
-    SingleFishTracker_CPU,
-    SingleFishOverlay_opencv, 
-)
+from tracker import SingleFishOverlay_opencv
 from ..workers import (
     CropWorker, 
     AudioStimWorker,
@@ -37,6 +32,7 @@ from ..stimulus import VisualStimWorker, GeneralStim
 from ..utils import tracker_from_json
 
 DEFAULT_QUEUE_SIZE_MB = 500
+PROFILE = True
 
 def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     
@@ -154,6 +150,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         receive_data_strategy = receive_strategy.COLLECT, 
         send_data_strategy = send_strategy.BROADCAST, 
         receive_data_timeout = 1.0,
+        profile = PROFILE
     )
 
     # video recording ------------------------------------------
@@ -246,6 +243,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         logger_queues = queue_logger,
         receive_data_timeout = 1.0, 
         send_data_strategy = send_strategy.BROADCAST,
+        profile = PROFILE
     )
         
     # tracking --------------------------------------------------
@@ -271,6 +269,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
                 send_data_strategy = send_strategy.BROADCAST, 
                 #receive_metadata_strategy = receive_strategy.POLL,
                 receive_data_timeout = 1.0, 
+                profile = PROFILE
             )
         )
     
