@@ -32,7 +32,7 @@ from ..stimulus import VisualStimWorker, GeneralStim
 from ..utils import tracker_from_json
 
 DEFAULT_QUEUE_SIZE_MB = 500
-PROFILE = True
+PROFILE = False
 
 def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[ProcessingDAG, Logger, Logger]:
     
