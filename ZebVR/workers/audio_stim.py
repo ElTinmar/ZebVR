@@ -568,6 +568,7 @@ class AudioStimWorker(WorkerNode):
 
     def process_data(self, data: Any) -> None:
         # could be used to do something with fish position
+        time.sleep(0.002) # TODO is there a workaround for this?
         pass
     
     def process_metadata(self, metadata) -> None:
