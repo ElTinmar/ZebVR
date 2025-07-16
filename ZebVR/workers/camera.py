@@ -1,10 +1,10 @@
 
 from camera_tools import Camera
 from dagline import WorkerNode
-import time
 from typing import Callable, Any
 import numpy as np
 from ZebVR.utils import get_time_ns
+from image_tools import im2gray
 
 class CameraWorker(WorkerNode):
 
@@ -54,7 +54,7 @@ class CameraWorker(WorkerNode):
         timestamp = get_time_ns()
         
         if frame:
-            img = frame['image']
+            img = im2gray(frame['image'])
             img_res = np.array(
                 (frame['index'], timestamp, frame['timestamp'], img), # not using the timestamp from the camera
                 dtype=np.dtype([
