@@ -3,6 +3,7 @@ from camera_tools import Camera
 from dagline import WorkerNode
 from typing import Callable, Any
 import numpy as np
+from numpy.typing import DTypeLike
 from ZebVR.utils import get_time_ns
 from image_tools import im2gray
 
@@ -18,6 +19,7 @@ class CameraWorker(WorkerNode):
             width: int,
             offsetx: int,
             offsety: int,
+            image_dtype: DTypeLike = np.uint8, 
             *args, 
             **kwargs
         ):
@@ -31,6 +33,17 @@ class CameraWorker(WorkerNode):
         self.width = width
         self.offsetx = offsetx
         self.offsety = offsety
+        self.image_dtype = image_dtype
+
+        # preallocate memory
+        self.res = np.empty((),
+            dtype=np.dtype([
+                ('index', int),
+                ('timestamp', np.int64),
+                ('camera_timestamp', np.float64),
+                ('image', image_dtype, (height, width))
+            ])
+        )
     
     def initialize(self) -> None:
         super().initialize()
@@ -54,20 +67,14 @@ class CameraWorker(WorkerNode):
         timestamp = get_time_ns()
         
         if frame:
-            img = im2gray(frame['image'])
-            img_res = np.array(
-                (frame['index'], timestamp, frame['timestamp'], img), # not using the timestamp from the camera
-                dtype=np.dtype([
-                    ('index', int),
-                    ('timestamp', np.int64),
-                    ('camera_timestamp', np.float64),
-                    ('image', img.dtype, img.shape)
-                ])
-            )
-            
+            self.res['index'] = frame['index']
+            self.res['timestamp'] = timestamp
+            self.res['camera_timestamp'] = frame['timestamp']
+            self.res['image'] = im2gray(frame['image'])
+
             res = {}
-            res['cam_output1'] = img_res
-            res['cam_output2'] = img_res
+            res['cam_output1'] = self.res
+            res['cam_output2'] = self.res
             return res
         
     def process_metadata(self, metadata) -> Any:
