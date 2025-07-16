@@ -7,7 +7,9 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     QFileDialog,
     QPushButton,
-    QCheckBox
+    QCheckBox,
+    QRadioButton,
+    QButtonGroup
 )
 from PyQt5.QtCore import pyqtSignal
 from qt_widgets import (
@@ -167,9 +169,22 @@ class Animal(QWidget):
         self.animal_downsample_factor.setValue(0.25)
         self.animal_downsample_factor.valueChanged.connect(self.state_changed)
 
+        self.dark_background = QRadioButton("Dark background")
+        self.bright_background = QRadioButton("Bright background")
+        self.bright_background.setChecked(True)  
+        self.button_group = QButtonGroup(self)
+        self.button_group.addButton(self.dark_background)
+        self.button_group.addButton(self.bright_background)
+        self.button_group.buttonClicked.connect(self.state_changed)
+
     def layout_components(self) -> None:
 
+        bckg_layout = QHBoxLayout()
+        bckg_layout.addWidget(self.dark_background)
+        bckg_layout.addWidget(self.bright_background)
+
         animal = QVBoxLayout(self)
+        animal.addLayout(bckg_layout)
         animal.addWidget(self.animal_num_animals)
         animal.addWidget(self.animal_pix_per_mm)
         animal.addWidget(self.animal_target_pix_per_mm)
@@ -210,6 +225,7 @@ class Animal(QWidget):
         state['crop_offset_y_mm'] = self.animal_crop_offset_y_mm.value()
         state['crop_dimension_mm'] = (self.animal_crop_width_mm.value(),self.animal_crop_height_mm.value())
         state['num_animals'] = self.animal_num_animals.value()
+        state['background_polarity'] = 1 if self.dark_background.isChecked() else -1
 
         return state
     
@@ -234,7 +250,11 @@ class Animal(QWidget):
             'blur_sz_mm': self.animal_blur_sz_mm.setValue,
             'median_filter_sz_mm': self.animal_median_filter_sz_mm.setValue,
             'num_animals': self.animal_num_animals.setValue,
-            'downsample_ratio': self.animal_downsample_factor.setValue
+            'downsample_ratio': self.animal_downsample_factor.setValue,
+            'background_polarity': lambda x: (
+                self.dark_background.setChecked(x == 1),
+                self.bright_background.setChecked(x == -1)
+            )
         }
         
         for key, setter in setters.items():
@@ -371,9 +391,22 @@ class Body(QWidget):
         self.body_median_filter_sz_mm.setValue(0.0)
         self.body_median_filter_sz_mm.valueChanged.connect(self.state_changed)
 
+        self.dark_background = QRadioButton("Dark background")
+        self.bright_background = QRadioButton("Bright background")
+        self.bright_background.setChecked(True)  
+        self.button_group = QButtonGroup(self)
+        self.button_group.addButton(self.dark_background)
+        self.button_group.addButton(self.bright_background)
+        self.button_group.buttonClicked.connect(self.state_changed)
+
     def layout_components(self) -> None:
 
+        bckg_layout = QHBoxLayout()
+        bckg_layout.addWidget(self.dark_background)
+        bckg_layout.addWidget(self.bright_background)
+
         body = QVBoxLayout(self)
+        body.addLayout(bckg_layout)
         body.addWidget(self.body_pix_per_mm)
         body.addWidget(self.body_target_pix_per_mm)
         body.addWidget(self.body_intensity)
@@ -410,6 +443,7 @@ class Body(QWidget):
         state['crop_dimension_mm']=(self.body_crop_width_mm.value(),self.body_crop_height_mm.value())
         state['blur_sz_mm']=self.body_blur_sz_mm.value()
         state['median_filter_sz_mm']=self.body_median_filter_sz_mm.value()
+        state['background_polarity'] = 1 if self.dark_background.isChecked() else -1
 
         return state
 
@@ -432,7 +466,11 @@ class Body(QWidget):
                 self.body_crop_height_mm.setValue(x[1])
             ),
             'blur_sz_mm': self.body_blur_sz_mm.setValue,
-            'median_filter_sz_mm': self.body_median_filter_sz_mm.setValue
+            'median_filter_sz_mm': self.body_median_filter_sz_mm.setValue,
+            'background_polarity': lambda x: (
+                self.dark_background.setChecked(x == 1),
+                self.bright_background.setChecked(x == -1)
+            )
         }
 
         for key, setter in setters.items():
@@ -555,9 +593,22 @@ class Eyes(QWidget):
         self.eyes_median_filter_sz_mm.setValue(0.0)
         self.eyes_median_filter_sz_mm.valueChanged.connect(self.state_changed)
 
+        self.dark_background = QRadioButton("Dark background")
+        self.bright_background = QRadioButton("Bright background")
+        self.bright_background.setChecked(True)  
+        self.button_group = QButtonGroup(self)
+        self.button_group.addButton(self.dark_background)
+        self.button_group.addButton(self.bright_background)
+        self.button_group.buttonClicked.connect(self.state_changed)
+
     def layout_components(self) -> None:
 
+        bckg_layout = QHBoxLayout()
+        bckg_layout.addWidget(self.dark_background)
+        bckg_layout.addWidget(self.bright_background)
+
         eyes = QVBoxLayout(self)
+        eyes.addLayout(bckg_layout)
         eyes.addWidget(self.eyes_pix_per_mm)
         eyes.addWidget(self.eyes_target_pix_per_mm)
         eyes.addWidget(self.eyes_intensity_lo)
@@ -590,6 +641,7 @@ class Eyes(QWidget):
         state['crop_dimension_mm']=(self.eyes_crop_width_mm.value(),self.eyes_crop_height_mm.value())
         state['blur_sz_mm']=self.eyes_blur_sz_mm.value()
         state['median_filter_sz_mm']=self.eyes_median_filter_sz_mm.value()
+        state['background_polarity'] = 1 if self.dark_background.isChecked() else -1
 
         return state
     
@@ -610,7 +662,11 @@ class Eyes(QWidget):
                 self.eyes_crop_height_mm.setValue(x[1])
             ),
             'blur_sz_mm': self.eyes_blur_sz_mm.setValue,
-            'median_filter_sz_mm': self.eyes_median_filter_sz_mm.setValue
+            'median_filter_sz_mm': self.eyes_median_filter_sz_mm.setValue,
+            'background_polarity': lambda x: (
+                self.dark_background.setChecked(x == 1),
+                self.bright_background.setChecked(x == -1)
+            )
         }
 
         for key, setter in setters.items():
@@ -741,9 +797,22 @@ class Tail(QWidget):
         self.tail_median_filter_sz_mm.setValue(0.1)
         self.tail_median_filter_sz_mm.valueChanged.connect(self.state_changed)
 
+        self.dark_background = QRadioButton("Dark background")
+        self.bright_background = QRadioButton("Bright background")
+        self.bright_background.setChecked(True)  
+        self.button_group = QButtonGroup(self)
+        self.button_group.addButton(self.dark_background)
+        self.button_group.addButton(self.bright_background)
+        self.button_group.buttonClicked.connect(self.state_changed)
+
     def layout_components(self) -> None:
 
+        bckg_layout = QHBoxLayout()
+        bckg_layout.addWidget(self.dark_background)
+        bckg_layout.addWidget(self.bright_background)
+
         tail = QVBoxLayout(self)
+        tail.addLayout(bckg_layout)
         tail.addWidget(self.tail_pix_per_mm)
         tail.addWidget(self.tail_target_pix_per_mm)
         tail.addWidget(self.tail_gamma)
@@ -778,7 +847,8 @@ class Tail(QWidget):
         state['crop_offset_y_mm']=self.tail_crop_offset_y_mm.value()
         state['blur_sz_mm']=self.tail_blur_sz_mm.value()
         state['median_filter_sz_mm']=self.tail_median_filter_sz_mm.value()
-
+        state['background_polarity'] = 1 if self.dark_background.isChecked() else -1
+        
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -799,7 +869,11 @@ class Tail(QWidget):
                 self.tail_crop_height_mm.setValue(x[1])    
             ),
             'blur_sz_mm': self.tail_blur_sz_mm.setValue,
-            'median_filter_sz_mm': self.tail_median_filter_sz_mm.setValue
+            'median_filter_sz_mm': self.tail_median_filter_sz_mm.setValue,
+            'background_polarity': lambda x: (
+                self.dark_background.setChecked(x == 1),
+                self.bright_background.setChecked(x == -1)
+            )
         }
 
         for key, setter in setters.items():

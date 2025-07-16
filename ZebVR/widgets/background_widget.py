@@ -75,12 +75,6 @@ class BackgroundWidget(QWidget):
         self.bckgsub_method_combobox.addItem('static')
         self.bckgsub_method_combobox.currentIndexChanged.connect(self.method_change)
 
-        self.bckgsub_polarity_combobox = LabeledComboBox(self)
-        self.bckgsub_polarity_combobox.setText('polarity')
-        self.bckgsub_polarity_combobox.addItem('dark on bright')
-        self.bckgsub_polarity_combobox.addItem('bright on dark')
-        self.bckgsub_polarity_combobox.currentIndexChanged.connect(self.state_changed)
-
         self.bckgsub_parameter_stack = QStackedWidget(self)
         self.bckgsub_parameter_stack.addWidget(self.parameters_inpaint)
         self.bckgsub_parameter_stack.addWidget(self.parameters_static)
@@ -123,7 +117,6 @@ class BackgroundWidget(QWidget):
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self.bckgsub_method_combobox)
         main_layout.addWidget(self.bckgsub_parameter_stack)
-        main_layout.addWidget(self.bckgsub_polarity_combobox)
         main_layout.addWidget(self.background_file)
         main_layout.addWidget(self.background)
         main_layout.addStretch()
@@ -144,7 +137,6 @@ class BackgroundWidget(QWidget):
         state['static_pause_duration'] = self.static_pause_duration.value()
         state['inpaint_algo'] = self.inpaint_algo.currentText()
         state['bckgsub_method'] = self.bckgsub_method_combobox.currentText()
-        state['bckgsub_polarity'] = self.bckgsub_polarity_combobox.currentText()
         state['background_file'] =  self.background_file.text()
         return state
     
@@ -156,7 +148,6 @@ class BackgroundWidget(QWidget):
             'static_pause_duration': self.static_pause_duration.setValue,
             'inpaint_algo': self.inpaint_algo.setCurrentText,
             'bckgsub_method': self.bckgsub_method_combobox.setCurrentText,
-            'bckgsub_polarity': self.bckgsub_polarity_combobox.setCurrentText,
             'background_file': self.background_file.setText
         }
 
