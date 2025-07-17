@@ -99,3 +99,4 @@ class SettingsWidget(QWidget):
                 setter(state[key])
         
         self.prefix = state.get('prefix', '')
+        self.experiment_data_widget.experiment_data() # update prefix
