@@ -195,6 +195,7 @@ class VideoOutputWidget(QWidget):
         if self.use_gpu.isChecked():
 
             self.grayscale.setChecked(False)
+            self.grayscale.setEnabled(False)
 
             self.codec_combobox.clear()
             self.codec_combobox.addItem('h264_nvenc')
@@ -210,6 +211,8 @@ class VideoOutputWidget(QWidget):
             self.video_preset.addItem('p7')
 
         else:
+            self.grayscale.setEnabled(True)
+
             self.codec_combobox.clear()
             self.codec_combobox.addItem('h264')
             self.codec_combobox.addItem('mjpeg')
@@ -233,6 +236,7 @@ class VideoOutputWidget(QWidget):
         if self.grayscale.isChecked():
 
             self.use_gpu.setChecked(False)
+            self.use_gpu.setEnabled(False)
 
             self.codec_combobox.clear()
             self.codec_combobox.addItem('h264')
@@ -249,6 +253,8 @@ class VideoOutputWidget(QWidget):
             self.video_preset.addItem('veryslow')
 
         else:
+            self.use_gpu.setEnabled(True)
+
             self.codec_combobox.clear()
             self.codec_combobox.addItem('h264')
             self.codec_combobox.addItem('mjpeg')
