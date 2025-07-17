@@ -202,6 +202,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0,
+        send_metadata_strategy = send_strategy.DISPATCH,
         profile = False
     )
     
@@ -216,6 +217,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0,
+        send_metadata_strategy = send_strategy.DISPATCH
     )
 
     stim_control_worker = StimGUI(
@@ -224,6 +226,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0,
+        send_metadata_strategy = send_strategy.BROADCAST, 
         profile = False
     ) 
 
@@ -232,6 +235,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        send_metadata_strategy = send_strategy.DISPATCH
     )
 
     stim_saver = StimSaver(
@@ -240,6 +244,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         logger = worker_logger, 
         logger_queues = queue_logger,
         receive_data_timeout = 1.0,
+        receive_metadata_strategy = receive_strategy.POLL
     )
 
     # connect DAG -----------------------------------------------------------------------
