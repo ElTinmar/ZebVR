@@ -1,7 +1,6 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Union
 import numpy as np
 from numpy.typing import NDArray
-import time
 from pathlib import Path
 
 # TODO control this with a widget
@@ -27,61 +26,6 @@ from tracker import (
 from dagline import WorkerNode
 from geometry import SimilarityTransform2D
 
-class DummyTrackerWorker(WorkerNode):
-    '''For open loop tracking, sends the centroid / main direction'''
-    def __init__(
-            self,
-            tracker: SingleFishTracker, 
-            centroid: NDArray,
-            heading: NDArray,
-            roi: NDArray,
-            identity: int,
-            *args, 
-            **kwargs
-        ):
-        super().__init__(*args, **kwargs)
-
-        x,y,w,h = roi
-        self.origin = np.array((x,y))
-        self.shape = (h,w)
-        self.tracking = np.zeros(1, tracker.tracking_param.dtype)
-        self.tracking['success'] = True
-        self.tracking['body']['success'] = True
-        self.tracking['body']['centroid_global'] = centroid + self.origin + np.array((w//2, h//2)) 
-        self.tracking['body']['body_axes_global'] = heading
-        self.indentity = identity
-
-    def initialize(self) -> None:
-        super().initialize()
-
-    def process_data(self, data: Optional[NDArray]) -> Dict:
-        
-        index = 0
-        timestamp = 0
-        if data is not None:
-            index = data['index']
-            timestamp = data['timestamp']
-        else:
-            time.sleep(0.010)
-        
-        res = {}
-        msg = np.array(
-            (index, timestamp, self.tracking, self.origin, self.shape, self.indentity),
-            dtype=np.dtype([
-                ('index', int),
-                ('timestamp', np.int64),
-                ('tracking', self.tracking.dtype),
-                ('origin', np.int32, (2,)),
-                ('shape', np.int32, (2,)),
-                ('identity', np.int32)
-            ])
-        )
-        res['tracker_output_stim'] = msg
-        return res
-        
-    def process_metadata(self, metadata) -> Any:
-        pass
-    
 class TrackerWorker(WorkerNode):
     
     def __init__(
