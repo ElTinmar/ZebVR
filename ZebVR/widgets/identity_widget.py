@@ -296,7 +296,7 @@ class IdentityWidget(QWidget):
             'ROIs': self.ROIs.copy(),
             'n_animals': len(self.ROIs),
             'open_loop_x_offset': self.centroid_X.value(),
-            'open_loop_y_offset': self.centroid_X.value(),
+            'open_loop_y_offset': self.centroid_Y.value(),
             'open_loop_axes': self.axes
         }
 
