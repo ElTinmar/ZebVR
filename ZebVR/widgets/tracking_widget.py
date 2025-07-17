@@ -29,10 +29,6 @@ class TrackingWidget(QWidget):
 
         self.closedloop_group = QGroupBox('tracking settings')
 
-        self.background_gpu = QCheckBox('GPU background subtraction')
-        self.background_gpu.setChecked(True)
-        self.background_gpu.stateChanged.connect(self.state_changed)
-
         self.n_tail_pts_interp = LabeledSpinBox()
         self.n_tail_pts_interp.setText('# tail points interp:')
         self.n_tail_pts_interp.setValue(40)
@@ -63,7 +59,6 @@ class TrackingWidget(QWidget):
 
         closedloop_layout = QVBoxLayout()
         closedloop_layout.addWidget(self.tracking_settings)
-        closedloop_layout.addWidget(self.background_gpu)
         closedloop_layout.addWidget(self.n_tail_pts_interp)
         closedloop_layout.addWidget(self.display_fps)
         closedloop_layout.addWidget(self.edt_filename)
@@ -76,7 +71,6 @@ class TrackingWidget(QWidget):
 
         state = {}
         state['tracker_settings_file'] = self.tracking_settings.text()
-        state['background_gpu'] = self.background_gpu.isChecked()
         state['n_tail_pts_interp'] = self.n_tail_pts_interp.value()
         state['display_fps'] = self.display_fps.value()
         state['csv_filename'] = self.edt_filename.text()
@@ -86,7 +80,6 @@ class TrackingWidget(QWidget):
 
         setters = {
             'tracker_settings_file': self.tracking_settings.setText,
-            'background_gpu': self.background_gpu.setChecked,
             'n_tail_pts_interp': self.n_tail_pts_interp.setValue,
             'display_fps': self.display_fps.setValue,
             'csv_filename': self.edt_filename.setText

@@ -240,26 +240,6 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         logger_queues = queue_logger,
     )
 
-    # background subtraction ------------------------------------
-    if settings['background']['bckgsub_polarity'] == 'dark on bright':
-        background_polarity = Polarity.DARK_ON_BRIGHT  
-    else:
-        background_polarity = Polarity.BRIGHT_ON_DARK
-
-    background = BackgroundImage(
-        image_file_name = settings['background']['background_file'],
-        polarity = background_polarity,
-        use_gpu = settings['settings']['tracking']['background_gpu']
-    )
-
-    background_worker = BackgroundSubWorker(
-        background, 
-        name = f'background', 
-        logger = worker_logger, 
-        logger_queues = queue_logger,
-        receive_data_timeout = 1.0, 
-    )
-
     cropper = CropWorker(
         ROI_identities = settings['identity']['ROIs'],
         name = f'crop', 
