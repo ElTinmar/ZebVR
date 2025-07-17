@@ -1,17 +1,15 @@
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Sequence
 from .visual_stim import VisualStim
 from vispy import gloo, app
 from multiprocessing import RawValue, RawArray
-import time
 import numpy as np 
-import os
+from numpy.typing import NDArray
 from dataclasses import dataclass
 from geometry import AffineTransform2D
 from ZebVR import MAX_PREY
 from ZebVR.protocol import DEFAULT, Stim, VISUAL_STIMS
 import cv2
 from ZebVR.utils import SharedString, get_time_ns
-from multiprocessing import Queue
 import queue
 
 @dataclass
@@ -181,6 +179,8 @@ class GeneralStim(VisualStim):
             window_position: Tuple[int, int], 
             camera_resolution: Tuple[int, int],
             window_decoration: bool = True,
+            init_centroid: Tuple[float, float] = (0.0, 0.0),
+            init_heading: NDArray[np.float32] = np.array([[1.0, 0.0], [0.0, 1.0]]),
             transformation_matrix: AffineTransform2D = AffineTransform2D.identity(),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             pix_per_mm: float = 30,
@@ -478,6 +478,11 @@ class GeneralStim(VisualStim):
         )
 
         self.shared_fish_state = [SharedFishState(num_tail_points_interp) for _ in  ROI_identities]
+        for fish_state in self.shared_fish_state:
+            fish_state.fish_caudorostral_axis[:] = init_heading[:,0]
+            fish_state.fish_mediolateral_axis[:] = init_heading[:,1]
+            fish_state.fish_centroid[:] = init_centroid
+
         self.shared_stim_parameters = SharedStimParameters()
         self.stim_change_counter = 0
 
