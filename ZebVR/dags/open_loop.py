@@ -80,6 +80,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         width = settings['camera']['width_value'],
         offsetx = settings['camera']['offsetX_value'],
         offsety = settings['camera']['offsetY_value'],
+        num_channels = settings['camera']['num_channels'],
         name = 'camera', 
         logger = worker_logger, 
         logger_queues = queue_logger,

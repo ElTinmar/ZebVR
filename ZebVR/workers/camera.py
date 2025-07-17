@@ -19,6 +19,7 @@ class CameraWorker(WorkerNode):
             width: int,
             offsetx: int,
             offsety: int,
+            num_channels: int = 1,
             image_dtype: DTypeLike = np.uint8, 
             *args, 
             **kwargs
@@ -31,9 +32,15 @@ class CameraWorker(WorkerNode):
         self.framerate = framerate
         self.height = height
         self.width = width
+        self.num_channels = num_channels
         self.offsetx = offsetx
         self.offsety = offsety
         self.image_dtype = image_dtype
+
+        if num_channels == 1:
+            shape = (height, width)
+        else:
+            shape = (height, width, num_channels)
 
         # preallocate memory
         self.res = np.empty((),
@@ -41,7 +48,7 @@ class CameraWorker(WorkerNode):
                 ('index', int),
                 ('timestamp', np.int64),
                 ('camera_timestamp', np.float64),
-                ('image', image_dtype, (height, width))
+                ('image', image_dtype, shape)
             ])
         )
     
@@ -70,7 +77,7 @@ class CameraWorker(WorkerNode):
             self.res['index'] = frame['index']
             self.res['timestamp'] = timestamp
             self.res['camera_timestamp'] = frame['timestamp']
-            self.res['image'] = im2gray(frame['image'])
+            self.res['image'] = frame['image']
 
             res = {}
             res['cam_output1'] = self.res

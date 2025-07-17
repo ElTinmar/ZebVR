@@ -149,6 +149,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         width = settings['camera']['width_value'],
         offsetx = settings['camera']['offsetX_value'],
         offsety = settings['camera']['offsetY_value'],
+        num_channels = settings['camera']['num_channels'],
         name = 'camera', 
         logger = worker_logger, 
         logger_queues = queue_logger,

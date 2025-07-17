@@ -203,6 +203,7 @@ camera = CameraWorker(
     width = 1024,
     offsetx = 512,
     offsety = 512,
+    num_channels=1,
     name = 'camera', 
     logger = worker_logger, 
     logger_queues = queue_logger,
