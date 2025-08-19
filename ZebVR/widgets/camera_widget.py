@@ -26,6 +26,7 @@ from camera_tools import (
     OpenCV_Webcam_Gray,
     OpenCV_Webcam_InitEveryFrame, 
     MovieFileCam, 
+    MovieFileCamGray,
     ZeroCam
 )
 
@@ -38,6 +39,7 @@ class CameraModel(IntEnum):
     XIMEA = 5
     SPINNAKER = 6
     MOVIE = 7
+    MOVIE_GRAY = 8
 
 try:
     from camera_tools import XimeaCamera, XimeaCamera_Transport
@@ -198,7 +200,7 @@ class CameraWidget(QWidget):
         id = self.camera_id.value() 
         filename = self.filename.text()
 
-        if model == CameraModel.MOVIE:
+        if model in [CameraModel.MOVIE, CameraModel.MOVIE_GRAY]:
             self.camera_id.setEnabled(False)
             self.movie_load.setEnabled(True)
         else:
@@ -343,6 +345,9 @@ class CameraController(QObject):
 
         elif camera_model==CameraModel.MOVIE and self.filename.exists():
             self.camera_constructor = partial(MovieFileCam, filename=str(self.filename))
+
+        elif camera_model==CameraModel.MOVIE_GRAY and self.filename.exists():
+            self.camera_constructor = partial(MovieFileCamGray, filename=str(self.filename))
 
         elif camera_model==CameraModel.XIMEA and XIMEA_ENABLED:
             self.camera_constructor = partial(XimeaCamera_Transport, dev_id=cam_ind)
