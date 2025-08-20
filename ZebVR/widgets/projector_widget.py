@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QGroupBox
 )
-from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThreadPool
+from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThreadPool, QTimer
 from typing import Dict, Optional, Callable, List
 from viewsonic_serial import ViewSonicProjector, ConnectionFailed, SourceInput, Bool
 import time
@@ -26,14 +26,20 @@ class ProjectorWidget(QWidget):
     power_on_signal = pyqtSignal()
     power_off_signal = pyqtSignal()
     scale_tooltip = "Used for non-rectangular micromirror arrays (e.g. Lightcrafters)"
+    REFRESH_RATE = 30
 
     def __init__(self,*args,**kwargs):
 
         super().__init__(*args, **kwargs)
 
         self.serial_devices: List[SerialDevice] = [SerialDevice()] + list_serial_devices()
+        self.projector_state = {}
         self.declare_components()
         self.layout_components()
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_projector_state)
+        self.timer.start(1000//self.REFRESH_RATE) 
     
     def declare_components(self) -> None:
 
@@ -213,22 +219,25 @@ class ProjectorWidget(QWidget):
                 setter(state[key])
 
     def get_projector_state(self) -> Dict:
-        state = {}
-        state['video_source'] = self.video_source.currentText()
-        state['fast_input_mode'] = self.fast_input_mode.isChecked()
-        state['serial_number'] = self.serial_number.text()
-        state['power_status'] = self.power_status.text()
-        state['temperature'] = self.temperature.text()
-        state['last_refresh'] = self.last_refresh_time.text()
-        return state
+        return self.projector_state
 
     def set_projector_state(self, state: Dict) -> None:
-        self.video_source.setCurrentText(state['video_source'])
-        self.fast_input_mode.setChecked(state['fast_input_mode'])
-        self.serial_number.setText(f"S/N:{state['serial_number']}")
-        self.power_status.setText(f"Power:{state['power_status']}")
-        self.temperature.setText(f"Temperature:{state['temperature']}\N{DEGREE SIGN}C")
-        self.last_refresh_time.setText(f"Last refresh:{state['last_refresh']}")
+        self.projector_state = state
+
+    def update_projector_state(self) -> None:
+
+        setters = {
+            'video_source': self.video_source.setCurrentText,
+            'fast_input_mode': self.fast_input_mode.setChecked,
+            'serial_number': lambda x: self.serial_number.setText(f"S/N:{x}"),
+            'power_status': lambda x: self.power_status.setText(f"Power:{x}"),
+            'temperature': lambda x: self.temperature.setText(f"Temperature:{x}\N{DEGREE SIGN}C"),
+            'last_refresh': lambda x: self.last_refresh_time.setText(f"Last refresh:{x}")
+        }
+
+        for key, setter in setters.items():
+            if key in self.projector_state:
+                setter(self.projector_state[key])
 
     def closeEvent(self, event):
         # If widget is a children of some other widget, it needs
@@ -286,10 +295,7 @@ class ProjectorChecker(QRunnable):
                 state['temperature'] = ''
                 state['last_refresh'] = time.asctime()
             
-            self.widget.block_signals(True)
             self.widget.set_projector_state(state)
-            self.widget.block_signals(False)
-
             time.sleep(1/self.refresh_rate)
         
 
@@ -352,7 +358,7 @@ class ProjectorController(QObject):
         projector.power_off()
         self.set_checker(True)
 
-    def get_projector_state(self, projector: ViewSonicProjector) -> Optional[Dict]: # TODO write a Projector protocol
+    def get_projector_state(self, projector: ViewSonicProjector) -> Dict: 
         state = {}
         state['power_status'] = str(projector.get_power_status())
         state['video_source'] = str(projector.get_source_input())
@@ -404,9 +410,7 @@ class ProjectorController(QObject):
         del(projector)
 
         # report to the GUI to make sure hardware and GUI have the same info
-        self.view.block_signals(True)
         self.view.set_projector_state(state_validated)
-        self.view.block_signals(False)
 
         # restart checker
         self.set_checker(True)
