@@ -11,9 +11,9 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer
 from typing import Dict, List
-from viewsonic_serial import ViewSonicProjector, SourceInput, Bool, Gamma
+from viewsonic_serial import ViewSonicProjector, SourceInput, Bool, Gamma, ColorMode
 import time
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledSliderSpinBox
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledSliderSpinBox, LabeledComboBox
 from ..serial_utils import list_serial_devices, SerialDevice
 
 class ProjectorWidget(QWidget):
@@ -29,6 +29,7 @@ class ProjectorWidget(QWidget):
     power_off_signal = pyqtSignal()
     video_source_changed = pyqtSignal(str)
     gamma_changed = pyqtSignal(str)
+    color_mode_changed = pyqtSignal(str)
     fast_input_mode_changed = pyqtSignal(bool)
     red_gain_changed = pyqtSignal(int)
     red_offset_changed = pyqtSignal(int)
@@ -108,7 +109,8 @@ class ProjectorWidget(QWidget):
         self.refresh = QPushButton('Refresh serial devices')
         self.refresh.clicked.connect(self.refresh_serial)
 
-        self.serial_ports = QComboBox()
+        self.serial_ports = LabeledComboBox()
+        self.serial_ports.setText('Serial port')
         self.serial_ports.currentIndexChanged.connect(self.serial_changed)
         for ser_port, description in self.serial_devices:
             self.serial_ports.addItem(f"{ser_port} - {description}")
@@ -119,7 +121,8 @@ class ProjectorWidget(QWidget):
         self.power_off = QPushButton('Power Off')
         self.power_off.clicked.connect(self.power_off_signal)
 
-        self.video_source = QComboBox()
+        self.video_source = LabeledComboBox()
+        self.video_source.setText('Video source')
         for src in SourceInput:
             self.video_source.addItem(str(src))
         self.video_source.currentTextChanged.connect(self.video_source_changed)
@@ -127,10 +130,17 @@ class ProjectorWidget(QWidget):
         self.fast_input_mode = QCheckBox('Low latency mode')
         self.fast_input_mode.toggled.connect(self.fast_input_mode_changed)
 
-        self.gamma = QComboBox()
+        self.gamma = LabeledComboBox()
+        self.gamma.setText('Gamma')
         for gamma in Gamma:
             self.gamma.addItem(str(gamma))
         self.gamma.currentTextChanged.connect(self.gamma_changed)
+
+        self.color_mode = LabeledComboBox()
+        self.color_mode.setText('Color mode')
+        for cm in ColorMode:
+            self.color_mode.addItem(str(cm))
+        self.color_mode.currentTextChanged.connect(self.color_mode_changed)
 
         self.red_gain_slider = LabeledSliderSpinBox()
         self.red_gain_slider.setText('Red gain')
@@ -219,6 +229,7 @@ class ProjectorWidget(QWidget):
         serial_layout.addLayout(power_layout)
         serial_layout.addWidget(self.video_source)
         serial_layout.addWidget(self.gamma)
+        serial_layout.addWidget(self.color_mode)
         serial_layout.addWidget(self.fast_input_mode)
         serial_layout.addWidget(self.red_gain_slider)
         serial_layout.addWidget(self.red_offset_slider)
@@ -289,6 +300,7 @@ class ProjectorWidget(QWidget):
         setters = {
             'video_source': self.video_source.setCurrentText,
             'gamma': self.gamma.setCurrentText,
+            'color_mode': self.color_mode.setCurrentText,
             'red_gain': self.red_gain_slider.setValue,
             'red_offset': self.red_offset_slider.setValue,
             'green_gain': self.green_gain_slider.setValue,
@@ -334,6 +346,7 @@ class ProjectorController(QObject):
         self.view.serial_port_changed.connect(self.serial_port_changed)
         self.view.video_source_changed.connect(self.change_video_source)
         self.view.gamma_changed.connect(self.change_gamma)
+        self.view.color_mode_changed.connect(self.change_color_mode)
         self.view.fast_input_mode_changed.connect(self.change_fast_input_mode)
         self.view.power_on_signal.connect(self.power_on)
         self.view.power_off_signal.connect(self.power_off)
@@ -370,6 +383,7 @@ class ProjectorController(QObject):
         try:                
             state['video_source'] = str(self.projector.get_source_input())
             state['gamma'] = str(self.projector.get_gamma())
+            state['color_mode'] = str(self.projector.get_color_mode())
             state['red_gain'] = self.projector.get_color_temperature_red_gain()
             state['red_offset'] = self.projector.get_color_temperature_red_offset()
             state['green_gain'] = self.projector.get_color_temperature_green_gain()
@@ -384,6 +398,7 @@ class ProjectorController(QObject):
         except:
             state['video_source'] = 'NONE'
             state['gamma'] = 'GAMMA_1_8'
+            state['color_mode'] = 'TV'
             state['red_gain'] = 50
             state['red_offset'] = 0
             state['green_gain'] = 50
@@ -405,10 +420,18 @@ class ProjectorController(QObject):
         self.projector.set_source_input(SourceInput[video_source])
 
     def change_gamma(self, gamma: str):
+
         if self.projector is None:
             return
         
         self.projector.set_gamma(Gamma[gamma])
+
+    def change_color_mode(self, color_mode: str):
+
+        if self.projector is None:
+            return
+        
+        self.projector.set_color_mode(ColorMode[color_mode])
 
     def change_fast_input_mode(self, fast_input_mode: bool):
 
