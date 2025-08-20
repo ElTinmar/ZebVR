@@ -324,7 +324,6 @@ class ProjectorWidget(QWidget):
         self.close_signal.emit()
 
 
-# TODO: not explicitly closing thread
 class ProjectorController(QObject):
 
     state_changed = pyqtSignal()
@@ -505,7 +504,7 @@ class ProjectorController(QObject):
         self.projector.power_off()
 
     def get_state(self):
-        
+
         return self.view.get_state()
     
     def stop(self):
