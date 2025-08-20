@@ -330,6 +330,48 @@ class ProjectorController(QObject):
 
         self.projector = ViewSonicProjector(port=port, verbose=False) 
 
+    def set_color_temperature_red_gain(self, gain: int):
+
+        if self.projector is None:
+            return
+        
+        self.projector.set_color_temperature_red_gain(gain)
+
+    def set_color_temperature_red_offset(self, offset: int):
+
+        if self.projector is None:
+            return
+        
+        self.projector.set_color_temperature_red_offset(offset)
+
+    def set_color_temperature_green_gain(self, gain: int):
+
+        if self.projector is None:
+            return
+        
+        self.projector.set_color_temperature_green_gain(gain)
+
+    def set_color_temperature_green_offset(self, offset: int):
+
+        if self.projector is None:
+            return
+        
+        self.projector.set_color_temperature_green_offset(offset)
+
+    def set_color_temperature_blue_gain(self, gain: int):
+
+        if self.projector is None:
+            return
+        
+        self.projector.set_color_temperature_blue_gain(gain)
+
+    def set_color_temperature_blue_offset(self, offset: int):
+
+        if self.projector is None:
+            return
+        
+        self.projector.set_color_temperature_blue_offset(offset)
+
     def power_on(self):
         
         if self.projector is None:
