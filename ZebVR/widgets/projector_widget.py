@@ -505,10 +505,8 @@ class ProjectorController(QObject):
         self.projector.power_off()
 
     def get_state(self):
-
-        state = self.view.get_state()
-        state['projector_constructor'] = self.projector_constructor 
-        return state
+        
+        return self.view.get_state()
     
     def stop(self):
         
