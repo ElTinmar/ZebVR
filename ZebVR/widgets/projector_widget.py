@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QGroupBox
 )
-from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThreadPool, QTimer
+from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThread, QTimer
 from typing import Dict, Optional, Callable, List
 from viewsonic_serial import ViewSonicProjector, ConnectionFailed, SourceInput, Bool
 import time
@@ -302,17 +302,14 @@ class ProjectorChecker(QRunnable):
 class ProjectorController(QObject):
 
     state_changed = pyqtSignal()
-    THREAD_TIMEOUT_MSEC = 500
+    REFRESH_RATE: float = 1.0
 
     def __init__(self, view: ProjectorWidget, *args, **kwargs):
         
         super().__init__(*args, **kwargs)
 
         self.view = view
-        self.projector_checker_started = False
-        self.thread_pool = QThreadPool()
-        self.checker = None
-        self.projector_constructor = None
+        self.projector = None
         
         self.view.state_changed.connect(self.state_changed)
         self.view.serial_port_changed.connect(self.serial_port_changed)
@@ -322,86 +319,80 @@ class ProjectorController(QObject):
         self.view.power_off_signal.connect(self.power_off)
         self.view.active_signal.connect(self.set_checker)
 
+        self.thread = QThread()
+        self.moveToThread(self.thread)
+        self.thread.started.connect(self.start_polling)
+        self.thread.start()
+
+    def start_polling(self):
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.poll_state)
+        self.timer.start(int(1000//self.REFRESH_RATE))  
+
+    def poll_state(self):
+
+        if self.projector is None:
+            return
+
+        state = {}
+        try:
+            state['power_status'] = str(self.projector.get_power_status())
+        except:
+            return
+
+        try:                
+            state['video_source'] = str(self.projector.get_source_input())
+            state['fast_input_mode'] = bool(self.projector.get_fast_input_mode())
+            state['serial_number'] = self.projector.get_serial_number()
+            state['temperature'] = str(self.projector.get_operating_temperature())
+            state['last_refresh'] = time.asctime()
+
+        except:
+            state['video_source'] = 'NONE'
+            state['fast_input_mode'] = False
+            state['serial_number'] = ''
+            state['temperature'] = ''
+            state['last_refresh'] = time.asctime()
+        
+        self.view.set_projector_state(state)
+
     def change_video_source(self, video_source: str):
 
-        if self.projector_constructor is None:
-            return
-        
-        self.set_checker(False)
-        try:
-            projector = self.projector_constructor()
-        except ConnectionFailed:
+        if self.projector is None:
             return
         
         src = SourceInput[video_source]
-        projector.set_source_input(src)
-        self.set_checker(True)
+        self.projector.set_source_input(src)
 
     def change_fast_input_mode(self, fast_input_mode: bool):
 
-        if self.projector_constructor is None:
+        if self.projector is None:
             return
-        
-        self.set_checker(False)
-        try:
-            projector = self.projector_constructor()
-        except ConnectionFailed:
-            return
-        
+
         fast_input = Bool.ON if fast_input_mode else Bool.OFF
-        projector.set_fast_input_mode(fast_input)
-        self.set_checker(True)
-        
+        self.projector.set_fast_input_mode(fast_input)
+  
     def serial_port_changed(self, port: str):
 
         if port == '':
-            self.set_checker(False)
-            self.projector_constructor = None
             return
-        
-        self.set_checker(False)
-        self.projector_constructor = partial(ViewSonicProjector, port=port, verbose=False) 
-        self.set_checker(True)
+
+        self.projector = ViewSonicProjector(port=port, verbose=False) 
 
     def power_on(self):
         
-        if self.projector_constructor is None:
+        if self.projector is None:
             return
-        
-        self.set_checker(False)
-        try:
-            projector = self.projector_constructor()
-        except ConnectionFailed:
-            return
-        
-        projector.power_on()
-        self.set_checker(True)
+
+        self.projector.power_on()
 
     def power_off(self):
-        if self.projector_constructor is None:
+
+        if self.projector is None:
             return
         
-        self.set_checker(False)
-        try:
-            projector = self.projector_constructor()
-        except ConnectionFailed:
-            return
-        
-        projector.power_off()
-        self.set_checker(True)
-
-    def set_checker(self, enable: bool):
-
-        if enable:
-            if not self.projector_checker_started:
-                self.projector_checker_started = True
-                self.checker = ProjectorChecker(self.projector_constructor, self.view, 1)
-                self.thread_pool.start(self.checker)
-        else:
-            if self.projector_checker_started:
-                self.projector_checker_started = False
-                self.checker.stop()
-                self.thread_pool.waitForDone(msecs=self.THREAD_TIMEOUT_MSEC)
+        self.projector.power_off()
 
     def get_state(self):
 
