@@ -275,7 +275,10 @@ class ProjectorController(QObject):
         self.timer.start(int(1000//self.REFRESH_RATE))  
 
     def stop_polling(self):
-        
+
+        print("Current thread:", QThread.currentThread())
+        print("Controller's thread:", self.thread)
+
         self.timer.stop()
         self.thread.quit()
         self.thread.wait()  
