@@ -254,11 +254,10 @@ class ProjectorController(QObject):
 
         self.view = view
         self.projector = None
-
+        
         self.thread = QThread()
         self.moveToThread(self.thread)
         self.thread.started.connect(self.start_polling)
-        self.thread.start()
 
         self.view.state_changed.connect(self.state_changed)
         self.view.serial_port_changed.connect(self.serial_port_changed)
@@ -268,6 +267,8 @@ class ProjectorController(QObject):
         self.view.power_off_signal.connect(self.power_off)
         self.view.close_signal.connect(self.stop_polling)
 
+        self.thread.start()
+
     def start_polling(self):
 
         self.timer = QTimer()
@@ -276,12 +277,8 @@ class ProjectorController(QObject):
 
     def stop_polling(self):
 
-        print("Current thread:", QThread.currentThread())
-        print("Controller's thread:", self.thread)
-
         self.timer.stop()
         self.thread.quit()
-        self.thread.wait()  
 
     def poll_state(self):
 
