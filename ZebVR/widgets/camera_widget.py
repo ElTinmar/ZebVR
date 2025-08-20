@@ -12,7 +12,6 @@ from PyQt5.QtCore import pyqtSignal, QRunnable, QThreadPool, QObject, QTimer
 from PyQt5.QtGui import QImage
 import numpy as np
 import cv2
-import os
 from pathlib import Path
 from functools import partial
 from typing import Dict, Optional, Callable, Union
