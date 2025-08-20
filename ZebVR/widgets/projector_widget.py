@@ -28,7 +28,7 @@ class ProjectorWidget(QWidget):
     video_source_changed = pyqtSignal(str)
     fast_input_mode_changed = pyqtSignal(bool)
     scale_tooltip = "Used for non-rectangular micromirror arrays (e.g. Lightcrafters)"
-    REFRESH_RATE = 30
+    REFRESH_RATE = 5
 
     def __init__(self,*args,**kwargs):
 
