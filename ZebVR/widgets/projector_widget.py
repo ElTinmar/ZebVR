@@ -513,7 +513,7 @@ class ProjectorController(QObject):
     def stop(self):
         
         self.thread.quit()
-        self.thread.wait() # FIXME: this takes a lot of time
+        self.thread.wait() 
 
 if __name__ == "__main__":
     
