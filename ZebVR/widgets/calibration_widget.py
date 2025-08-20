@@ -206,7 +206,6 @@ class CalibrationWidget(QWidget):
 if __name__ == "__main__":
 
     from PyQt5.QtWidgets import QApplication, QMainWindow
-    from PyQt5.QtCore import  QRunnable, QThreadPool
 
     class Window(QMainWindow):
 
