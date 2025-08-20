@@ -220,9 +220,6 @@ class ProjectorWidget(QWidget):
             if key in state:
                 setter(state[key])
 
-    def get_projector_state(self) -> Dict:
-        return self.projector_state
-
     def set_projector_state(self, state: Dict) -> None:
         self.projector_state = state
 
