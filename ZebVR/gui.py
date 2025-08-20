@@ -414,7 +414,6 @@ class MainGui(QMainWindow):
     
     def registration_callback(self):
         self.camera_controller.set_preview(False)
-        #self.projector_controller.set_checker(False)
 
         p = Process(
             target = registration,
@@ -456,7 +455,6 @@ class MainGui(QMainWindow):
         
     def check_registration_callback(self):
         self.camera_controller.set_preview(False)
-        #self.projector_controller.set_checker(False)
 
         p = Process(
             target = check_registration,
@@ -483,7 +481,6 @@ class MainGui(QMainWindow):
         
     def background_callback(self):
         self.camera_controller.set_preview(False)
-        #self.projector_controller.set_checker(False)
 
         if self.settings['background']['bckgsub_method'] == 'inpaint':
             p = Process(
@@ -533,7 +530,6 @@ class MainGui(QMainWindow):
 
     def get_pix_per_mm_callback(self):
         self.camera_controller.set_preview(False)
-        #self.projector_controller.set_checker(False)
 
         p = Process(
             target = pix_per_mm,
@@ -585,7 +581,6 @@ class MainGui(QMainWindow):
     def start(self):
         self.camera_controller.set_preview(False)
         self.temperature_widget.stop_monitor()
-        self.projector_controller.set_checker(False)
 
         pprint.pprint(self.settings)
 
@@ -653,6 +648,7 @@ class MainGui(QMainWindow):
         # is executed
         self.camera_widget.close()
         self.projector_widget.close()
+        self.projector_controller.stop()
         self.audio_widget.close()
         self.daq_widget.close()
         self.registration_widget.close()
