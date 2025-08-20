@@ -349,6 +349,11 @@ class ProjectorController(QObject):
         state = self.view.get_state()
         state['projector_constructor'] = self.projector_constructor 
         return state
+    
+    def stop(self):
+        
+        self.thread.quit()
+        self.thread.wait() # FIXME: this takes a lot of time
 
 if __name__ == "__main__":
     
