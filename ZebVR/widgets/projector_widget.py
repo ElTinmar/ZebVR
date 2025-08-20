@@ -19,7 +19,7 @@ from ..serial_utils import list_serial_devices, SerialDevice
 class ProjectorWidget(QWidget):
 
     state_changed = pyqtSignal()
-    active_signal = pyqtSignal(bool)
+    close_signal = pyqtSignal()
     projector_command = pyqtSignal()
     serial_port_changed = pyqtSignal(str)
     power_on_signal = pyqtSignal()
@@ -240,9 +240,7 @@ class ProjectorWidget(QWidget):
         self.block_signals(False)
 
     def closeEvent(self, event):
-        # If widget is a children of some other widget, it needs
-        # to be explicitly closed for this to happen
-        self.active_signal.emit(False)
+        self.close_signal.emit()
 
 
 class ProjectorController(QObject):
@@ -256,24 +254,31 @@ class ProjectorController(QObject):
 
         self.view = view
         self.projector = None
-        
-        self.view.state_changed.connect(self.state_changed)
-        self.view.serial_port_changed.connect(self.serial_port_changed)
-        self.view.video_source_changed.connect(self.change_video_source)
-        self.view.fast_input_mode_changed.connect(self.change_fast_input_mode)
-        self.view.power_on_signal.connect(self.power_on)
-        self.view.power_off_signal.connect(self.power_off)
 
         self.thread = QThread()
         self.moveToThread(self.thread)
         self.thread.started.connect(self.start_polling)
         self.thread.start()
 
+        self.view.state_changed.connect(self.state_changed)
+        self.view.serial_port_changed.connect(self.serial_port_changed)
+        self.view.video_source_changed.connect(self.change_video_source)
+        self.view.fast_input_mode_changed.connect(self.change_fast_input_mode)
+        self.view.power_on_signal.connect(self.power_on)
+        self.view.power_off_signal.connect(self.power_off)
+        self.view.close_signal.connect(self.stop_polling)
+
     def start_polling(self):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.poll_state)
         self.timer.start(int(1000//self.REFRESH_RATE))  
+
+    def stop_polling(self):
+        
+        self.timer.stop()
+        self.thread.quit()
+        self.thread.wait()  
 
     def poll_state(self):
 
