@@ -9,12 +9,11 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QGroupBox
 )
-from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThread, QTimer
-from typing import Dict, Optional, Callable, List
-from viewsonic_serial import ViewSonicProjector, ConnectionFailed, SourceInput, Bool
+from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer
+from typing import Dict, List
+from viewsonic_serial import ViewSonicProjector, SourceInput, Bool
 import time
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
-from functools import partial
 from ..serial_utils import list_serial_devices, SerialDevice
 
 class ProjectorWidget(QWidget):
@@ -246,59 +245,6 @@ class ProjectorWidget(QWidget):
         self.active_signal.emit(False)
 
 
-class ProjectorChecker(QRunnable):
-
-    def __init__(
-            self, 
-            projector_constructor: Callable[[], ViewSonicProjector], 
-            widget: ProjectorWidget, 
-            refresh_rate: float = 1,
-            *args, 
-            **kwargs
-        ):
-
-        super().__init__(*args, **kwargs)
-        self.projector_constructor = projector_constructor
-        self.widget = widget
-        self.refresh_rate = refresh_rate
-        self.keepgoing = True
-
-    def stop(self):
-        self.keepgoing = False
-
-    def run(self):
-        try:
-            projector = self.projector_constructor()
-        except ConnectionFailed:
-            print('No projector was found')
-            return
-
-        while self.keepgoing:
-
-            state = {}
-            try:
-                state['power_status'] = str(projector.get_power_status())
-            except:
-                continue
-
-            try:                
-                state['video_source'] = str(projector.get_source_input())
-                state['fast_input_mode'] = bool(projector.get_fast_input_mode())
-                state['serial_number'] = projector.get_serial_number()
-                state['temperature'] = str(projector.get_operating_temperature())
-                state['last_refresh'] = time.asctime()
-
-            except:
-                state['video_source'] = 'NONE'
-                state['fast_input_mode'] = False
-                state['serial_number'] = ''
-                state['temperature'] = ''
-                state['last_refresh'] = time.asctime()
-            
-            self.widget.set_projector_state(state)
-            time.sleep(1/self.refresh_rate)
-        
-
 class ProjectorController(QObject):
 
     state_changed = pyqtSignal()
@@ -317,7 +263,6 @@ class ProjectorController(QObject):
         self.view.fast_input_mode_changed.connect(self.change_fast_input_mode)
         self.view.power_on_signal.connect(self.power_on)
         self.view.power_off_signal.connect(self.power_off)
-        self.view.active_signal.connect(self.set_checker)
 
         self.thread = QThread()
         self.moveToThread(self.thread)
