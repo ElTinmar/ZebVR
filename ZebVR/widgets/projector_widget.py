@@ -40,7 +40,7 @@ class ProjectorWidget(QWidget):
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_projector_state)
-        self.timer.start(1000//self.REFRESH_RATE) 
+        self.timer.start(int(1000//self.REFRESH_RATE)) 
     
     def declare_components(self) -> None:
 
@@ -243,6 +243,7 @@ class ProjectorWidget(QWidget):
         self.close_signal.emit()
 
 
+# TODO: not explicitly closing thread
 class ProjectorController(QObject):
 
     state_changed = pyqtSignal()
@@ -256,8 +257,9 @@ class ProjectorController(QObject):
         self.projector = None
         
         self.thread = QThread()
-        self.moveToThread(self.thread)
         self.thread.started.connect(self.start_polling)
+        self.thread.finished.connect(self.stop_polling)
+        self.moveToThread(self.thread)
 
         self.view.state_changed.connect(self.state_changed)
         self.view.serial_port_changed.connect(self.serial_port_changed)
@@ -265,7 +267,6 @@ class ProjectorController(QObject):
         self.view.fast_input_mode_changed.connect(self.change_fast_input_mode)
         self.view.power_on_signal.connect(self.power_on)
         self.view.power_off_signal.connect(self.power_off)
-        self.view.close_signal.connect(self.stop_polling)
 
         self.thread.start()
 
@@ -276,9 +277,8 @@ class ProjectorController(QObject):
         self.timer.start(int(1000//self.REFRESH_RATE))  
 
     def stop_polling(self):
-
+        
         self.timer.stop()
-        self.thread.quit()
 
     def poll_state(self):
 
