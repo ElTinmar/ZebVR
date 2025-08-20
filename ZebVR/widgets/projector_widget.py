@@ -13,7 +13,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer
 from typing import Dict, List
 from viewsonic_serial import ViewSonicProjector, SourceInput, Bool
 import time
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledSliderSpinBox
 from ..serial_utils import list_serial_devices, SerialDevice
 
 class ProjectorWidget(QWidget):
