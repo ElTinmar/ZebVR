@@ -321,10 +321,10 @@ class ProjectorController(QObject):
         self.view = view
         self.projector = None
         
-        self.thread = QThread()
-        self.thread.started.connect(self.start_polling)
-        self.thread.finished.connect(self.stop_polling)
-        self.moveToThread(self.thread)
+        self.new_thread = QThread()
+        self.new_thread.started.connect(self.start_polling)
+        self.new_thread.finished.connect(self.stop_polling)
+        self.moveToThread(self.new_thread)
 
         self.view.state_changed.connect(self.state_changed)
         self.view.serial_port_changed.connect(self.serial_port_changed)
@@ -338,7 +338,7 @@ class ProjectorController(QObject):
         self.view.green_gain_changed.connect(self.set_color_temperature_green_gain)
         self.view.blue_gain_changed.connect(self.set_color_temperature_blue_gain)
 
-        self.thread.start()
+        self.new_thread.start()
 
     def start_polling(self):
 
@@ -465,8 +465,8 @@ class ProjectorController(QObject):
     
     def stop(self):
         
-        self.thread.quit()
-        self.thread.wait() 
+        self.new_thread.quit()
+        self.new_thread.wait() 
 
 if __name__ == "__main__":
     
