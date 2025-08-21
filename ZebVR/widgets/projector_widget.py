@@ -21,7 +21,7 @@ from ..serial_utils import list_serial_devices, SerialDevice
 
 class ViewSonicProjectorWidget(QWidget):
     ...
-    
+
 class ProjectorWidget(QWidget):
 
     scale_tooltip = "Used for non-rectangular micromirror arrays (e.g. Lightcrafters)"
