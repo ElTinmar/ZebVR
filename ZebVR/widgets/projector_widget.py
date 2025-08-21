@@ -164,7 +164,7 @@ class ProjectorWidget(QWidget):
         self.power_status = QLabel('Power:')
         self.temperature = QLabel(u'Temperature (\N{DEGREE SIGN}C)')
         self.last_refresh_time = QLabel('Last refresh:')
-
+    
     def serial_changed(self, index: int):
         port = self.serial_devices[index].device
         if port == '':
@@ -268,6 +268,12 @@ class ProjectorWidget(QWidget):
     def set_projector_state(self, state: Dict) -> None:
         self.projector_state = state
 
+    def user_interacting(self) -> bool:
+        for child in self.serial_group.findChildren(QWidget):
+            if child.hasFocus():
+                return True
+        return False
+    
     def update_projector_state(self) -> None:
 
         setters = {
@@ -283,6 +289,13 @@ class ProjectorWidget(QWidget):
             'temperature': lambda x: self.temperature.setText(f"Temperature:{x}\N{DEGREE SIGN}C"),
             'last_refresh': lambda x: self.last_refresh_time.setText(f"Last refresh:{x}")
         }
+
+        # TODO: not ideal, you have to click elsewhere to lose focus so that updates restart
+        # maybe better than checking every second would be to check only after a command is sent ?
+        
+        if self.user_interacting():
+            self.projector_state = {}
+            return
 
         self.block_signals(True)
         for key, setter in setters.items():
