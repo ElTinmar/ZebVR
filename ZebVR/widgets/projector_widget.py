@@ -15,6 +15,13 @@ import time
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledSliderSpinBox, LabeledComboBox
 from ..serial_utils import list_serial_devices, SerialDevice
 
+# TODO this is tailored for a viewsonic projector controlled through RS232
+# maybe nake the separation clearer between the generic part and part specific
+# to viewsonic / make it easier to add your own projector stuff
+
+class ViewSonicProjectorWidget(QWidget):
+    ...
+    
 class ProjectorWidget(QWidget):
 
     scale_tooltip = "Used for non-rectangular micromirror arrays (e.g. Lightcrafters)"
