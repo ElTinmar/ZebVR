@@ -42,10 +42,6 @@ class ProjectorWidget(QWidget):
         self.projector_state = {}
         self.declare_components()
         self.layout_components()
-
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_projector_state)
-        self.timer.start(int(1000//self.REFRESH_RATE)) 
     
     def declare_components(self) -> None:
 
@@ -293,7 +289,7 @@ class ProjectorWidget(QWidget):
         # maybe better than checking every second would be to check only after a command is sent ?
         
         if self.user_interacting():
-            self.projector_state = {}
+            self.projector_state = {} # if user interacts with UI, hardware data becomes stale
             return
 
         self.block_signals(True)
@@ -341,6 +337,7 @@ class ProjectorController(QObject):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.poll_state)
+        self.timer.timeout.connect(self.view.update_projector_state)
         self.timer.start(int(1000//self.REFRESH_RATE))  
 
     def stop_polling(self):
