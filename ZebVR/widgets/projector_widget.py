@@ -16,7 +16,7 @@ from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledSliderSpinBo
 from ..serial_utils import list_serial_devices, SerialDevice
 
 # TODO this is tailored for a viewsonic projector controlled through RS232
-# maybe nake the separation clearer between the generic part and part specific
+# maybe make the separation clearer between the generic part and part specific
 # to viewsonic / make it easier to add your own projector stuff
 
 class ViewSonicProjectorWidget(QWidget):
@@ -47,6 +47,7 @@ class ProjectorWidget(QWidget):
 
         self.serial_devices: List[SerialDevice] = [SerialDevice()] + list_serial_devices()
         self.projector_state = {}
+        self.user_interaction = False
         self.declare_components()
         self.layout_components()
     
@@ -147,6 +148,9 @@ class ProjectorWidget(QWidget):
         self.red_gain_slider.setSingleStep(1)
         self.red_gain_slider.setValue(50)
         self.red_gain_slider.valueChanged.connect(self.red_gain_changed)
+        self.red_gain_slider.sliderPressed.connect(self.interaction_started)
+        self.red_gain_slider.textEdited.connect(self.interaction_started)
+        self.red_gain_slider.valueChanged.connect(self.interaction_stopped)
 
         self.green_gain_slider = LabeledSliderSpinBox()
         self.green_gain_slider.setText('Green gain')
@@ -154,6 +158,9 @@ class ProjectorWidget(QWidget):
         self.green_gain_slider.setSingleStep(1)
         self.green_gain_slider.setValue(50)
         self.green_gain_slider.valueChanged.connect(self.green_gain_changed)
+        self.green_gain_slider.sliderPressed.connect(self.interaction_started)
+        self.green_gain_slider.textEdited.connect(self.interaction_started)
+        self.green_gain_slider.valueChanged.connect(self.interaction_stopped)
 
         self.blue_gain_slider = LabeledSliderSpinBox()
         self.blue_gain_slider.setText('Blue gain')
@@ -161,6 +168,9 @@ class ProjectorWidget(QWidget):
         self.blue_gain_slider.setSingleStep(1)
         self.blue_gain_slider.setValue(50)
         self.blue_gain_slider.valueChanged.connect(self.blue_gain_changed)
+        self.blue_gain_slider.sliderPressed.connect(self.interaction_started)
+        self.blue_gain_slider.textEdited.connect(self.interaction_started)
+        self.blue_gain_slider.valueChanged.connect(self.interaction_stopped)
 
         self.serial_number = QLabel('S/N:') 
         self.power_status = QLabel('Power:')
@@ -175,6 +185,12 @@ class ProjectorWidget(QWidget):
         
         self.serial_group.setEnabled(True)
         self.serial_port_changed.emit(port)
+
+    def interaction_started(self):
+        self.user_interaction = True
+
+    def interaction_stopped(self):
+        self.user_interaction = False
 
     def refresh_serial(self):
         self.serial_devices = [SerialDevice()] + list_serial_devices()
@@ -269,12 +285,6 @@ class ProjectorWidget(QWidget):
 
     def set_projector_state(self, state: Dict) -> None:
         self.projector_state = state
-
-    def user_interacting(self) -> bool:
-        for child in self.serial_group.findChildren(QWidget):
-            if child.hasFocus():
-                return True
-        return False
     
     def update_projector_state(self) -> None:
 
@@ -292,11 +302,8 @@ class ProjectorWidget(QWidget):
             'last_refresh': lambda x: self.last_refresh_time.setText(f"Last refresh:{x}")
         }
 
-        # TODO: not ideal, you have to click elsewhere to lose focus so that updates restart
-        # maybe better than checking every second would be to check only after a command is sent ?
-        
-        if self.user_interacting():
-            self.projector_state = {} # if user interacts with UI, hardware data becomes stale
+        if self.user_interaction:
+            self.projector_state = {} 
             return
 
         self.block_signals(True)
