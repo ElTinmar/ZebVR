@@ -33,5 +33,6 @@ dependencies:
   - git+https://github.com/ElTinmar/dagline.git@main
   - git+https://github.com/ElTinmar/TemperatureSensor.git@main    
   - git+https://github.com/ElTinmar/daq_tools.git@main
+  - git+https://github.com/ElTinmar/Thorlabs_CCS.git@main
   - PyOpenGL 
   - PyOpenGL_accelerate
