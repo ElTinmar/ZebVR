@@ -19,6 +19,9 @@ registration.json
 *.vr
 *.csv
 
+# thorlabs firmware
+*.spt
+
 # numpy arrays
 *.npy
 *.npz
