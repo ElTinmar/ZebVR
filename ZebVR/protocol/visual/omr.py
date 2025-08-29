@@ -16,6 +16,8 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
+#TODO add control for type of stimulus: sine, sharp edge, texture
+
 class OMR(VisualProtocolItem):
     
     STIM_SELECT = Stim.OMR
