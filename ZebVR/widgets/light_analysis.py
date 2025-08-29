@@ -14,6 +14,10 @@ from typing import Dict, List
 
 from thorlabs_ccs import TLCCS
 
+# display spectrum + total power + individual led power
+# overlay reference scan 
+# button to calibrate power with power meter. different LEDs / all at once
+
 class LightAnalysisWidget(QWidget):
 
     def __init__(self,*args,**kwargs):
