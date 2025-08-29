@@ -10,12 +10,12 @@ from PyQt5.QtWidgets import (
     QGroupBox
 )
 from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer
-from qt_widgets import LabeledComboBox, LabeledSliderSpinBox, LabeledComboBox
+from qt_widgets import LabeledComboBox, LabeledComboBox, LabeledDoubleSpinBox
 from typing import Dict, List
 import pyqtgraph as pg
 
-from thorlabs_ccs import TLCCS, list_spectrometers
-from thorlabs_pmd import TLPMD, list_powermeters
+import thorlabs_ccs 
+import thorlabs_pmd
 
 # discover available devices and allow selection from combobox
 # display spectrum + total power + individual led power
@@ -45,36 +45,128 @@ class LightAnalysisWidget(QWidget):
         self.powermeters_cb = LabeledComboBox()
         self.powermeters_cb.setText('Powermeter')
 
+        self.integration_time = LabeledDoubleSpinBox()
+        self.integration_time.setText('Integration time (ms)')
+        self.integration_time.setMinimum(thorlabs_ccs.TLCCS_MIN_INT_TIME*1000)
+        self.integration_time.setMaximum(thorlabs_ccs.TLCCS_MAX_INT_TIME*1000)
+        self.integration_time.setValue(thorlabs_ccs.TLCCS_DEF_INT_TIME*1000)
+        self.integration_time.setSingleStep(0.01)
+
+        self.correct_range = QCheckBox('Correct range')
+        self.correct_range.clicked.connect(self.correct_spectrum)
+
+        self.correct_noise = QCheckBox('Correct noise')
+        self.correct_noise.clicked.connect(self.correct_spectrum)
+
+        self.noise_level = LabeledDoubleSpinBox()
+        self.noise_level.setText('noise amp. (dB)')
+        self.noise_level.setMinimum(0)
+        self.noise_level.setMaximum(30)
+        self.noise_level.setValue(1.0)
+        self.noise_level.setSingleStep(0.1)
+
+        self.wavelength_left = LabeledDoubleSpinBox()
+        self.wavelength_left.setText('λ left (nm)')
+        self.wavelength_left.setMinimum(0)
+        self.wavelength_left.setMaximum(1000)
+        self.wavelength_left.setValue(500)
+        self.wavelength_left.setSingleStep(0.1)
+
+        self.wavelength_center = LabeledDoubleSpinBox()
+        self.wavelength_center.setText('λ center (nm)')
+        self.wavelength_center.setMinimum(0)
+        self.wavelength_center.setMaximum(1000)
+        self.wavelength_center.setValue(500)
+        self.wavelength_center.setSingleStep(0.1)
+
+        self.wavelength_right = LabeledDoubleSpinBox()
+        self.wavelength_right.setText('λ right (nm)')
+        self.wavelength_right.setMinimum(0)
+        self.wavelength_right.setMaximum(1000)
+        self.wavelength_right.setValue(500)
+        self.wavelength_right.setSingleStep(0.1)
+
+        self.spectrum_button = QPushButton('Scan spectrum')
+
         self.spectrum_plot = pg.plot()
         self.spectrum_plot.setLabel('left', 'Intensity (AU)')
         self.spectrum_plot.setLabel('bottom', 'Wavelength (nm)') 
 
-        self.total_power = QLabel('Total power: (W.cm-2)')
-        self.blue_power = QLabel('Blue power: (W.cm-2)')
-        self.green_power = QLabel('Green power: (W.cm-2)')
-        self.red_power = QLabel('Red power: (W.cm-2)')
+        self.calibrate_total = QPushButton('Calibrate Power')
+        self.total_power = QLabel('Total power: (μW.cm⁻²)')
+
+        self.calibrate_blue = QPushButton('Calibrate Blue Power')
+        self.blue_power = QLabel('Blue power: (μW.cm⁻²)')
+
+        self.calibrate_green = QPushButton('Calibrate Green Power')
+        self.green_power = QLabel('Green power: (μW.cm⁻²)')
+
+        self.calibrate_red = QPushButton('Calibrate Red Power')
+        self.red_power = QLabel('Red power: (μW.cm⁻²)')
 
     def layout_components(self) -> None:
 
+        spectro_ctl0 = QHBoxLayout()
+        spectro_ctl0.addWidget(self.integration_time)
+        spectro_ctl0.addStretch()
+        spectro_ctl0.addWidget(self.correct_range)
+        spectro_ctl0.addStretch()
+        spectro_ctl0.addWidget(self.correct_noise)
+
+        spectro_ctl1 = QHBoxLayout()
+        spectro_ctl1.addWidget(self.noise_level)
+        spectro_ctl1.addWidget(self.wavelength_left)
+        spectro_ctl1.addWidget(self.wavelength_center)
+        spectro_ctl1.addWidget(self.wavelength_right)
+
+        total_layout = QHBoxLayout()
+        total_layout.addWidget(self.calibrate_total)
+        total_layout.addStretch()
+        total_layout.addWidget(self.total_power)
+
+        blue_layout = QHBoxLayout()
+        blue_layout.addWidget(self.calibrate_blue)
+        blue_layout.addStretch()
+        blue_layout.addWidget(self.blue_power)
+
+        green_layout = QHBoxLayout()
+        green_layout.addWidget(self.calibrate_green)
+        green_layout.addStretch()
+        green_layout.addWidget(self.green_power)
+
+        red_layout = QHBoxLayout()
+        red_layout.addWidget(self.calibrate_red)
+        red_layout.addStretch()
+        red_layout.addWidget(self.red_power)
+
         layout = QVBoxLayout(self)
         layout.addWidget(self.refresh_button)
+        layout.addSpacing(20)
         layout.addWidget(self.spectrometers_cb)
-        layout.addWidget(self.powermeters_cb)
+        layout.addLayout(spectro_ctl0)
+        layout.addLayout(spectro_ctl1)
+        layout.addWidget(self.spectrum_button)
         layout.addWidget(self.spectrum_plot)
-        layout.addWidget(self.total_power)
-        layout.addWidget(self.blue_power)
-        layout.addWidget(self.green_power)
-        layout.addWidget(self.red_power)
+        layout.addSpacing(20)
+        layout.addWidget(self.powermeters_cb)
+        layout.addLayout(total_layout)
+        layout.addLayout(blue_layout)
+        layout.addLayout(green_layout)
+        layout.addLayout(red_layout)
         layout.addStretch()
     
+    def correct_spectrum(self):
+        # clear plot 
+        ...
+
     def refresh_devices(self) -> None:
 
-        self.spectrometers = list_spectrometers()
+        self.spectrometers = thorlabs_ccs.list_spectrometers()
         self.spectrometers_cb.clear()
         for dev_info in self.spectrometers:
             self.spectrometers_cb.addItem(dev_info.serial_number)
         
-        self.powermeters = list_powermeters()
+        self.powermeters = thorlabs_pmd.list_powermeters()
         for dev_info in self.powermeters:
             self.powermeters_cb.addItem(dev_info.serial_number)
 
