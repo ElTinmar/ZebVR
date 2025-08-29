@@ -39,6 +39,8 @@ class LightAnalysisWidget(QWidget):
         self.refresh_button = QPushButton('Refresh Devices')
         self.refresh_button.clicked.connect(self.refresh_devices)
 
+        # Spectrometer ----
+
         self.spectrometers_cb = LabeledComboBox()
         self.spectrometers_cb.setText('Spectrometer')
         
@@ -53,10 +55,12 @@ class LightAnalysisWidget(QWidget):
         self.integration_time.setSingleStep(0.01)
 
         self.correct_range = QCheckBox('Correct range')
-        self.correct_range.clicked.connect(self.correct_spectrum)
+        self.correct_range.stateChanged.connect(self.correct_spectrum)
+        self.correct_range.setChecked(False)
 
         self.correct_noise = QCheckBox('Correct noise')
-        self.correct_noise.clicked.connect(self.correct_spectrum)
+        self.correct_noise.stateChanged.connect(self.correct_spectrum)
+        self.correct_noise.setChecked(False)
 
         self.noise_level = LabeledDoubleSpinBox()
         self.noise_level.setText('noise amp. (dB)')
@@ -64,6 +68,7 @@ class LightAnalysisWidget(QWidget):
         self.noise_level.setMaximum(30)
         self.noise_level.setValue(1.0)
         self.noise_level.setSingleStep(0.1)
+        self.noise_level.setEnabled(False)
 
         self.wavelength_left = LabeledDoubleSpinBox()
         self.wavelength_left.setText('λ left (nm)')
@@ -71,6 +76,7 @@ class LightAnalysisWidget(QWidget):
         self.wavelength_left.setMaximum(1000)
         self.wavelength_left.setValue(500)
         self.wavelength_left.setSingleStep(0.1)
+        self.wavelength_left.setEnabled(False)
 
         self.wavelength_center = LabeledDoubleSpinBox()
         self.wavelength_center.setText('λ center (nm)')
@@ -78,6 +84,7 @@ class LightAnalysisWidget(QWidget):
         self.wavelength_center.setMaximum(1000)
         self.wavelength_center.setValue(500)
         self.wavelength_center.setSingleStep(0.1)
+        self.wavelength_center.setEnabled(False)
 
         self.wavelength_right = LabeledDoubleSpinBox()
         self.wavelength_right.setText('λ right (nm)')
@@ -85,6 +92,7 @@ class LightAnalysisWidget(QWidget):
         self.wavelength_right.setMaximum(1000)
         self.wavelength_right.setValue(500)
         self.wavelength_right.setSingleStep(0.1)
+        self.wavelength_right.setEnabled(False)
 
         self.spectrum_button = QPushButton('Scan spectrum')
 
@@ -92,16 +100,30 @@ class LightAnalysisWidget(QWidget):
         self.spectrum_plot.setLabel('left', 'Intensity (AU)')
         self.spectrum_plot.setLabel('bottom', 'Wavelength (nm)') 
 
+        # Powermeter ----
+
+        self.powermeter_wavelength = LabeledDoubleSpinBox()
+        self.powermeter_wavelength.setText('λ (nm)')
+        self.powermeter_wavelength.valueChanged.connect(self.set_powermeter_wavelength)
+
+        self.powermeter_beam_diameter = LabeledDoubleSpinBox()
+        self.powermeter_beam_diameter.setText('Beam diameter (mm)')
+        self.powermeter_beam_diameter.valueChanged.connect(self.set_powermeter_beam_diameter)
+
         self.calibrate_total = QPushButton('Calibrate Power')
+        self.calibrate_total.clicked.connect(self.calibrate_total_power)
         self.total_power = QLabel('Total power: (μW.cm⁻²)')
 
         self.calibrate_blue = QPushButton('Calibrate Blue Power')
+        self.calibrate_blue.clicked.connect(self.calibrate_blue_power)
         self.blue_power = QLabel('Blue power: (μW.cm⁻²)')
 
         self.calibrate_green = QPushButton('Calibrate Green Power')
+        self.calibrate_green.clicked.connect(self.calibrate_green_power)
         self.green_power = QLabel('Green power: (μW.cm⁻²)')
 
         self.calibrate_red = QPushButton('Calibrate Red Power')
+        self.calibrate_red.clicked.connect(self.calibrate_red_power)
         self.red_power = QLabel('Red power: (μW.cm⁻²)')
 
     def layout_components(self) -> None:
@@ -139,6 +161,10 @@ class LightAnalysisWidget(QWidget):
         red_layout.addStretch()
         red_layout.addWidget(self.red_power)
 
+        power_ctl = QHBoxLayout()
+        power_ctl.addWidget(self.powermeter_wavelength)
+        power_ctl.addWidget(self.powermeter_beam_diameter)
+
         layout = QVBoxLayout(self)
         layout.addWidget(self.refresh_button)
         layout.addSpacing(20)
@@ -149,6 +175,7 @@ class LightAnalysisWidget(QWidget):
         layout.addWidget(self.spectrum_plot)
         layout.addSpacing(20)
         layout.addWidget(self.powermeters_cb)
+        layout.addLayout(power_ctl)
         layout.addLayout(total_layout)
         layout.addLayout(blue_layout)
         layout.addLayout(green_layout)
@@ -156,7 +183,43 @@ class LightAnalysisWidget(QWidget):
         layout.addStretch()
     
     def correct_spectrum(self):
+
         # clear plot 
+        self.noise_level.setEnabled(False)
+        self.wavelength_left.setEnabled(False)
+        self.wavelength_center.setEnabled(False)
+        self.wavelength_right.setEnabled(False)
+    
+        if self.correct_noise.isChecked:
+            self.correct_range.blockSignals(True)
+            self.correct_range.setChecked(False)
+            self.correct_range.blockSignals(False)
+            self.noise_level.setEnabled(True)
+            self.wavelength_center.setEnabled(True)
+        
+        if self.correct_range.isChecked:
+            self.correct_noise.blockSignals(True)
+            self.correct_noise.setChecked(False)
+            self.correct_noise.blockSignals(False)
+            self.wavelength_left.setEnabled(False)
+            self.wavelength_right.setEnabled(False)
+
+    def calibrate_total_power(self):
+        ...
+
+    def calibrate_blue_power(self):
+        ...
+        
+    def calibrate_green_power(self):
+        ...
+        
+    def calibrate_red_power(self):
+        ...
+        
+    def set_powermeter_wavelength(self):
+        ...
+
+    def set_powermeter_beam_diameter(self):
         ...
 
     def refresh_devices(self) -> None:
