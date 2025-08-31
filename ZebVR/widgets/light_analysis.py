@@ -16,10 +16,8 @@ import pyqtgraph as pg
 import thorlabs_ccs 
 import thorlabs_pmd
 
-# discover available devices and allow selection from combobox
-# display spectrum + total power + individual led power
-# overlay reference scan 
-# button to calibrate power with power meter. different LEDs / all at once
+# TODO overlay reference scan 
+# TODO check hardware state
 
 pg.setConfigOption('background', (251,251,251,255))
 pg.setConfigOption('foreground', 'k')
