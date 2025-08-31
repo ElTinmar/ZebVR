@@ -27,9 +27,16 @@ pg.setConfigOption('antialias', True)
 
 class LightAnalysisWidget(QWidget):
 
+    LINE_COL = (50,50,50,255)
+    LINE_WIDTH = 2
+
     def __init__(self,*args,**kwargs):
 
         super().__init__(*args, **kwargs)
+        
+        self.active_spectrometer = None
+        self.active_powermeter = None
+
         self.declare_components()
         self.layout_components()
         self.refresh_devices()
@@ -55,6 +62,7 @@ class LightAnalysisWidget(QWidget):
         self.integration_time.setMaximum(thorlabs_ccs.TLCCS_MAX_INT_TIME*1000)
         self.integration_time.setValue(thorlabs_ccs.TLCCS_DEF_INT_TIME*1000)
         self.integration_time.setSingleStep(0.01)
+        self.integration_time.valueChanged.connect(self.integration_time_changed)
 
         self.no_correction = QCheckBox('No correction')
         self.no_correction.setChecked(True)
@@ -107,10 +115,12 @@ class LightAnalysisWidget(QWidget):
         self.wavelength_right.setEnabled(False)
 
         self.spectrum_button = QPushButton('Scan spectrum')
+        self.spectrum_button.clicked.connect(self.scan_spectrum)
 
         self.spectrum_plot = pg.plot()
         self.spectrum_plot.setLabel('left', 'Intensity (AU)')
         self.spectrum_plot.setLabel('bottom', 'Wavelength (nm)') 
+        self.spectrum_data = self.spectrum_plot.plot(pen=pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH))
 
         # Powermeter ----
 
@@ -198,45 +208,110 @@ class LightAnalysisWidget(QWidget):
         # clear plot 
 
         # enable or disable controls
-        self.noise_level.setEnabled(False)
-        self.wavelength_left.setEnabled(False)
-        self.wavelength_center.setEnabled(False)
-        self.wavelength_right.setEnabled(False)
+        if self.no_correction.isChecked():
+            self.noise_level.setEnabled(False)
+            self.wavelength_left.setEnabled(False)
+            self.wavelength_center.setEnabled(False)
+            self.wavelength_right.setEnabled(False)
     
         if self.correct_noise.isChecked():
             self.noise_level.setEnabled(True)
             self.wavelength_center.setEnabled(True)
+            self.wavelength_left.setEnabled(False)
+            self.wavelength_right.setEnabled(False)
         
         if self.correct_range.isChecked():
+            self.noise_level.setEnabled(False)
+            self.wavelength_center.setEnabled(False)
             self.wavelength_left.setEnabled(True)
             self.wavelength_right.setEnabled(True)
+    
+    def scan_spectrum(self):
+        
+        if self.active_spectrometer is None:
+            return
+        
+        self.active_spectrometer.start_single_scan()
+        
+        if self.no_correction.isChecked():
+            scan = self.active_spectrometer.get_scan_data_factory()
 
+        if self.correct_noise.isChecked():
+            center_wl = self.wavelength_center.value
+            noise_amplification = self.noise_level.value
+            scan = self.active_spectrometer.get_scan_data_corrected_noise(
+                center_wl = center_wl,
+                noise_amplification_dB = noise_amplification
+            )
+
+        if self.correct_range.isChecked():
+            wavelength_left = self.wavelength_left.value
+            wavelength_right = self.wavelength_right.value
+            scan = self.active_spectrometer.get_scan_data_corrected_range(
+                min_wl = wavelength_left,
+                max_wl = wavelength_right
+            )
+
+        self.spectrum_data.setData(scan)
+    
     def calibrate_total_power(self):
-        ...
+
+        if self.active_powermeter is None:
+            return
 
     def calibrate_blue_power(self):
-        ...
+        
+        if self.active_powermeter is None:
+            return
         
     def calibrate_green_power(self):
-        ...
+        
+        if self.active_powermeter is None:
+            return
         
     def calibrate_red_power(self):
-        ...
+        
+        if self.active_powermeter is None:
+            return
         
     def set_powermeter_wavelength(self):
-        ...
+        
+        if self.active_powermeter is None:
+            return
 
     def set_powermeter_beam_diameter(self):
-        ...
+        
+        if self.active_powermeter is None:
+            return
+
+    def integration_time_changed(self):
+
+        if self.active_spectrometer is None:
+            return
+        
+        integration_time = self.integration_time.value
+        self.active_spectrometer.set_integration_time(integration_time)
 
     def spectrometer_changed(self):
-        ...
+
+        # find spectro with given serial number
+        serial_number = self.spectrometers_cb.currentText()
+        device_info = [dev_info for dev_info in self.spectrometers if dev_info.serial_number == serial_number]
+        if not device_info:
+            raise thorlabs_ccs.DeviceNotFound(f'Serial number: {serial_number}')
+        self.active_spectrometer = thorlabs_ccs.TLCCS(device_info[0])
 
     def powermeter_changed(self):
-        ...
+        
+        # find powermeter with given serial number
+        serial_number = self.powermeters_cb.currentText()
+        device_info = [dev_info for dev_info in self.powermeters if dev_info.serial_number == serial_number]
+        if not device_info:
+            raise thorlabs_pmd.DeviceNotFound(f'Serial number: {serial_number}')
+        self.active_powermeter = thorlabs_ccs.TLCCS(device_info[0])
+
 
     def refresh_devices(self) -> None:
-
         self.spectrometers = thorlabs_ccs.list_spectrometers()
         self.spectrometers_cb.clear()
         for dev_info in self.spectrometers:
