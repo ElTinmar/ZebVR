@@ -314,6 +314,14 @@ class LightAnalysisWidget(QWidget):
         if not device_info:
             raise thorlabs_ccs.DeviceNotFound(f'Serial number: {serial_number}')
         self.active_spectrometer = thorlabs_ccs.TLCCS(device_info[0])
+        integration_time = self.active_spectrometer.get_integration_time()
+        
+        # reset GUI
+        self.integration_time.blockSignals(True)
+        self.integration_time.setValue(integration_time)
+        self.integration_time.blockSignals(False)
+
+        self.no_correction.setChecked(True)
 
     def powermeter_changed(self):
         
