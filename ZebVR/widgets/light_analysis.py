@@ -294,11 +294,17 @@ class LightAnalysisWidget(QWidget):
         
         if self.active_powermeter is None:
             return
+        
+        wavelength = self.powermeter_wavelength.value
+        self.active_powermeter.set_wavelength(wavelength)
 
     def set_powermeter_beam_diameter(self):
         
         if self.active_powermeter is None:
             return
+        
+        beam_diameter = self.powermeter_beam_diameter.value
+        self.active_powermeter.set_beam_diameter(beam_diameter)
 
     def integration_time_changed(self):
 
@@ -347,6 +353,7 @@ class LightAnalysisWidget(QWidget):
 
 
     def refresh_devices(self) -> None:
+
         self.spectrometers = thorlabs_ccs.list_spectrometers()
         self.spectrometers_cb.clear()
         for dev_info in self.spectrometers:
