@@ -32,6 +32,7 @@ class LightAnalysisWidget(QWidget):
         super().__init__(*args, **kwargs)
         self.declare_components()
         self.layout_components()
+        self.refresh_devices()
     
     def declare_components(self) -> None:
 
@@ -42,9 +43,11 @@ class LightAnalysisWidget(QWidget):
 
         self.spectrometers_cb = LabeledComboBox()
         self.spectrometers_cb.setText('Spectrometer')
+        self.spectrometers_cb.currentIndexChanged.connect(self.spectrometer_changed)
         
         self.powermeters_cb = LabeledComboBox()
         self.powermeters_cb.setText('Powermeter')
+        self.powermeters_cb.currentIndexChanged.connect(self.powermeter_changed)
 
         self.integration_time = LabeledDoubleSpinBox()
         self.integration_time.setText('Integration time (ms)')
@@ -54,16 +57,16 @@ class LightAnalysisWidget(QWidget):
         self.integration_time.setSingleStep(0.01)
 
         self.no_correction = QCheckBox('No correction')
-        self.no_correction.stateChanged.connect(self.correct_spectrum)
         self.no_correction.setChecked(True)
-
+        self.no_correction.stateChanged.connect(self.correct_spectrum)
+        
         self.correct_range = QCheckBox('Correct range')
-        self.correct_range.stateChanged.connect(self.correct_spectrum)
         self.correct_range.setChecked(False)
-
+        self.correct_range.stateChanged.connect(self.correct_spectrum)
+        
         self.correct_noise = QCheckBox('Correct noise')
-        self.correct_noise.stateChanged.connect(self.correct_spectrum)
         self.correct_noise.setChecked(False)
+        self.correct_noise.stateChanged.connect(self.correct_spectrum)
 
         self.correction_group = QButtonGroup()
         self.correction_group.setExclusive(True)
@@ -224,6 +227,12 @@ class LightAnalysisWidget(QWidget):
         ...
 
     def set_powermeter_beam_diameter(self):
+        ...
+
+    def spectrometer_changed(self):
+        ...
+
+    def powermeter_changed(self):
         ...
 
     def refresh_devices(self) -> None:
