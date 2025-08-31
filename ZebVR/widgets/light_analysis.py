@@ -95,6 +95,7 @@ class LightAnalysisWidget(QWidget):
         self.wavelength_left.setValue(500)
         self.wavelength_left.setSingleStep(0.1)
         self.wavelength_left.setEnabled(False)
+        # TODO make sure left < right
 
         self.wavelength_center = LabeledDoubleSpinBox()
         self.wavelength_center.setText('λ center (nm)')
@@ -150,14 +151,18 @@ class LightAnalysisWidget(QWidget):
 
         spectro_ctl0 = QHBoxLayout()
         spectro_ctl0.addWidget(self.integration_time)
+        spectro_ctl0.addSpacing(10)
         spectro_ctl0.addWidget(self.no_correction)
         spectro_ctl0.addWidget(self.correct_range)
         spectro_ctl0.addWidget(self.correct_noise)
 
         spectro_ctl1 = QHBoxLayout()
         spectro_ctl1.addWidget(self.noise_level)
+        spectro_ctl1.addSpacing(5)
         spectro_ctl1.addWidget(self.wavelength_left)
+        spectro_ctl1.addSpacing(5)
         spectro_ctl1.addWidget(self.wavelength_center)
+        spectro_ctl1.addSpacing(5)
         spectro_ctl1.addWidget(self.wavelength_right)
 
         total_layout = QHBoxLayout()
@@ -237,8 +242,8 @@ class LightAnalysisWidget(QWidget):
             scan = self.active_spectrometer.get_scan_data_factory()
 
         if self.correct_noise.isChecked():
-            center_wl = self.wavelength_center.value
-            noise_amplification = self.noise_level.value
+            center_wl = self.wavelength_center.value()
+            noise_amplification = self.noise_level.value()
             scan, wavelength_left, wavelength_right = self.active_spectrometer.get_scan_data_corrected_noise(
                 center_wl = center_wl,
                 noise_amplification_dB = noise_amplification
@@ -253,8 +258,8 @@ class LightAnalysisWidget(QWidget):
             self.wavelength_right.blockSignals(False)
 
         if self.correct_range.isChecked():
-            wavelength_left = self.wavelength_left.value
-            wavelength_right = self.wavelength_right.value
+            wavelength_left = self.wavelength_left.value()
+            wavelength_right = self.wavelength_right.value()
             scan, noise_amplification = self.active_spectrometer.get_scan_data_corrected_range(
                 min_wl = wavelength_left,
                 max_wl = wavelength_right
@@ -293,7 +298,7 @@ class LightAnalysisWidget(QWidget):
         if self.active_powermeter is None:
             return
         
-        wavelength = self.powermeter_wavelength.value
+        wavelength = self.powermeter_wavelength.value()
         self.active_powermeter.set_wavelength(wavelength)
 
     def set_powermeter_beam_diameter(self):
@@ -301,7 +306,7 @@ class LightAnalysisWidget(QWidget):
         if self.active_powermeter is None:
             return
         
-        beam_diameter = self.powermeter_beam_diameter.value
+        beam_diameter = self.powermeter_beam_diameter.value()
         self.active_powermeter.set_beam_diameter(beam_diameter)
 
     def integration_time_changed(self):
@@ -309,8 +314,8 @@ class LightAnalysisWidget(QWidget):
         if self.active_spectrometer is None:
             return
         
-        integration_time = self.integration_time.value
-        self.active_spectrometer.set_integration_time(integration_time)
+        integration_time = self.integration_time.value()
+        self.active_spectrometer.set_integration_time(integration_time/1000)
 
     def spectrometer_changed(self):
 
@@ -322,7 +327,7 @@ class LightAnalysisWidget(QWidget):
         self.active_spectrometer = thorlabs_ccs.TLCCS(device_info[0])
         
         # reset GUI
-        integration_time = self.active_spectrometer.get_integration_time()
+        integration_time = self.active_spectrometer.get_integration_time()*1000
         self.integration_time.blockSignals(True)
         self.integration_time.setValue(integration_time)
         self.integration_time.blockSignals(False)
@@ -352,12 +357,15 @@ class LightAnalysisWidget(QWidget):
 
     def refresh_devices(self) -> None:
 
+        #FIXME usb.core.USBError: [Errno 16] Resource busy
+
         self.spectrometers = thorlabs_ccs.list_spectrometers()
         self.spectrometers_cb.clear()
         for dev_info in self.spectrometers:
             self.spectrometers_cb.addItem(dev_info.serial_number)
         
         self.powermeters = thorlabs_pmd.list_powermeters()
+        self.powermeters_cb.clear()
         for dev_info in self.powermeters:
             self.powermeters_cb.addItem(dev_info.serial_number)
 
