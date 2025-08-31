@@ -1,7 +1,6 @@
 from PyQt5.QtWidgets import (
     QApplication, 
     QWidget, 
-    QComboBox,
     QVBoxLayout, 
     QHBoxLayout, 
     QLabel, 
@@ -11,7 +10,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer
 from qt_widgets import LabeledComboBox, LabeledComboBox, LabeledDoubleSpinBox
-from typing import Dict, List
+from typing import Dict
 import pyqtgraph as pg
 
 import thorlabs_ccs 
