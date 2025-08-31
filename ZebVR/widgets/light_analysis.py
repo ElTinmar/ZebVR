@@ -239,18 +239,32 @@ class LightAnalysisWidget(QWidget):
         if self.correct_noise.isChecked():
             center_wl = self.wavelength_center.value
             noise_amplification = self.noise_level.value
-            scan = self.active_spectrometer.get_scan_data_corrected_noise(
+            scan, wavelength_left, wavelength_right = self.active_spectrometer.get_scan_data_corrected_noise(
                 center_wl = center_wl,
                 noise_amplification_dB = noise_amplification
             )
+            
+            self.wavelength_left.blockSignals(True)
+            self.wavelength_left.setValue(wavelength_left)
+            self.wavelength_left.blockSignals(False)
+
+            self.wavelength_right.blockSignals(True)
+            self.wavelength_right.setValue(wavelength_right)
+            self.wavelength_right.blockSignals(False)
 
         if self.correct_range.isChecked():
             wavelength_left = self.wavelength_left.value
             wavelength_right = self.wavelength_right.value
-            scan = self.active_spectrometer.get_scan_data_corrected_range(
+            scan, noise_amplification = self.active_spectrometer.get_scan_data_corrected_range(
                 min_wl = wavelength_left,
                 max_wl = wavelength_right
             )
+
+            self.noise_level.blockSignals(True)
+            self.noise_level.setValue(noise_amplification)
+            self.noise_level.blockSignals(False)
+
+            #TODO Should I update wavelength center as well?
 
         self.spectrum_data.setData(scan)
     
