@@ -206,6 +206,7 @@ class LightAnalysisWidget(QWidget):
     def correct_spectrum(self):
 
         # clear plot 
+        self.spectrum_data.setData([],[])
 
         # enable or disable controls
         if self.no_correction.isChecked():
@@ -231,6 +232,7 @@ class LightAnalysisWidget(QWidget):
         if self.active_spectrometer is None:
             return
         
+        wavelength = self.active_spectrometer.get_wavelength()
         self.active_spectrometer.start_single_scan()
         
         if self.no_correction.isChecked():
@@ -266,7 +268,7 @@ class LightAnalysisWidget(QWidget):
 
             #TODO Should I update wavelength center as well?
 
-        self.spectrum_data.setData(scan)
+        self.spectrum_data.setData(wavelength, scan)
     
     def calibrate_total_power(self):
 
@@ -314,9 +316,9 @@ class LightAnalysisWidget(QWidget):
         if not device_info:
             raise thorlabs_ccs.DeviceNotFound(f'Serial number: {serial_number}')
         self.active_spectrometer = thorlabs_ccs.TLCCS(device_info[0])
-        integration_time = self.active_spectrometer.get_integration_time()
         
         # reset GUI
+        integration_time = self.active_spectrometer.get_integration_time()
         self.integration_time.blockSignals(True)
         self.integration_time.setValue(integration_time)
         self.integration_time.blockSignals(False)
@@ -330,7 +332,18 @@ class LightAnalysisWidget(QWidget):
         device_info = [dev_info for dev_info in self.powermeters if dev_info.serial_number == serial_number]
         if not device_info:
             raise thorlabs_pmd.DeviceNotFound(f'Serial number: {serial_number}')
-        self.active_powermeter = thorlabs_ccs.TLCCS(device_info[0])
+        self.active_powermeter = thorlabs_pmd.TLPMD(device_info[0])
+
+        # reset GUI
+        beam_diameter = self.active_powermeter.get_beam_diameter()
+        self.powermeter_beam_diameter.blockSignals(True)
+        self.powermeter_beam_diameter.setValue(beam_diameter)
+        self.powermeter_beam_diameter.blockSignals(False)
+
+        wavelength = self.active_powermeter.get_wavelength()
+        self.powermeter_wavelength.blockSignals(True)
+        self.powermeter_wavelength.setValue(wavelength)
+        self.powermeter_wavelength.blockSignals(False)
 
 
     def refresh_devices(self) -> None:
