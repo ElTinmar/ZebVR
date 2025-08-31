@@ -92,7 +92,7 @@ class LightAnalysisWidget(QWidget):
         self.wavelength_left.setText('λ left (nm)')
         self.wavelength_left.setMinimum(0)
         self.wavelength_left.setMaximum(1000)
-        self.wavelength_left.setValue(500)
+        self.wavelength_left.setValue(0)
         self.wavelength_left.setSingleStep(0.1)
         self.wavelength_left.setEnabled(False)
         # TODO make sure left < right
@@ -109,7 +109,7 @@ class LightAnalysisWidget(QWidget):
         self.wavelength_right.setText('λ right (nm)')
         self.wavelength_right.setMinimum(0)
         self.wavelength_right.setMaximum(1000)
-        self.wavelength_right.setValue(500)
+        self.wavelength_right.setValue(1000)
         self.wavelength_right.setSingleStep(0.1)
         self.wavelength_right.setEnabled(False)
 
