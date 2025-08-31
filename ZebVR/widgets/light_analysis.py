@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QLabel, 
     QPushButton, 
     QCheckBox,
-    QGroupBox
+    QButtonGroup
 )
 from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer
 from qt_widgets import LabeledComboBox, LabeledComboBox, LabeledDoubleSpinBox
@@ -55,18 +55,22 @@ class LightAnalysisWidget(QWidget):
         self.integration_time.setSingleStep(0.01)
 
         self.no_correction = QCheckBox('No correction')
-        self.no_correction.setChecked(True)
         self.no_correction.stateChanged.connect(self.correct_spectrum)
+        self.no_correction.setChecked(True)
 
         self.correct_range = QCheckBox('Correct range')
-        self.correct_range.setChecked(False)
         self.correct_range.stateChanged.connect(self.correct_spectrum)
+        self.correct_range.setChecked(False)
 
         self.correct_noise = QCheckBox('Correct noise')
-        self.correct_noise.setChecked(False)
         self.correct_noise.stateChanged.connect(self.correct_spectrum)
+        self.correct_noise.setChecked(False)
 
-        self.correction_group = QGroupBox()
+        self.correction_group = QButtonGroup()
+        self.correction_group.setExclusive(True)
+        self.correction_group.addButton(self.no_correction)
+        self.correction_group.addButton(self.correct_range)
+        self.correction_group.addButton(self.correct_noise)
 
         self.noise_level = LabeledDoubleSpinBox()
         self.noise_level.setText('noise amp. (dB)')
@@ -134,16 +138,11 @@ class LightAnalysisWidget(QWidget):
 
     def layout_components(self) -> None:
 
-        correction_layout = QHBoxLayout()
-        correction_layout.addWidget(self.no_correction)
-        correction_layout.addWidget(self.correct_range)
-        correction_layout.addWidget(self.correct_noise)
-
-        self.correction_group.setLayout(correction_layout)
-
         spectro_ctl0 = QHBoxLayout()
         spectro_ctl0.addWidget(self.integration_time)
-        spectro_ctl0.addWidget(self.correction_group)
+        spectro_ctl0.addWidget(self.no_correction)
+        spectro_ctl0.addWidget(self.correct_range)
+        spectro_ctl0.addWidget(self.correct_noise)
 
         spectro_ctl1 = QHBoxLayout()
         spectro_ctl1.addWidget(self.noise_level)
@@ -195,16 +194,18 @@ class LightAnalysisWidget(QWidget):
     def correct_spectrum(self):
 
         # clear plot 
+
+        # enable or disable controls
         self.noise_level.setEnabled(False)
         self.wavelength_left.setEnabled(False)
         self.wavelength_center.setEnabled(False)
         self.wavelength_right.setEnabled(False)
     
-        if self.correct_noise.isChecked:
+        if self.correct_noise.isChecked():
             self.noise_level.setEnabled(True)
             self.wavelength_center.setEnabled(True)
         
-        if self.correct_range.isChecked:
+        if self.correct_range.isChecked():
             self.wavelength_left.setEnabled(True)
             self.wavelength_right.setEnabled(True)
 
