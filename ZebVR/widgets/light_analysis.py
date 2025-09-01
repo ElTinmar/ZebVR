@@ -121,31 +121,38 @@ class LightAnalysisWidget(QWidget):
         self.spectrum_plot.setLabel('bottom', 'Wavelength (nm)') 
         self.spectrum_data = self.spectrum_plot.plot(pen=pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH))
 
-        # Powermeter ----
-
-        self.powermeter_wavelength = LabeledDoubleSpinBox()
-        self.powermeter_wavelength.setText('λ (nm)')
-        self.powermeter_wavelength.valueChanged.connect(self.set_powermeter_wavelength)
+        # Powermeter ---- 
 
         self.powermeter_beam_diameter = LabeledDoubleSpinBox()
         self.powermeter_beam_diameter.setText('Beam diameter (mm)')
         self.powermeter_beam_diameter.valueChanged.connect(self.set_powermeter_beam_diameter)
 
-        self.calibrate_total = QPushButton('Calibrate Power')
-        self.calibrate_total.clicked.connect(self.calibrate_total_power)
-        self.total_power = QLabel('Total power: (μW.cm⁻²)')
-
         self.calibrate_blue = QPushButton('Calibrate Blue Power')
         self.calibrate_blue.clicked.connect(self.calibrate_blue_power)
-        self.blue_power = QLabel('Blue power: (μW.cm⁻²)')
+        self.blue_power = QLabel('Blue power: (mW.cm⁻²)')
+        self.powermeter_wavelength_blue = LabeledDoubleSpinBox()
+        self.powermeter_wavelength_blue.setText('λ (nm)')
+        self.powermeter_wavelength_blue.setMinimum(0)
+        self.powermeter_wavelength_blue.setMaximum(2000)
+        self.powermeter_wavelength_blue.setValue(450)
 
         self.calibrate_green = QPushButton('Calibrate Green Power')
         self.calibrate_green.clicked.connect(self.calibrate_green_power)
-        self.green_power = QLabel('Green power: (μW.cm⁻²)')
+        self.green_power = QLabel('Green power: (mW.cm⁻²)')
+        self.powermeter_wavelength_green = LabeledDoubleSpinBox()
+        self.powermeter_wavelength_green.setText('λ (nm)')
+        self.powermeter_wavelength_green.setMinimum(0)
+        self.powermeter_wavelength_green.setMaximum(2000)
+        self.powermeter_wavelength_green.setValue(535)
 
         self.calibrate_red = QPushButton('Calibrate Red Power')
         self.calibrate_red.clicked.connect(self.calibrate_red_power)
-        self.red_power = QLabel('Red power: (μW.cm⁻²)')
+        self.red_power = QLabel('Red power: (mW.cm⁻²)')
+        self.powermeter_wavelength_red = LabeledDoubleSpinBox()
+        self.powermeter_wavelength_red.setText('λ (nm)')
+        self.powermeter_wavelength_red.setMinimum(0)
+        self.powermeter_wavelength_red.setMaximum(2000)
+        self.powermeter_wavelength_red.setValue(675)
 
     def layout_components(self) -> None:
 
@@ -165,29 +172,23 @@ class LightAnalysisWidget(QWidget):
         spectro_ctl1.addSpacing(5)
         spectro_ctl1.addWidget(self.wavelength_right)
 
-        total_layout = QHBoxLayout()
-        total_layout.addWidget(self.calibrate_total)
-        total_layout.addStretch()
-        total_layout.addWidget(self.total_power)
-
         blue_layout = QHBoxLayout()
         blue_layout.addWidget(self.calibrate_blue)
+        blue_layout.addWidget(self.powermeter_wavelength_blue)
         blue_layout.addStretch()
         blue_layout.addWidget(self.blue_power)
 
         green_layout = QHBoxLayout()
         green_layout.addWidget(self.calibrate_green)
+        green_layout.addWidget(self.powermeter_wavelength_green)
         green_layout.addStretch()
         green_layout.addWidget(self.green_power)
 
         red_layout = QHBoxLayout()
         red_layout.addWidget(self.calibrate_red)
+        red_layout.addWidget(self.powermeter_wavelength_red)
         red_layout.addStretch()
         red_layout.addWidget(self.red_power)
-
-        power_ctl = QHBoxLayout()
-        power_ctl.addWidget(self.powermeter_wavelength)
-        power_ctl.addWidget(self.powermeter_beam_diameter)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.refresh_button)
@@ -199,8 +200,7 @@ class LightAnalysisWidget(QWidget):
         layout.addWidget(self.spectrum_plot)
         layout.addSpacing(20)
         layout.addWidget(self.powermeters_cb)
-        layout.addLayout(power_ctl)
-        layout.addLayout(total_layout)
+        layout.addWidget(self.powermeter_beam_diameter)
         layout.addLayout(blue_layout)
         layout.addLayout(green_layout)
         layout.addLayout(red_layout)
@@ -272,42 +272,44 @@ class LightAnalysisWidget(QWidget):
             #TODO Should I update wavelength center as well?
 
         self.spectrum_data.setData(wavelength, scan)
-    
-    def calibrate_total_power(self):
-
-        if self.active_powermeter is None:
-            return
 
     def calibrate_blue_power(self):
         
         if self.active_powermeter is None:
             return
         
+        wavelength = self.powermeter_wavelength_blue.value()
+        self.active_powermeter.set_wavelength_nm(wavelength)
+        power = self.active_powermeter.get_power_density_mW_cm2()
+        self.blue_power.setText(f'Blue power: {power:.3f} (mW.cm⁻²)')
+        
     def calibrate_green_power(self):
         
         if self.active_powermeter is None:
             return
+        
+        wavelength = self.powermeter_wavelength_green.value()
+        self.active_powermeter.set_wavelength_nm(wavelength)
+        power = self.active_powermeter.get_power_density_mW_cm2()
+        self.green_power.setText(f'Green power: {power:.3f} (mW.cm⁻²)')
         
     def calibrate_red_power(self):
         
         if self.active_powermeter is None:
             return
         
-    def set_powermeter_wavelength(self):
+        wavelength = self.powermeter_wavelength_red.value()
+        self.active_powermeter.set_wavelength_nm(wavelength)
+        power = self.active_powermeter.get_power_density_mW_cm2()
+        self.red_power.setText(f'Red power: {power:.3f} (mW.cm⁻²)')
         
-        if self.active_powermeter is None:
-            return
-        
-        wavelength = self.powermeter_wavelength.value()
-        self.active_powermeter.set_wavelength(wavelength)
-
     def set_powermeter_beam_diameter(self):
         
         if self.active_powermeter is None:
             return
         
         beam_diameter = self.powermeter_beam_diameter.value()
-        self.active_powermeter.set_beam_diameter(beam_diameter)
+        self.active_powermeter.set_beam_diameter_mm(beam_diameter)
 
     def integration_time_changed(self):
 
@@ -344,16 +346,10 @@ class LightAnalysisWidget(QWidget):
         self.active_powermeter = thorlabs_pmd.TLPMD(device_info[0])
 
         # reset GUI
-        beam_diameter = self.active_powermeter.get_beam_diameter()
+        beam_diameter = self.active_powermeter.get_beam_diameter_mm()
         self.powermeter_beam_diameter.blockSignals(True)
         self.powermeter_beam_diameter.setValue(beam_diameter)
         self.powermeter_beam_diameter.blockSignals(False)
-
-        wavelength = self.active_powermeter.get_wavelength()
-        self.powermeter_wavelength.blockSignals(True)
-        self.powermeter_wavelength.setValue(wavelength)
-        self.powermeter_wavelength.blockSignals(False)
-
 
     def refresh_devices(self) -> None:
 
