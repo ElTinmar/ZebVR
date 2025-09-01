@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QButtonGroup
 )
-from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer
+from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer, Qt
 from qt_widgets import LabeledComboBox, LabeledComboBox, LabeledDoubleSpinBox
 from typing import Dict
 import pyqtgraph as pg
@@ -27,6 +27,8 @@ class LightAnalysisWidget(QWidget):
 
     LINE_COL = (50,50,50,255)
     LINE_WIDTH = 2
+    LINE_COL_TEMP = (120,120,120,255)
+    LINE_WIDTH_TEMP = 1
 
     def __init__(self,*args,**kwargs):
 
@@ -92,10 +94,10 @@ class LightAnalysisWidget(QWidget):
         self.wavelength_left.setText('λ left (nm)')
         self.wavelength_left.setMinimum(0)
         self.wavelength_left.setMaximum(1000)
-        self.wavelength_left.setValue(0)
+        self.wavelength_left.setValue(320)
         self.wavelength_left.setSingleStep(0.1)
         self.wavelength_left.setEnabled(False)
-        # TODO make sure left < right
+        self.wavelength_left.valueChanged.connect(self.update_wavelength_left)
 
         self.wavelength_center = LabeledDoubleSpinBox()
         self.wavelength_center.setText('λ center (nm)')
@@ -109,9 +111,10 @@ class LightAnalysisWidget(QWidget):
         self.wavelength_right.setText('λ right (nm)')
         self.wavelength_right.setMinimum(0)
         self.wavelength_right.setMaximum(1000)
-        self.wavelength_right.setValue(1000)
+        self.wavelength_right.setValue(720)
         self.wavelength_right.setSingleStep(0.1)
         self.wavelength_right.setEnabled(False)
+        self.wavelength_right.valueChanged.connect(self.update_wavelength_right)
 
         self.spectrum_button = QPushButton('Scan spectrum')
         self.spectrum_button.clicked.connect(self.scan_spectrum)
@@ -174,18 +177,21 @@ class LightAnalysisWidget(QWidget):
 
         blue_layout = QHBoxLayout()
         blue_layout.addWidget(self.calibrate_blue)
+        blue_layout.addSpacing(10)
         blue_layout.addWidget(self.powermeter_wavelength_blue)
         blue_layout.addStretch()
         blue_layout.addWidget(self.blue_power)
 
         green_layout = QHBoxLayout()
         green_layout.addWidget(self.calibrate_green)
+        green_layout.addSpacing(10)
         green_layout.addWidget(self.powermeter_wavelength_green)
         green_layout.addStretch()
         green_layout.addWidget(self.green_power)
 
         red_layout = QHBoxLayout()
         red_layout.addWidget(self.calibrate_red)
+        red_layout.addSpacing(10)
         red_layout.addWidget(self.powermeter_wavelength_red)
         red_layout.addStretch()
         red_layout.addWidget(self.red_power)
@@ -209,7 +215,7 @@ class LightAnalysisWidget(QWidget):
     def correct_spectrum(self):
 
         # clear plot 
-        self.spectrum_data.setData([],[])
+        self.spectrum_data.setPen(pg.mkPen(self.LINE_COL_TEMP, width=self.LINE_WIDTH_TEMP))
 
         # enable or disable controls
         if self.no_correction.isChecked():
@@ -271,9 +277,19 @@ class LightAnalysisWidget(QWidget):
 
             #TODO Should I update wavelength center as well?
 
+        self.spectrum_data.setPen(pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH))
         self.spectrum_data.setData(wavelength, scan)
 
+    def update_wavelength_left(self, value: float) -> None:
+        if self.wavelength_right.value() <= value:
+            self.wavelength_right.setValue(value+1)
+
+    def update_wavelength_right(self, value: float) -> None:
+        if self.wavelength_left.value() >= value:
+            self.wavelength_left.setValue(value-1)
+
     def calibrate_blue_power(self):
+        # TODO show blue screen on projector. Maybe emit signal?
         
         if self.active_powermeter is None:
             return
@@ -284,6 +300,7 @@ class LightAnalysisWidget(QWidget):
         self.blue_power.setText(f'Blue power: {power:.3f} (mW.cm⁻²)')
         
     def calibrate_green_power(self):
+        # TODO show green screen on projector. Maybe emit signal?
         
         if self.active_powermeter is None:
             return
@@ -294,6 +311,7 @@ class LightAnalysisWidget(QWidget):
         self.green_power.setText(f'Green power: {power:.3f} (mW.cm⁻²)')
         
     def calibrate_red_power(self):
+        # TODO show red screen on projector. Maybe emit signal?
         
         if self.active_powermeter is None:
             return
@@ -323,6 +341,9 @@ class LightAnalysisWidget(QWidget):
 
         # find spectro with given serial number
         serial_number = self.spectrometers_cb.currentText()
+        if serial_number == '':
+            return
+        
         device_info = [dev_info for dev_info in self.spectrometers if dev_info.serial_number == serial_number]
         if not device_info:
             raise thorlabs_ccs.DeviceNotFound(f'Serial number: {serial_number}')
@@ -340,6 +361,9 @@ class LightAnalysisWidget(QWidget):
         
         # find powermeter with given serial number
         serial_number = self.powermeters_cb.currentText()
+        if serial_number == '':
+            return
+        
         device_info = [dev_info for dev_info in self.powermeters if dev_info.serial_number == serial_number]
         if not device_info:
             raise thorlabs_pmd.DeviceNotFound(f'Serial number: {serial_number}')
@@ -353,13 +377,29 @@ class LightAnalysisWidget(QWidget):
 
     def refresh_devices(self) -> None:
 
-        #FIXME usb.core.USBError: [Errno 16] Resource busy
+        # spectrometer ---------
+
+        if self.active_spectrometer is not None:
+            try:
+                self.active_spectrometer.close()
+            except:
+                pass
+            self.active_spectrometer = None
 
         self.spectrometers = thorlabs_ccs.list_spectrometers()
         self.spectrometers_cb.clear()
         for dev_info in self.spectrometers:
             self.spectrometers_cb.addItem(dev_info.serial_number)
         
+        # powermeter ------------
+
+        if self.active_powermeter is not None:
+            try:
+                self.active_powermeter.close()
+            except:
+                pass
+            self.active_powermeter = None
+
         self.powermeters = thorlabs_pmd.list_powermeters()
         self.powermeters_cb.clear()
         for dev_info in self.powermeters:
