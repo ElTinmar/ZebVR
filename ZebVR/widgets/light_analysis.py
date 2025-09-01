@@ -275,8 +275,6 @@ class LightAnalysisWidget(QWidget):
             self.noise_level.setValue(noise_amplification)
             self.noise_level.blockSignals(False)
 
-            #TODO Should I update wavelength center as well?
-
         self.spectrum_data.setPen(pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH))
         self.spectrum_data.setData(wavelength, scan)
 
