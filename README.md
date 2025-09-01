@@ -65,6 +65,27 @@ python setup_spinnaker.py --only-python
 Please note that every time a new kernel is installed during a system update,
 the SDK needs to be reinstalled.
 
+### Thorlabs hardware 
+
+```bash
+python -m thorlabs_ccs.get_firmware
+```
+
+set udev rule for all Thorlabs devices:
+
+```bash
+sudo tee /etc/udev/rules.d/99-thorlabs.rules > /dev/null << 'EOF'
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1313", GROUP="plugdev", MODE="0666"
+EOF
+```
+
+Reload udev rules:
+
+```bash
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
 ### Permissions to access hardware
 
 ```bash
