@@ -16,7 +16,7 @@ import pyqtgraph as pg
 import thorlabs_ccs 
 import thorlabs_pmd
 
-# TODO overlay reference scan 
+# TODO button to save state (spectrum + power) as reference and overlay ref  
 # TODO check hardware state
 
 pg.setConfigOption('background', (251,251,251,255))
