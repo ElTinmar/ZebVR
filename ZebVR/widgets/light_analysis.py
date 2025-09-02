@@ -409,6 +409,14 @@ class LightAnalysisWidget(QWidget):
     def set_state(self, state: Dict):
         ...
 
+    def closeEvent(self, event):
+        
+        if self.active_powermeter is not None:
+            self.active_powermeter.close()
+        
+        if self.active_spectrometer is not None:
+            self.active_spectrometer.close()
+
 if __name__ == '__main__':
 
     app = QApplication([])
