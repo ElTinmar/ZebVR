@@ -176,20 +176,20 @@ class LightAnalysisWidget(QWidget):
         blue_layout = QHBoxLayout()
         blue_layout.addWidget(self.calibrate_blue)
         blue_layout.addWidget(self.powermeter_wavelength_blue)
+        blue_layout.addStretch()
         blue_layout.addWidget(self.blue_power)
-        blue_layout.setSpacing(50)
 
         green_layout = QHBoxLayout()
         green_layout.addWidget(self.calibrate_green)
         green_layout.addWidget(self.powermeter_wavelength_green)
+        green_layout.addStretch()
         green_layout.addWidget(self.green_power)
-        green_layout.setSpacing(50)
 
         red_layout = QHBoxLayout()
         red_layout.addWidget(self.calibrate_red)
         red_layout.addWidget(self.powermeter_wavelength_red)
+        red_layout.addStretch()
         red_layout.addWidget(self.red_power)
-        red_layout.setSpacing(50)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.refresh_button)
