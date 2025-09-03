@@ -18,6 +18,8 @@ import thorlabs_pmd
 
 # TODO button to save state (spectrum + power) as reference and overlay ref  
 # TODO check hardware state
+# TODO might get errors if things are unplugged mid-way
+# TODO implement get/set state?
 
 pg.setConfigOption('background', (251,251,251,255))
 pg.setConfigOption('foreground', 'k')
