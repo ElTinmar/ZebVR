@@ -6,7 +6,9 @@ from PyQt5.QtWidgets import (
     QLabel, 
     QPushButton, 
     QCheckBox,
-    QGroupBox
+    QGroupBox,
+    QScrollArea,
+    QSizePolicy
 )
 from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer
 from typing import Dict, List
@@ -14,6 +16,7 @@ from viewsonic_serial import ViewSonicProjector, SourceInput, Bool, Gamma, Color
 import time
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledSliderSpinBox, LabeledComboBox
 from ..serial_utils import list_serial_devices, SerialDevice
+from .light_analysis import LightAnalysisWidget
 
 # TODO this is tailored for a viewsonic projector controlled through RS232
 # maybe make the separation clearer between the generic part and part specific
@@ -106,7 +109,7 @@ class ProjectorWidget(QWidget):
         self.serial_group = QGroupBox('RS232 projector control')
         self.serial_group.setEnabled(False)
 
-        self.refresh = QPushButton('Refresh serial devices')
+        self.refresh = QPushButton('Refresh Serial Devices')
         self.refresh.clicked.connect(self.refresh_serial)
 
         self.serial_ports = LabeledComboBox()
@@ -176,6 +179,9 @@ class ProjectorWidget(QWidget):
         self.power_status = QLabel('Power:')
         self.temperature = QLabel(u'Temperature (\N{DEGREE SIGN}C)')
         self.last_refresh_time = QLabel('Last refresh:')
+
+        # Calibrate power (TODO maybe add scroll area?)
+        self.light_analysis = LightAnalysisWidget()
     
     def serial_changed(self, index: int):
         port = self.serial_devices[index].device
@@ -234,17 +240,28 @@ class ProjectorWidget(QWidget):
         serial_layout.addWidget(self.last_refresh_time)
         self.serial_group.setLayout(serial_layout)
 
+        projector_layout = QVBoxLayout()
+        projector_layout.addLayout(resolution_layout)
+        projector_layout.addLayout(offset_layout)
+        projector_layout.addLayout(scale_layout)
+        projector_layout.addWidget(self.fullscreen)
+        projector_layout.addWidget(self.proj_fps)
+        projector_layout.addSpacing(20)
+        projector_layout.addWidget(self.refresh)
+        projector_layout.addWidget(self.serial_ports)
+        projector_layout.addWidget(self.serial_group)
+        projector_layout.addSpacing(20)
+        projector_layout.addWidget(self.light_analysis)
+        projector_layout.addStretch()
+
+        container = QWidget()
+        container.setLayout(projector_layout)
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(container)
+
         main_layout = QVBoxLayout(self)
-        main_layout.addLayout(resolution_layout)
-        main_layout.addLayout(offset_layout)
-        main_layout.addLayout(scale_layout)
-        main_layout.addWidget(self.fullscreen)
-        main_layout.addWidget(self.proj_fps)
-        main_layout.addSpacing(20)
-        main_layout.addWidget(self.refresh)
-        main_layout.addWidget(self.serial_ports)
-        main_layout.addWidget(self.serial_group)
-        main_layout.addStretch()
+        main_layout.addWidget(scroll_area)
 
     def block_signals(self, block):
         for widget in self.findChildren(QWidget):

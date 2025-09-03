@@ -31,6 +31,7 @@ class LightAnalysisWidget(QWidget):
     LINE_WIDTH = 2
     LINE_COL_TEMP = (120,120,120,255)
     LINE_WIDTH_TEMP = 1
+    HEIGHT = 400
 
     def __init__(self,*args,**kwargs):
 
@@ -45,7 +46,7 @@ class LightAnalysisWidget(QWidget):
     
     def declare_components(self) -> None:
 
-        self.refresh_button = QPushButton('Refresh Devices')
+        self.refresh_button = QPushButton('Refresh Light Analysis Devices')
         self.refresh_button.clicked.connect(self.refresh_devices)
 
         # Spectrometer ----
@@ -122,6 +123,7 @@ class LightAnalysisWidget(QWidget):
         self.spectrum_button.clicked.connect(self.scan_spectrum)
 
         self.spectrum_plot = pg.plot()
+        self.spectrum_plot.setFixedHeight(self.HEIGHT)
         self.spectrum_plot.setLabel('left', 'Intensity (AU)')
         self.spectrum_plot.setLabel('bottom', 'Wavelength (nm)') 
         self.spectrum_data = self.spectrum_plot.plot(pen=pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH))
@@ -161,49 +163,42 @@ class LightAnalysisWidget(QWidget):
 
     def layout_components(self) -> None:
 
-        spectro_ctl0 = QHBoxLayout()
-        spectro_ctl0.addWidget(self.integration_time)
-        spectro_ctl0.addSpacing(10)
-        spectro_ctl0.addWidget(self.no_correction)
-        spectro_ctl0.addWidget(self.correct_range)
-        spectro_ctl0.addWidget(self.correct_noise)
-
         spectro_ctl1 = QHBoxLayout()
+        spectro_ctl1.addWidget(self.correct_noise)
         spectro_ctl1.addWidget(self.noise_level)
-        spectro_ctl1.addSpacing(5)
-        spectro_ctl1.addWidget(self.wavelength_left)
-        spectro_ctl1.addSpacing(5)
         spectro_ctl1.addWidget(self.wavelength_center)
-        spectro_ctl1.addSpacing(5)
-        spectro_ctl1.addWidget(self.wavelength_right)
+        
+        spectro_ctl2 = QHBoxLayout()
+        spectro_ctl2.addWidget(self.correct_range)
+        spectro_ctl2.addWidget(self.wavelength_left)
+        spectro_ctl2.addWidget(self.wavelength_right)
 
         blue_layout = QHBoxLayout()
         blue_layout.addWidget(self.calibrate_blue)
-        blue_layout.addSpacing(10)
         blue_layout.addWidget(self.powermeter_wavelength_blue)
-        blue_layout.addStretch()
         blue_layout.addWidget(self.blue_power)
+        blue_layout.setSpacing(50)
 
         green_layout = QHBoxLayout()
         green_layout.addWidget(self.calibrate_green)
-        green_layout.addSpacing(10)
         green_layout.addWidget(self.powermeter_wavelength_green)
-        green_layout.addStretch()
         green_layout.addWidget(self.green_power)
+        green_layout.setSpacing(50)
 
         red_layout = QHBoxLayout()
         red_layout.addWidget(self.calibrate_red)
-        red_layout.addSpacing(10)
         red_layout.addWidget(self.powermeter_wavelength_red)
-        red_layout.addStretch()
         red_layout.addWidget(self.red_power)
+        red_layout.setSpacing(50)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.refresh_button)
         layout.addSpacing(20)
         layout.addWidget(self.spectrometers_cb)
-        layout.addLayout(spectro_ctl0)
+        layout.addWidget(self.integration_time)
+        layout.addWidget(self.no_correction)
         layout.addLayout(spectro_ctl1)
+        layout.addLayout(spectro_ctl2)
         layout.addWidget(self.spectrum_button)
         layout.addWidget(self.spectrum_plot)
         layout.addSpacing(20)
