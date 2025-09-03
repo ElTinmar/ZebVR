@@ -114,6 +114,7 @@ class Protocol2(WorkerNode):
                 command[fish_idx] = current_item.start()
                 self.current_items.append(current_item)
 
+        # TODO what if one fish finishes before the others?
         except IndexError:
             # sleep a bit to let enough time for the message 
             # to be delivered before closing the queue
