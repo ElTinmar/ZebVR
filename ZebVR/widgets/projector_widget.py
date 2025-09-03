@@ -18,12 +18,6 @@ from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledSliderSpinBo
 from ..serial_utils import list_serial_devices, SerialDevice
 from .light_analysis import LightAnalysisWidget
 
-# TODO this is tailored for a viewsonic projector controlled through RS232
-# maybe make the separation clearer between the generic part and part specific
-# to viewsonic / make it easier to add your own projector stuff
-
-class ViewSonicProjectorWidget(QWidget):
-    ...
 
 class ProjectorWidget(QWidget):
 
