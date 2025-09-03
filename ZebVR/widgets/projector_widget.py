@@ -106,7 +106,8 @@ class ProjectorWidget(QWidget):
 
         # Serial communication with the projector
 
-        self.serial_group = QGroupBox('RS232 projector control')
+        # TODO: make this a separate widget
+        self.serial_group = QGroupBox('RS232 ViewSonic projector control')
         self.serial_group.setEnabled(False)
 
         self.refresh = QPushButton('Refresh Serial Devices')
@@ -180,7 +181,7 @@ class ProjectorWidget(QWidget):
         self.temperature = QLabel(u'Temperature (\N{DEGREE SIGN}C)')
         self.last_refresh_time = QLabel('Last refresh:')
 
-        # Calibrate power (TODO maybe add scroll area?)
+        # Calibrate power
         self.light_analysis = LightAnalysisWidget()
     
     def serial_changed(self, index: int):
