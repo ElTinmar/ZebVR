@@ -27,6 +27,7 @@ class SharedFishState:
         self.tail_points = RawArray('f', 2*self.num_tail_points_interp)
 
 class SharedStimParameters:
+    # TODO add index of fish to follow?
 
     def __init__(self):
         
