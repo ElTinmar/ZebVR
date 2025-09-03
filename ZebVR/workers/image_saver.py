@@ -89,7 +89,7 @@ class VideoSaverWorker(WorkerNode):
         
         video_filename = append_timestamp_to_filename(filename)
         self.video_filename = video_filename
-        self.timings_filename = video_filename.stem + '.csv' # TODO: this is not saved in the right location
+        self.timings_filename = video_filename.with_suffix('.csv')         
         self.fps = fps
         self.height = 2*(height//2) # some video_codecs require images with even size
         self.width = 2*(width//2)
