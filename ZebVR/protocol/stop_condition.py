@@ -283,7 +283,7 @@ class StopWidget(QWidget):
             self.policy_stack.setFixedHeight(new_height) 
             self.policy_stack.adjustSize()
             self.adjustSize() 
-        self.size_changed.emit()
+            self.size_changed.emit()
         self.state_changed.emit()
 
     def trigger_changed(self):
