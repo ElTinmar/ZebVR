@@ -12,6 +12,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer, Qt
 from qt_widgets import LabeledComboBox, LabeledComboBox, LabeledDoubleSpinBox
 from typing import Dict
 import pyqtgraph as pg
+import numpy as np
 
 import thorlabs_ccs 
 import thorlabs_pmd
@@ -123,10 +124,26 @@ class LightAnalysisWidget(QWidget):
         self.spectrum_button.clicked.connect(self.scan_spectrum)
 
         self.spectrum_plot = pg.plot()
+        self.spectrum_plot.setXRange(200,1000)
         self.spectrum_plot.setFixedHeight(self.HEIGHT)
         self.spectrum_plot.setLabel('left', 'Intensity (AU)')
         self.spectrum_plot.setLabel('bottom', 'Wavelength (nm)') 
-        self.spectrum_data = self.spectrum_plot.plot(pen=pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH))
+        self.spectrum_data = self.spectrum_plot.plot(
+            np.linspace(200,1000,800), 
+            np.zeros((800,)), 
+            pen=pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH)
+        )
+
+        self.coord_label = QLabel()
+        self.hover_point = self.spectrum_plot.plot(
+            [0], [0],
+            pen=None, symbol='o', symbolBrush='r', symbolSize=8
+        )
+        self.proxy = pg.SignalProxy(
+            self.spectrum_plot.scene().sigMouseMoved,
+            rateLimit=60,
+            slot=self.mouseMoved
+        )
 
         # Powermeter ---- 
 
@@ -201,6 +218,7 @@ class LightAnalysisWidget(QWidget):
         layout.addLayout(spectro_ctl2)
         layout.addWidget(self.spectrum_button)
         layout.addWidget(self.spectrum_plot)
+        layout.addWidget(self.coord_label)
         layout.addSpacing(20)
         layout.addWidget(self.powermeters_cb)
         layout.addWidget(self.powermeter_beam_diameter)
@@ -405,6 +423,20 @@ class LightAnalysisWidget(QWidget):
 
     def set_state(self, state: Dict):
         ...
+
+    def mouseMoved(self, evt):
+        pos = evt[0]  # QPointF from the scene
+        if self.spectrum_plot.sceneBoundingRect().contains(pos):
+            mouse_point = self.spectrum_plot.plotItem.vb.mapSceneToView(pos)
+            x = mouse_point.x()
+            x_data, y_data = self.spectrum_data.getData()
+
+            idx = (np.abs(x_data - x)).argmin()
+            x_closest = x_data[idx]
+            y_closest = y_data[idx]
+
+            self.coord_label.setText(f"Wavelength={x_closest:.2f} nm, Intensity={y_closest:.2f}")
+            self.hover_point.setData([x_closest], [y_closest])
 
     def closeEvent(self, event):
         
