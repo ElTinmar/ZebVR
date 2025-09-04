@@ -134,7 +134,7 @@ class LightAnalysisWidget(QWidget):
             pen=pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH)
         )
 
-        self.coord_label = QLabel()
+        self.coord_label = QLabel("Wavelength=0 nm, Intensity=0")
         self.hover_point = self.spectrum_plot.plot(
             [0], [0],
             pen=None, symbol='o', symbolBrush='r', symbolSize=8
