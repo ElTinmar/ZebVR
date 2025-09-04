@@ -53,16 +53,18 @@ class StimWidget(QWidget):
         self.cmb_stim_select = QComboBox()
 
         for constructor, stim_type in PROTOCOL_WIDGETS:
+            stop_widget = StopWidget(self.debouncer, self.background_image)
+            stop_widget.size_changed.connect(self.stim_changed)
             if issubclass(constructor, DAQ_ProtocolItemWidget):
                 if self.daq_boards:
                     widget = constructor(
                         boards = self.daq_boards,
-                        stop_widget = StopWidget(self.debouncer, self.background_image)
+                        stop_widget = stop_widget
                     )
                 else:
                     continue
             else:
-                widget = constructor(stop_widget = StopWidget(self.debouncer, self.background_image))
+                widget = constructor(stop_widget = stop_widget)
             
             self.cmb_stim_select.addItem(str(stim_type))
             widget.state_changed.connect(self.on_change)
@@ -82,10 +84,6 @@ class StimWidget(QWidget):
         layout.addWidget(self.stack)
         layout.addStretch()
 
-    def on_size_changed(self):
-        self.adjustSize() 
-        self.size_changed.emit()
-
     def set_daq_boards(self, daq_boards: Dict[BoardType, List[BoardInfo]]):
 
         self.daq_boards = daq_boards
@@ -104,17 +102,19 @@ class StimWidget(QWidget):
 
         # Rebuild protocol item widgets
         for constructor, stim_type in PROTOCOL_WIDGETS:
+            stop_widget = StopWidget(self.debouncer, self.background_image)
+            stop_widget.size_changed.connect(self.stim_changed)
             if issubclass(constructor, DAQ_ProtocolItemWidget):
                 if self.daq_boards:
                     widget = constructor(
                         boards=self.daq_boards,
-                        stop_widget=StopWidget(self.debouncer, self.background_image)
+                        stop_widget=stop_widget
                     )
                 else: 
                     continue
             else:
                 widget = constructor(
-                    stop_widget=StopWidget(self.debouncer, self.background_image)
+                    stop_widget=stop_widget
                 )
 
             self.cmb_stim_select.addItem(str(stim_type))

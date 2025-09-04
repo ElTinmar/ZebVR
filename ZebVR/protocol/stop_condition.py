@@ -167,7 +167,6 @@ class StopWidget(QWidget):
 
         self.declare_components()
         self.layout_components()
-        self.trigger_changed()
         self.policy_changed()
 
     def declare_components(self) -> None:
@@ -282,19 +281,13 @@ class StopWidget(QWidget):
         if current_widget:
             new_height = current_widget.sizeHint().height()  
             self.policy_stack.setFixedHeight(new_height) 
+            self.policy_stack.adjustSize()
             self.adjustSize() 
-            self.size_changed.emit()
+        self.size_changed.emit()
         self.state_changed.emit()
 
     def trigger_changed(self):
         self.trigger_stack.setCurrentIndex(self.cmb_trigger_select.currentIndex())
-        current_widget = self.trigger_stack.currentWidget()
-        if current_widget:
-            new_height = current_widget.sizeHint().height()  
-            self.trigger_stack.setFixedHeight(new_height) 
-            self.adjustSize() 
-            self.policy_changed()
-            self.size_changed.emit()
         self.state_changed.emit()
 
     def from_stop_condition(self, stop_condition: StopCondition) -> None:
