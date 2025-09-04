@@ -33,6 +33,7 @@ class LightAnalysisWidget(QWidget):
     LINE_COL_TEMP = (120,120,120,255)
     LINE_WIDTH_TEMP = 1
     HEIGHT = 400
+    SPECTRUM_COORD_HINT_SIZE = 7
 
     def __init__(self,*args,**kwargs):
 
@@ -137,7 +138,7 @@ class LightAnalysisWidget(QWidget):
         self.coord_label = QLabel("Wavelength=0 nm, Intensity=0")
         self.hover_point = self.spectrum_plot.plot(
             [0], [0],
-            pen=None, symbol='o', symbolBrush='r', symbolSize=8
+            pen=None, symbol='o', symbolBrush='r', symbolSize=self.SPECTRUM_COORD_HINT_SIZE
         )
         self.proxy = pg.SignalProxy(
             self.spectrum_plot.scene().sigMouseMoved,
