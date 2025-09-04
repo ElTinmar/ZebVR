@@ -145,6 +145,11 @@ class TrackingTrigger(StopCondition):
             output = True
         return output
     
+#TODO: use a formula: x2 + y2 <= r
+#TODO: use eye convergence
+#TODO...
+# For tracking you need to accept a small python script that takes tracking data as input and return True/False 
+    
 class StopWidget(QWidget):
 
     state_changed = pyqtSignal()

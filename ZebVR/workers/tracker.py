@@ -169,6 +169,8 @@ class TrackerWorker(WorkerNode):
             )
         
         # send tracking as metadata
+        
+        # TODO: send the full stuff to use with a formula
         if self.current_tracking is None:
             return
         
