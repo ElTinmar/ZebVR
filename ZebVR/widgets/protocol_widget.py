@@ -55,6 +55,7 @@ class StimWidget(QWidget):
         for constructor, stim_type in PROTOCOL_WIDGETS:
             stop_widget = StopWidget(self.debouncer, self.background_image)
             stop_widget.size_changed.connect(self.stim_changed)
+            stop_widget.state_changed.connect(self.state_changed)
             if issubclass(constructor, DAQ_ProtocolItemWidget):
                 if self.daq_boards:
                     widget = constructor(
@@ -104,6 +105,7 @@ class StimWidget(QWidget):
         for constructor, stim_type in PROTOCOL_WIDGETS:
             stop_widget = StopWidget(self.debouncer, self.background_image)
             stop_widget.size_changed.connect(self.stim_changed)
+            stop_widget.state_changed.connect(self.state_changed)
             if issubclass(constructor, DAQ_ProtocolItemWidget):
                 if self.daq_boards:
                     widget = constructor(

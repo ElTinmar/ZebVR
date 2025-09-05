@@ -32,7 +32,8 @@ class StopPolicy(IntEnum):
 class TriggerType(IntEnum):
     SOFTWARE = 0
     TTL = 1
-    TRACKING = 2
+    TRACKING_MASK = 2
+    TRACKING_CODE = 3
 
     def __str__(self):
         return self.name
@@ -108,7 +109,7 @@ class SoftwareTrigger(StopCondition):
             output = True
         return output
 
-class TrackingTrigger(StopCondition):
+class TrackingTriggerMask(StopCondition):
 
     def __init__(
             self, 
@@ -157,6 +158,8 @@ class TrackingTrigger(StopCondition):
     
 class TrackingTriggerCode(StopCondition):
 
+    BASE_CODE = "def trigger_code(id, tracking) -> bool:\n    return False"
+
     def __init__(
             self, 
             code: str,
@@ -177,6 +180,8 @@ class TrackingTriggerCode(StopCondition):
 
         output = False
 
+        #print(self.code)
+
         if metadata is None:
             return output
         
@@ -184,16 +189,9 @@ class TrackingTriggerCode(StopCondition):
             identity = metadata['tracker_metadata']['identity']
             tracking = metadata['tracker_metadata']['tracking']
 
-            fields = tracking.dtype.names
-            if 'body' in fields and tracking['body']['success']:
-                x, y = tracking['body']['centroid_global']
-            else:
-                x, y = tracking['animals']['centroids_global'][0,:]
-            
-            # anything safer ?
             namespace = {}
             exec(self.code, namespace)
-            triggered = namespace[''](identity, tracking)
+            triggered = namespace['trigger_code'](identity, tracking)
 
         except Exception as e:
             return output
@@ -204,10 +202,6 @@ class TrackingTriggerCode(StopCondition):
 
         return output
     
-#TODO: use a formula: x2 + y2 <= r
-#TODO: use eye convergence
-#TODO...
-# For tracking you need to accept a small python script that takes tracking data as input and return True/False 
     
 class StopWidget(QWidget):
 
@@ -255,6 +249,7 @@ class StopWidget(QWidget):
         self.cmb_trigger_polarity = QComboBox()
         for pol in TriggerPolarity:
             self.cmb_trigger_polarity.addItem(str(pol))
+        self.cmb_trigger_polarity.currentIndexChanged.connect(self.state_changed)
 
         self.trigger_mask = FileOpenLabeledEditButton()
         self.trigger_mask.setLabel('load mask:')
@@ -262,6 +257,10 @@ class StopWidget(QWidget):
 
         self.trigger_mask_button = QPushButton('draw mask')
         self.trigger_mask_button.clicked.connect(self.draw_trigger_mask)
+
+        self.code_editor = CodeEditor()
+        self.code_editor.textChanged.connect(self.state_changed)
+        self.code_editor.setPlainText(TrackingTriggerCode.BASE_CODE)
 
         self.mask_image = QLabel() 
 
@@ -277,26 +276,35 @@ class StopWidget(QWidget):
         self.ttl_trigger_group = QGroupBox('TTL Trigger parameters')
         self.ttl_trigger_group.setLayout(ttl_trigger_layout)
 
-        tracking_trigger_ctrl = QVBoxLayout()
-        tracking_trigger_ctrl.addWidget(self.trigger_mask)
-        tracking_trigger_ctrl.addWidget(self.trigger_mask_button)
-        tracking_trigger_ctrl.addStretch()
-        tracking_trigger_layout = QHBoxLayout()
-        tracking_trigger_layout.addLayout(tracking_trigger_ctrl)
-        tracking_trigger_layout.addWidget(self.mask_image)
-        self.tracking_trigger_group = QGroupBox('Tracking Trigger parameters')
-        self.tracking_trigger_group.setLayout(tracking_trigger_layout)
+        tracking_mask_trigger_ctrl = QVBoxLayout()
+        tracking_mask_trigger_ctrl.addWidget(self.trigger_mask)
+        tracking_mask_trigger_ctrl.addWidget(self.trigger_mask_button)
+        tracking_mask_trigger = QHBoxLayout()
+        tracking_mask_trigger.addLayout(tracking_mask_trigger_ctrl)
+        tracking_mask_trigger.addWidget(self.mask_image)
+        tracking_mask_trigger_layout = QVBoxLayout()
+        tracking_mask_trigger_layout.addLayout(tracking_mask_trigger)
+        tracking_mask_trigger_layout.addStretch()
+        self.tracking_mask_trigger_group = QGroupBox('Tracking mask parameters')
+        self.tracking_mask_trigger_group.setLayout(tracking_mask_trigger_layout)
+
+        tracking_code_trigger_layout = QHBoxLayout()
+        tracking_code_trigger_layout.addWidget(self.code_editor)
+        self.tracking_code_trigger_group = QGroupBox('Tracking code parameters')
+        self.tracking_code_trigger_group.setLayout(tracking_code_trigger_layout)
 
         self.trigger_stack = QStackedWidget()
         self.trigger_stack.addWidget(self.software_trigger_group)
         self.trigger_stack.addWidget(self.ttl_trigger_group)
-        self.trigger_stack.addWidget(self.tracking_trigger_group)
+        self.trigger_stack.addWidget(self.tracking_mask_trigger_group)
+        self.trigger_stack.addWidget(self.tracking_code_trigger_group)
 
         trigger_container = QWidget()
         trigger_layout = QVBoxLayout(trigger_container)
         trigger_layout.addWidget(self.cmb_trigger_select)
         trigger_layout.addWidget(self.cmb_trigger_polarity)
         trigger_layout.addWidget(self.trigger_stack)
+        trigger_layout.addStretch()
             
         self.policy_stack = QStackedWidget()
         self.policy_stack.addWidget(self.pause_sec)
@@ -321,7 +329,8 @@ class StopWidget(QWidget):
             cv2.INTER_NEAREST
         )
         self.mask_image.setPixmap(NDarray_to_QPixmap(image_resized))
-        
+        self.state_changed.emit()
+
     def draw_trigger_mask(self):
         if self.background_image is None:
             return
@@ -338,6 +347,7 @@ class StopWidget(QWidget):
 
         np.save(filepath, self.mask)
         self.trigger_mask.setText(str(filepath))
+        self.state_changed.emit()
 
     def policy_changed(self):
         self.policy_stack.setCurrentIndex(self.cmb_policy_select.currentIndex())
@@ -365,12 +375,18 @@ class StopWidget(QWidget):
             self.cmb_trigger_select.setCurrentIndex(TriggerType.SOFTWARE)
             self.cmb_trigger_polarity.setCurrentIndex(TriggerPolarity(stop_condition.polarity))
 
-        elif isinstance(stop_condition, TrackingTrigger):
+        elif isinstance(stop_condition, TrackingTriggerMask):
             self.cmb_policy_select.setCurrentIndex(StopPolicy.TRIGGER)
-            self.cmb_trigger_select.setCurrentIndex(TriggerType.TRACKING)
+            self.cmb_trigger_select.setCurrentIndex(TriggerType.TRACKING_MASK)
             self.cmb_trigger_polarity.setCurrentIndex(TriggerPolarity(stop_condition.polarity))
             self.trigger_mask.setText(stop_condition.mask_file) 
             self.mask = stop_condition.mask
+
+        elif isinstance(stop_condition, TrackingTriggerCode):
+            self.cmb_policy_select.setCurrentIndex(StopPolicy.TRIGGER)
+            self.cmb_trigger_select.setCurrentIndex(TriggerType.TRACKING_CODE)
+            self.cmb_trigger_polarity.setCurrentIndex(TriggerPolarity(stop_condition.polarity))
+            self.code_editor.setPlainText(stop_condition.code) 
 
     def to_stop_condition(self) -> StopCondition:
 
@@ -392,13 +408,20 @@ class StopWidget(QWidget):
             if state['trigger_select'] == TriggerType.TTL:
                 pass
 
-            if state['trigger_select'] == TriggerType.TRACKING:
-                stop_condition = TrackingTrigger(
+            if state['trigger_select'] == TriggerType.TRACKING_MASK:
+                stop_condition = TrackingTriggerMask(
                     mask_file = state['mask_file'],
                     polarity = TriggerPolarity(state['trigger_polarity']),
                     debouncer = self.debouncer
                 )
-        
+            
+            if state['trigger_select'] == TriggerType.TRACKING_CODE:
+                stop_condition = TrackingTriggerCode(
+                    code = state['code'],
+                    polarity = TriggerPolarity(state['trigger_polarity']),
+                    debouncer = self.debouncer
+                )
+
         return stop_condition
     
     def get_state(self) -> Dict:
@@ -407,6 +430,7 @@ class StopWidget(QWidget):
         state['trigger_select'] = self.cmb_trigger_select.currentIndex()
         state['trigger_polarity'] = self.cmb_trigger_polarity.currentIndex()
         state['mask_file'] = self.trigger_mask.text()
+        state['code'] = self.code_editor.toPlainText()
         state['pause_sec'] = self.pause_sec.value()
         return state
     
@@ -417,6 +441,7 @@ class StopWidget(QWidget):
             'trigger_select': self.cmb_trigger_select.setCurrentIndex,
             'trigger_polarity': self.cmb_trigger_polarity.setCurrentIndex,
             'mask_file': self.trigger_mask.setText,
+            'code': self.code_editor.setPlainText,
             'pause_sec': self.pause_sec.setValue
         }
 
