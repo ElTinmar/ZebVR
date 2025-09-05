@@ -342,10 +342,16 @@ class CameraController(QObject):
         elif camera_model==CameraModel.SPINNAKER and SPINNAKER_ENABLED:
             self.camera_constructor = partial(SpinnakerCamera, dev_id=cam_ind)
 
-        elif camera_model==CameraModel.MOVIE and self.filename.exists():
+        elif camera_model==CameraModel.MOVIE:
+            if not self.filename.is_file():
+                return
+            
             self.camera_constructor = partial(MovieFileCam, filename=str(self.filename))
 
-        elif camera_model==CameraModel.MOVIE_GRAY and self.filename.exists():
+        elif camera_model==CameraModel.MOVIE_GRAY:
+            if not self.filename.is_file():
+                return
+            
             self.camera_constructor = partial(MovieFileCamGray, filename=str(self.filename))
 
         elif camera_model==CameraModel.XIMEA and XIMEA_ENABLED:
