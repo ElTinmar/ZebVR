@@ -115,14 +115,6 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         receive_data_timeout = 1.0,
     )
 
-    temperature_logger = TemperatureLoggerWorker(
-        filename = settings['temperature']['csv_filename'],
-        serial_port = settings['temperature']['serial_port'],
-        name = 'temperature_logger',
-        logger = worker_logger, 
-        logger_queues = queue_logger,
-    )
-
     cropper = CropWorker(
         ROI_identities = settings['identity']['ROIs'],
         name = f'crop', 
@@ -234,6 +226,5 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
 
     # isolated nodes
     dag.add_node(queue_monitor_worker)
-    dag.add_node(temperature_logger)
 
     return (dag, worker_logger, queue_logger)

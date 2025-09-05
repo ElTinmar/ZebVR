@@ -577,6 +577,8 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
     # isolated nodes
     dag.add_node(queue_monitor_worker)
-    dag.add_node(temperature_logger)
+
+    if settings['temperature']['serial_port'] != '':
+        dag.add_node(temperature_logger)
 
     return (dag, worker_logger, queue_logger)
