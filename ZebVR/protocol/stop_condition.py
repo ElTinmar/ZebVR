@@ -183,8 +183,6 @@ class TrackingTriggerCode(StopCondition):
 
         output = False
 
-        #print(self.code)
-
         if metadata is None:
             return output
         
