@@ -429,12 +429,12 @@ class LightAnalysisWidget(QWidget):
         pos = evt[0]  # QPointF from the scene
         if self.spectrum_plot.sceneBoundingRect().contains(pos):
             mouse_point = self.spectrum_plot.plotItem.vb.mapSceneToView(pos)
-            x = mouse_point.x()
-            x_data, y_data = self.spectrum_data.getData()
+            mouse_pos = np.array((mouse_point.x(), mouse_point.y()))
+            spectrum = np.array(self.spectrum_data.getData())
 
-            idx = (np.abs(x_data - x)).argmin()
-            x_closest = x_data[idx]
-            y_closest = y_data[idx]
+            dists = np.sum((mouse_pos - spectrum.T)**2, axis=1)
+            idx = np.argmin(dists)
+            x_closest, y_closest = spectrum[:,idx]
 
             self.coord_label.setText(f"Wavelength={x_closest:.2f} nm, Intensity={y_closest:.2f}")
             self.hover_point.setData([x_closest], [y_closest])
