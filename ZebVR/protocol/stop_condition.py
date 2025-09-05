@@ -9,6 +9,7 @@ from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton, NDarray_
 from image_tools import DrawPolyMaskDialog, im2uint8
 import cv2
 from pathlib import Path
+from image_tools import ImageViewerCoord
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -19,7 +20,9 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, 
     QComboBox,
     QLabel,
-    QPushButton
+    QPushButton,
+    QDialog,
+    QApplication
 )
 
 class StopPolicy(IntEnum):
@@ -201,7 +204,30 @@ class TrackingTriggerCode(StopCondition):
             output = True
 
         return output
-    
+
+class ImageCoordDialog(QDialog):
+
+    def __init__(self, image, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        self.setWindowTitle("Image Viewer")
+        self.resize(800, 600)
+
+        # Your custom viewer
+        self.background_viewer = ImageViewerCoord(image)
+        self.background_viewer.mouseMoved.connect(self.set_background_coordinates)
+        self.background_coordinates = QLabel()
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.background_viewer)
+        layout.addWidget(self.background_coordinates)
+
+        self.setLayout(layout)
+
+    def set_background_coordinates(self, x: float, y: float) -> None:
+        self.background_coordinates.setText(f'x: {x}, y: {y}')
+
     
 class StopWidget(QWidget):
 
@@ -261,6 +287,8 @@ class StopWidget(QWidget):
         self.code_editor = CodeEditor()
         self.code_editor.textChanged.connect(self.state_changed)
         self.code_editor.setPlainText(TrackingTriggerCode.BASE_CODE)
+        self.background_button = QPushButton('Get background coordinates')
+        self.background_button.clicked.connect(self.open_coordinates_modal)
 
         self.mask_image = QLabel() 
 
@@ -288,8 +316,9 @@ class StopWidget(QWidget):
         self.tracking_mask_trigger_group = QGroupBox('Tracking mask parameters')
         self.tracking_mask_trigger_group.setLayout(tracking_mask_trigger_layout)
 
-        tracking_code_trigger_layout = QHBoxLayout()
+        tracking_code_trigger_layout = QVBoxLayout()
         tracking_code_trigger_layout.addWidget(self.code_editor)
+        tracking_code_trigger_layout.addWidget(self.background_button)
         self.tracking_code_trigger_group = QGroupBox('Tracking code parameters')
         self.tracking_code_trigger_group.setLayout(tracking_code_trigger_layout)
 
@@ -317,6 +346,10 @@ class StopWidget(QWidget):
 
     def set_background_image(self, image: NDArray) -> None:
         self.background_image = image
+
+    def open_coordinates_modal(self) -> None:
+        dialog = ImageCoordDialog(self.background_image)
+        dialog.exec_()
 
     def load_mask(self, filename):
         self.mask = np.load(filename)
