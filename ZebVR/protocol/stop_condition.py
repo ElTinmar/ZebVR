@@ -5,7 +5,7 @@ import time
 import numpy as np
 from numpy.typing import NDArray
 from .debouncer import Debouncer
-from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton, NDarray_to_QPixmap
+from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton, NDarray_to_QPixmap, CodeEditor
 from image_tools import DrawPolyMaskDialog, im2uint8
 import cv2
 from pathlib import Path
@@ -145,6 +145,55 @@ class TrackingTrigger(StopCondition):
                 x, y = tracking['animals']['centroids_global'][0,:]
             
             triggered = self.mask[int(y), int(x)]
+
+        except Exception as e:
+            return output
+            
+        transition = self.debouncer.update(triggered)
+        if transition.name == self.polarity.name: 
+            output = True
+
+        return output
+    
+class TrackingTriggerCode(StopCondition):
+
+    def __init__(
+            self, 
+            code: str,
+            debouncer = Debouncer,
+            polarity: TriggerPolarity = TriggerPolarity.RISING_EDGE,
+        ) -> None:
+
+        super().__init__()
+
+        self.code = code
+        self.polarity = polarity
+        self.debouncer = debouncer
+
+    def start(self) -> None:
+        pass
+    
+    def done(self, metadata: Optional[Any]) -> bool:
+
+        output = False
+
+        if metadata is None:
+            return output
+        
+        try:
+            identity = metadata['tracker_metadata']['identity']
+            tracking = metadata['tracker_metadata']['tracking']
+
+            fields = tracking.dtype.names
+            if 'body' in fields and tracking['body']['success']:
+                x, y = tracking['body']['centroid_global']
+            else:
+                x, y = tracking['animals']['centroids_global'][0,:]
+            
+            # anything safer ?
+            namespace = {}
+            exec(self.code, namespace)
+            triggered = namespace[''](identity, tracking)
 
         except Exception as e:
             return output
