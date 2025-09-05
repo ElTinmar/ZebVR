@@ -169,31 +169,10 @@ class TrackerWorker(WorkerNode):
             )
         
         # send tracking as metadata
-        
-        # TODO: send the full stuff to use with a formula
         if self.current_tracking is None:
             return
-        
-        fish_centroid = np.zeros((2,), dtype=float)
-        
-        try:
-            tracking = self.current_tracking['tracking']
 
-            if tracking['body'] is not None:
-                fish_centroid[:] = tracking['body']['centroid_global']
-            else:
-                fish_centroid[:] = tracking['animals']['centroid_global']
-
-        except KeyError:
-            return None
-        
-        except TypeError:
-            return None
-        
-        except ValueError:
-            return None
-        
-        res = {}    
-        res['tracker_metadata'] = fish_centroid.astype(int)
+        res = {}  
+        res['tracker_metadata'] = self.current_tracking
         return res
-
+        

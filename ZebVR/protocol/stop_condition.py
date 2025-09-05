@@ -135,14 +135,24 @@ class TrackingTrigger(StopCondition):
             return output
         
         try:
-            x, y = metadata['tracker_metadata']
-            triggered = self.mask[y, x]
-        except:
+            identity = metadata['tracker_metadata']['identity']
+            tracking = metadata['tracker_metadata']['tracking']
+
+            fields = tracking.dtype.names
+            if 'body' in fields and tracking['body']['success']:
+                x, y = tracking['body']['centroid_global']
+            else:
+                x, y = tracking['animals']['centroids_global'][0,:]
+            
+            triggered = self.mask[int(y), int(x)]
+
+        except Exception as e:
             return output
             
         transition = self.debouncer.update(triggered)
         if transition.name == self.polarity.name: 
             output = True
+
         return output
     
 #TODO: use a formula: x2 + y2 <= r
