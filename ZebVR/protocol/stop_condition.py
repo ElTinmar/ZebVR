@@ -209,10 +209,9 @@ class ImageCoordDialog(QDialog):
 
         super().__init__(*args, **kwargs)
 
-        self.setWindowTitle("Image Viewer")
+        self.setWindowTitle("Hover to get coordinates")
         self.resize(800, 600)
 
-        # Your custom viewer
         self.background_viewer = ImageViewerCoord(image)
         self.background_viewer.mouseMoved.connect(self.set_background_coordinates)
         self.background_coordinates = QLabel()
