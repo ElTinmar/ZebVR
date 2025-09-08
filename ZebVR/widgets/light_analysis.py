@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QButtonGroup
 )
 from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer, Qt
-from qt_widgets import LabeledComboBox, LabeledComboBox, LabeledDoubleSpinBox
+from qt_widgets import LabeledComboBox, LabeledComboBox, LabeledDoubleSpinBox, LabeledSpinBox
 from typing import Dict
 import pyqtgraph as pg
 import numpy as np
@@ -148,6 +148,25 @@ class LightAnalysisWidget(QWidget):
 
         # Powermeter ---- 
 
+        self.powermeter_low_bandwidth_chk = QCheckBox('Low Bandwidth')
+        self.powermeter_low_bandwidth_chk.stateChanged.connect(self.set_powermeter_bandwidth)
+
+        self.powermeter_attenuation_sb = LabeledDoubleSpinBox()
+        self.powermeter_attenuation_sb.setText('Attenuation (dB)')
+        self.powermeter_attenuation_sb.setMinimum(-60)
+        self.powermeter_attenuation_sb.setMaximum(60)
+        self.powermeter_attenuation_sb.setSingleStep(0.5)
+        self.powermeter_attenuation_sb.setValue(0)
+        self.powermeter_attenuation_sb.valueChanged.connect(self.set_powermeter_attenuation)
+
+        self.powermeter_range_sb = LabeledSpinBox()
+        self.powermeter_range_sb.setText('Range (decade)')
+        self.powermeter_range_sb.setMinimum(-5)
+        self.powermeter_range_sb.setMaximum(0)
+        self.powermeter_range_sb.setSingleStep(1)
+        self.powermeter_range_sb.setValue(-2)
+        self.powermeter_range_sb.valueChanged.connect(self.set_powermeter_range)
+
         self.powermeter_beam_diameter = LabeledDoubleSpinBox()
         self.powermeter_beam_diameter.setText('Beam diameter (mm)')
         self.powermeter_beam_diameter.valueChanged.connect(self.set_powermeter_beam_diameter)
@@ -223,6 +242,9 @@ class LightAnalysisWidget(QWidget):
         layout.addSpacing(20)
         layout.addWidget(self.powermeters_cb)
         layout.addWidget(self.powermeter_beam_diameter)
+        layout.addWidget(self.powermeter_low_bandwidth_chk)
+        layout.addWidget(self.powermeter_range_sb)
+        layout.addWidget(self.powermeter_attenuation_sb)
         layout.addLayout(blue_layout)
         layout.addLayout(green_layout)
         layout.addLayout(red_layout)
@@ -343,6 +365,32 @@ class LightAnalysisWidget(QWidget):
         beam_diameter = self.powermeter_beam_diameter.value()
         self.active_powermeter.set_beam_diameter_mm(beam_diameter)
 
+    def set_powermeter_bandwidth(self):
+        
+        if self.active_powermeter is None:
+            return
+        
+        if self.powermeter_low_bandwidth_chk.isChecked():
+            self.active_powermeter.set_bandwidth(thorlabs_pmd.Bandwidth.LOW)
+        else:
+            self.active_powermeter.set_bandwidth(thorlabs_pmd.Bandwidth.HIGH)
+
+    def set_powermeter_range(self):
+        
+        if self.active_powermeter is None:
+            return
+        
+        range = self.powermeter_range_sb.value()
+        self.active_powermeter.set_current_range_decade(range)
+
+    def set_powermeter_attenuation(self):
+        
+        if self.active_powermeter is None:
+            return
+        
+        attenuation = self.powermeter_attenuation_sb.value()
+        self.active_powermeter.set_attenuation_dB(attenuation)
+
     def integration_time_changed(self):
 
         if self.active_spectrometer is None:
@@ -388,6 +436,24 @@ class LightAnalysisWidget(QWidget):
         self.powermeter_beam_diameter.blockSignals(True)
         self.powermeter_beam_diameter.setValue(beam_diameter)
         self.powermeter_beam_diameter.blockSignals(False)
+
+        attenuation = self.active_powermeter.get_attenuation_dB()
+        self.powermeter_attenuation_sb.blockSignals(True)
+        self.powermeter_attenuation_sb.setValue(attenuation)
+        self.powermeter_attenuation_sb.blockSignals(False)
+
+        range = self.active_powermeter.get_current_range_decade()
+        self.powermeter_range_sb.blockSignals(True)
+        self.powermeter_range_sb.setValue(range)
+        self.powermeter_range_sb.blockSignals(False)
+
+        bandwidth = self.active_powermeter.get_bandwidth()
+        self.powermeter_low_bandwidth_chk.blockSignals(True)
+        if bandwidth == thorlabs_pmd.Bandwidth.LOW:
+            self.powermeter_low_bandwidth_chk.setChecked(True)
+        else:
+            self.powermeter_low_bandwidth_chk.setChecked(False)
+        self.powermeter_low_bandwidth_chk.blockSignals(False)
 
     def refresh_devices(self) -> None:
 
