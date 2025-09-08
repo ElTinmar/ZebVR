@@ -22,6 +22,8 @@ import thorlabs_pmd
 # TODO might get errors if things are unplugged mid-way
 # TODO implement get/set state?
 
+# TODO separate widget from controller
+
 pg.setConfigOption('background', (251,251,251,255))
 pg.setConfigOption('foreground', 'k')
 pg.setConfigOption('antialias', True)
