@@ -10,9 +10,10 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer, Qt
 from qt_widgets import LabeledComboBox, LabeledComboBox, LabeledDoubleSpinBox, LabeledSpinBox
-from typing import Dict
+from typing import Dict, TypedDict, Tuple, List
 import pyqtgraph as pg
 import numpy as np
+from functools import partial
 
 import thorlabs_ccs 
 import thorlabs_pmd
@@ -22,11 +23,362 @@ import thorlabs_pmd
 # TODO might get errors if things are unplugged mid-way
 # TODO implement get/set state?
 
-# TODO separate widget from controller
-
 pg.setConfigOption('background', (251,251,251,255))
 pg.setConfigOption('foreground', 'k')
 pg.setConfigOption('antialias', True)
+
+# TODO separate widget from controller
+# TODO separate widgets for Spectro / Powermeter
+
+class SpectrometerState(TypedDict, total=False):
+    spectrometers: List[thorlabs_ccs.DevInfo]
+    serial_number: str
+    integration_time: float
+    no_correction: bool
+    correct_range: bool
+    correct_noise: bool
+    noise_level: float
+    wavelength_left: float
+    wavelength_center: float
+    wavelength_right: float
+    spectrum: Tuple[np.ndarray, np.ndarray] 
+
+class SpectrometerWidget(QWidget):
+
+    # signals
+    spectrometer_changed = pyqtSignal(int)
+    integration_time_changed = pyqtSignal(float)
+    scan_spectrum = pyqtSignal()
+
+    # constants
+    LINE_COL = (50,50,50,255)
+    LINE_WIDTH = 2
+    HEIGHT = 400
+    SPECTRUM_COORD_HINT_SIZE = 7
+
+    def __init__(self,*args,**kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        self.spectrometers: List[thorlabs_ccs.DevInfo] = []
+        self.declare_components()
+        self.layout_components()
+        
+    def declare_components(self) -> None:
+
+        self.refresh_button = QPushButton('Refresh Spectrometers')
+        self.refresh_button.clicked.connect(self.refresh_devices)
+
+        self.spectrometers_cb = LabeledComboBox()
+        self.spectrometers_cb.setText('Spectrometer')
+        self.spectrometers_cb.currentIndexChanged.connect(self.spectrometer_changed)
+
+        self.integration_time = LabeledDoubleSpinBox()
+        self.integration_time.setText('Integration time (ms)')
+        self.integration_time.setMinimum(thorlabs_ccs.TLCCS_MIN_INT_TIME*1000)
+        self.integration_time.setMaximum(thorlabs_ccs.TLCCS_MAX_INT_TIME*1000)
+        self.integration_time.setValue(thorlabs_ccs.TLCCS_DEF_INT_TIME*1000)
+        self.integration_time.setSingleStep(0.01)
+        self.integration_time.valueChanged.connect(self.integration_time_changed)
+
+        self.no_correction = QCheckBox('No correction')
+        self.no_correction.setChecked(True)
+        self.no_correction.stateChanged.connect(self.correct_spectrum)
+        
+        self.correct_range = QCheckBox('Correct range')
+        self.correct_range.setChecked(False)
+        self.correct_range.stateChanged.connect(self.correct_spectrum)
+        
+        self.correct_noise = QCheckBox('Correct noise')
+        self.correct_noise.setChecked(False)
+        self.correct_noise.stateChanged.connect(self.correct_spectrum)
+
+        self.correction_group = QButtonGroup()
+        self.correction_group.setExclusive(True)
+        self.correction_group.addButton(self.no_correction)
+        self.correction_group.addButton(self.correct_range)
+        self.correction_group.addButton(self.correct_noise)
+
+        self.noise_level = LabeledDoubleSpinBox()
+        self.noise_level.setText('noise amp. (dB)')
+        self.noise_level.setMinimum(0)
+        self.noise_level.setMaximum(30)
+        self.noise_level.setValue(1.0)
+        self.noise_level.setSingleStep(0.1)
+        self.noise_level.setEnabled(False)
+
+        self.wavelength_left = LabeledDoubleSpinBox()
+        self.wavelength_left.setText('λ left (nm)')
+        self.wavelength_left.setMinimum(0)
+        self.wavelength_left.setMaximum(1000)
+        self.wavelength_left.setValue(320)
+        self.wavelength_left.setSingleStep(0.1)
+        self.wavelength_left.setEnabled(False)
+        self.wavelength_left.valueChanged.connect(self.update_wavelength_left)
+
+        self.wavelength_center = LabeledDoubleSpinBox()
+        self.wavelength_center.setText('λ center (nm)')
+        self.wavelength_center.setMinimum(0)
+        self.wavelength_center.setMaximum(1000)
+        self.wavelength_center.setValue(500)
+        self.wavelength_center.setSingleStep(0.1)
+        self.wavelength_center.setEnabled(False)
+
+        self.wavelength_right = LabeledDoubleSpinBox()
+        self.wavelength_right.setText('λ right (nm)')
+        self.wavelength_right.setMinimum(0)
+        self.wavelength_right.setMaximum(1000)
+        self.wavelength_right.setValue(720)
+        self.wavelength_right.setSingleStep(0.1)
+        self.wavelength_right.setEnabled(False)
+        self.wavelength_right.valueChanged.connect(self.update_wavelength_right)
+
+        self.spectrum_button = QPushButton('Scan spectrum')
+        self.spectrum_button.clicked.connect(self.scan_spectrum)
+
+        self.spectrum_plot = pg.plot()
+        self.spectrum_plot.setXRange(200,1000)
+        self.spectrum_plot.setFixedHeight(self.HEIGHT)
+        self.spectrum_plot.setLabel('left', 'Intensity (AU)')
+        self.spectrum_plot.setLabel('bottom', 'Wavelength (nm)') 
+        self.spectrum_data = self.spectrum_plot.plot(
+            np.linspace(200,1000,800), 
+            np.zeros((800,)), 
+            pen=pg.mkPen(self.LINE_COL, width=self.LINE_WIDTH)
+        )
+
+        self.coord_label = QLabel("Wavelength=0 nm, Intensity=0")
+        self.hover_point = self.spectrum_plot.plot(
+            [0], [0],
+            pen=None, symbol='o', symbolBrush='r', symbolSize=self.SPECTRUM_COORD_HINT_SIZE
+        )
+        self.proxy = pg.SignalProxy(
+            self.spectrum_plot.scene().sigMouseMoved,
+            rateLimit=60,
+            slot=self.mouseMoved
+        )
+
+    def layout_components(self) -> None:
+
+        spectro_ctl1 = QHBoxLayout()
+        spectro_ctl1.addWidget(self.correct_noise)
+        spectro_ctl1.addWidget(self.noise_level)
+        spectro_ctl1.addWidget(self.wavelength_center)
+        
+        spectro_ctl2 = QHBoxLayout()
+        spectro_ctl2.addWidget(self.correct_range)
+        spectro_ctl2.addWidget(self.wavelength_left)
+        spectro_ctl2.addWidget(self.wavelength_right)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.refresh_button)
+        layout.addSpacing(20)
+        layout.addWidget(self.spectrometers_cb)
+        layout.addWidget(self.integration_time)
+        layout.addWidget(self.no_correction)
+        layout.addLayout(spectro_ctl1)
+        layout.addLayout(spectro_ctl2)
+        layout.addWidget(self.spectrum_button)
+        layout.addWidget(self.spectrum_plot)
+        layout.addWidget(self.coord_label)
+        layout.addStretch()
+
+    def update_wavelength_left(self, value: float) -> None:
+        if self.wavelength_right.value() <= value:
+            self.wavelength_right.setValue(value+1)
+
+    def update_wavelength_right(self, value: float) -> None:
+        if self.wavelength_left.value() >= value:
+            self.wavelength_left.setValue(value-1)
+
+    def correct_spectrum(self):
+
+        # enable or disable controls
+        if self.no_correction.isChecked():
+            self.noise_level.setEnabled(False)
+            self.wavelength_left.setEnabled(False)
+            self.wavelength_center.setEnabled(False)
+            self.wavelength_right.setEnabled(False)
+    
+        if self.correct_noise.isChecked():
+            self.noise_level.setEnabled(True)
+            self.wavelength_center.setEnabled(True)
+            self.wavelength_left.setEnabled(False)
+            self.wavelength_right.setEnabled(False)
+        
+        if self.correct_range.isChecked():
+            self.noise_level.setEnabled(False)
+            self.wavelength_center.setEnabled(False)
+            self.wavelength_left.setEnabled(True)
+            self.wavelength_right.setEnabled(True)
+
+    def refresh_devices(self) -> None:
+
+        self.spectrometers = thorlabs_ccs.list_spectrometers()
+        self.spectrometers_cb.clear()
+        for dev_info in self.spectrometers:
+            self.spectrometers_cb.addItem(dev_info.serial_number)
+
+    def get_state(self) -> SpectrometerState:
+        
+        state: SpectrometerState = {
+            'spectrometers': self.spectrometers,
+            'serial_number': self.spectrometers_cb.currentText(),
+            'integration_time': self.integration_time.value(),
+            'no_correction': self.no_correction.isChecked(),
+            'correct_range': self.correct_range.isChecked(),
+            'correct_noise': self.correct_noise.isChecked(),
+            'noise_level': self.noise_level.value(),
+            'wavelength_left': self.wavelength_left.value(),
+            'wavelength_center': self.wavelength_center.value(),
+            'wavelength_right': self.wavelength_right.value(),
+            'spectrum': self.spectrum_data.getData(),
+        }
+        return state
+
+    def set_state(self, state: SpectrometerState) -> None:
+
+        setters = {
+            'serial_number': self.spectrometers_cb.setCurrentText,
+            'integration_time': self.integration_time.setValue,
+            'no_correction': self.no_correction.setChecked,
+            'correct_range': self.correct_range.setChecked,
+            'correct_noise': self.correct_noise.setChecked,
+            'noise_level': self.noise_level.setValue,
+            'wavelength_left': self.wavelength_left.setValue,
+            'wavelength_center': self.wavelength_center.setValue,
+            'wavelength_right': self.wavelength_right.setValue,
+            'spectrum': self.spectrum_data.setData
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
+
+    def mouseMoved(self, evt):
+        pos = evt[0]  # QPointF from the scene
+        if self.spectrum_plot.sceneBoundingRect().contains(pos):
+            mouse_point = self.spectrum_plot.plotItem.vb.mapSceneToView(pos)
+            mouse_pos = np.array((mouse_point.x(), mouse_point.y()))
+            spectrum = np.array(self.spectrum_data.getData())
+
+            dists = np.sum((mouse_pos - spectrum.T)**2, axis=1)
+            idx = np.argmin(dists)
+            x_closest, y_closest = spectrum[:,idx]
+
+            self.coord_label.setText(f"Wavelength={x_closest:.2f} nm, Intensity={y_closest:.2f}")
+            self.hover_point.setData([x_closest], [y_closest])
+
+    def closeEvent(self, event):
+        ...
+
+class SpectrometerController(QObject):
+    
+    def __init__(self, spectrometer_widget: SpectrometerWidget, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        self.spectrometer_widget = spectrometer_widget
+        self.spectrometer_widget.spectrometer_changed.connect(self.spectrometer_changed)
+        self.spectrometer_widget.integration_time_changed.connect(self.integration_time_changed)
+        self.spectrometer_widget.scan_spectrum.connect(self.scan_spectrum)
+
+        self.spectrometer_constructor = None
+        
+    def spectrometer_changed(self) -> None:
+
+        state = self.spectrometer_widget.get_state()
+        
+        if state['serial_number'] == '':
+            return
+        
+        device_info = [
+            dev_info 
+            for dev_info in state['spectrometers'] 
+            if dev_info.serial_number == state['serial_number']
+        ]
+        if not device_info:
+            raise thorlabs_ccs.DeviceNotFound(f"Serial number: {state['serial_number']}")
+        self.spectrometer_constructor = partial(thorlabs_ccs.TLCCS, device_info = device_info[0])
+        
+        # reset GUI
+        new_state: SpectrometerState = {}
+        with self.spectrometer_constructor() as spectrometer:
+            new_state['integration_time'] = spectrometer.get_integration_time()*1000
+        new_state['no_correction'] = True
+        
+        self.spectrometer_widget.set_state(new_state)
+
+    def integration_time_changed(self) -> None:
+
+        state = self.spectrometer_widget.get_state()
+
+        if self.spectrometer_constructor is None:
+            return
+        
+        with self.spectrometer_constructor() as spectrometer:
+            spectrometer.set_integration_time(state['integration_time']/1000)
+
+    def scan_spectrum(self) -> None:
+        
+        state = self.spectrometer_widget.get_state()
+
+        if self.spectrometer_constructor is None:
+            return
+        
+        new_state: SpectrometerState = {}
+
+        with self.spectrometer_constructor() as spectrometer:
+            
+            wavelength = spectrometer.get_wavelength()
+            spectrometer.start_single_scan()
+            
+            if state['no_correction']:
+                scan = spectrometer.get_scan_data_factory()
+
+            elif state['correct_noise']:
+                scan, wavelength_left, wavelength_right = spectrometer.get_scan_data_corrected_noise(
+                    center_wl = state['wavelength_center'],
+                    noise_amplification_dB = state['noise_level']
+                )
+                
+                new_state['wavelength_left'] = wavelength_left 
+                new_state['wavelength_right'] = wavelength_right
+
+            else:
+                scan, noise_amplification = spectrometer.get_scan_data_corrected_range(
+                    min_wl = state['wavelength_left'],
+                    max_wl = state['wavelength_right']
+                )
+
+                new_state['noise_level'] = noise_amplification 
+
+            new_state['spectrum'] = (np.array(wavelength), np.array(scan))
+        
+        self.spectrometer_widget.set_state(new_state)   
+    
+class PowermeterWidget(QWidget):
+
+    def __init__(self,*args,**kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        self.declare_components()
+        self.layout_components()
+
+    def declare_components(self) -> None:
+        ...
+    
+    def layout_components(self) -> None:
+        ...
+
+class PowermeterController(QObject):
+
+    def __init__(self, powermeter_widget: PowermeterWidget, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        self.powermeter_widget = powermeter_widget
+
 
 class LightAnalysisWidget(QWidget):
 
