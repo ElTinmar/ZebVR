@@ -21,14 +21,11 @@ import thorlabs_pmd
 # TODO button to save state (spectrum + power) as reference and overlay ref  
 # TODO check hardware state
 # TODO might get errors if things are unplugged mid-way
-# TODO implement get/set state?
 
 pg.setConfigOption('background', (251,251,251,255))
 pg.setConfigOption('foreground', 'k')
 pg.setConfigOption('antialias', True)
 
-# TODO separate widget from controller
-# TODO separate widgets for Spectro / Powermeter
 
 class SpectrometerState(TypedDict, total=False):
     spectrometers: List[thorlabs_ccs.DevInfo]
@@ -63,6 +60,7 @@ class SpectrometerWidget(QWidget):
         self.spectrometers: List[thorlabs_ccs.DevInfo] = []
         self.declare_components()
         self.layout_components()
+        self.refresh_devices()
         
     def declare_components(self) -> None:
 
@@ -309,15 +307,13 @@ class SpectrometerController(QObject):
         
         self.spectrometer_widget.set_state(new_state)
 
-    def integration_time_changed(self) -> None:
-
-        state = self.spectrometer_widget.get_state()
+    def integration_time_changed(self, integration_time: float) -> None:
 
         if self.spectrometer_constructor is None:
             return
         
         with self.spectrometer_constructor() as spectrometer:
-            spectrometer.set_integration_time(state['integration_time']/1000)
+            spectrometer.set_integration_time(integration_time/1000)
 
     def scan_spectrum(self) -> None:
         
@@ -356,8 +352,323 @@ class SpectrometerController(QObject):
             new_state['spectrum'] = (np.array(wavelength), np.array(scan))
         
         self.spectrometer_widget.set_state(new_state)   
-    
+
+
+class PowermeterState(TypedDict, total=False):
+    powermeters: List[thorlabs_pmd.DevInfo]
+    serial_number: str
+    bandwidth_low: bool
+    attenuation_dB: float
+    range_decade: int
+    beam_diameter_mm: float
+    wavelength_red: float
+    wavelength_green: float
+    wavelength_blue: float
+    red_power_density: float
+    green_power_density: float
+    blue_power_density: float
+
 class PowermeterWidget(QWidget):
+
+    powermeter_changed = pyqtSignal(int)
+    bandwidth_changed = pyqtSignal(bool)
+    attenuation_changed = pyqtSignal(float)
+    range_changed = pyqtSignal(int)
+    beam_diameter_changed = pyqtSignal(float)
+    calibrate_red_power = pyqtSignal()
+    calibrate_green_power = pyqtSignal()
+    calibrate_blue_power = pyqtSignal()
+    power_calibration = pyqtSignal()
+
+    def __init__(self,*args,**kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        self.powermeters: List[thorlabs_pmd.DevInfo] = []
+        self.red_power_density: float = 0
+        self.green_power_density: float = 0
+        self.blue_power_density: float = 0
+        
+        self.declare_components()
+        self.layout_components()
+        self.refresh_devices()
+
+    def declare_components(self) -> None:
+
+        self.refresh_button = QPushButton('Refresh Powermeters')
+        self.refresh_button.clicked.connect(self.refresh_devices)
+
+        self.powermeters_cb = LabeledComboBox()
+        self.powermeters_cb.setText('Powermeter')
+        self.powermeters_cb.currentIndexChanged.connect(self.powermeter_changed)
+
+        self.powermeter_low_bandwidth_chk = QCheckBox('Low Bandwidth')
+        self.powermeter_low_bandwidth_chk.stateChanged.connect(self.bandwidth_changed)
+
+        self.powermeter_attenuation_sb = LabeledDoubleSpinBox()
+        self.powermeter_attenuation_sb.setText('Attenuation (dB)')
+        self.powermeter_attenuation_sb.setMinimum(-60)
+        self.powermeter_attenuation_sb.setMaximum(60)
+        self.powermeter_attenuation_sb.setSingleStep(0.5)
+        self.powermeter_attenuation_sb.setValue(0)
+        self.powermeter_attenuation_sb.valueChanged.connect(self.attenuation_changed)
+
+        self.powermeter_range_sb = LabeledSpinBox()
+        self.powermeter_range_sb.setText('Range (decade)')
+        self.powermeter_range_sb.setMinimum(-5)
+        self.powermeter_range_sb.setMaximum(0)
+        self.powermeter_range_sb.setSingleStep(1)
+        self.powermeter_range_sb.setValue(-2)
+        self.powermeter_range_sb.valueChanged.connect(self.range_changed)
+
+        self.powermeter_beam_diameter = LabeledDoubleSpinBox()
+        self.powermeter_beam_diameter.setText('Beam diameter (mm)')
+        self.powermeter_beam_diameter.valueChanged.connect(self.beam_diameter_changed)
+
+        self.calibrate_blue = QPushButton('Calibrate Blue Power')
+        self.calibrate_blue.clicked.connect(self.calibrate_blue_power)
+        self.blue_power = QLabel('Blue power: (mW.cm⁻²)')
+        self.powermeter_wavelength_blue = LabeledDoubleSpinBox()
+        self.powermeter_wavelength_blue.setText('λ (nm)')
+        self.powermeter_wavelength_blue.setMinimum(0)
+        self.powermeter_wavelength_blue.setMaximum(2000)
+        self.powermeter_wavelength_blue.setValue(450)
+
+        self.calibrate_green = QPushButton('Calibrate Green Power')
+        self.calibrate_green.clicked.connect(self.calibrate_green_power)
+        self.green_power = QLabel('Green power: (mW.cm⁻²)')
+        self.powermeter_wavelength_green = LabeledDoubleSpinBox()
+        self.powermeter_wavelength_green.setText('λ (nm)')
+        self.powermeter_wavelength_green.setMinimum(0)
+        self.powermeter_wavelength_green.setMaximum(2000)
+        self.powermeter_wavelength_green.setValue(535)
+
+        self.calibrate_red = QPushButton('Calibrate Red Power')
+        self.calibrate_red.clicked.connect(self.calibrate_red_power)
+        self.red_power = QLabel('Red power: (mW.cm⁻²)')
+        self.powermeter_wavelength_red = LabeledDoubleSpinBox()
+        self.powermeter_wavelength_red.setText('λ (nm)')
+        self.powermeter_wavelength_red.setMinimum(0)
+        self.powermeter_wavelength_red.setMaximum(2000)
+        self.powermeter_wavelength_red.setValue(675)
+
+        self.full_calibration_bt = QPushButton('Power Calibration')
+        self.full_calibration_bt.clicked.connect(self.power_calibration)
+    
+    def layout_components(self) -> None:
+
+        blue_layout = QHBoxLayout()
+        blue_layout.addWidget(self.calibrate_blue)
+        blue_layout.addWidget(self.powermeter_wavelength_blue)
+        blue_layout.addStretch()
+        blue_layout.addWidget(self.blue_power)
+
+        green_layout = QHBoxLayout()
+        green_layout.addWidget(self.calibrate_green)
+        green_layout.addWidget(self.powermeter_wavelength_green)
+        green_layout.addStretch()
+        green_layout.addWidget(self.green_power)
+
+        red_layout = QHBoxLayout()
+        red_layout.addWidget(self.calibrate_red)
+        red_layout.addWidget(self.powermeter_wavelength_red)
+        red_layout.addStretch()
+        red_layout.addWidget(self.red_power)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.refresh_button)
+        layout.addWidget(self.powermeters_cb)
+        layout.addWidget(self.powermeter_beam_diameter)
+        layout.addWidget(self.powermeter_low_bandwidth_chk)
+        layout.addWidget(self.powermeter_range_sb)
+        layout.addWidget(self.powermeter_attenuation_sb)
+        layout.addLayout(blue_layout)
+        layout.addLayout(green_layout)
+        layout.addLayout(red_layout)
+        layout.addWidget(self.full_calibration_bt)
+        layout.addStretch()
+
+    def refresh_devices(self) -> None:
+
+        self.powermeters = thorlabs_pmd.list_powermeters()
+        self.powermeters_cb.clear()
+        for dev_info in self.powermeters:
+            self.powermeters_cb.addItem(dev_info.serial_number)
+
+    def set_red_power_density(self, power_density: float) -> None:
+        self.red_power_density = power_density
+        self.red_power.setText(f'Red power: {power_density:.3f} (mW.cm⁻²)')
+
+    def set_green_power_density(self, power_density: float) -> None:
+        self.green_power_density = power_density
+        self.green_power.setText(f'Green power: {power_density:.3f} (mW.cm⁻²)')
+
+    def set_blue_power_density(self, power_density: float) -> None:
+        self.blue_power_density = power_density
+        self.blue_power.setText(f'Blue power: {power_density:.3f} (mW.cm⁻²)')
+
+    def get_state(self) -> PowermeterState:
+        
+        state: PowermeterState = {
+            'powermeters': self.powermeters,
+            'serial_number': self.powermeters_cb.currentText(),
+            'attenuation_dB': self.powermeter_attenuation_sb.value(),
+            'bandwidth_low': self.powermeter_low_bandwidth_chk.isChecked(),
+            'range_decade': self.powermeter_range_sb.value(),
+            'beam_diameter_mm': self.powermeter_beam_diameter.value(),
+            'wavelength_red': self.powermeter_wavelength_red.value(),
+            'wavelength_green': self.powermeter_wavelength_green.value(),
+            'wavelength_blue': self.powermeter_wavelength_blue.value(),
+            'red_power_density': self.red_power_density,
+            'green_power_density': self.green_power_density,
+            'blue_power_density': self.blue_power_density,
+        }
+        return state
+
+    def set_state(self, state: PowermeterState) -> None:
+
+        setters = {
+            'serial_number': self.powermeters_cb.setCurrentText,
+            'attenuation_dB': self.powermeter_attenuation_sb.setValue,
+            'bandwidth_low': self.powermeter_low_bandwidth_chk.setChecked,
+            'range_decade': self.powermeter_range_sb.setValue,
+            'beam_diameter_mm': self.powermeter_beam_diameter.setValue,
+            'wavelength_red': self.powermeter_wavelength_red.setValue,
+            'wavelength_green': self.powermeter_wavelength_green.setValue,
+            'wavelength_blue': self.powermeter_wavelength_blue.setValue,
+            'red_power_density': self.set_red_power_density,
+            'green_power_density': self.set_green_power_density,
+            'blue_power_density': self.set_blue_power_density
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
+
+    def closeEvent(self, event):
+        ...
+
+class PowermeterController(QObject):
+
+    power_calibration = pyqtSignal()
+
+    def __init__(self, powermeter_widget: PowermeterWidget, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        self.powermeter_constructor = None
+        self.powermeter_widget = powermeter_widget
+        self.powermeter_widget.powermeter_changed.connect(self.powermeter_changed)
+        self.powermeter_widget.bandwidth_changed.connect(self.bandwidth_changed)
+        self.powermeter_widget.attenuation_changed.connect(self.attenuation_changed)
+        self.powermeter_widget.range_changed.connect(self.range_changed)
+        self.powermeter_widget.beam_diameter_changed.connect(self.beam_diameter_changed)
+        self.powermeter_widget.calibrate_red_power.connect(self.calibrate_red_power)
+        self.powermeter_widget.calibrate_green_power.connect(self.calibrate_green_power)
+        self.powermeter_widget.calibrate_blue_power.connect(self.calibrate_blue_power)
+        self.powermeter_widget.power_calibration.connect(self.power_calibration)
+
+    def powermeter_changed(self) -> None:
+
+        state = self.powermeter_widget.get_state()
+
+        # find powermeter with given serial number
+        if state['serial_number'] == '':
+            return
+        
+        device_info = [
+            dev_info 
+            for dev_info in state['powermeters'] 
+            if dev_info.serial_number == state['serial_number']
+        ]
+        if not device_info:
+            raise thorlabs_pmd.DeviceNotFound(f"Serial number: {state['serial_number']}")
+        self.powermeter_constructor = partial(thorlabs_pmd.TLPMD, device_info[0])
+
+        # reset GUI
+        
+        new_state: PowermeterState = {}
+        with self.powermeter_constructor() as powermeter:
+            new_state['beam_diameter_mm'] = self.active_powermeter.get_beam_diameter_mm()
+            new_state['attenuation_dB'] = self.active_powermeter.get_attenuation_dB()
+            new_state['range_decade'] = self.active_powermeter.get_current_range_decade()
+            new_state['bandwidth_low'] = self.active_powermeter.get_bandwidth() == thorlabs_pmd.Bandwidth.LOW
+        self.powermeter_widget.set_state(new_state)
+
+    def attenuation_changed(self, attenuation_dB: float) -> None:
+
+        if self.powermeter_constructor is None:
+            return 
+        
+        with self.powermeter_constructor() as powermeter:
+            powermeter.set_attenuation_dB(attenuation_dB)
+
+    def bandwidth_changed(self, bandwidth: bool) -> None:
+
+        if self.powermeter_constructor is None:
+            return 
+        
+        with self.powermeter_constructor() as powermeter:
+            if bandwidth:
+                powermeter.set_attenuation_dB(thorlabs_pmd.Bandwidth.LOW)
+            else:
+                powermeter.set_attenuation_dB(thorlabs_pmd.Bandwidth.HIGH)
+
+    def range_changed(self, range_decade: int) -> None
+
+        if self.powermeter_constructor is None:
+            return 
+        
+        with self.powermeter_constructor() as powermeter:
+            powermeter.set_current_range_decade(range_decade)
+
+    def beam_diameter_changed(self, beam_diameter_mm: float) -> None:
+
+        if self.powermeter_constructor is None:
+            return 
+        
+        with self.powermeter_constructor() as powermeter:
+            powermeter.set_beam_diameter_mm(beam_diameter_mm)
+
+    def calibrate_red_power(self) -> None:
+        
+        if self.powermeter_constructor is None:
+            return 
+        
+        state = self.powermeter_widget.get_state()
+        new_state: PowermeterState = {}
+        with self.powermeter_constructor() as powermeter:
+            powermeter.set_wavelength_nm(state['wavelength_red'])
+            new_state['red_power_density'] = powermeter.get_power_density_mW_cm2()
+        self.powermeter_widget.set_state(new_state)
+
+    def calibrate_green_power(self) -> None:
+        
+        if self.powermeter_constructor is None:
+            return 
+        
+        state = self.powermeter_widget.get_state()
+        new_state: PowermeterState = {}
+        with self.powermeter_constructor() as powermeter:
+            powermeter.set_wavelength_nm(state['wavelength_green'])
+            new_state['green_power_density'] = powermeter.get_power_density_mW_cm2()
+        self.powermeter_widget.set_state(new_state)
+
+    def calibrate_blue_power(self) -> None:
+        
+        if self.powermeter_constructor is None:
+            return 
+        
+        state = self.powermeter_widget.get_state()
+        new_state: PowermeterState = {}
+        with self.powermeter_constructor() as powermeter:
+            powermeter.set_wavelength_nm(state['wavelength_blue'])
+            new_state['blue_power_density'] = powermeter.get_power_density_mW_cm2()
+        self.powermeter_widget.set_state(new_state)
+
+class LightAnalysisWidget2(QWidget):
+
+    power_calibration = pyqtSignal()
 
     def __init__(self,*args,**kwargs):
 
@@ -367,18 +678,36 @@ class PowermeterWidget(QWidget):
         self.layout_components()
 
     def declare_components(self) -> None:
-        ...
-    
+
+        self.spectrometer_widget = SpectrometerWidget()
+        self.spectrometer_controller = SpectrometerController(self.spectrometer_widget) 
+        
+        self.powermeter_widget = PowermeterWidget()
+        self.powermeter_widget = PowermeterController(self.powermeter_widget)
+        self.powermeter_widget.power_calibration.connect(self.power_calibration)
+
     def layout_components(self) -> None:
-        ...
 
-class PowermeterController(QObject):
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.spectrometer_widget)
+        layout.addWidget(self.powermeter_widget)
+        layout.addStretch()
 
-    def __init__(self, powermeter_widget: PowermeterWidget, *args, **kwargs):
+    def get_state(self) -> Dict:
+        state = {}
+        state['spectrometer'] = self.spectrometer_widget.get_state()
+        state['powermeter'] = self.powermeter_widget.get_state()
+        return state
 
-        super().__init__(*args, **kwargs)
-        self.powermeter_widget = powermeter_widget
+    def set_state(self, state: Dict):
+        setters = {
+            'spectrometer': self.spectrometer_widget.set_state,
+            'powermeter': self.powermeter_widget.set_state,
+        }
 
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
 
 class LightAnalysisWidget(QWidget):
 
