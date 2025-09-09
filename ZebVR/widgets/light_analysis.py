@@ -26,6 +26,7 @@ pg.setConfigOption('background', (251,251,251,255))
 pg.setConfigOption('foreground', 'k')
 pg.setConfigOption('antialias', True)
 
+# FIXME reconstructing object everytime slow, plus settings dont stick. 
 
 class SpectrometerState(TypedDict, total=False):
     spectrometer_constructor: Optional[Callable[[], thorlabs_ccs.TLCCS]]
