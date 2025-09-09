@@ -8,9 +8,9 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QButtonGroup
 )
-from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer, Qt
-from qt_widgets import LabeledComboBox, LabeledComboBox, LabeledDoubleSpinBox, LabeledSpinBox
-from typing import Dict, TypedDict, Tuple, List
+from PyQt5.QtCore import pyqtSignal, QObject
+from qt_widgets import LabeledComboBox, LabeledDoubleSpinBox, LabeledSpinBox
+from typing import Dict, TypedDict, Tuple, List, Callable, Optional
 import pyqtgraph as pg
 import numpy as np
 from functools import partial
@@ -28,6 +28,7 @@ pg.setConfigOption('antialias', True)
 
 
 class SpectrometerState(TypedDict, total=False):
+    spectrometer_constructor: Optional[Callable[[], thorlabs_ccs.TLCCS]]
     spectrometers: List[thorlabs_ccs.DevInfo]
     serial_number: str
     integration_time: float
@@ -246,7 +247,7 @@ class SpectrometerWidget(QWidget):
             'wavelength_left': self.wavelength_left.setValue,
             'wavelength_center': self.wavelength_center.setValue,
             'wavelength_right': self.wavelength_right.setValue,
-            'spectrum': self.spectrum_data.setData
+            'spectrum': lambda tup: self.spectrum_data.setData(*tup)
         }
 
         for key, setter in setters.items():
@@ -254,8 +255,10 @@ class SpectrometerWidget(QWidget):
                 setter(state[key])
 
     def mouseMoved(self, evt):
-        pos = evt[0]  # QPointF from the scene
+
+        pos = evt[0]  
         if self.spectrum_plot.sceneBoundingRect().contains(pos):
+
             mouse_point = self.spectrum_plot.plotItem.vb.mapSceneToView(pos)
             mouse_pos = np.array((mouse_point.x(), mouse_point.y()))
             spectrum = np.array(self.spectrum_data.getData())
@@ -276,12 +279,12 @@ class SpectrometerController(QObject):
 
         super().__init__(*args, **kwargs)
 
+        self.spectrometer_constructor = None
         self.spectrometer_widget = spectrometer_widget
         self.spectrometer_widget.spectrometer_changed.connect(self.spectrometer_changed)
         self.spectrometer_widget.integration_time_changed.connect(self.integration_time_changed)
         self.spectrometer_widget.scan_spectrum.connect(self.scan_spectrum)
-
-        self.spectrometer_constructor = None
+        self.spectrometer_changed()
         
     def spectrometer_changed(self) -> None:
 
@@ -353,8 +356,17 @@ class SpectrometerController(QObject):
         
         self.spectrometer_widget.set_state(new_state)   
 
+    def get_state(self) -> SpectrometerState:
+        state = self.spectrometer_widget.get_state()
+        state['spectrometer_constructor'] = self.spectrometer_constructor
+        return state
+    
+    def set_state(self, state: SpectrometerState) -> None:
+        self.spectrometer_constructor = state.get('spectrometer_constructor')
+        self.spectrometer_widget.set_state(state)
 
 class PowermeterState(TypedDict, total=False):
+    powermeter_constructor: Optional[Callable[[], thorlabs_pmd.TLPMD]]
     powermeters: List[thorlabs_pmd.DevInfo]
     serial_number: str
     bandwidth_low: bool
@@ -403,7 +415,7 @@ class PowermeterWidget(QWidget):
         self.powermeters_cb.currentIndexChanged.connect(self.powermeter_changed)
 
         self.powermeter_low_bandwidth_chk = QCheckBox('Low Bandwidth')
-        self.powermeter_low_bandwidth_chk.stateChanged.connect(self.bandwidth_changed)
+        self.powermeter_low_bandwidth_chk.toggled.connect(self.bandwidth_changed)
 
         self.powermeter_attenuation_sb = LabeledDoubleSpinBox()
         self.powermeter_attenuation_sb.setText('Attenuation (dB)')
@@ -567,6 +579,7 @@ class PowermeterController(QObject):
         self.powermeter_widget.calibrate_green_power.connect(self.calibrate_green_power)
         self.powermeter_widget.calibrate_blue_power.connect(self.calibrate_blue_power)
         self.powermeter_widget.power_calibration.connect(self.power_calibration)
+        self.powermeter_changed()
 
     def powermeter_changed(self) -> None:
 
@@ -589,10 +602,10 @@ class PowermeterController(QObject):
         
         new_state: PowermeterState = {}
         with self.powermeter_constructor() as powermeter:
-            new_state['beam_diameter_mm'] = self.active_powermeter.get_beam_diameter_mm()
-            new_state['attenuation_dB'] = self.active_powermeter.get_attenuation_dB()
-            new_state['range_decade'] = self.active_powermeter.get_current_range_decade()
-            new_state['bandwidth_low'] = self.active_powermeter.get_bandwidth() == thorlabs_pmd.Bandwidth.LOW
+            new_state['beam_diameter_mm'] = powermeter.get_beam_diameter_mm()
+            new_state['attenuation_dB'] = powermeter.get_attenuation_dB()
+            new_state['range_decade'] = powermeter.get_current_range_decade()
+            new_state['bandwidth_low'] = powermeter.get_bandwidth() == thorlabs_pmd.Bandwidth.LOW
         self.powermeter_widget.set_state(new_state)
 
     def attenuation_changed(self, attenuation_dB: float) -> None:
@@ -610,11 +623,11 @@ class PowermeterController(QObject):
         
         with self.powermeter_constructor() as powermeter:
             if bandwidth:
-                powermeter.set_attenuation_dB(thorlabs_pmd.Bandwidth.LOW)
+                powermeter.set_bandwidth(thorlabs_pmd.Bandwidth.LOW)
             else:
-                powermeter.set_attenuation_dB(thorlabs_pmd.Bandwidth.HIGH)
+                powermeter.set_bandwidth(thorlabs_pmd.Bandwidth.HIGH)
 
-    def range_changed(self, range_decade: int) -> None
+    def range_changed(self, range_decade: int) -> None:
 
         if self.powermeter_constructor is None:
             return 
@@ -666,6 +679,15 @@ class PowermeterController(QObject):
             new_state['blue_power_density'] = powermeter.get_power_density_mW_cm2()
         self.powermeter_widget.set_state(new_state)
 
+    def get_state(self) -> PowermeterState:
+        state = self.powermeter_widget.get_state()
+        state['powermeter_constructor'] = self.powermeter_constructor
+        return state
+    
+    def set_state(self, state: PowermeterState) -> None:
+        self.powermeter_constructor = state.get('powermeter_constructor')
+        self.powermeter_widget.set_state(state)
+
 class LightAnalysisWidget2(QWidget):
 
     power_calibration = pyqtSignal()
@@ -681,28 +703,29 @@ class LightAnalysisWidget2(QWidget):
 
         self.spectrometer_widget = SpectrometerWidget()
         self.spectrometer_controller = SpectrometerController(self.spectrometer_widget) 
-        
+
         self.powermeter_widget = PowermeterWidget()
-        self.powermeter_widget = PowermeterController(self.powermeter_widget)
-        self.powermeter_widget.power_calibration.connect(self.power_calibration)
+        self.powermeter_controller = PowermeterController(self.powermeter_widget)
+        self.powermeter_controller.power_calibration.connect(self.power_calibration)
 
     def layout_components(self) -> None:
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.spectrometer_widget)
+        layout.addSpacing(20)
         layout.addWidget(self.powermeter_widget)
         layout.addStretch()
 
     def get_state(self) -> Dict:
         state = {}
-        state['spectrometer'] = self.spectrometer_widget.get_state()
-        state['powermeter'] = self.powermeter_widget.get_state()
+        state['spectrometer'] = self.spectrometer_controller.get_state()
+        state['powermeter'] = self.powermeter_controller.get_state()
         return state
 
     def set_state(self, state: Dict):
         setters = {
-            'spectrometer': self.spectrometer_widget.set_state,
-            'powermeter': self.powermeter_widget.set_state,
+            'spectrometer': self.spectrometer_controller.set_state,
+            'powermeter': self.powermeter_controller.set_state,
         }
 
         for key, setter in setters.items():
@@ -1199,6 +1222,6 @@ class LightAnalysisWidget(QWidget):
 if __name__ == '__main__':
 
     app = QApplication([])
-    window = LightAnalysisWidget()
+    window = LightAnalysisWidget2()
     window.show()
     app.exec()
