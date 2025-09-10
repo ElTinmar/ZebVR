@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QGroupBox,
     QScrollArea,
-    QSizePolicy
 )
 from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer
 from typing import Dict, List
@@ -26,6 +25,7 @@ class ProjectorWidget(QWidget):
 
     state_changed = pyqtSignal()
     close_signal = pyqtSignal()
+    power_calibration = pyqtSignal()
 
     serial_port_changed = pyqtSignal(str)
     power_on_signal = pyqtSignal()
@@ -177,6 +177,7 @@ class ProjectorWidget(QWidget):
 
         # Calibrate power
         self.light_analysis = LightAnalysisWidget()
+        self.light_analysis.power_calibration.emit(self.power_calibration)
     
     def serial_changed(self, index: int):
         port = self.serial_devices[index].device
@@ -269,6 +270,7 @@ class ProjectorWidget(QWidget):
         state['pixel_scale'] = (self.scale_x.value(), self.scale_y.value())
         state['fullscreen'] = self.fullscreen.isChecked()
         state['fps'] = self.proj_fps.value()
+        state['light_analysis'] = self.light_analysis.get_state()
         
         return state
     
@@ -289,6 +291,7 @@ class ProjectorWidget(QWidget):
             ),
             'fps': self.proj_fps.setValue,
             'fullscreen': self.fullscreen.setChecked,   
+            'light_analysis': self.light_analysis.set_state
         }
 
         for key, setter in setters.items():
@@ -331,6 +334,7 @@ class ProjectorWidget(QWidget):
 class ProjectorController(QObject):
 
     state_changed = pyqtSignal()
+    power_calibration = pyqtSignal()
     REFRESH_RATE: float = 1.0
 
     def __init__(self, view: ProjectorWidget, *args, **kwargs):
@@ -356,6 +360,7 @@ class ProjectorController(QObject):
         self.view.red_gain_changed.connect(self.set_color_temperature_red_gain)
         self.view.green_gain_changed.connect(self.set_color_temperature_green_gain)
         self.view.blue_gain_changed.connect(self.set_color_temperature_blue_gain)
+        self.view.power_calibration.connect(self.power_calibration)
 
         self.new_thread.start()
 

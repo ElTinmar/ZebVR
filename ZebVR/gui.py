@@ -76,6 +76,7 @@ class MainGui(QMainWindow):
         self.projector_widget = ProjectorWidget()
         self.projector_controller = ProjectorController(self.projector_widget)
         self.projector_controller.state_changed.connect(self.update_projector_settings)
+        self.projector_controller.power_calibration.connect(self.power_calibration_callback)
 
         self.audio_widget = AudioWidget()
         self.audio_widget.state_changed.connect(self.update_audio_settings)
@@ -412,6 +413,9 @@ class MainGui(QMainWindow):
         self.update_temperature()
         self.update_main_settings()
     
+    def power_calibration_callback(self):
+        print('POWAAAAAA')
+
     def registration_callback(self):
         self.camera_controller.set_preview(False)
 
