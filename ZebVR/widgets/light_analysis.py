@@ -433,6 +433,13 @@ class PowermeterWidget(QWidget):
         self.powermeters_cb.setText('Powermeter')
         self.powermeters_cb.currentIndexChanged.connect(self.powermeter_changed)
 
+        # TODO 
+        # line freq combobox
+        # average count: spinbox
+        # calibration num step: spinbox
+        # calibration pause: spinbox
+        # calibration filename: file save
+
         self.powermeter_low_bandwidth_chk = QCheckBox('Low Bandwidth')
         self.powermeter_low_bandwidth_chk.toggled.connect(self.bandwidth_changed)
 

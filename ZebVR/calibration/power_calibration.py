@@ -200,5 +200,5 @@ if __name__ == "__main__":
     plt.plot(100*data['x'], data['y_green'], color='g')
     plt.plot(100*data['x'], data['y_blue'], color='b')
     plt.xlabel("Brightness [%]")
-    plt.ylabel("Irradiance [mW/cm2]")
+    plt.ylabel("Irradiance [mW/cm²]")
     plt.show()
