@@ -409,11 +409,8 @@ class PowermeterWidget(QWidget):
     calibrate_green_power = pyqtSignal()
     calibrate_blue_power = pyqtSignal()
     power_calibration = pyqtSignal()
-
-    line_frequency_changed = pyqtSignal(int)
+    line_frequency_changed = pyqtSignal(thorlabs_pmd.LineFrequency)
     average_count_changed = pyqtSignal(int)
-    calibration_steps_changed = pyqtSignal(int)
-    calibration_pause_changed = pyqtSignal(float)
 
     LINE_WIDTH = 2
     HEIGHT = 400
@@ -449,7 +446,7 @@ class PowermeterWidget(QWidget):
         self.line_frequency_cb.setText('Line Frequency')
         self.line_frequency_cb.addItem(str(thorlabs_pmd.LineFrequency.FITFTY_HZ), thorlabs_pmd.LineFrequency.FITFTY_HZ)
         self.line_frequency_cb.addItem(str(thorlabs_pmd.LineFrequency.SIXTY_HZ), thorlabs_pmd.LineFrequency.SIXTY_HZ)
-        self.line_frequency_cb.currentIndexChanged.connect(self.line_frequency_changed)
+        self.line_frequency_cb.currentDataChanged.connect(self.line_frequency_changed)
 
         self.average_count_sb =  LabeledSpinBox()
         self.average_count_sb.setText('Average Count')
@@ -465,7 +462,7 @@ class PowermeterWidget(QWidget):
         self.calibration_steps_sb.setMaximum(51)
         self.calibration_steps_sb.setSingleStep(1)
         self.calibration_steps_sb.setValue(11)
-        self.calibration_steps_sb.valueChanged.connect(self.calibration_steps_changed)
+        self.calibration_steps_sb.valueChanged.connect(self.state_changed)
 
         self.calibration_pause_sb = LabeledDoubleSpinBox()
         self.calibration_pause_sb.setText('Pause between steps')
@@ -473,7 +470,7 @@ class PowermeterWidget(QWidget):
         self.calibration_pause_sb.setMaximum(2)
         self.calibration_pause_sb.setSingleStep(0.25)
         self.calibration_pause_sb.setValue(0.5)
-        self.calibration_pause_sb.valueChanged.connect(self.calibration_pause_changed)
+        self.calibration_pause_sb.valueChanged.connect(self.state_changed)
 
         self.calibration_file = FileSaveLabeledEditButton()
         self.calibration_file.setLabel('Power calibration file')
@@ -667,7 +664,7 @@ class PowermeterWidget(QWidget):
             'calibration_red': self.set_calibration_red,
             'calibration_green': self.set_calibration_green,
             'calibration_blue': self.set_calibration_blue,
-            'line_frequency': lambda x: self.line_frequency_cb.setCurrentText(str(x)),
+            'line_frequency': self.line_frequency_cb.setCurrentData,
             'average_count': self.average_count_sb.setValue,
             'calibration_steps': self.calibration_steps_sb.setValue,
             'calibration_pause': self.calibration_pause_sb.setValue,
@@ -692,6 +689,7 @@ class PowermeterController(QObject):
 
         self.powermeter_constructor = None
         self.powermeter = None
+
         self.powermeter_widget = powermeter_widget
         self.powermeter_widget.state_changed.connect(self.state_changed)
         self.powermeter_widget.powermeter_changed.connect(self.powermeter_changed)
@@ -703,6 +701,8 @@ class PowermeterController(QObject):
         self.powermeter_widget.calibrate_green_power.connect(self.calibrate_green_power)
         self.powermeter_widget.calibrate_blue_power.connect(self.calibrate_blue_power)
         self.powermeter_widget.power_calibration.connect(self.full_power_calibration)
+        self.powermeter_widget.line_frequency_changed.connect(self.line_frequency_changed)
+        self.powermeter_widget.average_count_changed.connect(self.average_count_changed)
         self.powermeter_changed()
 
     def powermeter_changed(self) -> None:
@@ -728,6 +728,7 @@ class PowermeterController(QObject):
 
         # reset GUI
         new_state: PowermeterState = {}
+        # TODO add line freq and avg count
         new_state['beam_diameter_mm'] = self.powermeter.get_beam_diameter_mm()
         new_state['attenuation_dB'] = self.powermeter.get_attenuation_dB()
         new_state['range_decade'] = self.powermeter.get_current_range_decade()
@@ -736,6 +737,22 @@ class PowermeterController(QObject):
 
         self.state_changed.emit()
     
+    def line_frequency_changed(self, line_freq: thorlabs_pmd.LineFrequency) -> None:
+
+        if self.powermeter is None:
+            return 
+        
+        self.powermeter.set_line_frequency_Hz(line_freq)
+        self.state_changed.emit()
+
+    def average_count_changed(self, count: int) -> None:
+
+        if self.powermeter is None:
+            return 
+        
+        self.powermeter.set_average_count(count)
+        self.state_changed.emit()
+
     def attenuation_changed(self, attenuation_dB: float) -> None:
 
         if self.powermeter is None:
