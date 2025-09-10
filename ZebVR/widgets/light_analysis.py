@@ -9,11 +9,12 @@ from PyQt5.QtWidgets import (
     QButtonGroup
 )
 from PyQt5.QtCore import pyqtSignal, QObject
-from qt_widgets import LabeledComboBox, LabeledDoubleSpinBox, LabeledSpinBox
+from qt_widgets import LabeledComboBox, LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEditButton
 from typing import Dict, TypedDict, Tuple, List, Callable, Optional
 import pyqtgraph as pg
 import numpy as np
 from functools import partial
+from pathlib import Path
 
 import thorlabs_ccs 
 import thorlabs_pmd
@@ -404,8 +405,14 @@ class PowermeterWidget(QWidget):
     calibrate_blue_power = pyqtSignal()
     power_calibration = pyqtSignal()
 
+    line_frequency_changed = pyqtSignal(int)
+    average_count_changed = pyqtSignal(int)
+    calibration_steps_changed = pyqtSignal(int)
+    calibration_pause_changed = pyqtSignal(float)
+
     LINE_WIDTH = 2
     HEIGHT = 400
+    DEFAULT_FILE: Path = Path('ZebVR/default/power_calibration.npz')
 
     def __init__(self,*args,**kwargs):
 
@@ -433,12 +440,40 @@ class PowermeterWidget(QWidget):
         self.powermeters_cb.setText('Powermeter')
         self.powermeters_cb.currentIndexChanged.connect(self.powermeter_changed)
 
-        # TODO 
-        # line freq combobox
-        # average count: spinbox
-        # calibration num step: spinbox
-        # calibration pause: spinbox
-        # calibration filename: file save
+        self.line_frequency_cb = LabeledComboBox()
+        self.line_frequency_cb.setText('Line Frequency')
+        self.line_frequency_cb.addItem(str(thorlabs_pmd.LineFrequency.FITFTY_HZ))
+        self.line_frequency_cb.addItem(str(thorlabs_pmd.LineFrequency.SIXTY_HZ))
+        self.line_frequency_cb.currentIndexChanged.connect(self.line_frequency_changed)
+
+        self.average_count_sb =  LabeledSpinBox()
+        self.average_count_sb.setText('Average Count')
+        self.average_count_sb.setMinimum(1)
+        self.average_count_sb.setMaximum(3000)
+        self.average_count_sb.setSingleStep(1)
+        self.average_count_sb.setValue(100)
+        self.average_count_sb.valueChanged.connect(self.average_count_changed)
+
+        self.calibration_steps_sb = LabeledSpinBox()
+        self.calibration_steps_sb.setText('Calibration Steps')
+        self.calibration_steps_sb.setMinimum(1)
+        self.calibration_steps_sb.setMaximum(51)
+        self.calibration_steps_sb.setSingleStep(1)
+        self.calibration_steps_sb.setValue(11)
+        self.calibration_steps_sb.valueChanged.connect(self.calibration_steps_changed)
+
+        self.calibration_pause_sb = LabeledDoubleSpinBox()
+        self.calibration_pause_sb.setText('Pause between steps')
+        self.calibration_pause_sb.setMinimum(0)
+        self.calibration_pause_sb.setMaximum(2)
+        self.calibration_pause_sb.setSingleStep(0.25)
+        self.calibration_pause_sb.setValue(0.5)
+        self.calibration_pause_sb.valueChanged.connect(self.calibration_pause_changed)
+
+        self.power_calibration_file = FileSaveLabeledEditButton()
+        self.power_calibration_file.setLabel('Power calibration file')
+        self.power_calibration_file.setDefault(str(self.DEFAULT_FILE))
+        self.power_calibration_file.textChanged.connect(self.state_changed)
 
         self.powermeter_low_bandwidth_chk = QCheckBox('Low Bandwidth')
         self.powermeter_low_bandwidth_chk.toggled.connect(self.bandwidth_changed)
@@ -545,6 +580,12 @@ class PowermeterWidget(QWidget):
         layout.addLayout(blue_layout)
         layout.addLayout(green_layout)
         layout.addLayout(red_layout)
+        layout.addSpacing(20)
+        layout.addWidget(self.line_frequency_cb)
+        layout.addWidget(self.average_count_sb)
+        layout.addWidget(self.calibration_steps_sb)
+        layout.addWidget(self.calibration_pause_sb)
+        layout.addWidget(self.power_calibration_file)
         layout.addWidget(self.full_calibration_bt)
         layout.addWidget(self.calibration_plot)
         layout.addStretch()
