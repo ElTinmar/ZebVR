@@ -139,8 +139,8 @@ class SpectrometerWidget(QWidget):
         self.spectrum_plot = pg.plot()
         self.spectrum_plot.setXRange(200,1000)
         self.spectrum_plot.setFixedHeight(self.HEIGHT)
-        self.spectrum_plot.setLabel('left', 'Intensity (AU)')
-        self.spectrum_plot.setLabel('bottom', 'Wavelength (nm)') 
+        self.spectrum_plot.setLabel('left', 'Intensity [AU]')
+        self.spectrum_plot.setLabel('bottom', 'Wavelength [nm]') 
         self.spectrum_data = self.spectrum_plot.plot(
             np.linspace(200,1000,800), 
             np.zeros((800,)), 
@@ -401,6 +401,9 @@ class PowermeterWidget(QWidget):
     calibrate_blue_power = pyqtSignal()
     power_calibration = pyqtSignal()
 
+    LINE_WIDTH = 2
+    HEIGHT = 400
+
     def __init__(self,*args,**kwargs):
 
         super().__init__(*args, **kwargs)
@@ -478,6 +481,28 @@ class PowermeterWidget(QWidget):
 
         self.full_calibration_bt = QPushButton('Power Calibration')
         self.full_calibration_bt.clicked.connect(self.power_calibration)
+
+        self.calibration_plot = pg.plot()
+        self.calibration_plot.setXRange(0,100)
+        self.calibration_plot.setFixedHeight(self.HEIGHT)
+        self.calibration_plot.setLabel('left', 'Irradiance [mW.cm⁻²]')
+        self.calibration_plot.setLabel('bottom', 'Brightness [%]') 
+
+        self.red_calibration = self.calibration_plot.plot(
+            np.linspace(0,100,11), 
+            np.zeros((11,)), 
+            pen=pg.mkPen((255,0,0,255), width=self.LINE_WIDTH)
+        )
+        self.green_calibration = self.calibration_plot.plot(
+            np.linspace(0,100,11), 
+            np.zeros((11,)), 
+            pen=pg.mkPen((0,255,0,255), width=self.LINE_WIDTH)
+        )
+        self.blue_calibration = self.calibration_plot.plot(
+            np.linspace(0,100,11), 
+            np.zeros((11,)), 
+            pen=pg.mkPen((0,0,255,255), width=self.LINE_WIDTH)
+        )
     
     def layout_components(self) -> None:
 
@@ -510,6 +535,7 @@ class PowermeterWidget(QWidget):
         layout.addLayout(green_layout)
         layout.addLayout(red_layout)
         layout.addWidget(self.full_calibration_bt)
+        layout.addWidget(self.calibration_plot)
         layout.addStretch()
 
     def refresh_devices(self) -> None:
