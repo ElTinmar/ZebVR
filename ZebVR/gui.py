@@ -416,12 +416,14 @@ class MainGui(QMainWindow):
     
     def power_calibration_callback(self):
 
-        print(self.settings)
+        powermeter_constructor = self.settings['projector']['light_analysis']['powermeter']['powermeter_constructor']
+        if powermeter_constructor is None:
+            return
 
         p = Process(
             target = power_calibration,
             kwargs = {
-                "powermeter_constructor": self.settings['projector']['light_analysis']['powermeter']['powermeter_constructor'],
+                "powermeter_constructor": powermeter_constructor,
                 "proj_width": self.settings['projector']['resolution'][0], 
                 "proj_height": self.settings['projector']['resolution'][1],
                 "proj_pos": self.settings['projector']['offset'],
