@@ -684,7 +684,7 @@ class PowermeterController(QObject):
         if self.powermeter is not None:
             self.powermeter.close()
             self.powermeter = None
-
+        
         new_state: PowermeterState = {}
         new_state['serial_number'] = 'Disconnected'
         self.powermeter_widget.set_state(new_state)

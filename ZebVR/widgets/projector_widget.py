@@ -177,7 +177,7 @@ class ProjectorWidget(QWidget):
 
         # Calibrate power
         self.light_analysis = LightAnalysisWidget()
-        self.light_analysis.power_calibration.emit(self.power_calibration)
+        self.light_analysis.power_calibration.connect(self.power_calibration)
     
     def serial_changed(self, index: int):
         port = self.serial_devices[index].device

@@ -25,7 +25,8 @@ from .calibration import (
     check_pix_per_mm, 
     check_registration, 
     pix_per_mm, 
-    registration
+    registration,
+    power_calibration
 )
 from .background import inpaint_background, static_background
 from qt_widgets import LabeledDoubleSpinBox
@@ -414,7 +415,35 @@ class MainGui(QMainWindow):
         self.update_main_settings()
     
     def power_calibration_callback(self):
-        print('POWAAAAAA')
+
+        print(self.settings)
+
+        p = Process(
+            target = power_calibration,
+            kwargs = {
+                "powermeter_constructor": self.settings['projector']['light_analysis']['powermeter']['powermeter_constructor'],
+                "proj_width": self.settings['projector']['resolution'][0], 
+                "proj_height": self.settings['projector']['resolution'][1],
+                "proj_pos": self.settings['projector']['offset'],
+                "bandwidth": self.settings['projector']['light_analysis']['powermeter']['bandwidth_low'],
+                "attenuation_dB": self.settings['projector']['light_analysis']['powermeter']['attenuation_dB'],
+                "range_decade": self.settings['projector']['light_analysis']['powermeter']['range_decade'],
+                "wavelength_red": self.settings['projector']['light_analysis']['powermeter']['wavelength_red'],
+                "wavelength_green": self.settings['projector']['light_analysis']['powermeter']['wavelength_green'],
+                "wavelength_blue": self.settings['projector']['light_analysis']['powermeter']['wavelength_blue'],
+                "calibration_file": "power_calibration.npz",
+                "line_freq": 50, 
+                "average_count": 100,
+                "num_steps": 11, 
+                "pause": 2
+            }
+        )
+        p.start()
+        p.join()
+
+        # TODO integrate this to the GUI?
+        calibration = np.load("power_calibration.npz")
+        self.settings['projector']['power_calibration'] = calibration
 
     def registration_callback(self):
         self.camera_controller.set_preview(False)
