@@ -45,7 +45,6 @@ class SpectrometerState(TypedDict, total=False):
 class SpectrometerWidget(QWidget):
 
     # signals
-    state_changed = pyqtSignal()
     spectrometer_changed = pyqtSignal(int)
     integration_time_changed = pyqtSignal(float)
     scan_spectrum = pyqtSignal()
@@ -287,7 +286,6 @@ class SpectrometerController(QObject):
         self.spectrometer_constructor = None
         self.spectrometer = None
         self.spectrometer_widget = spectrometer_widget
-        self.spectrometer_widget.state_changed.connect(self.state_changed)
         self.spectrometer_widget.spectrometer_changed.connect(self.spectrometer_changed)
         self.spectrometer_widget.integration_time_changed.connect(self.integration_time_changed)
         self.spectrometer_widget.scan_spectrum.connect(self.scan_spectrum)
@@ -319,6 +317,7 @@ class SpectrometerController(QObject):
         new_state['no_correction'] = True
         
         self.spectrometer_widget.set_state(new_state)
+        self.state_changed.emit()
 
     def integration_time_changed(self, integration_time: float) -> None:
 
@@ -326,6 +325,7 @@ class SpectrometerController(QObject):
             return
         
         self.spectrometer.set_integration_time(integration_time/1000)
+        self.state_changed.emit()
 
     def scan_spectrum(self) -> None:
         
@@ -362,6 +362,7 @@ class SpectrometerController(QObject):
         new_state['spectrum'] = (np.array(wavelength), np.array(scan))
     
         self.spectrometer_widget.set_state(new_state)   
+        self.state_changed.emit()
 
     def get_state(self) -> SpectrometerState:
         state = self.spectrometer_widget.get_state()
@@ -453,6 +454,7 @@ class PowermeterWidget(QWidget):
         self.powermeter_wavelength_blue.setMinimum(0)
         self.powermeter_wavelength_blue.setMaximum(2000)
         self.powermeter_wavelength_blue.setValue(450)
+        self.powermeter_wavelength_blue.valueChanged.connect(self.state_changed)
 
         self.calibrate_green = QPushButton('Calibrate Green Power')
         self.calibrate_green.clicked.connect(self.calibrate_green_power)
@@ -462,6 +464,7 @@ class PowermeterWidget(QWidget):
         self.powermeter_wavelength_green.setMinimum(0)
         self.powermeter_wavelength_green.setMaximum(2000)
         self.powermeter_wavelength_green.setValue(535)
+        self.powermeter_wavelength_green.valueChanged.connect(self.state_changed)
 
         self.calibrate_red = QPushButton('Calibrate Red Power')
         self.calibrate_red.clicked.connect(self.calibrate_red_power)
@@ -471,6 +474,7 @@ class PowermeterWidget(QWidget):
         self.powermeter_wavelength_red.setMinimum(0)
         self.powermeter_wavelength_red.setMaximum(2000)
         self.powermeter_wavelength_red.setValue(675)
+        self.powermeter_wavelength_red.valueChanged.connect(self.state_changed)
 
         self.full_calibration_bt = QPushButton('Power Calibration')
         self.full_calibration_bt.clicked.connect(self.power_calibration)
@@ -622,12 +626,15 @@ class PowermeterController(QObject):
         new_state['bandwidth_low'] = self.powermeter.get_bandwidth() == thorlabs_pmd.Bandwidth.LOW
         self.powermeter_widget.set_state(new_state)
 
+        self.state_changed.emit()
+    
     def attenuation_changed(self, attenuation_dB: float) -> None:
 
         if self.powermeter is None:
             return 
         
         self.powermeter.set_attenuation_dB(attenuation_dB)
+        self.state_changed.emit()
 
     def bandwidth_changed(self, bandwidth: bool) -> None:
 
@@ -638,6 +645,8 @@ class PowermeterController(QObject):
             self.powermeter.set_bandwidth(thorlabs_pmd.Bandwidth.LOW)
         else:
             self.powermeter.set_bandwidth(thorlabs_pmd.Bandwidth.HIGH)
+        
+        self.state_changed.emit()
 
     def range_changed(self, range_decade: int) -> None:
 
@@ -645,6 +654,7 @@ class PowermeterController(QObject):
             return 
         
         self.powermeter.set_current_range_decade(range_decade)
+        self.state_changed.emit()
 
     def beam_diameter_changed(self, beam_diameter_mm: float) -> None:
 
@@ -652,6 +662,7 @@ class PowermeterController(QObject):
             return 
         
         self.powermeter.set_beam_diameter_mm(beam_diameter_mm)
+        self.state_changed.emit()
 
     def calibrate_red_power(self) -> None:
         
@@ -663,6 +674,7 @@ class PowermeterController(QObject):
         self.powermeter.set_wavelength_nm(state['wavelength_red'])
         new_state['red_power_density'] = self.powermeter.get_power_density_mW_cm2()
         self.powermeter_widget.set_state(new_state)
+        self.state_changed.emit()
 
     def calibrate_green_power(self) -> None:
         
@@ -674,6 +686,7 @@ class PowermeterController(QObject):
         self.powermeter.set_wavelength_nm(state['wavelength_green'])
         new_state['green_power_density'] = self.powermeter.get_power_density_mW_cm2()
         self.powermeter_widget.set_state(new_state)
+        self.state_changed.emit()
 
     def calibrate_blue_power(self) -> None:
         
@@ -685,6 +698,7 @@ class PowermeterController(QObject):
         self.powermeter.set_wavelength_nm(state['wavelength_blue'])
         new_state['blue_power_density'] = self.powermeter.get_power_density_mW_cm2()
         self.powermeter_widget.set_state(new_state)
+        self.state_changed.emit()
 
     def full_power_calibration(self):
         
