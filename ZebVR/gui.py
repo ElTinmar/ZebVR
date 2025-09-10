@@ -46,7 +46,7 @@ from .widgets import (
 )
 from .utils import append_timestamp_to_filename
 from .dags import closed_loop, open_loop, video_recording, tracking
-
+from thorlabs_pmd import LineFrequency
         
 class MainGui(QMainWindow):
     
@@ -432,7 +432,7 @@ class MainGui(QMainWindow):
                 "wavelength_green": self.settings['projector']['light_analysis']['powermeter']['wavelength_green'],
                 "wavelength_blue": self.settings['projector']['light_analysis']['powermeter']['wavelength_blue'],
                 "calibration_file": "power_calibration.npz",
-                "line_freq": 50, 
+                "line_freq": LineFrequency.FITFTY_HZ, 
                 "average_count": 100,
                 "num_steps": 11, 
                 "pause": 2

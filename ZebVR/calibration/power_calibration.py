@@ -100,7 +100,7 @@ def power_calibration(
         proj_height: int,
         proj_pos: Tuple[int, int],
         calibration_file: str,
-        bandwidth: Bandwidth = Bandwidth.LOW,
+        bandwidth: bool = True,
         attenuation_dB: float = 0,
         range_decade: int = -2,
         average_count: int = 100,
@@ -127,8 +127,12 @@ def power_calibration(
     # set up powermeter
     powermeter = powermeter_constructor()
 
-    # TODO set parameters
-    powermeter.set_bandwidth(bandwidth)
+    # set parameters
+    if bandwidth:
+        powermeter.set_bandwidth(Bandwidth.LOW)
+    else:
+        powermeter.set_bandwidth(Bandwidth.HIGH)
+
     powermeter.set_attenuation_dB(attenuation_dB)
     powermeter.set_current_range_decade(range_decade)
     powermeter.set_average_count(average_count)
