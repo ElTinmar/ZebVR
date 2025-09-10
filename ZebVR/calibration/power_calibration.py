@@ -104,7 +104,7 @@ def power_calibration(
         attenuation_dB: float = 0,
         range_decade: int = -2,
         average_count: int = 100,
-        line_freq: LineFrequency = LineFrequency.FITFTY_HZ, 
+        line_frequency: LineFrequency = LineFrequency.FITFTY_HZ, 
         wavelength_red: float = 610,
         wavelength_green: float = 520,
         wavelength_blue: float = 400,
@@ -136,7 +136,7 @@ def power_calibration(
     powermeter.set_attenuation_dB(attenuation_dB)
     powermeter.set_current_range_decade(range_decade)
     powermeter.set_average_count(average_count)
-    powermeter.set_line_frequency_Hz(line_freq)
+    powermeter.set_line_frequency_Hz(line_frequency)
 
     # calibrate RGB separately
     powermeter.set_wavelength_nm(wavelength_red)

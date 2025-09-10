@@ -391,6 +391,11 @@ class PowermeterState(TypedDict, total=False):
     calibration_red: Tuple[np.ndarray, np.ndarray]
     calibration_green: Tuple[np.ndarray, np.ndarray]
     calibration_blue: Tuple[np.ndarray, np.ndarray]
+    line_frequency: thorlabs_pmd.LineFrequency
+    average_count: int
+    calibration_steps: int
+    calibration_pause: float
+    calibration_file: str
     
 class PowermeterWidget(QWidget):
 
@@ -442,8 +447,8 @@ class PowermeterWidget(QWidget):
 
         self.line_frequency_cb = LabeledComboBox()
         self.line_frequency_cb.setText('Line Frequency')
-        self.line_frequency_cb.addItem(str(thorlabs_pmd.LineFrequency.FITFTY_HZ))
-        self.line_frequency_cb.addItem(str(thorlabs_pmd.LineFrequency.SIXTY_HZ))
+        self.line_frequency_cb.addItem(str(thorlabs_pmd.LineFrequency.FITFTY_HZ), thorlabs_pmd.LineFrequency.FITFTY_HZ)
+        self.line_frequency_cb.addItem(str(thorlabs_pmd.LineFrequency.SIXTY_HZ), thorlabs_pmd.LineFrequency.SIXTY_HZ)
         self.line_frequency_cb.currentIndexChanged.connect(self.line_frequency_changed)
 
         self.average_count_sb =  LabeledSpinBox()
@@ -470,10 +475,10 @@ class PowermeterWidget(QWidget):
         self.calibration_pause_sb.setValue(0.5)
         self.calibration_pause_sb.valueChanged.connect(self.calibration_pause_changed)
 
-        self.power_calibration_file = FileSaveLabeledEditButton()
-        self.power_calibration_file.setLabel('Power calibration file')
-        self.power_calibration_file.setDefault(str(self.DEFAULT_FILE))
-        self.power_calibration_file.textChanged.connect(self.state_changed)
+        self.calibration_file = FileSaveLabeledEditButton()
+        self.calibration_file.setLabel('Power calibration file')
+        self.calibration_file.setDefault(str(self.DEFAULT_FILE))
+        self.calibration_file.textChanged.connect(self.state_changed)
 
         self.powermeter_low_bandwidth_chk = QCheckBox('Low Bandwidth')
         self.powermeter_low_bandwidth_chk.toggled.connect(self.bandwidth_changed)
@@ -585,7 +590,7 @@ class PowermeterWidget(QWidget):
         layout.addWidget(self.average_count_sb)
         layout.addWidget(self.calibration_steps_sb)
         layout.addWidget(self.calibration_pause_sb)
-        layout.addWidget(self.power_calibration_file)
+        layout.addWidget(self.calibration_file)
         layout.addWidget(self.full_calibration_bt)
         layout.addWidget(self.calibration_plot)
         layout.addStretch()
@@ -637,6 +642,11 @@ class PowermeterWidget(QWidget):
             'red_power_density': self.red_power_density,
             'green_power_density': self.green_power_density,
             'blue_power_density': self.blue_power_density,
+            'line_frequency': self.line_frequency_cb.currentData(),
+            'average_count': self.average_count_sb.value(),
+            'calibration_steps': self.calibration_steps_sb.value(),
+            'calibration_pause': self.calibration_pause_sb.value(),
+            'calibration_file': self.calibration_file.text()
         }
         return state
 
@@ -657,6 +667,11 @@ class PowermeterWidget(QWidget):
             'calibration_red': self.set_calibration_red,
             'calibration_green': self.set_calibration_green,
             'calibration_blue': self.set_calibration_blue,
+            'line_frequency': lambda x: self.line_frequency_cb.setCurrentText(str(x)),
+            'average_count': self.average_count_sb.setValue,
+            'calibration_steps': self.calibration_steps_sb.setValue,
+            'calibration_pause': self.calibration_pause_sb.setValue,
+            'calibration_file': self.calibration_file.setText
         }
 
         for key, setter in setters.items():

@@ -416,28 +416,28 @@ class MainGui(QMainWindow):
     
     def power_calibration_callback(self):
 
-        powermeter_constructor = self.settings['projector']['light_analysis']['powermeter']['powermeter_constructor']
-        if powermeter_constructor is None:
+        powermeter_settings = self.settings['projector']['light_analysis']['powermeter']
+        if powermeter_settings['powermeter_constructor'] is None:
             return
 
         p = Process(
             target = power_calibration,
             kwargs = {
-                "powermeter_constructor": powermeter_constructor,
+                "powermeter_constructor": powermeter_settings['powermeter_constructor'],
                 "proj_width": self.settings['projector']['resolution'][0], 
                 "proj_height": self.settings['projector']['resolution'][1],
                 "proj_pos": self.settings['projector']['offset'],
-                "bandwidth": self.settings['projector']['light_analysis']['powermeter']['bandwidth_low'],
-                "attenuation_dB": self.settings['projector']['light_analysis']['powermeter']['attenuation_dB'],
-                "range_decade": self.settings['projector']['light_analysis']['powermeter']['range_decade'],
-                "wavelength_red": self.settings['projector']['light_analysis']['powermeter']['wavelength_red'],
-                "wavelength_green": self.settings['projector']['light_analysis']['powermeter']['wavelength_green'],
-                "wavelength_blue": self.settings['projector']['light_analysis']['powermeter']['wavelength_blue'],
-                "calibration_file": "power_calibration.npz", # TODO add as parameter
-                "line_freq": LineFrequency.FITFTY_HZ, # TODO add as parameter
-                "average_count": 100, # TODO add as parameter
-                "num_steps": 11, # TODO add as parameter
-                "pause": 2 # TODO add as parameter
+                "bandwidth": powermeter_settings['bandwidth_low'],
+                "attenuation_dB": powermeter_settings['attenuation_dB'],
+                "range_decade": powermeter_settings['range_decade'],
+                "wavelength_red": powermeter_settings['wavelength_red'],
+                "wavelength_green": powermeter_settings['wavelength_green'],
+                "wavelength_blue": powermeter_settings['wavelength_blue'],
+                "calibration_file": powermeter_settings['calibration_file'],
+                "line_frequency": powermeter_settings['line_frequency'],
+                "average_count":powermeter_settings['average_count'],
+                "num_steps": powermeter_settings['calibration_steps'],
+                "pause": powermeter_settings['calibration_pause']
             }
         )
         p.start()
