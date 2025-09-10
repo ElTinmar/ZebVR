@@ -112,10 +112,10 @@ def power_calibration(
         pause: float = 1
     ) -> None:
 
-    color_steps = np.linspace(0,1,num_steps)
-    red_cal = np.zeros((num_steps,), dtype=np.float32)
-    green_cal = np.zeros((num_steps,), dtype=np.float32)
-    blue_cal = np.zeros((num_steps,), dtype=np.float32)
+    x = np.linspace(0,1,num_steps)
+    y_red = np.zeros((num_steps,), dtype=np.float32)
+    y_green = np.zeros((num_steps,), dtype=np.float32)
+    y_blue = np.zeros((num_steps,), dtype=np.float32)
 
     # set up projector
     proj = Projector(
@@ -140,25 +140,25 @@ def power_calibration(
 
     # calibrate RGB separately
     powermeter.set_wavelength_nm(wavelength_red)
-    for i,r in enumerate(color_steps):
+    for i,r in enumerate(x):
         color = (r,0,0,1.0)
         proj.set_color(color)
         time.sleep(pause)
-        red_cal[i] = powermeter.get_power_density_mW_cm2()
+        y_red[i] = powermeter.get_power_density_mW_cm2()
 
     powermeter.set_wavelength_nm(wavelength_green)
-    for i,g in enumerate(color_steps):
+    for i,g in enumerate(x):
         color = (0,g,0,1.0)
         proj.set_color(color)
         time.sleep(pause)
-        green_cal[i] = powermeter.get_power_density_mW_cm2()
+        y_green[i] = powermeter.get_power_density_mW_cm2()
 
     powermeter.set_wavelength_nm(wavelength_blue)
-    for i,b in enumerate(color_steps):
+    for i,b in enumerate(x):
         color = (0,0,b,1.0)
         proj.set_color(color)
         time.sleep(pause)
-        blue_cal[i] = powermeter.get_power_density_mW_cm2()
+        y_blue[i] = powermeter.get_power_density_mW_cm2()
 
     proj.terminate()
     powermeter.close()
@@ -166,10 +166,9 @@ def power_calibration(
     # save results
     np.savez(
         calibration_file, 
-        color_steps = color_steps,
-        red_cal = red_cal,
-        green_cal = green_cal,
-        blue_cal = blue_cal
+        calibration_red = (x, y_red),
+        calibration_green = (x, y_green),
+        calibration_blue = (x, y_blue)
     )
 
 if __name__ == "__main__":
@@ -197,9 +196,9 @@ if __name__ == "__main__":
     )
 
     data = np.load(filename)
-    plt.plot(100*data['color_steps'], data['red_cal'], color='r')
-    plt.plot(100*data['color_steps'], data['green_cal'], color='g')
-    plt.plot(100*data['color_steps'], data['blue_cal'], color='b')
+    plt.plot(100*data['x'], data['y_red'], color='r')
+    plt.plot(100*data['x'], data['y_green'], color='g')
+    plt.plot(100*data['x'], data['y_blue'], color='b')
     plt.xlabel("Brightness [%]")
     plt.ylabel("Irradiance [mW/cm2]")
     plt.show()

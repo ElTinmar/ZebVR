@@ -387,7 +387,10 @@ class PowermeterState(TypedDict, total=False):
     red_power_density: float
     green_power_density: float
     blue_power_density: float
-
+    calibration_red: Tuple[np.ndarray, np.ndarray]
+    calibration_green: Tuple[np.ndarray, np.ndarray]
+    calibration_blue: Tuple[np.ndarray, np.ndarray]
+    
 class PowermeterWidget(QWidget):
 
     state_changed = pyqtSignal()
@@ -412,6 +415,10 @@ class PowermeterWidget(QWidget):
         self.red_power_density: float = 0
         self.green_power_density: float = 0
         self.blue_power_density: float = 0
+        
+        self.calibration_red: Tuple[np.ndarray, np.ndarray] = (np.linspace(0,1,11), np.zeros((11,)))
+        self.calibration_green: Tuple[np.ndarray, np.ndarray] = (np.linspace(0,1,11), np.zeros((11,)))
+        self.calibration_blue: Tuple[np.ndarray, np.ndarray] = (np.linspace(0,1,11), np.zeros((11,)))
         
         self.declare_components()
         self.layout_components()
@@ -483,24 +490,21 @@ class PowermeterWidget(QWidget):
         self.full_calibration_bt.clicked.connect(self.power_calibration)
 
         self.calibration_plot = pg.plot()
-        self.calibration_plot.setXRange(0,100)
+        self.calibration_plot.setXRange(0,1)
         self.calibration_plot.setFixedHeight(self.HEIGHT)
         self.calibration_plot.setLabel('left', 'Irradiance [mW.cm⁻²]')
         self.calibration_plot.setLabel('bottom', 'Brightness [%]') 
 
-        self.red_calibration = self.calibration_plot.plot(
-            np.linspace(0,100,11), 
-            np.zeros((11,)), 
+        self.red_calibration_curve = self.calibration_plot.plot(
+            *self.calibration_red, 
             pen=pg.mkPen((255,0,0,255), width=self.LINE_WIDTH)
         )
-        self.green_calibration = self.calibration_plot.plot(
-            np.linspace(0,100,11), 
-            np.zeros((11,)), 
+        self.green_calibration_curve = self.calibration_plot.plot(
+            *self.calibration_green, 
             pen=pg.mkPen((0,255,0,255), width=self.LINE_WIDTH)
         )
-        self.blue_calibration = self.calibration_plot.plot(
-            np.linspace(0,100,11), 
-            np.zeros((11,)), 
+        self.blue_calibration_curve = self.calibration_plot.plot(
+            *self.calibration_blue, 
             pen=pg.mkPen((0,0,255,255), width=self.LINE_WIDTH)
         )
     
@@ -558,6 +562,18 @@ class PowermeterWidget(QWidget):
         self.blue_power_density = power_density
         self.blue_power.setText(f'Blue power: {power_density:.3f} (mW.cm⁻²)')
 
+    def set_calibration_red(self, calibration_red: Tuple[np.ndarray, np.ndarray]) -> None:
+        self.calibration_red = calibration_red
+        self.red_calibration_curve.setData(*calibration_red)
+
+    def set_calibration_green(self, calibration_green: Tuple[np.ndarray, np.ndarray]) -> None:
+        self.calibration_green = calibration_green
+        self.green_calibration_curve.setData(*calibration_green)
+
+    def set_calibration_blue(self, calibration_blue: Tuple[np.ndarray, np.ndarray]) -> None:
+        self.calibration_blue = calibration_blue
+        self.blue_calibration_curve.setData(*calibration_blue)
+
     def get_state(self) -> PowermeterState:
         
         state: PowermeterState = {
@@ -589,7 +605,10 @@ class PowermeterWidget(QWidget):
             'wavelength_blue': self.powermeter_wavelength_blue.setValue,
             'red_power_density': self.set_red_power_density,
             'green_power_density': self.set_green_power_density,
-            'blue_power_density': self.set_blue_power_density
+            'blue_power_density': self.set_blue_power_density,
+            'calibration_red': self.set_calibration_red,
+            'calibration_green': self.set_calibration_green,
+            'calibration_blue': self.set_calibration_blue,
         }
 
         for key, setter in setters.items():

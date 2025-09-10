@@ -441,9 +441,14 @@ class MainGui(QMainWindow):
         p.start()
         p.join()
 
-        # TODO integrate this to the GUI?
         calibration = np.load("power_calibration.npz")
-        self.settings['projector']['power_calibration'] = calibration
+        state = {}
+        state['light_analysis'] = {}
+        state['light_analysis']['powermeter'] = {}
+        state['light_analysis']['powermeter']['calibration_red'] = calibration['calibration_red']
+        state['light_analysis']['powermeter']['calibration_green'] = calibration['calibration_green']
+        state['light_analysis']['powermeter']['calibration_blue'] = calibration['calibration_blue']
+        self.projector_widget.set_state(state)
 
     def registration_callback(self):
         self.camera_controller.set_preview(False)
