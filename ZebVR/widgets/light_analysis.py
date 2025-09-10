@@ -45,6 +45,7 @@ class SpectrometerState(TypedDict, total=False):
 class SpectrometerWidget(QWidget):
 
     # signals
+    state_changed = pyqtSignal()
     spectrometer_changed = pyqtSignal(int)
     integration_time_changed = pyqtSignal(float)
     scan_spectrum = pyqtSignal()
@@ -276,6 +277,8 @@ class SpectrometerWidget(QWidget):
         ...
 
 class SpectrometerController(QObject):
+
+    state_changed = pyqtSignal()
     
     def __init__(self, spectrometer_widget: SpectrometerWidget, *args, **kwargs):
 
@@ -284,6 +287,7 @@ class SpectrometerController(QObject):
         self.spectrometer_constructor = None
         self.spectrometer = None
         self.spectrometer_widget = spectrometer_widget
+        self.spectrometer_widget.state_changed.connect(self.state_changed)
         self.spectrometer_widget.spectrometer_changed.connect(self.spectrometer_changed)
         self.spectrometer_widget.integration_time_changed.connect(self.integration_time_changed)
         self.spectrometer_widget.scan_spectrum.connect(self.scan_spectrum)
@@ -385,6 +389,7 @@ class PowermeterState(TypedDict, total=False):
 
 class PowermeterWidget(QWidget):
 
+    state_changed = pyqtSignal()
     powermeter_changed = pyqtSignal(int)
     bandwidth_changed = pyqtSignal(bool)
     attenuation_changed = pyqtSignal(float)
@@ -566,6 +571,7 @@ class PowermeterWidget(QWidget):
 
 class PowermeterController(QObject):
 
+    state_changed = pyqtSignal()
     power_calibration = pyqtSignal()
 
     def __init__(self, powermeter_widget: PowermeterWidget, *args, **kwargs):
@@ -575,6 +581,7 @@ class PowermeterController(QObject):
         self.powermeter_constructor = None
         self.powermeter = None
         self.powermeter_widget = powermeter_widget
+        self.powermeter_widget.state_changed.connect(self.state_changed)
         self.powermeter_widget.powermeter_changed.connect(self.powermeter_changed)
         self.powermeter_widget.bandwidth_changed.connect(self.bandwidth_changed)
         self.powermeter_widget.attenuation_changed.connect(self.attenuation_changed)
@@ -701,6 +708,7 @@ class PowermeterController(QObject):
 
 class LightAnalysisWidget(QWidget):
 
+    state_changed = pyqtSignal()
     power_calibration = pyqtSignal()
 
     def __init__(self,*args,**kwargs):
@@ -714,10 +722,12 @@ class LightAnalysisWidget(QWidget):
 
         self.spectrometer_widget = SpectrometerWidget()
         self.spectrometer_controller = SpectrometerController(self.spectrometer_widget) 
+        self.spectrometer_controller.state_changed.connect(self.state_changed)
 
         self.powermeter_widget = PowermeterWidget()
         self.powermeter_controller = PowermeterController(self.powermeter_widget)
         self.powermeter_controller.power_calibration.connect(self.power_calibration)
+        self.powermeter_controller.state_changed.connect(self.state_changed)
 
     def layout_components(self) -> None:
 
