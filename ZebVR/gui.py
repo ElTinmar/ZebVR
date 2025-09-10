@@ -433,11 +433,11 @@ class MainGui(QMainWindow):
                 "wavelength_red": self.settings['projector']['light_analysis']['powermeter']['wavelength_red'],
                 "wavelength_green": self.settings['projector']['light_analysis']['powermeter']['wavelength_green'],
                 "wavelength_blue": self.settings['projector']['light_analysis']['powermeter']['wavelength_blue'],
-                "calibration_file": "power_calibration.npz",
-                "line_freq": LineFrequency.FITFTY_HZ, 
-                "average_count": 100,
-                "num_steps": 11, 
-                "pause": 2
+                "calibration_file": "power_calibration.npz", # TODO add as parameter
+                "line_freq": LineFrequency.FITFTY_HZ, # TODO add as parameter
+                "average_count": 100, # TODO add as parameter
+                "num_steps": 11, # TODO add as parameter
+                "pause": 2 # TODO add as parameter
             }
         )
         p.start()
