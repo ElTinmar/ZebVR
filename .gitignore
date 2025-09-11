@@ -18,6 +18,7 @@ registration.json
 
 *.vr
 *.csv
+*.pkl
 
 # thorlabs firmware
 *.spt
