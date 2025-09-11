@@ -479,10 +479,10 @@ class GeneralStim(VisualStim):
         )
 
         self.shared_fish_state = [SharedFishState(num_tail_points_interp) for _ in  ROI_identities]
-        for fish_state in self.shared_fish_state:
+        for fish_id, fish_state in enumerate(self.shared_fish_state):
             fish_state.fish_caudorostral_axis[:] = init_heading[:,0]
             fish_state.fish_mediolateral_axis[:] = init_heading[:,1]
-            fish_state.fish_centroid[:] = init_centroid
+            fish_state.fish_centroid[:] = np.array(init_centroid) + np.array(ROI_identities[fish_id][:2]) + np.array(ROI_identities[fish_id][2:])//2
 
         self.shared_stim_parameters = SharedStimParameters()
         self.stim_change_counter = 0
