@@ -127,6 +127,9 @@ def power_calibration(
     # set up powermeter
     powermeter = powermeter_constructor()
 
+    # make sure everyone is ready
+    time.sleep(5)
+
     # set parameters
     if bandwidth:
         powermeter.set_bandwidth(Bandwidth.LOW)
