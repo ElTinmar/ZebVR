@@ -443,7 +443,7 @@ class MainGui(QMainWindow):
         p.start()
         p.join()
 
-        calibration = np.load("power_calibration.npz")
+        calibration = np.load(powermeter_settings['calibration_file'])
         state = {}
         state['light_analysis'] = {}
         state['light_analysis']['powermeter'] = {}
