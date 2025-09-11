@@ -59,7 +59,7 @@ class Protocol(WorkerNode):
                 # sleep needs to be small enough to keep up with metadata, but big enough
                 # to not fill the logger queue.
                 # TODO: find a real solution
-                time.sleep(0.002) 
+                time.sleep(0.010) 
                 return
         
         command = self.next()
