@@ -8,13 +8,14 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QButtonGroup
 )
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from qt_widgets import LabeledComboBox, LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEditButton
 from typing import Dict, TypedDict, Tuple, List, Callable, Optional
 import pyqtgraph as pg
 import numpy as np
 from functools import partial
 from pathlib import Path
+from ZebVR.calibration.power_calibration import PowerCalibration
 
 import thorlabs_ccs 
 import thorlabs_pmd
@@ -373,7 +374,7 @@ class SpectrometerController(QObject):
     def set_state(self, state: SpectrometerState) -> None:
         self.spectrometer_constructor = state.get('spectrometer_constructor')
         self.spectrometer_widget.set_state(state)
-
+    
 class PowermeterState(TypedDict, total=False):
     powermeter_constructor: Optional[Callable[[], thorlabs_pmd.TLPMD]]
     powermeters: List[thorlabs_pmd.DevInfo]
@@ -388,9 +389,9 @@ class PowermeterState(TypedDict, total=False):
     red_power_density: float
     green_power_density: float
     blue_power_density: float
-    calibration_red: Tuple[np.ndarray, np.ndarray]
-    calibration_green: Tuple[np.ndarray, np.ndarray]
-    calibration_blue: Tuple[np.ndarray, np.ndarray]
+    calibration_red: PowerCalibration
+    calibration_green: PowerCalibration
+    calibration_blue: PowerCalibration
     line_frequency: thorlabs_pmd.LineFrequency
     average_count: int
     calibration_steps: int
@@ -414,7 +415,7 @@ class PowermeterWidget(QWidget):
 
     LINE_WIDTH = 2
     HEIGHT = 400
-    DEFAULT_FILE: Path = Path('ZebVR/default/power_calibration.npz')
+    DEFAULT_FILE: Path = Path('ZebVR/default/power_calibration.pkl')
 
     def __init__(self,*args,**kwargs):
 
@@ -425,9 +426,17 @@ class PowermeterWidget(QWidget):
         self.green_power_density: float = 0
         self.blue_power_density: float = 0
         
-        self.calibration_red: Tuple[np.ndarray, np.ndarray] = (np.linspace(0,1,11), np.zeros((11,)))
-        self.calibration_green: Tuple[np.ndarray, np.ndarray] = (np.linspace(0,1,11), np.zeros((11,)))
-        self.calibration_blue: Tuple[np.ndarray, np.ndarray] = (np.linspace(0,1,11), np.zeros((11,)))
+        default_cal = PowerCalibration(
+            x = np.linspace(0,1,11), 
+            y = np.zeros((11,)),
+            y_pred = np.zeros((11,)),
+            slope = 0,
+            intercept = 0,
+            r_squared = 0
+        )
+        self.calibration_red: PowerCalibration = default_cal
+        self.calibration_green: PowerCalibration = default_cal
+        self.calibration_blue: PowerCalibration = default_cal
         
         self.declare_components()
         self.layout_components()
@@ -502,7 +511,7 @@ class PowermeterWidget(QWidget):
 
         self.calibrate_blue = QPushButton('Calibrate Blue Power')
         self.calibrate_blue.clicked.connect(self.calibrate_blue_power)
-        self.blue_power = QLabel('Blue power: (mW.cm⁻²)')
+        self.blue_power = QLabel('Blue power: (μW.cm⁻²)')
         self.powermeter_wavelength_blue = LabeledDoubleSpinBox()
         self.powermeter_wavelength_blue.setText('λ (nm)')
         self.powermeter_wavelength_blue.setMinimum(0)
@@ -512,7 +521,7 @@ class PowermeterWidget(QWidget):
 
         self.calibrate_green = QPushButton('Calibrate Green Power')
         self.calibrate_green.clicked.connect(self.calibrate_green_power)
-        self.green_power = QLabel('Green power: (mW.cm⁻²)')
+        self.green_power = QLabel('Green power: (μW.cm⁻²)')
         self.powermeter_wavelength_green = LabeledDoubleSpinBox()
         self.powermeter_wavelength_green.setText('λ (nm)')
         self.powermeter_wavelength_green.setMinimum(0)
@@ -522,7 +531,7 @@ class PowermeterWidget(QWidget):
 
         self.calibrate_red = QPushButton('Calibrate Red Power')
         self.calibrate_red.clicked.connect(self.calibrate_red_power)
-        self.red_power = QLabel('Red power: (mW.cm⁻²)')
+        self.red_power = QLabel('Red power: (μW.cm⁻²)')
         self.powermeter_wavelength_red = LabeledDoubleSpinBox()
         self.powermeter_wavelength_red.setText('λ (nm)')
         self.powermeter_wavelength_red.setMinimum(0)
@@ -536,20 +545,44 @@ class PowermeterWidget(QWidget):
         self.calibration_plot = pg.plot()
         self.calibration_plot.setXRange(0,1)
         self.calibration_plot.setFixedHeight(self.HEIGHT)
-        self.calibration_plot.setLabel('left', 'Irradiance [mW.cm⁻²]')
+        self.calibration_plot.setLabel('left', 'Irradiance [μW.cm⁻²]')
         self.calibration_plot.setLabel('bottom', 'Brightness [%]') 
+        self.legend = self.calibration_plot.addLegend()
 
         self.red_calibration_curve = self.calibration_plot.plot(
-            *self.calibration_red, 
+            self.calibration_red.x,
+            self.calibration_red.y, 
             pen=pg.mkPen((255,0,0,255), width=self.LINE_WIDTH)
         )
+        self.red_calibration_pred_curve = self.calibration_plot.plot(
+            self.calibration_red.x,
+            self.calibration_red.y_pred, 
+            pen=pg.mkPen((255,0,0,255), width=self.LINE_WIDTH, style=Qt.DotLine),
+            name = ""
+        )
+
         self.green_calibration_curve = self.calibration_plot.plot(
-            *self.calibration_green, 
+            self.calibration_green.x, 
+            self.calibration_green.y, 
             pen=pg.mkPen((0,255,0,255), width=self.LINE_WIDTH)
         )
+        self.green_calibration_pred_curve = self.calibration_plot.plot(
+            self.calibration_green.x, 
+            self.calibration_green.y_pred, 
+            pen=pg.mkPen((0,255,0,255), width=self.LINE_WIDTH, style=Qt.DotLine),
+            name = ""
+        )
+
         self.blue_calibration_curve = self.calibration_plot.plot(
-            *self.calibration_blue, 
+            self.calibration_blue.x,
+            self.calibration_blue.y, 
             pen=pg.mkPen((0,0,255,255), width=self.LINE_WIDTH)
+        )
+        self.blue_calibration_pred_curve = self.calibration_plot.plot(
+            self.calibration_blue.x,
+            self.calibration_blue.y_pred, 
+            pen=pg.mkPen((0,0,255,255), width=self.LINE_WIDTH, style=Qt.DotLine),
+            name = ""
         )
     
     def layout_components(self) -> None:
@@ -602,27 +635,55 @@ class PowermeterWidget(QWidget):
 
     def set_red_power_density(self, power_density: float) -> None:
         self.red_power_density = power_density
-        self.red_power.setText(f'Red power: {power_density:.3f} (mW.cm⁻²)')
+        self.red_power.setText(f'Red power: {power_density:.3f} (μW.cm⁻²)')
 
     def set_green_power_density(self, power_density: float) -> None:
         self.green_power_density = power_density
-        self.green_power.setText(f'Green power: {power_density:.3f} (mW.cm⁻²)')
+        self.green_power.setText(f'Green power: {power_density:.3f} (μW.cm⁻²)')
 
     def set_blue_power_density(self, power_density: float) -> None:
         self.blue_power_density = power_density
-        self.blue_power.setText(f'Blue power: {power_density:.3f} (mW.cm⁻²)')
+        self.blue_power.setText(f'Blue power: {power_density:.3f} (μW.cm⁻²)')
 
-    def set_calibration_red(self, calibration_red: Tuple[np.ndarray, np.ndarray]) -> None:
+    def set_calibration_red(self, calibration_red: PowerCalibration) -> None:
+        
         self.calibration_red = calibration_red
-        self.red_calibration_curve.setData(*calibration_red)
+        self.red_calibration_curve.setData(calibration_red.x, calibration_red.y)
+        self.red_calibration_pred_curve.setData(calibration_red.x, calibration_red.y_pred)
+        label_item = self.legend.getLabel(self.red_calibration_pred_curve)
+        label_item.setText(
+            (
+                f"y = {self.calibration_red.slope:.2f}x + "
+                f"{self.calibration_red.intercept:.2f}, "
+                f"R²={self.calibration_red.r_squared:.3f}"
+            )
+        )
 
-    def set_calibration_green(self, calibration_green: Tuple[np.ndarray, np.ndarray]) -> None:
+    def set_calibration_green(self, calibration_green: PowerCalibration) -> None:
         self.calibration_green = calibration_green
-        self.green_calibration_curve.setData(*calibration_green)
+        self.green_calibration_curve.setData(calibration_green.x, calibration_green.y)
+        self.green_calibration_pred_curve.setData(calibration_green.x, calibration_green.y_pred)
+        label_item = self.legend.getLabel(self.green_calibration_pred_curve)
+        label_item.setText(
+            (
+                f"y = {self.calibration_green.slope:.2f}x + "
+                f"{self.calibration_green.intercept:.2f}, "
+                f"R²={self.calibration_green.r_squared:.3f}"
+            )
+        )
 
-    def set_calibration_blue(self, calibration_blue: Tuple[np.ndarray, np.ndarray]) -> None:
+    def set_calibration_blue(self, calibration_blue: PowerCalibration) -> None:
         self.calibration_blue = calibration_blue
-        self.blue_calibration_curve.setData(*calibration_blue)
+        self.blue_calibration_curve.setData(calibration_blue.x, calibration_blue.y)
+        self.blue_calibration_pred_curve.setData(calibration_blue.x, calibration_blue.y_pred)
+        label_item = self.legend.getLabel(self.blue_calibration_pred_curve)
+        label_item.setText(
+            (
+                f"y = {self.calibration_blue.slope:.2f}x + "
+                f"{self.calibration_blue.intercept:.2f}, "
+                f"R²={self.calibration_blue.r_squared:.3f}"
+            )
+        )
 
     def get_state(self) -> PowermeterState:
         
@@ -797,7 +858,7 @@ class PowermeterController(QObject):
         state = self.powermeter_widget.get_state()
         new_state: PowermeterState = {}
         self.powermeter.set_wavelength_nm(state['wavelength_red'])
-        new_state['red_power_density'] = self.powermeter.get_power_density_mW_cm2()
+        new_state['red_power_density'] = self.powermeter.get_power_density_microW_cm2()
         self.powermeter_widget.set_state(new_state)
         self.state_changed.emit()
 
@@ -809,7 +870,7 @@ class PowermeterController(QObject):
         state = self.powermeter_widget.get_state()
         new_state: PowermeterState = {}
         self.powermeter.set_wavelength_nm(state['wavelength_green'])
-        new_state['green_power_density'] = self.powermeter.get_power_density_mW_cm2()
+        new_state['green_power_density'] = self.powermeter.get_power_density_microW_cm2()
         self.powermeter_widget.set_state(new_state)
         self.state_changed.emit()
 
@@ -821,7 +882,7 @@ class PowermeterController(QObject):
         state = self.powermeter_widget.get_state()
         new_state: PowermeterState = {}
         self.powermeter.set_wavelength_nm(state['wavelength_blue'])
-        new_state['blue_power_density'] = self.powermeter.get_power_density_mW_cm2()
+        new_state['blue_power_density'] = self.powermeter.get_power_density_microW_cm2()
         self.powermeter_widget.set_state(new_state)
         self.state_changed.emit()
 

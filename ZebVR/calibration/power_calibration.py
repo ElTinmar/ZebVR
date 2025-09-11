@@ -1,10 +1,19 @@
 from vispy import gloo, app
-from typing import Tuple, Callable
+from typing import Tuple, Callable, NamedTuple
 import sys
 from multiprocessing import Process, RawArray
 import time
 from thorlabs_pmd import TLPMD, Bandwidth, LineFrequency
 import numpy as np
+import pickle
+
+class PowerCalibration(NamedTuple):
+    x: np.ndarray
+    y: np.ndarray
+    y_pred: np.ndarray
+    slope: float
+    intercept: float
+    r_squared: float
 
 VERT_SHADER_CALIBRATION = """
 attribute vec2 a_position;
@@ -147,32 +156,41 @@ def power_calibration(
         color = (r,0,0,1.0)
         proj.set_color(color)
         time.sleep(pause)
-        y_red[i] = powermeter.get_power_density_mW_cm2()
+        y_red[i] = powermeter.get_power_density_microW_cm2()
 
     powermeter.set_wavelength_nm(wavelength_green)
     for i,g in enumerate(x):
         color = (0,g,0,1.0)
         proj.set_color(color)
         time.sleep(pause)
-        y_green[i] = powermeter.get_power_density_mW_cm2()
+        y_green[i] = powermeter.get_power_density_microW_cm2()
 
     powermeter.set_wavelength_nm(wavelength_blue)
     for i,b in enumerate(x):
         color = (0,0,b,1.0)
         proj.set_color(color)
         time.sleep(pause)
-        y_blue[i] = powermeter.get_power_density_mW_cm2()
+        y_blue[i] = powermeter.get_power_density_microW_cm2()
 
     proj.terminate()
     powermeter.close()
 
+    # linear regression
+    A = np.column_stack([x, np.ones_like(x)])
+    y = np.column_stack([y_red, y_green, y_blue])
+    [slope, icpt], ss_res, rank, s = np.linalg.lstsq(A, y, rcond=None)
+    y_pred = A @ np.vstack([slope, icpt])
+    y_red_pred, y_green_pred, y_blue_pred = y_pred.T
+    ss_tot = np.sum((y - np.mean(y, axis=0))**2, axis=0)
+    r_squared_red, r_squared_green, r_squared_blue  = 1 - ss_res/ss_tot
+
     # save results
-    np.savez(
-        calibration_file, 
-        calibration_red = (x, y_red),
-        calibration_green = (x, y_green),
-        calibration_blue = (x, y_blue)
-    )
+    with open(calibration_file, 'wb') as f:
+        pickle.dump({
+            'calibration_red':  PowerCalibration(x, y_red, y_red_pred, slope[0], icpt[0], r_squared_red),
+            'calibration_green': PowerCalibration(x, y_green, y_green_pred, slope[1], icpt[1], r_squared_green),
+            'calibration_blue':  PowerCalibration(x, y_blue, y_blue_pred, slope[2], icpt[2], r_squared_blue)
+        }, f)
 
 if __name__ == "__main__":
 
@@ -182,7 +200,7 @@ if __name__ == "__main__":
 
     powermeters = list_powermeters()
     powermeter_constructor = partial(TLPMD, device_info=powermeters[0])
-    filename = 'test.npz'
+    filename = 'test.pkl'
 
     power_calibration(
         powermeter_constructor = powermeter_constructor,
@@ -194,8 +212,8 @@ if __name__ == "__main__":
         wavelength_red = 610,
         wavelength_green = 520,
         wavelength_blue = 400,
-        num_steps = 21, 
-        pause = 2
+        num_steps = 11, 
+        pause = 0.5
     )
 
     data = np.load(filename)

@@ -46,7 +46,6 @@ from .widgets import (
 )
 from .utils import append_timestamp_to_filename
 from .dags import closed_loop, open_loop, video_recording, tracking
-from thorlabs_pmd import LineFrequency
         
 class MainGui(QMainWindow):
     
@@ -443,14 +442,15 @@ class MainGui(QMainWindow):
         p.start()
         p.join()
 
-        calibration = np.load(powermeter_settings['calibration_file'])
-        state = {}
-        state['light_analysis'] = {}
-        state['light_analysis']['powermeter'] = {}
-        state['light_analysis']['powermeter']['calibration_red'] = calibration['calibration_red']
-        state['light_analysis']['powermeter']['calibration_green'] = calibration['calibration_green']
-        state['light_analysis']['powermeter']['calibration_blue'] = calibration['calibration_blue']
-        self.projector_widget.set_state(state)
+        with open(powermeter_settings['calibration_file'], 'rb') as f:
+            calibration = pickle.load(f)
+            state = {}
+            state['light_analysis'] = {}
+            state['light_analysis']['powermeter'] = {}
+            state['light_analysis']['powermeter']['calibration_red'] = calibration['calibration_red']
+            state['light_analysis']['powermeter']['calibration_green'] = calibration['calibration_green']
+            state['light_analysis']['powermeter']['calibration_blue'] = calibration['calibration_blue']
+            self.projector_widget.set_state(state)
 
     def registration_callback(self):
         self.camera_controller.set_preview(False)
