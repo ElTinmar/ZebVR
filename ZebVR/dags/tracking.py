@@ -147,6 +147,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
                 name = f'tracker{i}', 
                 logger = worker_logger, 
                 logger_queues = queue_logger,
+                log_level = Logger.ERROR,
                 send_data_strategy = send_strategy.BROADCAST, 
                 receive_data_timeout = 1.0, 
             )

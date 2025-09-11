@@ -276,6 +276,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
                 name = f'tracker{i}', 
                 logger = worker_logger, 
                 logger_queues = queue_logger,
+                log_level = Logger.ERROR,
                 send_data_strategy = send_strategy.BROADCAST, 
                 #receive_metadata_strategy = receive_strategy.POLL,
                 receive_data_timeout = 1.0, 
