@@ -109,7 +109,8 @@ class ProtocolItemWidget(QWidget):
         )
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
-        ...
+        self.stop_widget.from_stop_condition(protocol_item.stop_condition)
+        
 
     def to_protocol_item(self) -> ProtocolItem:
         ...
