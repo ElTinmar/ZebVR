@@ -180,7 +180,7 @@ class GeneralStim(VisualStim):
             window_position: Tuple[int, int], 
             camera_resolution: Tuple[int, int],
             window_decoration: bool = True,
-            init_centroid: Tuple[float, float] = (0.0, 0.0),
+            init_offset: Tuple[float, float] = (0.0, 0.0),
             init_heading: NDArray[np.float32] = np.array([[1.0, 0.0], [0.0, 1.0]]),
             transformation_matrix: AffineTransform2D = AffineTransform2D.identity(),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
@@ -480,9 +480,10 @@ class GeneralStim(VisualStim):
 
         self.shared_fish_state = [SharedFishState(num_tail_points_interp) for _ in  ROI_identities]
         for fish_id, fish_state in enumerate(self.shared_fish_state):
-            fish_state.fish_caudorostral_axis[:] = init_heading[:,0]
-            fish_state.fish_mediolateral_axis[:] = init_heading[:,1]
-            fish_state.fish_centroid[:] = np.array(init_centroid) + np.array(ROI_identities[fish_id][:2]) + np.array(ROI_identities[fish_id][2:])//2
+            centroid = np.array(init_offset) + np.array(ROI_identities[fish_id][:2]) + np.array(ROI_identities[fish_id][2:])//2
+            fish_state.fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,0]).squeeze()
+            fish_state.fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,1]).squeeze()
+            fish_state.fish_centroid[:] = self.transformation_matrix.transform_points(centroid).squeeze()
 
         self.shared_stim_parameters = SharedStimParameters()
         self.stim_change_counter = 0
