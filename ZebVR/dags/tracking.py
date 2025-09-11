@@ -94,6 +94,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         name = 'camera', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_strategy = receive_strategy.COLLECT, 
         send_data_strategy = send_strategy.BROADCAST, 
         receive_data_timeout = 1.0,
@@ -112,6 +113,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         name = 'queue_monitor',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -120,6 +122,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         name = f'crop', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0, 
         send_data_strategy = send_strategy.BROADCAST,
     )
@@ -157,6 +160,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         name = 'tracker_gui',  
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0, # TODO add widget for that ?
         profile = False
     )
@@ -171,6 +175,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         name = "tracking_display", 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         profile = False
     )
@@ -181,6 +186,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         name = 'tracking_saver',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 

@@ -173,6 +173,7 @@ if __name__ == '__main__':
         name = 'source',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         send_metadata_strategy = send_strategy.BROADCAST,
     )
     daq_worker = DAQ_Worker(
@@ -180,6 +181,7 @@ if __name__ == '__main__':
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         send_metadata_strategy = send_strategy.DISPATCH,
         receive_metadata_strategy = receive_strategy.POLL,
     )
@@ -187,6 +189,7 @@ if __name__ == '__main__':
         name = 'sink',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_metadata_strategy = receive_strategy.POLL,
     )
 

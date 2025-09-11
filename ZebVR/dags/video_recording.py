@@ -79,6 +79,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
         name = 'camera', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_strategy = receive_strategy.COLLECT, 
         send_data_strategy = send_strategy.BROADCAST, 
         receive_data_timeout = 1.0,
@@ -92,6 +93,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
         name = 'cam_output2',  
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -110,6 +112,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
         name = 'video_recorder',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -118,6 +121,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
         name = 'yuv420p_converter',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -126,6 +130,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
         name = 'rgb_to_gray_converter',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )   
 
@@ -134,6 +139,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
         name = "display", 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -148,6 +154,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
         name = 'queue_monitor',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -157,6 +164,7 @@ def video_recording(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tupl
         name = 'temperature_logger',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
     )
 
     # connect DAG -----------------------------------------------------------------------

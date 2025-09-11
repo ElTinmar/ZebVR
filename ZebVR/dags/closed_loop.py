@@ -148,6 +148,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'camera', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_strategy = receive_strategy.COLLECT, 
         send_data_strategy = send_strategy.BROADCAST, 
         receive_data_timeout = 1.0,
@@ -163,6 +164,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'cam_output2',  
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -181,6 +183,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'video_recorder',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -189,6 +192,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'yuv420p_converter',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -197,6 +201,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'rgb_to_gray_converter',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -218,6 +223,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'queue_monitor',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -227,6 +233,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'temperature_logger',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
     )
 
     daq_worker = DAQ_Worker(
@@ -234,6 +241,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         send_metadata_strategy = send_strategy.DISPATCH
     )
 
@@ -242,6 +250,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = f'crop', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0, 
         send_data_strategy = send_strategy.BROADCAST,
         profile = PROFILE
@@ -282,6 +291,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'tracker_gui',  
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0, # TODO add widget for that ?
         profile = False
     )
@@ -292,6 +302,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'tracking_saver',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -299,6 +310,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'tracking_latency_display',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
     )
 
     # tracking display -----------------------------------------
@@ -311,6 +323,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = "tracking_display", 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         profile = False
     )
@@ -320,6 +333,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = "display", 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         profile = False
     )
@@ -329,6 +343,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = "protocol", 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         profile = False
     )
@@ -354,6 +369,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'visual_stim', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         profile = False,
         send_metadata_strategy = send_strategy.DISPATCH
@@ -369,6 +385,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'audio_stim', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         send_metadata_strategy = send_strategy.DISPATCH
     )
@@ -378,6 +395,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'stim_gui', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         send_metadata_strategy = send_strategy.BROADCAST, 
         profile = False
@@ -388,6 +406,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         name = 'stim_saver', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         receive_metadata_strategy = receive_strategy.POLL
     )

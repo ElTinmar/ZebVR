@@ -84,6 +84,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'camera', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_strategy = receive_strategy.COLLECT, 
         send_data_strategy = send_strategy.BROADCAST, 
         receive_data_timeout = 1.0,
@@ -98,6 +99,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'cam_output2',  
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -116,6 +118,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'video_recorder',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -124,6 +127,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'yuv420p_converter',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -132,6 +136,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'rgb_to_gray_converter',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -147,6 +152,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'queue_monitor',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -156,6 +162,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'temperature_logger',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
     )
 
     display_worker = Display(
@@ -163,6 +170,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = "display", 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         profile = False
     )
@@ -172,6 +180,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = "protocol", 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         profile = False
     )
@@ -202,6 +211,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'visual_stim', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         send_metadata_strategy = send_strategy.DISPATCH,
         profile = False
@@ -217,6 +227,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'audio_stim', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         send_metadata_strategy = send_strategy.DISPATCH
     )
@@ -226,6 +237,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'stim_gui', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         send_metadata_strategy = send_strategy.BROADCAST, 
         profile = False
@@ -236,6 +248,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         send_metadata_strategy = send_strategy.DISPATCH
     )
 
@@ -244,6 +257,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         name = 'stim_saver', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         receive_metadata_strategy = receive_strategy.POLL
     )

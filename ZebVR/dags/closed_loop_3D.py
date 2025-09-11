@@ -153,6 +153,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = 'camera', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_strategy = receive_strategy.COLLECT, 
         send_data_strategy = send_strategy.BROADCAST, 
         receive_data_timeout = 1.0,
@@ -167,6 +168,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = 'cam_output2',  
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -185,6 +187,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = 'video_recorder',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -193,6 +196,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = 'yuv420p_converter',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -201,6 +205,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = 'rgb_to_gray_converter',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -223,6 +228,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = 'queue_monitor',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -232,6 +238,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = 'temperature_logger',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
     )
 
     daq_worker = DAQ_Worker(
@@ -239,6 +246,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = 'daq',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
     )
 
     cropper = CropWorker(
@@ -246,6 +254,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = f'crop', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0, 
         send_data_strategy = send_strategy.BROADCAST,
     )
@@ -277,6 +286,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = 'tracker_gui',  
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0, # TODO add widget for that ?
         profile = False
     )
@@ -287,6 +297,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = 'tracking_saver',
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
     )
 
@@ -300,6 +311,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = "tracking_display", 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         profile = False
     )
@@ -309,6 +321,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = "display", 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         profile = False
     )
@@ -318,6 +331,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = "protocol", 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         profile = False
     )
@@ -342,6 +356,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = 'visual_stim', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         profile = False
     )
@@ -351,6 +366,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
         name = 'stim_gui', 
         logger = worker_logger, 
         logger_queues = queue_logger,
+        log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         send_metadata_strategy = send_strategy.BROADCAST, 
         profile = False
