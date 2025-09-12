@@ -47,6 +47,9 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
 
     def set_boards(self, boards: Dict[BoardType, List[BoardInfo]]):
 
+        self.current_board_type = BoardType.NONE
+        self.current_board = BoardInfo()
+    
         if not boards:
            return
         
@@ -98,7 +101,7 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
         self.state_changed.emit()
 
     def on_board_id_change(self):
-
+        
         # add logic in daughter class / emit signal
         self.current_board = self.boards[self.current_board_type][self.board_id_cb.currentIndex()]
       

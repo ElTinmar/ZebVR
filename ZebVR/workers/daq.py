@@ -72,7 +72,13 @@ class DAQ_Worker(WorkerNode):
                     return
                 
                 board_type = control.get('board_type')
+                if board_type is None:
+                    return
+                
                 board_id = control.get('board_id')
+                if board_id is None:
+                    return
+                
                 channels = control.get('channels', [])
 
                 analog_value = control.get('analog_value')
