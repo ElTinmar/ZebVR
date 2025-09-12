@@ -1,4 +1,4 @@
-from daq_tools import BoardType
+from daq_tools import BoardType, BoardInfo
 from ZebVR.protocol import (
     Stim, 
     ProtocolItem,
@@ -7,7 +7,7 @@ from ZebVR.protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Dict
+from typing import Dict, List
 from PyQt5.QtWidgets import (
     QApplication, 
     QCheckBox,
@@ -56,13 +56,17 @@ class DigitalWriteWidget(DAQ_ProtocolItemWidget):
 
         super().__init__(*args, **kwargs)
 
+    def set_boards(self, boards: Dict[BoardType, List[BoardInfo]]) -> None:
+
+        super().set_boards(boards)
+
+        for channel in self.current_board.digital_output:
+            self.channel_list.addItem(str(channel))
+
     def declare_components(self) -> None:
         
         super().declare_components()
 
-        for channel in self.current_board.digital_output:
-            self.channel_list.addItem(str(channel))
-        
         self.chckb_level = QCheckBox('ON / OFF')
         self.chckb_level.setChecked(False)
         self.chckb_level.stateChanged.connect(self.state_changed)  

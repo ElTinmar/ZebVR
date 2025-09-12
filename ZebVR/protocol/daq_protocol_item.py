@@ -1,6 +1,6 @@
 
 from typing import Tuple, Dict, Union, List
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QSignalBlocker
 from PyQt5.QtWidgets import (
     QListWidget,
 )
@@ -38,6 +38,15 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
             **kwargs
         ) -> None:
 
+        super().__init__(*args, **kwargs)
+
+        self.set_boards(boards)
+        self.board_type = board_type
+        self.board_id = board_id
+        self.channels = channels
+
+    def set_boards(self, boards: Dict[BoardType, List[BoardInfo]]):
+
         if not boards:
             raise ValueError("`boards` must be a non-empty dictionary mapping BoardType to list of BoardInfo.")
         
@@ -48,11 +57,17 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
         self.boards = boards
         self.board_types = list(boards.keys())
 
-        self.board_type = board_type
-        self.board_id = board_id
-        self.channels = channels
+        with QSignalBlocker(self.board_type_cb):
+            self.board_type_cb.clear()
+            for bt in self.board_types:
+                self.board_type_cb.addItem(str(bt))
+            self.current_board_type = self.board_types[self.board_type_cb.currentIndex()]
 
-        super().__init__(*args, **kwargs)
+        with QSignalBlocker(self.board_id_cb):
+            self.board_id_cb.clear()
+            for board in self.boards[self.current_board_type]:
+                self.board_id_cb.addItem(str(board.id))
+            self.current_board = self.boards[self.current_board_type][self.board_id_cb.currentIndex()]
 
     def declare_components(self) -> None:
 
@@ -61,18 +76,12 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
         # Combobox with board type
         self.board_type_cb = LabeledComboBox()
         self.board_type_cb.setText('DAQ Board Type')
-        for bt in self.board_types:
-            self.board_type_cb.addItem(str(bt))
         self.board_type_cb.currentIndexChanged.connect(self.on_board_type_change)
-        self.current_board_type = self.board_types[self.board_type_cb.currentIndex()]
-        
+
         # board ID
         self.board_id_cb = LabeledComboBox()
         self.board_id_cb.setText('DAQ Board ID')
-        for board in self.boards[self.current_board_type]:
-            self.board_id_cb.addItem(str(board.id))
         self.board_id_cb.currentIndexChanged.connect(self.on_board_id_change)
-        self.current_board = self.boards[self.current_board_type][self.board_id_cb.currentIndex()]
 
         # channels
         self.channel_list = QListWidget()

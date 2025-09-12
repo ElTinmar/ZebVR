@@ -1,4 +1,4 @@
-from daq_tools import BoardType
+from daq_tools import BoardInfo, BoardType
 from ZebVR.protocol import (
     Stim, 
     ProtocolItem,
@@ -7,7 +7,7 @@ from ZebVR.protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Dict
+from typing import Dict, List
 from PyQt5.QtWidgets import (
     QApplication, 
     QCheckBox,
@@ -61,12 +61,16 @@ class AnalogPulseWidget(DAQ_ProtocolItemWidget):
 
         super().__init__(*args, **kwargs)
 
-    def declare_components(self) -> None:
-        
-        super().declare_components()
+    def set_boards(self, boards: Dict[BoardType, List[BoardInfo]]) -> None:
+
+        super().set_boards(boards)
 
         for channel in self.current_board.analog_output:
             self.channel_list.addItem(str(channel))
+
+    def declare_components(self) -> None:
+        
+        super().declare_components()
 
         self.sb_pulse_duration_msec = LabeledDoubleSpinBox()
         self.sb_pulse_duration_msec.setText('Pulse duration (msec)')

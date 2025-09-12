@@ -13,7 +13,8 @@ from ZebVR.protocol import (
     ProtocolItem,
     StopWidget,
     PROTOCOL_WIDGETS,
-    DAQ_ProtocolItemWidget
+    DAQ_ProtocolItemWidget,
+    ProtocolItemWidget
 )
 from daq_tools import (
     BoardInfo,
@@ -39,7 +40,7 @@ class StimWidget(QWidget):
         self.debouncer = debouncer
         self.background_image = background_image
         self.updated = False
-        self.protocol_item_widgets = []
+        self.protocol_item_widgets: List[ProtocolItemWidget] = []
         self.daq_boards = daq_boards
 
         self.setWindowTitle('Stimulus controls')
@@ -73,7 +74,6 @@ class StimWidget(QWidget):
         
         self.cmb_stim_select.currentIndexChanged.connect(self.stim_changed)
 
-
     def layout_components(self) -> None:
 
         self.stack = QStackedWidget()
@@ -89,43 +89,51 @@ class StimWidget(QWidget):
 
         self.daq_boards = daq_boards
 
-        # reset everything
-        current_stim = self.cmb_stim_select.currentText()
-        self.cmb_stim_select.clear()
+        if not self.daq_boards:
+            return 
         
-        while self.stack.count():
-            widget = self.stack.widget(0)
-            self.stack.removeWidget(widget)
-            widget.setParent(None)
-            widget.deleteLater()
+        for widget in self.protocol_item_widgets:
+            if isinstance(widget, DAQ_ProtocolItemWidget):
+                widget.set_boards(daq_boards)
+                
+        # reset everything
+        #current_stim = self.cmb_stim_select.currentText()
+        #self.cmb_stim_select.clear()
+        
+        #while self.stack.count():
+        #    widget = self.stack.widget(0)
+        #    self.stack.removeWidget(widget)
+        #    widget.setParent(None)
+        #    widget.deleteLater()
 
-        self.protocol_item_widgets.clear()
+        #self.protocol_item_widgets.clear()
 
         # Rebuild protocol item widgets
-        for constructor, stim_type in PROTOCOL_WIDGETS:
-            stop_widget = StopWidget(self.debouncer, self.background_image)
-            stop_widget.size_changed.connect(self.stim_changed)
-            stop_widget.state_changed.connect(self.state_changed)
-            if issubclass(constructor, DAQ_ProtocolItemWidget):
-                if self.daq_boards:
-                    widget = constructor(
-                        boards=self.daq_boards,
-                        stop_widget=stop_widget
-                    )
-                else: 
-                    continue
-            else:
-                widget = constructor(
-                    stop_widget=stop_widget
-                )
+        #for constructor, stim_type in PROTOCOL_WIDGETS:
+        #    stop_widget = StopWidget(self.debouncer, self.background_image)
+        #    stop_widget.size_changed.connect(self.stim_changed)
+        #    stop_widget.state_changed.connect(self.state_changed)
+        #    if issubclass(constructor, DAQ_ProtocolItemWidget):
+        #        if self.daq_boards:
+        #            widget = constructor(
+        #                boards=self.daq_boards,
+        #                stop_widget=stop_widget
+        #            )
+        #        else: 
+        #            continue
+        #    else:
+        #        widget = constructor(
+        #            stop_widget=stop_widget
+        #        )
 
-            self.cmb_stim_select.addItem(str(stim_type))
-            widget.state_changed.connect(self.on_change)
-            self.protocol_item_widgets.append(widget)
-            self.stack.addWidget(widget)
+        #    self.cmb_stim_select.addItem(str(stim_type))
+        #    widget.state_changed.connect(self.on_change)
+        #    self.protocol_item_widgets.append(widget)
+        #    self.stack.addWidget(widget)
 
         # Reset combobox
-        self.cmb_stim_select.setCurrentText(current_stim)
+        #self.cmb_stim_select.setCurrentText(current_stim)
+
         self.stim_changed()
         
     def set_background_image(self, image: NDArray) -> None:
