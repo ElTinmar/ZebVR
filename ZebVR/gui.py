@@ -335,6 +335,13 @@ class MainGui(QMainWindow):
         with open(filename, 'wb') as fp:
             state = pickle.dump(state, fp)
 
+    def set_main_state(self, state: Dict) -> None:
+        self.recording_duration.setValue(state['recording_duration'])
+        self.open_loop_button.setChecked(state['open_loop'])
+        self.close_loop_button.setChecked(state['close_loop'])
+        self.video_recording_button.setChecked(state['video_recording'])
+        self.tracking_button.setChecked(state['tracking'])
+
     def set_state(self, state: Dict) -> None:
 
         setters = {
@@ -349,21 +356,14 @@ class MainGui(QMainWindow):
             'settings': self.settings_widget.set_state,
             'logs': self.logs_widget.set_state,
             'sequencer': self.sequencer_widget.set_state,
-            'temperature': self.temperature_widget.set_state
+            'temperature': self.temperature_widget.set_state,
+            'main': self.set_main_state
         }
 
         for key, setter in setters.items():
             if key in state:
                 setter(state[key])
         
-        self.settings['main'] = state.get('main', {'recording_duration': 0, 'record': False})
-        main_state = state.get('main', {})
-        self.recording_duration.setValue(main_state['recording_duration'])
-        self.open_loop_button.setChecked(main_state['open_loop'])
-        self.close_loop_button.setChecked(main_state['close_loop'])
-        self.video_recording_button.setChecked(main_state['video_recording'])
-        self.tracking_button.setChecked(main_state['tracking'])
-
     def get_state(self) -> Dict:
         self.refresh_settings()
         return self.settings
