@@ -36,13 +36,13 @@ class StimSaver(WorkerNode):
         
     def process_metadata(self, metadata) -> None:
 
-        print(metadata)
-
         if self.fd is None:
             return
         
         if metadata is None:
             return
+        
+        print(metadata)
 
         json.dump(metadata, self.fd)
         self.fd.write('\n')
