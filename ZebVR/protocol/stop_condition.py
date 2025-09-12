@@ -395,7 +395,7 @@ class StopWidget(QWidget):
         self.state_changed.emit()
 
     def from_stop_condition(self, stop_condition: StopCondition) -> None:
-
+        
         if isinstance(stop_condition, Pause):
             self.cmb_policy_select.setCurrentIndex(StopPolicy.PAUSE)
             self.pause_sec.setValue(stop_condition.pause_sec)

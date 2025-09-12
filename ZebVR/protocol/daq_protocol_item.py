@@ -155,6 +155,8 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
         
+        super().from_protocol_item(protocol_item)
+        
         if isinstance(protocol_item, DAQ_ProtocolItem):
             self.board_type_cb.setCurrentText(str(protocol_item.board_type))
             self.board_id_cb.setCurrentText(str(protocol_item.board_id))

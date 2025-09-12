@@ -195,6 +195,8 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
         
+        super().from_protocol_item(protocol_item)
+
         if isinstance(protocol_item, VisualProtocolItem):
             self.sb_foreground_color_R.setValue(protocol_item.foreground_color[0])
             self.sb_foreground_color_G.setValue(protocol_item.foreground_color[1])

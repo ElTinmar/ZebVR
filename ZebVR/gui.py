@@ -5,6 +5,7 @@ import json
 import pickle
 import pprint
 from pathlib import Path 
+from typing import Dict
 
 import cv2
 import numpy as np
@@ -218,7 +219,7 @@ class MainGui(QMainWindow):
             self.tabs.setTabVisible(index, False)
 
     def top_button_changed(self):
-
+        
         # show only relevant settings for the current mode
         if self.close_loop_button.isChecked():
 
@@ -315,7 +316,9 @@ class MainGui(QMainWindow):
             self.identity_widget.set_open_loop_visible(False)
 
         else:
-            raise RuntimeError       
+            raise RuntimeError    
+
+        self.update_main_settings()   
 
     def load_settings(self):
         filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr)')
@@ -332,29 +335,36 @@ class MainGui(QMainWindow):
         with open(filename, 'wb') as fp:
             state = pickle.dump(state, fp)
 
-    def set_state(self, state: dict) -> None:
+    def set_state(self, state: Dict) -> None:
 
         setters = {
             'camera': self.camera_widget.set_state,
             'projector': self.projector_widget.set_state,
             'audio': self.audio_widget.set_state,
+            'daq': self.daq_widget.set_state,
             'registration': self.registration_widget.set_state,
             'calibration': self.calibration_widget.set_state,
             'background': self.background_widget.set_state,
             'identity': self.identity_widget.set_state,
             'settings': self.settings_widget.set_state,
             'logs': self.logs_widget.set_state,
-            'sequencer': self.sequencer_widget.set_state
+            'sequencer': self.sequencer_widget.set_state,
+            'temperature': self.temperature_widget.set_state
         }
 
         for key, setter in setters.items():
             if key in state:
                 setter(state[key])
-
+        
         self.settings['main'] = state.get('main', {'recording_duration': 0, 'record': False})
-        self.recording_duration.setValue(self.settings['main']['recording_duration'])
+        main_state = state.get('main', {})
+        self.recording_duration.setValue(main_state['recording_duration'])
+        self.open_loop_button.setChecked(main_state['open_loop'])
+        self.close_loop_button.setChecked(main_state['close_loop'])
+        self.video_recording_button.setChecked(main_state['video_recording'])
+        self.tracking_button.setChecked(main_state['tracking'])
 
-    def get_state(self) -> dict:
+    def get_state(self) -> Dict:
         self.refresh_settings()
         return self.settings
 
@@ -397,6 +407,10 @@ class MainGui(QMainWindow):
 
     def update_main_settings(self):
         self.settings['main']['recording_duration'] = self.recording_duration.value()
+        self.settings['main']['open_loop'] = self.open_loop_button.isChecked()
+        self.settings['main']['close_loop'] = self.close_loop_button.isChecked()
+        self.settings['main']['video_recording'] = self.video_recording_button.isChecked()
+        self.settings['main']['tracking'] = self.tracking_button.isChecked()
 
     def refresh_settings(self):
         self.update_camera_settings()

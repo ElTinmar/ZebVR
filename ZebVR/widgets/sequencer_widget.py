@@ -170,7 +170,7 @@ class SequencerWidget(QWidget):
     
     def add_stim_widget(self, protocol_item: Optional[ProtocolItem] = None):
 
-        stim = StimWidget(self.debouncer,self.daq_boards, self.background_image)
+        stim = StimWidget(self.debouncer, self.daq_boards, self.background_image)
         stim.state_changed.connect(self.state_changed)
         stim.size_changed.connect(self.on_size_change)
 

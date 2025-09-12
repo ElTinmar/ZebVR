@@ -61,6 +61,8 @@ class AudioProtocolItemWidget(ProtocolItemWidget):
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
         
+        super().from_protocol_item(protocol_item)
+        
         if isinstance(protocol_item, AudioProtocolItem):
             self.sb_amplitude_dB.setValue(protocol_item.amplitude_dB)
 
