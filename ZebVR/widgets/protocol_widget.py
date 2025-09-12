@@ -87,9 +87,6 @@ class StimWidget(QWidget):
     def set_daq_boards(self, daq_boards: Dict[BoardType, List[BoardInfo]]):
 
         self.daq_boards = daq_boards
-
-        if not self.daq_boards:
-            return 
         
         for widget in self.protocol_item_widgets:
             if isinstance(widget, DAQ_ProtocolItemWidget):
