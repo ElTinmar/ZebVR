@@ -1,5 +1,5 @@
 
-from typing import Tuple, Dict, Union, List
+from typing import Dict, Union, List
 from PyQt5.QtCore import pyqtSignal, QSignalBlocker
 from PyQt5.QtWidgets import (
     QListWidget,
@@ -159,4 +159,3 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
     def to_protocol_item(self) -> DAQ_ProtocolItem:
         ...
 
-# class DAQ_PulseProtocolItemWidget(DAQ_ProtocolItemWidget):
