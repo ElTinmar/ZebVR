@@ -58,10 +58,10 @@ class PWM_WriteWidget(DAQ_ProtocolItemWidget):
 
     def set_boards(self, boards: Dict[BoardType, List[BoardInfo]]) -> None:
 
+        super().set_boards(boards)
+
         if not boards:
            return
-
-        super().set_boards(boards)
         
         for channel in self.current_board.pwm_output:
             self.channel_list.addItem(str(channel))

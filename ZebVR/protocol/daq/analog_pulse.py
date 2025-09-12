@@ -63,10 +63,10 @@ class AnalogPulseWidget(DAQ_ProtocolItemWidget):
 
     def set_boards(self, boards: Dict[BoardType, List[BoardInfo]]) -> None:
 
+        super().set_boards(boards)
+
         if not boards:
            return
-
-        super().set_boards(boards)
 
         for channel in self.current_board.analog_output:
             self.channel_list.addItem(str(channel))
