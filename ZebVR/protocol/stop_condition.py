@@ -34,7 +34,7 @@ class StopPolicy(IntEnum):
 
 class TriggerType(IntEnum):
     SOFTWARE = 0
-    TTL = 1
+    DAQ = 1
     TRACKING_MASK = 2
     TRACKING_CODE = 3
 
@@ -74,7 +74,7 @@ class Pause(StopCondition):
     def done(self, metadata: Optional[Any]) -> bool:
         return (time.perf_counter() - self.time_start) >= self.pause_sec
 
-class TTLTrigger(StopCondition):
+class DAQTrigger(StopCondition):
     pass
 
 class SoftwareTrigger(StopCondition):
@@ -296,10 +296,10 @@ class StopWidget(QWidget):
         self.software_trigger_group = QGroupBox('Sotware Trigger parameters')
         self.software_trigger_group.setLayout(software_trigger_layout)
 
-        ttl_trigger_layout = QVBoxLayout()
-        ttl_trigger_layout.addStretch()
-        self.ttl_trigger_group = QGroupBox('TTL Trigger parameters')
-        self.ttl_trigger_group.setLayout(ttl_trigger_layout)
+        daq_trigger_layout = QVBoxLayout()
+        daq_trigger_layout.addStretch()
+        self.daq_trigger_group = QGroupBox('DAQ Trigger parameters')
+        self.daq_trigger_group.setLayout(daq_trigger_layout)
 
         tracking_mask_trigger_ctrl = QVBoxLayout()
         tracking_mask_trigger_ctrl.addWidget(self.trigger_mask)
@@ -321,7 +321,7 @@ class StopWidget(QWidget):
 
         self.trigger_stack = QStackedWidget()
         self.trigger_stack.addWidget(self.software_trigger_group)
-        self.trigger_stack.addWidget(self.ttl_trigger_group)
+        self.trigger_stack.addWidget(self.daq_trigger_group)
         self.trigger_stack.addWidget(self.tracking_mask_trigger_group)
         self.trigger_stack.addWidget(self.tracking_code_trigger_group)
 
@@ -435,7 +435,7 @@ class StopWidget(QWidget):
                     debouncer = self.debouncer
                 )
 
-            if state['trigger_select'] == TriggerType.TTL:
+            if state['trigger_select'] == TriggerType.DAQ:
                 pass
 
             if state['trigger_select'] == TriggerType.TRACKING_MASK:
