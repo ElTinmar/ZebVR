@@ -49,8 +49,12 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
 
         self.current_board_type = BoardType.NONE
         self.current_board = BoardInfo()
+        self.board_type_cb.clear()
+        self.board_id_cb.clear()
+        self.channel_list.clear()
     
         if not boards:
+           self.state_changed.emit()
            return
         
         for btype, list_boards in boards.items():
@@ -61,17 +65,17 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
         self.board_types = list(boards.keys())
 
         with QSignalBlocker(self.board_type_cb):
-            self.board_type_cb.clear()
             for bt in self.board_types:
                 self.board_type_cb.addItem(str(bt))
             self.current_board_type = self.board_types[self.board_type_cb.currentIndex()]
 
         with QSignalBlocker(self.board_id_cb):
-            self.board_id_cb.clear()
             for board in self.boards[self.current_board_type]:
                 self.board_id_cb.addItem(str(board.id))
             self.current_board = self.boards[self.current_board_type][self.board_id_cb.currentIndex()]
 
+        self.state_changed.emit()
+        
     def declare_components(self) -> None:
 
         super().declare_components()

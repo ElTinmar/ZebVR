@@ -109,7 +109,7 @@ class DaqWidget(QWidget):
 
         for board in boards:
             checkbox = QCheckBox(f'{board.name} - {str(board.id)}')
-            checkbox.stateChanged.connect(self.state_changed.emit)
+            checkbox.toggled.connect(self.state_changed)
             checkboxes.append(checkbox)
             layout.addWidget(checkbox)
 
