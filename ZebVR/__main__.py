@@ -1,8 +1,15 @@
-from multiprocessing import set_start_method
+from multiprocessing import set_start_method, Process
 import os
 os.environ["OMP_NUM_THREADS"] = "1" # this may not be necessary when setting affinity
 from PyQt5.QtWidgets import QApplication
 from .gui import MainGui
+import pickle
+import sys
+import time
+import pprint
+from pathlib import Path
+from .utils import append_timestamp_to_filename
+from .dags import open_loop, closed_loop, video_recording, tracking
 
 def set_realtime_priority(priority):
     
@@ -20,15 +27,64 @@ def set_realtime_priority(priority):
     except Exception as e:
         print(f"Failed to set real-time priority: {e}")
 
-if __name__ == "__main__":
+def run_vr_file(vr_file, *args) -> None:
 
-    #set_realtime_priority(99)
+    with open(vr_file, 'rb') as fp:
+        settings = pickle.load(fp)
+
+    settings['main']['record'] = True
+
+    pprint.pprint(settings)
+    prefix = Path(settings['settings']['prefix'])
+    filename = prefix.with_suffix('.metadata')
+    filename = append_timestamp_to_filename(filename)       
+    with open(filename,'w') as fp:
+        pprint.pprint(settings, fp) 
+
+    if settings['main']['open_loop']:
+        dag, worker_logger, queue_logger = open_loop(settings)
+    elif settings['main']['close_loop']:
+        dag, worker_logger, queue_logger = closed_loop(settings)
+    elif settings['main']['video_recording']:
+        dag, worker_logger, queue_logger = video_recording(settings)
+    elif settings['main']['tracking']:
+        dag, worker_logger, queue_logger = tracking(settings)
+
+    p_worker_logger = Process(target=worker_logger.run)
+    p_queue_logger = Process(target=queue_logger.run)
+    p_worker_logger.start()
+    p_queue_logger.start()
+    dag.start()
+
+    try:
+        time.sleep(settings['main']['recording_duration'])
+    except KeyboardInterrupt:
+        print('stopping')
+        pass
+
+    dag.stop()
+    worker_logger.stop()
+    queue_logger.stop()
+    p_worker_logger.join()
+    p_queue_logger.join()
+
+def main():
+
+    # set_realtime_priority(99)  # optional
     set_start_method('spawn')
 
-    app = QApplication([])
-    main = MainGui()
-    main.show()
-    app.exec_()
+    if len(sys.argv) > 1:
+        # CLI mode
+        vr_file = sys.argv[1]
+        run_vr_file(vr_file, *sys.argv[2:])
 
-# TODO add option to start without GUI,
-# directly from .vr file
+    else:
+        # GUI mode
+        app = QApplication(sys.argv)
+        main_window = MainGui()
+        main_window.show()
+        app.exec_()
+
+
+if __name__ == "__main__":
+    main()
