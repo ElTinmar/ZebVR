@@ -54,17 +54,16 @@ class StimWidget(QWidget):
         self.cmb_stim_select = QComboBox()
 
         for constructor, stim_type in PROTOCOL_WIDGETS:
+            
             stop_widget = StopWidget(self.debouncer, self.background_image)
             stop_widget.size_changed.connect(self.stim_changed)
             stop_widget.state_changed.connect(self.state_changed)
+            
             if issubclass(constructor, DAQ_ProtocolItemWidget):
-                if self.daq_boards:
-                    widget = constructor(
-                        boards = self.daq_boards,
-                        stop_widget = stop_widget
-                    )
-                else:
-                    continue
+                widget = constructor(
+                    boards = self.daq_boards,
+                    stop_widget = stop_widget
+                )
             else:
                 widget = constructor(stop_widget = stop_widget)
             
@@ -95,44 +94,6 @@ class StimWidget(QWidget):
         for widget in self.protocol_item_widgets:
             if isinstance(widget, DAQ_ProtocolItemWidget):
                 widget.set_boards(daq_boards)
-                
-        # reset everything
-        #current_stim = self.cmb_stim_select.currentText()
-        #self.cmb_stim_select.clear()
-        
-        #while self.stack.count():
-        #    widget = self.stack.widget(0)
-        #    self.stack.removeWidget(widget)
-        #    widget.setParent(None)
-        #    widget.deleteLater()
-
-        #self.protocol_item_widgets.clear()
-
-        # Rebuild protocol item widgets
-        #for constructor, stim_type in PROTOCOL_WIDGETS:
-        #    stop_widget = StopWidget(self.debouncer, self.background_image)
-        #    stop_widget.size_changed.connect(self.stim_changed)
-        #    stop_widget.state_changed.connect(self.state_changed)
-        #    if issubclass(constructor, DAQ_ProtocolItemWidget):
-        #        if self.daq_boards:
-        #            widget = constructor(
-        #                boards=self.daq_boards,
-        #                stop_widget=stop_widget
-        #            )
-        #        else: 
-        #            continue
-        #    else:
-        #        widget = constructor(
-        #            stop_widget=stop_widget
-        #        )
-
-        #    self.cmb_stim_select.addItem(str(stim_type))
-        #    widget.state_changed.connect(self.on_change)
-        #    self.protocol_item_widgets.append(widget)
-        #    self.stack.addWidget(widget)
-
-        # Reset combobox
-        #self.cmb_stim_select.setCurrentText(current_stim)
 
         self.stim_changed()
         

@@ -63,6 +63,9 @@ class DigitalPulseWidget(DAQ_ProtocolItemWidget):
 
     def set_boards(self, boards: Dict[BoardType, List[BoardInfo]]) -> None:
 
+        if not boards:
+           return
+
         super().set_boards(boards)
         
         for channel in self.current_board.digital_output:

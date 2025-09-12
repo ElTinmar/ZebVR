@@ -48,7 +48,7 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
     def set_boards(self, boards: Dict[BoardType, List[BoardInfo]]):
 
         if not boards:
-            raise ValueError("`boards` must be a non-empty dictionary mapping BoardType to list of BoardInfo.")
+           return
         
         for btype, list_boards in boards.items():
             if not list_boards:
