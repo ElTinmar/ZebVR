@@ -9,6 +9,8 @@ from PyQt5.QtWidgets import (
 )
 from ..utils import set_from_dict
 
+# TODO: calibration, display power for each channel
+
 class VisualProtocolItemWidget(ProtocolItemWidget):
     
     state_changed = pyqtSignal()
