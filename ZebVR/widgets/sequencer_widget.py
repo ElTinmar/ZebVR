@@ -168,6 +168,16 @@ class SequencerWidget(QWidget):
             protocol.append(widget.to_protocol_item())
         return protocol
     
+    def clear_protocol(self):
+
+        for i in range(self.list.count()):
+            item = self.list.item(i)
+            widget = self.list.itemWidget(item)
+            if widget is not None:
+                widget.deleteLater()
+
+        self.list.clear()
+    
     def add_stim_widget(self, protocol_item: Optional[ProtocolItem] = None):
 
         stim = StimWidget(self.debouncer, self.daq_boards, self.background_image)
@@ -186,6 +196,7 @@ class SequencerWidget(QWidget):
         self.state_changed.emit()
     
     def set_protocol(self, protocol: Deque[ProtocolItem]) -> None:
+        self.clear_protocol()
         for protocol_item in protocol:
             self.add_stim_widget(protocol_item)
 
