@@ -126,11 +126,7 @@ class Protocol2(WorkerNode):
         for current_item in self.current_items:
             if current_item is not None:
                 if not current_item.done(metadata):
-                    # prevent spamming worker logger (otherwise logger queue gets full -> OOM)
-                    # sleep needs to be small enough to keep up with metadata, but big enough
-                    # to not fill the logger queue.
-                    # TODO: find a real solution
-                    time.sleep(0.002) 
+                    # TODO use SelectableEvent from ipc_tools
                     return
             
         command = self.next()
