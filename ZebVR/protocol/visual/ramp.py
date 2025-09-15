@@ -164,7 +164,21 @@ class RampWidget(VisualProtocolItemWidget):
 
     def to_protocol_item(self) -> Ramp:
 
+        foreground_color = (
+            self.sb_foreground_color_R.value(), 
+            self.sb_foreground_color_G.value(),
+            self.sb_foreground_color_B.value(),
+            self.sb_foreground_color_A.value()
+        )
+        background_color = (
+            self.sb_background_color_R.value(), 
+            self.sb_background_color_G.value(),
+            self.sb_background_color_B.value(),
+            self.sb_background_color_A.value()
+        )
         protocol = Ramp(
+            foreground_color = foreground_color,
+            background_color = background_color,
             ramp_duration_sec = self.sb_ramp_duration_sec.value(),
             ramp_powerlaw_exponent = self.sb_ramp_powerlaw_exponent.value(),
             ramp_type = RampType(self.cb_ramp_type.currentIndex()),
