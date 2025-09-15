@@ -12,7 +12,8 @@ from PyQt5.QtWidgets import (
     QListWidgetItem,
     QPushButton,
     QHBoxLayout,
-    QVBoxLayout
+    QVBoxLayout,
+    QAbstractItemView
 )
 
 from qt_widgets import LabeledSpinBox
@@ -71,6 +72,8 @@ class SequencerWidget(QWidget):
         # QListWidget
         self.list = QListWidget()
         self.list.setAlternatingRowColors(True)
+        self.list.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.list.verticalScrollBar().setSingleStep(2)
 
         # add stim button
         self.btn_add_stim = QPushButton('stim')

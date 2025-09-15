@@ -71,6 +71,7 @@ class SettingsWidget(QWidget):
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setWidget(container)
+        scroll_area.verticalScrollBar().setSingleStep(2)
 
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(scroll_area)

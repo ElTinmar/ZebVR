@@ -65,6 +65,7 @@ class QueueMonitorWidget(QWidget):
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll_area.setFixedHeight(self.FIXED_HEIGHT)
         self.scroll_area.setFixedWidth(self.FIXED_WIDTH)
+        self.scroll_area.verticalScrollBar().setSingleStep(2)
         self.layout.addWidget(self.scroll_area)
 
         self.container = QWidget()
