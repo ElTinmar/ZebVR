@@ -126,7 +126,6 @@ class Protocol2(WorkerNode):
         for current_item in self.current_items:
             if current_item is not None:
                 if not current_item.done(metadata):
-                    # TODO use SelectableEvent from ipc_tools
                     return
             
         command = self.next()
