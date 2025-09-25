@@ -6,9 +6,11 @@ from PyQt5.QtWidgets import (
     QPushButton, 
     QComboBox, 
     QFileDialog,
+    QGraphicsScene, 
+    QGraphicsPixmapItem,
     QApplication
 )
-from PyQt5.QtCore import pyqtSignal, QRunnable, QThreadPool, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, QRunnable, QThreadPool, QObject, QTimer, Qt
 from PyQt5.QtGui import QImage
 import numpy as np
 import cv2
@@ -18,7 +20,7 @@ from typing import Dict, Optional, Callable, Union
 from numpy.typing import NDArray
 from enum import IntEnum
 
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap, ZoomableGraphicsView
 from camera_tools import (
     Camera, 
     OpenCV_Webcam, 
@@ -75,6 +77,8 @@ class CameraWidget(QWidget):
         ]
 
         self.image = np.zeros((self.PREVIEW_HEIGHT,self.PREVIEW_HEIGHT), dtype=np.uint8)
+        self.current_width = self.PREVIEW_HEIGHT
+
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Camera controls')
@@ -128,7 +132,14 @@ class CameraWidget(QWidget):
         self.preview_stop = QPushButton('stop preview')
         self.preview_stop.clicked.connect(self.stop)
 
-        self.image_label = QLabel()
+        self.scene = QGraphicsScene(self)
+        self.image_item = QGraphicsPixmapItem()
+        self.scene.addItem(self.image_item)
+        self.image_view = ZoomableGraphicsView(self.scene)
+        self.image_view.setFixedHeight(self.PREVIEW_HEIGHT)
+        self.image_view.setFixedWidth(self.PREVIEW_HEIGHT)
+        self.image_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.image_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
     def load_file(self):
         filename, _ = QFileDialog.getOpenFileName(
@@ -155,7 +166,11 @@ class CameraWidget(QWidget):
         preview_width = int(w * self.PREVIEW_HEIGHT/h)
         image_resized = cv2.resize(self.image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
         pixmap = NDarray_to_QPixmap(image_resized, format = QImage.Format_RGB888)
-        self.image_label.setPixmap(pixmap)
+        self.image_item.setPixmap(pixmap)
+
+        if preview_width != self.current_width:
+            self.current_width = preview_width
+            self.image_view.setFixedWidth(self.current_width)
 
     def layout_components(self) -> None:
 
@@ -185,7 +200,7 @@ class CameraWidget(QWidget):
 
         layout_image = QHBoxLayout()
         layout_image.addStretch()
-        layout_image.addWidget(self.image_label)
+        layout_image.addWidget(self.image_view)
         layout_image.addStretch()
 
         layout_controls.addLayout(layout_channels)
