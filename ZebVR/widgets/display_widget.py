@@ -3,16 +3,19 @@ import cv2
 from typing import Dict
 
 #import pyqtgraph as pg
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QWidget, 
     QPushButton,
     QButtonGroup,
     QHBoxLayout,
     QVBoxLayout,
+    QGraphicsScene, 
+    QGraphicsPixmapItem,
     QLabel
 )
 from PyQt5.QtGui import QImage
-from qt_widgets import NDarray_to_QPixmap, LabeledSpinBox
+from qt_widgets import NDarray_to_QPixmap, LabeledSpinBox, ZoomableGraphicsView
 
 class TrackerType(IntEnum):
     MULTI = 0
@@ -29,6 +32,8 @@ class DisplayType(IntEnum):
 # TODO: add a widget to select fish num
 # TODO: maybe add image histogram? Not sure about that though
 
+# TODO use a zoomablegraphicsview instead of a label
+
 class DisplayWidget(QWidget):
 
     def __init__(
@@ -41,6 +46,7 @@ class DisplayWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         self.display_height = display_height 
+        self.current_width = display_height
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Display')
@@ -49,8 +55,16 @@ class DisplayWidget(QWidget):
     def declare_components(self) -> None:
 
         self.lbl_index = QLabel()
-        self.lbl_timestamp = QLabel()        
-        self.lbl_image = QLabel()
+        self.lbl_timestamp = QLabel()    
+
+        self.scene = QGraphicsScene(self)
+        self.image_item = QGraphicsPixmapItem()
+        self.scene.addItem(self.image_item)
+        self.image_view = ZoomableGraphicsView(self.scene)
+        self.image_view.setFixedHeight(self.display_height)
+        self.image_view.setFixedWidth(self.display_height)
+        self.image_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.image_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
     def layout_components(self) -> None:
 
@@ -63,7 +77,7 @@ class DisplayWidget(QWidget):
 
         layout_image = QHBoxLayout()
         layout_image.addStretch()
-        layout_image.addWidget(self.lbl_image)
+        layout_image.addWidget(self.image_view)
         layout_image.addStretch() 
 
         layout = QVBoxLayout(self)
@@ -77,7 +91,12 @@ class DisplayWidget(QWidget):
         image_resized = cv2.resize(image_rgb, (width, self.display_height), interpolation=cv2.INTER_NEAREST)
 
         pixmap = NDarray_to_QPixmap(image_resized, format = QImage.Format_RGB888)
-        self.lbl_image.setPixmap(pixmap)
+
+        self.image_item.setPixmap(pixmap)
+        if width != self.current_width:
+            self.current_width = width
+            self.image_view.setFixedWidth(self.current_width)
+
         self.lbl_index.setText(f'{index}')
         self.lbl_timestamp.setText(f'{timestamp:.03f}')
         self.update()
@@ -97,6 +116,7 @@ class TrackingDisplayWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         self.display_height = display_height 
+        self.current_width = display_height
         self.n_animals = n_animals
         self.declare_components()
         self.layout_components()
@@ -112,8 +132,16 @@ class TrackingDisplayWidget(QWidget):
         self.animal_identity.setValue(0)
 
         self.lbl_index = QLabel()
-        self.lbl_timestamp = QLabel()        
-        self.lbl_image = QLabel()
+        self.lbl_timestamp = QLabel()    
+
+        self.scene = QGraphicsScene(self)
+        self.image_item = QGraphicsPixmapItem()
+        self.scene.addItem(self.image_item)
+        self.image_view = ZoomableGraphicsView(self.scene)
+        self.image_view.setFixedHeight(self.display_height)
+        self.image_view.setFixedWidth(self.display_height)
+        self.image_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.image_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         # TODO add widget to select which fish to show
         # and / or mouse click event
@@ -179,7 +207,7 @@ class TrackingDisplayWidget(QWidget):
 
         layout_image = QHBoxLayout()
         layout_image.addStretch()
-        layout_image.addWidget(self.lbl_image)
+        layout_image.addWidget(self.image_view)
         layout_image.addStretch() 
 
         layout = QVBoxLayout(self)
@@ -203,7 +231,12 @@ class TrackingDisplayWidget(QWidget):
         image_resized = cv2.resize(image, (width, self.display_height), interpolation=cv2.INTER_NEAREST)
 
         pixmap = NDarray_to_QPixmap(image_resized)
-        self.lbl_image.setPixmap(pixmap)
+
+        self.image_item.setPixmap(pixmap)
+        if width != self.current_width:
+            self.current_width = width
+            self.image_view.setFixedWidth(self.current_width)
+
         self.lbl_index.setText(f'{index}')
         self.lbl_timestamp.setText(f'{timestamp:.03f}')
         self.update()
