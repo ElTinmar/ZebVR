@@ -228,9 +228,9 @@ class TrackingDisplayWidget(QWidget):
 
         # TODO make that an argument or controlled by a widget?    
         width = int(image.shape[1] * self.display_height/image.shape[0])
-        #image_resized = cv2.resize(image, (width, self.display_height), interpolation=cv2.INTER_NEAREST)
+        image_resized = cv2.resize(image, (width, self.display_height), interpolation=cv2.INTER_NEAREST)
 
-        pixmap = NDarray_to_QPixmap(image)
+        pixmap = NDarray_to_QPixmap(image_resized)
 
         self.image_item.setPixmap(pixmap)
         if width != self.current_width:
