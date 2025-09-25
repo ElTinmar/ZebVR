@@ -164,8 +164,9 @@ class CameraWidget(QWidget):
         # TODO maybe check that image is uint8
         h, w = self.image.shape[:2]
         preview_width = int(w * self.PREVIEW_HEIGHT/h)
-        image_resized = cv2.resize(self.image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
-        pixmap = NDarray_to_QPixmap(image_resized, format = QImage.Format_RGB888)
+        #image_resized = cv2.resize(self.image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
+        
+        pixmap = NDarray_to_QPixmap(self.image, format = QImage.Format_RGB888)
         self.image_item.setPixmap(pixmap)
 
         if preview_width != self.current_width:
