@@ -16,6 +16,7 @@ class Stim(IntEnum):
     DOT = 10
     IMAGE = 11
     RAMP = 12
+    FOLLOWING_PREY_CAPTURE = 13
 
     # acoustic
     PURE_TONE = 20
@@ -38,9 +39,9 @@ class Stim(IntEnum):
     def __str__(self):
         return self.name
     
-VISUAL_STIMS = [s for s in Stim if 0 <= s.value <= 12]
-AUDIO_STIMS = [s for s in Stim if 20 <= s.value <= 27]
-DAQ_STIMS =  [s for s in Stim if 30 <= s.value <= 35]
+VISUAL_STIMS = [s for s in Stim if 0 <= s.value <= 19]
+AUDIO_STIMS = [s for s in Stim if 20 <= s.value <= 29]
+DAQ_STIMS =  [s for s in Stim if 30 <= s.value <= 39]
 
 class RampType(IntEnum):
     LINEAR = 0

@@ -24,6 +24,7 @@ PROTOCOL_WIDGETS: List[Tuple[Type[ProtocolItemWidget], Stim]] = [
     (visual.ConcentricGratingWidget, Stim.CONCENTRIC_GRATING),
     (visual.RampWidget, Stim.RAMP),
     (visual.ImageWidget, Stim.IMAGE),
+    (visual.FollowingPreyCaptureWidget, Stim.FOLLOWING_PREY_CAPTURE),
     (acoustic.PureToneWidget, Stim.PURE_TONE),
     (acoustic.WhiteNoiseWidget, Stim.WHITE_NOISE),
     (acoustic.PinkNoiseWidget, Stim.PINK_NOISE),

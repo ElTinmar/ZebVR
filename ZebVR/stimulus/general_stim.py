@@ -52,7 +52,9 @@ class SharedStimParameters:
         self.dot_radius_mm = RawValue('d', DEFAULT['dot_radius_mm'])
         self.n_preys = RawValue('L', DEFAULT['n_preys'])
         self.prey_speed_mm_s = RawValue('d', DEFAULT['prey_speed_mm_s'])
+        self.prey_speed_deg_s = RawValue('d', DEFAULT['prey_speed_deg_s'])
         self.prey_radius_mm = RawValue('d', DEFAULT['prey_radius_mm'])
+        self.prey_trajectory_radius_mm = RawValue('d', DEFAULT['prey_trajectory_radius_mm'])
         self.image_path = SharedString(initializer = DEFAULT['image_path'])
         self.image_res_px_per_mm = RawValue('d', DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm = RawArray('d', DEFAULT['image_offset_mm'])
@@ -83,7 +85,9 @@ class SharedStimParameters:
         self.dot_radius_mm.value = d.get('dot_radius_mm', DEFAULT['dot_radius_mm'])
         self.n_preys.value = int(d.get('n_preys', DEFAULT['n_preys']))
         self.prey_speed_mm_s.value = d.get('prey_speed_mm_s', DEFAULT['prey_speed_mm_s'])
+        self.prey_speed_deg_s.value = d.get('prey_speed_deg_s', DEFAULT['prey_speed_deg_s'])
         self.prey_radius_mm.value = d.get('prey_radius_mm', DEFAULT['prey_radius_mm'])
+        self.prey_trajectory_radius_mm.value = d.get('prey_trajectory_radius_mm', DEFAULT['prey_trajectory_radius_mm'])
         self.image_path.value = d.get('image_path', DEFAULT['image_path'])
         self.image_res_px_per_mm.value = d.get('image_res_px_per_mm', DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm[:] = d.get('image_offset_mm', DEFAULT['image_offset_mm'])
@@ -144,6 +148,14 @@ class SharedStimParameters:
                 'n_preys': self.n_preys.value,
                 'prey_speed_mm_s': self.prey_speed_mm_s.value,
                 'prey_radius_mm': self.prey_radius_mm.value,
+            })
+
+        if self.stim_select.value == Stim.FOLLOWING_PREY_CAPTURE:
+            res.update({
+                'n_preys': self.n_preys.value,
+                'prey_speed_deg_s': self.prey_speed_deg_s.value,
+                'prey_radius_mm': self.prey_radius_mm.value,
+                'prey_trajectory_radius_mm': self.prey_trajectory_radius_mm.value,
             })
 
         if self.stim_select.value == Stim.IMAGE:
@@ -241,7 +253,9 @@ class GeneralStim(VisualStim):
         uniform float u_dot_radius_mm;
         uniform float u_n_preys;
         uniform float u_prey_radius_mm;
+        uniform float u_prey_trajectory_radius_mm;
         uniform float u_prey_speed_mm_s;
+        uniform float u_prey_speed_deg_s;
         uniform vec2 u_prey_position[{MAX_PREY}];
         uniform vec2 u_prey_direction[{MAX_PREY}];
         uniform sampler2D u_image_texture;
@@ -269,6 +283,7 @@ class GeneralStim(VisualStim):
         const int DOT = 10;
         const int IMAGE = 11;
         const int RAMP = 12;
+        const int FOLLOWING_PREY_CAPTURE = 13;
 
         const float PI = radians(180.0);
         const float EPS = 1e-6;
@@ -428,6 +443,17 @@ class GeneralStim(VisualStim):
                     }
                 }
 
+                if (u_stim_select == FOLLOWING_PREY_CAPTURE) {
+                    float phase = radians(u_prey_speed_deg_s) * u_time_s;
+                    for (int i = 0; i < u_n_preys; i++) {
+                        float angle = i * 2*PI/u_n_preys;      
+                        vec2 prey_offset = u_prey_trajectory_radius_mm * vec2(cos(angle+phase), sin(angle+phase));
+                        if ( distance(fish_ego_coords_mm, prey_offset) <= u_prey_radius_mm) {
+                            gl_FragColor = u_foreground_color;
+                        }
+                    }
+                }
+
                 if (u_stim_select == IMAGE) {
                     vec2 image_size_mm = u_image_size / u_image_res_px_per_mm;
                     vec2 coords = (coordinates_mm - u_image_offset_mm - proj_bbox_mm.xy) / image_size_mm;
@@ -531,7 +557,9 @@ class GeneralStim(VisualStim):
         self.program['u_dot_center_mm'] = self.shared_stim_parameters.dot_center_mm[:]
         self.program['u_dot_radius_mm'] = self.shared_stim_parameters.dot_radius_mm.value
         self.program['u_prey_speed_mm_s'] = self.shared_stim_parameters.prey_speed_mm_s.value
+        self.program['u_prey_speed_deg_s'] = self.shared_stim_parameters.prey_speed_deg_s.value
         self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
+        self.program['u_prey_trajectory_radius_mm'] = self.shared_stim_parameters.prey_trajectory_radius_mm.value
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
         self.program['u_ramp_duration_sec'] = self.shared_stim_parameters.ramp_duration_sec.value
         self.program['u_ramp_powerlaw_exponent'] = self.shared_stim_parameters.ramp_powerlaw_exponent.value
