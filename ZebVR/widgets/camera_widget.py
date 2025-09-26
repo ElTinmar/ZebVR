@@ -168,10 +168,10 @@ class CameraWidget(QWidget):
         
         pixmap = NDarray_to_QPixmap(self.image, format = QImage.Format_RGB888)
         self.image_item.setPixmap(pixmap)
-
         if preview_width != self.current_width:
             self.current_width = preview_width
             self.image_view.setFixedWidth(self.current_width)
+            self.image_view.fitInView(self.image_item, Qt.KeepAspectRatio)
 
     def layout_components(self) -> None:
 

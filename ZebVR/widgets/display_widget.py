@@ -96,6 +96,7 @@ class DisplayWidget(QWidget):
         if width != self.current_width:
             self.current_width = width
             self.image_view.setFixedWidth(self.current_width)
+            self.image_view.fitInView(self.image_item, Qt.KeepAspectRatio)
 
         self.lbl_index.setText(f'{index}')
         self.lbl_timestamp.setText(f'{timestamp:.03f}')
@@ -236,6 +237,7 @@ class TrackingDisplayWidget(QWidget):
         if width != self.current_width:
             self.current_width = width
             self.image_view.setFixedWidth(self.current_width)
+            self.image_view.fitInView(self.image_item, Qt.KeepAspectRatio)
 
         self.lbl_index.setText(f'{index}')
         self.lbl_timestamp.setText(f'{timestamp:.03f}')
