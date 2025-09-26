@@ -177,6 +177,8 @@ class CameraWidget(QWidget):
 
             self.image_view.setFixedWidth(self.current_preview_width)
             self.image_view.fitInView(self.image_item, Qt.KeepAspectRatio)
+            self.image_view.centerOn(self.image_item)
+            self.scene.setSceneRect(self.image_item.boundingRect())
 
     def layout_components(self) -> None:
 

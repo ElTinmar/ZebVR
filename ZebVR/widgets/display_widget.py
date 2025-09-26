@@ -98,6 +98,8 @@ class DisplayWidget(QWidget):
             
             self.image_view.setFixedWidth(self.current_display_width)
             self.image_view.fitInView(self.image_item, Qt.KeepAspectRatio)
+            self.image_view.centerOn(self.image_item)
+            self.scene.setSceneRect(self.image_item.boundingRect())
 
         self.lbl_index.setText(f'{index}')
         self.lbl_timestamp.setText(f'{timestamp:.03f}')
