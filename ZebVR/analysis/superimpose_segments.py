@@ -63,7 +63,7 @@ def group_files():
 if __name__ == "__main__":
     groups = group_files()
 
-    with ProcessPoolExecutor(max_workers=8) as executor:
+    with ProcessPoolExecutor() as executor:
         futures = {
             executor.submit(superimpose_videos, stim_key, sorted(flist), True): stim_key
             for stim_key, flist in groups.items()

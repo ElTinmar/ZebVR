@@ -2,6 +2,7 @@ import json
 import pandas as pd
 import subprocess
 from enum import IntEnum
+from pathlib import Path
 
 class Stim(IntEnum):
 
@@ -22,13 +23,18 @@ class Stim(IntEnum):
 
     def __str__(self):
         return self.name
+
+base_folder = Path('/media/martin/DATA/Behavioral_screen/extract_video')
+timestamp_file = base_folder / '00_07dpf_TLN-7432_Thu_25_Sep_2025_17h28min28sec.csv'
+stim_file = base_folder / 'stim_00_07dpf_TLN-7432_Thu_25_Sep_2025_17h28min44sec.json'
+video_file = base_folder / '00_07dpf_TLN-7432_Thu_25_Sep_2025_17h28min28sec.mp4'
         
 # Load timestamp mapping
-ts_df = pd.read_csv("00_07dpf_TLN_Wed_17_Sep_2025_14h37min15sec.csv", sep=",")
+ts_df = pd.read_csv(timestamp_file, sep=",")
 
 # Load stim events
 events = []
-with open("stim_00_07dpf_TLN_Wed_17_Sep_2025_14h37min32sec.json") as f:
+with open(stim_file) as f:
     for line in f:
         events.append(json.loads(line))
 
@@ -58,12 +64,14 @@ for i, ev in enumerate(events):
         suffix = str(ev['omr_angle_deg'])
     elif stim == Stim.OKR:
         suffix = str(ev['okr_speed_deg_per_sec'])
+    elif stim == Stim.FOLLOWING_LOOMING:
+        suffix = str(ev['looming_center_mm'][0])
 
 
     out_name = f"stim_{str(stim)}_{suffix}_{stim_counter[stim]}.mp4"
     stim_counter[stim] += 1
     
-    cmd = ["ffmpeg", "-i", "00_07dpf_TLN_Wed_17_Sep_2025_14h37min15sec.mp4", "-ss", str(start_time)]
+    cmd = ["ffmpeg", "-y", "-i", video_file, "-ss", str(start_time)]
     if end_time is not None:
         cmd += ["-to", str(end_time)]
     cmd += ["-c", "copy", out_name]
