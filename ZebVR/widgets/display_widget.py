@@ -29,10 +29,7 @@ class DisplayType(IntEnum):
     OVERLAY = 1
     MASK = 2
 
-# TODO: add a widget to select fish num
 # TODO: maybe add image histogram? Not sure about that though
-
-# TODO use a zoomablegraphicsview instead of a label
 
 class DisplayWidget(QWidget):
 
@@ -46,7 +43,10 @@ class DisplayWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         self.display_height = display_height 
+        self.current_display_width = display_height
         self.current_width = display_height
+        self.current_height = display_height
+
         self.declare_components()
         self.layout_components()
         self.setWindowTitle('Display')
@@ -86,16 +86,17 @@ class DisplayWidget(QWidget):
 
     def set_state(self, index, timestamp, image_rgb) -> None:
 
-        # TODO make that an argument or controlled by a widget?    
-        width = int(image_rgb.shape[1] * self.display_height/image_rgb.shape[0])
-        #image_resized = cv2.resize(image_rgb, (width, self.display_height), interpolation=cv2.INTER_NEAREST)
-
+        h, w = image_rgb.shape[:2]
         pixmap = NDarray_to_QPixmap(image_rgb, format = QImage.Format_RGB888)
-
         self.image_item.setPixmap(pixmap)
-        if width != self.current_width:
-            self.current_width = width
-            self.image_view.setFixedWidth(self.current_width)
+
+         # check if shape has changed
+        if h != self.current_height or w != self.current_width:
+            self.current_height = h
+            self.current_width = w
+            self.current_display_width = int(image_rgb.shape[1] * self.display_height/image_rgb.shape[0])
+            
+            self.image_view.setFixedWidth(self.current_display_width)
             self.image_view.fitInView(self.image_item, Qt.KeepAspectRatio)
 
         self.lbl_index.setText(f'{index}')
@@ -117,7 +118,10 @@ class TrackingDisplayWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         self.display_height = display_height 
+        self.current_display_width = display_height
         self.current_width = display_height
+        self.current_height = display_height
+
         self.n_animals = n_animals
         self.declare_components()
         self.layout_components()
@@ -230,13 +234,12 @@ class TrackingDisplayWidget(QWidget):
         # TODO make that an argument or controlled by a widget?    
         width = int(image.shape[1] * self.display_height/image.shape[0])
         image_resized = cv2.resize(image, (width, self.display_height), interpolation=cv2.INTER_NEAREST)
-
         pixmap = NDarray_to_QPixmap(image_resized)
-
         self.image_item.setPixmap(pixmap)
-        if width != self.current_width:
-            self.current_width = width
-            self.image_view.setFixedWidth(self.current_width)
+
+        if width != self.current_display_width:
+            self.current_display_width = width
+            self.image_view.setFixedWidth(self.current_display_width)
             self.image_view.fitInView(self.image_item, Qt.KeepAspectRatio)
 
         self.lbl_index.setText(f'{index}')
