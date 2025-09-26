@@ -7,8 +7,8 @@ import urllib.request
 import argparse
 
 EXPECTED_ENV_NAME = "ZebVR3"
-SDK_URL = "https://updates.ximea.com/public/ximea_linux_sp_beta.tgz"
-SDK_ARCHIVE = "ximea_linux_sp_beta.tgz"
+SDK_URL = "https://updates.ximea.com/public/ximea_linux_sp.tgz"
+SDK_ARCHIVE = "ximea_linux_sp.tgz"
 SDK_FOLDER = "package"
 INSTALL_FLAG = "-pcie"
 
