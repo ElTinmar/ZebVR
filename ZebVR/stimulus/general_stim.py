@@ -48,6 +48,10 @@ class SharedStimParameters:
         self.looming_period_sec = RawValue('d', DEFAULT['looming_period_sec'])
         self.looming_expansion_time_sec = RawValue('d', DEFAULT['looming_expansion_time_sec'])
         self.looming_expansion_speed_mm_per_sec = RawValue('d', DEFAULT['looming_expansion_speed_mm_per_sec'])
+        self.looming_expansion_speed_deg_per_sec = RawValue('d', DEFAULT['looming_expansion_speed_deg_per_sec'])
+        self.looming_angle_start_deg = RawValue('d', DEFAULT['looming_angle_start_deg'])
+        self.looming_angle_stop_deg = RawValue('d', DEFAULT['looming_angle_stop_deg'])
+        self.looming_size_to_speed_ratio_ms = RawValue('d', DEFAULT['looming_size_to_speed_ratio_ms'])
         self.dot_center_mm = RawArray('d', DEFAULT['dot_center_mm'])
         self.dot_radius_mm = RawValue('d', DEFAULT['dot_radius_mm'])
         self.n_preys = RawValue('L', DEFAULT['n_preys'])
@@ -81,6 +85,10 @@ class SharedStimParameters:
         self.looming_period_sec.value = d.get('looming_period_sec', DEFAULT['looming_period_sec'])
         self.looming_expansion_time_sec.value = d.get('looming_expansion_time_sec', DEFAULT['looming_expansion_time_sec'])
         self.looming_expansion_speed_mm_per_sec.value = d.get('looming_expansion_speed_mm_per_sec', DEFAULT['looming_expansion_speed_mm_per_sec'])
+        self.looming_expansion_speed_deg_per_sec.value = d.get('looming_expansion_speed_deg_per_sec', DEFAULT['looming_expansion_speed_deg_per_sec'])
+        self.looming_angle_start_deg.value = d.get('looming_angle_start_deg', DEFAULT['looming_angle_start_deg'])
+        self.looming_angle_stop_deg.value = d.get('looming_angle_stop_deg', DEFAULT['looming_angle_stop_deg'])
+        self.looming_size_to_speed_ratio_ms.value = d.get('looming_size_to_speed_ratio_ms', DEFAULT['looming_size_to_speed_ratio_ms'])
         self.dot_center_mm[:] = d.get('dot_center_mm', DEFAULT['dot_center_mm'])
         self.dot_radius_mm.value = d.get('dot_radius_mm', DEFAULT['dot_radius_mm'])
         self.n_preys.value = int(d.get('n_preys', DEFAULT['n_preys']))
@@ -129,12 +137,28 @@ class SharedStimParameters:
                 'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec.value,
             })
 
-        if self.stim_select.value in [Stim.LOOMING, Stim.FOLLOWING_LOOMING]:
+        if self.stim_select.value in [Stim.LINEAR_RADIUS_LOOMING, Stim.LINEAR_RADIUS_LOOMING_CLOSED_LOOP]:
             res.update({
                 'looming_center_mm': list(self.looming_center_mm),
                 'looming_period_sec': self.looming_period_sec.value,
                 'looming_expansion_time_sec': self.looming_expansion_time_sec.value,
                 'looming_expansion_speed_mm_per_sec': self.looming_expansion_speed_mm_per_sec.value,
+            })
+
+        if self.stim_select.value in [Stim.LINEAR_ANGLE_LOOMING, Stim.LINEAR_ANGLE_LOOMING_CLOSED_LOOP]:
+            res.update({
+                'looming_center_mm': list(self.looming_center_mm),
+                'looming_period_sec': self.looming_period_sec.value,
+                'looming_expansion_time_sec': self.looming_expansion_time_sec.value,
+                'looming_expansion_speed_deg_per_sec': self.looming_expansion_speed_deg_per_sec.value,
+            })
+
+        if self.stim_select.value in [Stim.CONSTANT_APPROACH_SPEED_LOOMING, Stim.CONSTANT_APPROACH_SPEED_LOOMING_CLOSED_LOOP]:
+            res.update({
+                'looming_center_mm': list(self.looming_center_mm),
+                'looming_angle_start_deg': self.looming_angle_start_deg.value,
+                'looming_angle_stop_deg': self.looming_angle_stop_deg.value,
+                'looming_size_to_speed_ratio_ms': self.looming_size_to_speed_ratio_ms.value,
             })
 
         if self.stim_select.value in [Stim.DOT, Stim.FOLLOWING_DOT]:
@@ -249,6 +273,10 @@ class GeneralStim(VisualStim):
         uniform float u_looming_period_sec;
         uniform float u_looming_expansion_time_sec;
         uniform float u_looming_expansion_speed_mm_per_sec;
+        uniform float u_looming_expansion_speed_deg_per_sec;
+        uniform float u_looming_angle_start_deg;
+        uniform float u_looming_angle_stop_deg;
+        uniform float u_looming_size_to_speed_ratio_ms;
         uniform vec2 u_dot_center_mm;
         uniform float u_dot_radius_mm;
         uniform float u_n_preys;
@@ -275,15 +303,19 @@ class GeneralStim(VisualStim):
         const int PHOTOTAXIS = 2;
         const int OMR = 3;
         const int OKR = 4;
-        const int FOLLOWING_LOOMING = 5;
+        const int LINEAR_RADIUS_LOOMING_CLOSED_LOOP = 5;
         const int PREY_CAPTURE = 6;
-        const int LOOMING = 7;
+        const int LINEAR_RADIUS_LOOMING = 7;
         const int CONCENTRIC_GRATING = 8;
         const int FOLLOWING_DOT = 9;
         const int DOT = 10;
         const int IMAGE = 11;
         const int RAMP = 12;
         const int FOLLOWING_PREY_CAPTURE = 13;
+        const int LINEAR_ANGLE_LOOMING = 14;
+        const int LINEAR_ANGLE_LOOMING_CLOSED_LOOP = 15;
+        const int CONSTANT_APPROACH_SPEED_LOOMING = 16;
+        const int CONSTANT_APPROACH_SPEED_LOOMING_CLOSED_LOOP = 17;
 
         const float PI = radians(180.0);
         const float EPS = 1e-6;
@@ -390,7 +422,8 @@ class GeneralStim(VisualStim):
                 }
 
                 if (u_stim_select == DOT) {
-                    if ( distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.zw/2.0 + u_dot_center_mm) <= u_dot_radius_mm)
+                    vec2 dot_center = proj_bbox_mm.xy + proj_bbox_mm.zw/2.0 + u_dot_center_mm; 
+                    if ( distance(coordinates_mm, dot_center) <= u_dot_radius_mm)
                     {
                         gl_FragColor = u_foreground_color;
                     }
@@ -403,23 +436,76 @@ class GeneralStim(VisualStim):
                     }
                 } 
 
-                if (u_stim_select == LOOMING) {
+                if (u_stim_select == LINEAR_RADIUS_LOOMING) {
                     float rel_time = mod(u_time_s-u_start_time_s, u_looming_period_sec); 
                     float looming_on = float(rel_time<=u_looming_expansion_time_sec);
-                    if ( distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.zw/2.0 + u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
+                    vec2 looming_origin = proj_bbox_mm.xy + proj_bbox_mm.zw/2.0 + u_looming_center_mm;
+                    float looming_radius = u_looming_expansion_speed_mm_per_sec * rel_time * looming_on;
+                    if ( distance(coordinates_mm, looming_origin) <= looming_radius )
                     {
                         gl_FragColor = u_foreground_color;
                     }
                 }
 
-                if (u_stim_select == FOLLOWING_LOOMING) {
+                if (u_stim_select == LINEAR_RADIUS_LOOMING_CLOSED_LOOP) {
                     float rel_time = mod(u_time_s-u_start_time_s, u_looming_period_sec); 
                     float looming_on = float(rel_time<=u_looming_expansion_time_sec);
-                    if ( distance(fish_ego_coords_mm, u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
+                    float looming_radius = u_looming_expansion_speed_mm_per_sec * rel_time * looming_on;
+                    if ( distance(fish_ego_coords_mm, u_looming_center_mm) <= looming_radius )
                     {
                         gl_FragColor = u_foreground_color;
                     }
-                } 
+                }
+
+                if (u_stim_select == LINEAR_ANGLE_LOOMING) {
+                    float rel_time = mod(u_time_s-u_start_time_s, u_looming_period_sec); 
+                    float looming_on = float(rel_time<=u_looming_expansion_time_sec);
+                    vec2 looming_origin = proj_bbox_mm.xy + proj_bbox_mm.zw/2.0 + u_looming_center_mm;
+                    float visual_angle = radians(u_looming_expansion_speed_deg_per_sec) * rel_time * looming_on;
+                    float looming_radius = tan(visual_angle/2); // ??
+                    if ( distance(coordinates_mm, looming_origin) <= looming_radius )
+                    {
+                        gl_FragColor = u_foreground_color;
+                    }
+                }
+
+                if (u_stim_select == LINEAR_ANGLE_LOOMING_CLOSED_LOOP) {
+                    float rel_time = mod(u_time_s-u_start_time_s, u_looming_period_sec); 
+                    float looming_on = float(rel_time<=u_looming_expansion_time_sec);
+                    float visual_angle = radians(u_looming_expansion_speed_deg_per_sec) * rel_time * looming_on;
+                    float looming_radius = length(u_looming_center_mm) * tan(visual_angle/2);
+                    if ( distance(fish_ego_coords_mm, u_looming_center_mm) <= looming_radius )
+                    {
+                        gl_FragColor = u_foreground_color;
+                    }
+                }
+
+                if (u_stim_select == CONSTANT_APPROACH_SPEED_LOOMING) {
+                    float t_0 = u_looming_size_to_speed_ratio_ms/tan(radians(u_looming_angle_start_deg)/2);
+                    float t_f = u_looming_size_to_speed_ratio_ms/tan(radians(u_looming_angle_stop_deg)/2);
+                    float period = t_0 - t_f;
+                    float rel_time = mod(1000*(u_time_s-u_start_time_s), period); 
+                    vec2 looming_origin = proj_bbox_mm.xy + proj_bbox_mm.zw/2.0 + u_looming_center_mm;
+                    float visual_angle = 2 * atan(u_looming_size_to_speed_ratio_ms/(t_0 - rel_time));
+                    float looming_radius = tan(visual_angle/2); // ??
+                    if ( distance(coordinates_mm, looming_origin) <= looming_radius )
+                    {
+                        gl_FragColor = u_foreground_color;
+                    }
+                }
+
+                if (u_stim_select == CONSTANT_APPROACH_SPEED_LOOMING_CLOSED_LOOP) {
+                    float t_0 = u_looming_size_to_speed_ratio_ms/tan(radians(u_looming_angle_start_deg)/2);
+                    float t_f = u_looming_size_to_speed_ratio_ms/tan(radians(u_looming_angle_stop_deg)/2);
+                    float period = t_0 - t_f;
+                    float rel_time = mod(1000*(u_time_s-u_start_time_s), period); 
+                    float visual_angle = 2 * atan(u_looming_size_to_speed_ratio_ms/(t_0 - rel_time));
+                    float looming_radius = length(u_looming_center_mm) * tan(visual_angle/2);
+                    if ( distance(fish_ego_coords_mm, u_looming_center_mm) <= looming_radius )
+                    {
+                        gl_FragColor = u_foreground_color;
+                    }
+                }
 
                 if (u_stim_select == CONCENTRIC_GRATING) {
                     float distance_to_center_mm = distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.zw/2.0);
@@ -554,6 +640,10 @@ class GeneralStim(VisualStim):
         self.program['u_looming_period_sec'] = self.shared_stim_parameters.looming_period_sec.value
         self.program['u_looming_expansion_time_sec'] = self.shared_stim_parameters.looming_expansion_time_sec.value
         self.program['u_looming_expansion_speed_mm_per_sec'] = self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value
+        self.program['u_looming_expansion_speed_deg_per_sec'] = self.shared_stim_parameters.looming_expansion_speed_deg_per_sec.value
+        self.program['u_looming_angle_start_deg'] = self.shared_stim_parameters.looming_angle_start_deg.value
+        self.program['u_looming_angle_stop_deg'] = self.shared_stim_parameters.looming_angle_stop_deg.value
+        self.program['u_looming_size_to_speed_ratio_ms'] = self.shared_stim_parameters.looming_size_to_speed_ratio_ms.value
         self.program['u_dot_center_mm'] = self.shared_stim_parameters.dot_center_mm[:]
         self.program['u_dot_radius_mm'] = self.shared_stim_parameters.dot_radius_mm.value
         self.program['u_prey_speed_mm_s'] = self.shared_stim_parameters.prey_speed_mm_s.value

@@ -8,40 +8,44 @@ class Stim(IntEnum):
     PHOTOTAXIS = 2
     OMR = 3
     OKR = 4
-    FOLLOWING_LOOMING = 5
+    LINEAR_RADIUS_LOOMING_CLOSED_LOOP = 5
     PREY_CAPTURE = 6
-    LOOMING = 7
+    LINEAR_RADIUS_LOOMING = 7
     CONCENTRIC_GRATING = 8
     FOLLOWING_DOT = 9
     DOT = 10
     IMAGE = 11
     RAMP = 12
     FOLLOWING_PREY_CAPTURE = 13
+    LINEAR_ANGLE_LOOMING = 14
+    LINEAR_ANGLE_LOOMING_CLOSED_LOOP = 15
+    CONSTANT_APPROACH_SPEED_LOOMING = 16
+    CONSTANT_APPROACH_SPEED_LOOMING_CLOSED_LOOP = 17
 
     # acoustic
-    PURE_TONE = 20
-    FREQUENCY_RAMP = 21
-    WHITE_NOISE = 22
-    PINK_NOISE = 23
-    BROWN_NOISE = 24
-    CLICK_TRAIN = 25
-    SILENCE = 26
-    AUDIO_FILE = 27
+    PURE_TONE = 100
+    FREQUENCY_RAMP = 101
+    WHITE_NOISE = 102
+    PINK_NOISE = 103
+    BROWN_NOISE = 104
+    CLICK_TRAIN = 105
+    SILENCE = 106
+    AUDIO_FILE = 107
 
     # daq
-    DIGITAL_WRITE = 30
-    ANALOG_WRITE = 31
-    PWM_WRITE = 32
-    DIGITAL_PULSE = 33
-    PWM_PULSE = 34
-    ANALOG_PULSE = 35
+    DIGITAL_WRITE = 200
+    ANALOG_WRITE = 201
+    PWM_WRITE = 202
+    DIGITAL_PULSE = 203
+    PWM_PULSE = 204
+    ANALOG_PULSE = 205
 
     def __str__(self):
         return self.name
     
-VISUAL_STIMS = [s for s in Stim if 0 <= s.value <= 19]
-AUDIO_STIMS = [s for s in Stim if 20 <= s.value <= 29]
-DAQ_STIMS =  [s for s in Stim if 30 <= s.value <= 39]
+VISUAL_STIMS = [s for s in Stim if 0 <= s.value <= 99]
+AUDIO_STIMS = [s for s in Stim if 100 <= s.value <= 199]
+DAQ_STIMS =  [s for s in Stim if 200 <= s.value <= 299]
 
 class RampType(IntEnum):
     LINEAR = 0
