@@ -46,7 +46,7 @@ class Dot(VisualProtocolItem):
         return command 
 
 class FollowingDot(Dot):
-    STIM_SELECT = Stim.FOLLOWING_DOT
+    STIM_SELECT = Stim.DOT_CLOSED_LOOP
 
 class DotWidget(VisualProtocolItemWidget):
 

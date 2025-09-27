@@ -113,12 +113,12 @@ class SharedStimParameters:
             'background_color': list(self.background_color),
         }
 
-        if self.stim_select.value == Stim.PHOTOTAXIS:
+        if self.stim_select.value == Stim.PHOTOTAXIS_CLOSED_LOOP:
             res.update({
                 'phototaxis_polarity': self.phototaxis_polarity.value,
             })
 
-        if self.stim_select.value == Stim.OMR:
+        if self.stim_select.value == Stim.OMR_CLOSED_LOOP:
             res.update({
                 'omr_spatial_period_mm': self.omr_spatial_period_mm.value,
                 'omr_angle_deg': self.omr_angle_deg.value,
@@ -131,7 +131,7 @@ class SharedStimParameters:
                 'concentric_speed_mm_per_sec': self.concentric_speed_mm_per_sec.value,
             })
 
-        if self.stim_select.value == Stim.OKR:
+        if self.stim_select.value == Stim.OKR_CLOSED_LOOP:
             res.update({
                 'okr_spatial_frequency_deg': self.okr_spatial_frequency_deg.value,
                 'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec.value,
@@ -161,7 +161,7 @@ class SharedStimParameters:
                 'looming_size_to_speed_ratio_ms': self.looming_size_to_speed_ratio_ms.value,
             })
 
-        if self.stim_select.value in [Stim.DOT, Stim.FOLLOWING_DOT]:
+        if self.stim_select.value in [Stim.DOT, Stim.DOT_CLOSED_LOOP]:
             res.update({
                 'dot_center_mm': list(self.dot_center_mm),
                 'dot_radius_mm': self.dot_radius_mm.value,
@@ -174,7 +174,7 @@ class SharedStimParameters:
                 'prey_radius_mm': self.prey_radius_mm.value,
             })
 
-        if self.stim_select.value == Stim.FOLLOWING_PREY_CAPTURE:
+        if self.stim_select.value == Stim.PREY_CAPTURE_CLOSED_LOOP:
             res.update({
                 'n_preys': self.n_preys.value,
                 'prey_speed_deg_s': self.prey_speed_deg_s.value,
@@ -300,18 +300,18 @@ class GeneralStim(VisualStim):
         
         const int DARK = 0;
         const int BRIGHT = 1;
-        const int PHOTOTAXIS = 2;
-        const int OMR = 3;
-        const int OKR = 4;
+        const int PHOTOTAXIS_CLOSED_LOOP = 2;
+        const int OMR_CLOSED_LOOP = 3;
+        const int OKR_CLOSED_LOOP = 4;
         const int LINEAR_RADIUS_LOOMING_CLOSED_LOOP = 5;
         const int PREY_CAPTURE = 6;
         const int LINEAR_RADIUS_LOOMING = 7;
         const int CONCENTRIC_GRATING = 8;
-        const int FOLLOWING_DOT = 9;
+        const int DOT_CLOSED_LOOP = 9;
         const int DOT = 10;
         const int IMAGE = 11;
         const int RAMP = 12;
-        const int FOLLOWING_PREY_CAPTURE = 13;
+        const int PREY_CAPTURE_CLOSED_LOOP = 13;
         const int LINEAR_ANGLE_LOOMING = 14;
         const int LINEAR_ANGLE_LOOMING_CLOSED_LOOP = 15;
         const int CONSTANT_APPROACH_SPEED_LOOMING = 16;
@@ -391,13 +391,13 @@ class GeneralStim(VisualStim):
                     gl_FragColor = u_foreground_color;
                 }
 
-                if (u_stim_select == PHOTOTAXIS) {
+                if (u_stim_select == PHOTOTAXIS_CLOSED_LOOP) {
                     if ( u_phototaxis_polarity * fish_ego_coords_mm.x > 0.0 ) {
                         gl_FragColor = u_foreground_color;
                     } 
                 }
 
-                if (u_stim_select == OMR) {
+                if (u_stim_select == OMR_CLOSED_LOOP) {
                     vec2 orientation_vector = rotate2d(radians(u_omr_angle_deg)) * vec2(0,1);
                     float position_on_orientation_vector = dot(fish_ego_coords_mm, orientation_vector)/length(orientation_vector);
                     float spatial_freq = 1/u_omr_spatial_period_mm;
@@ -410,7 +410,7 @@ class GeneralStim(VisualStim):
                     } 
                 }
 
-                if (u_stim_select == OKR) {
+                if (u_stim_select == OKR_CLOSED_LOOP) {
                     float angular_spatial_freq = radians(u_okr_spatial_frequency_deg);
                     float angular_temporal_freq = radians(u_okr_speed_deg_per_sec);
                     
@@ -429,7 +429,7 @@ class GeneralStim(VisualStim):
                     }
                 } 
 
-                if (u_stim_select == FOLLOWING_DOT) {
+                if (u_stim_select == DOT_CLOSED_LOOP) {
                     if ( distance(fish_ego_coords_mm, u_dot_center_mm) <= u_dot_radius_mm)
                     {
                         gl_FragColor = u_foreground_color;
@@ -529,7 +529,7 @@ class GeneralStim(VisualStim):
                     }
                 }
 
-                if (u_stim_select == FOLLOWING_PREY_CAPTURE) {
+                if (u_stim_select == PREY_CAPTURE_CLOSED_LOOP) {
                     float phase = radians(u_prey_speed_deg_s) * u_time_s;
                     for (int i = 0; i < u_n_preys; i++) {
                         float angle = i * 2*PI/u_n_preys;      

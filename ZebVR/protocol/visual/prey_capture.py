@@ -51,7 +51,7 @@ class PreyCapture(VisualProtocolItem):
 
 class FollowingPreyCapture(VisualProtocolItem):
 
-    STIM_SELECT = Stim.FOLLOWING_PREY_CAPTURE
+    STIM_SELECT = Stim.PREY_CAPTURE_CLOSED_LOOP
 
     def __init__(
             self,

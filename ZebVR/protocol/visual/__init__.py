@@ -18,8 +18,8 @@ from .looming import (
     ConstantApproachSpeedLoomingWidget,
     ConstantApproachSpeedLoomingCL_Widget,
 )
-from .okr import OKR, OKR_Widget
-from .omr import OMR, OMR_Widget
+from .okr import OKR_CLOSED_LOOP, OKR_Widget
+from .omr import OMR_CLOSED_LOOP, OMR_Widget
 from .phototaxis import Phototaxis, PhototaxisWidget
 from .prey_capture import (
     PreyCapture, 

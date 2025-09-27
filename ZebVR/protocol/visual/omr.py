@@ -18,9 +18,9 @@ from ..default import DEFAULT
 
 #TODO add control for type of stimulus: sine, sharp edge, texture
 
-class OMR(VisualProtocolItem):
+class OMR_CLOSED_LOOP(VisualProtocolItem):
     
-    STIM_SELECT = Stim.OMR
+    STIM_SELECT = Stim.OMR_CLOSED_LOOP
     
     def __init__(
             self, 
@@ -99,7 +99,7 @@ class OMR_Widget(VisualProtocolItemWidget):
         omr_layout.addWidget(self.sb_omr_speed)
         omr_layout.addStretch()
 
-        self.omr_group = QGroupBox('OMR parameters')
+        self.omr_group = QGroupBox('OMR_CLOSED_LOOP parameters')
         self.omr_group.setLayout(omr_layout)
 
         self.main_layout.addWidget(self.omr_group)
@@ -143,12 +143,12 @@ class OMR_Widget(VisualProtocolItemWidget):
 
         super().from_protocol_item(protocol_item)
 
-        if isinstance(protocol_item, OMR):
+        if isinstance(protocol_item, OMR_CLOSED_LOOP):
             self.sb_omr_spatial_freq.setValue(protocol_item.omr_spatial_period_mm)
             self.sb_omr_angle.setValue(protocol_item.omr_angle_deg)
             self.sb_omr_speed.setValue(protocol_item.omr_speed_mm_per_sec)  
 
-    def to_protocol_item(self) -> OMR:
+    def to_protocol_item(self) -> OMR_CLOSED_LOOP:
         
         foreground_color = (
             self.sb_foreground_color_R.value(), 
@@ -162,7 +162,7 @@ class OMR_Widget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
-        protocol = OMR(
+        protocol = OMR_CLOSED_LOOP(
             foreground_color = foreground_color,
             background_color = background_color,
             omr_spatial_period_mm = self.sb_omr_spatial_freq.value(),

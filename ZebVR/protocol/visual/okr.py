@@ -16,9 +16,9 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
-class OKR(VisualProtocolItem):
+class OKR_CLOSED_LOOP(VisualProtocolItem):
 
-    STIM_SELECT = Stim.OKR
+    STIM_SELECT = Stim.OKR_CLOSED_LOOP
 
     def __init__(
             self, 
@@ -85,7 +85,7 @@ class OKR_Widget(VisualProtocolItemWidget):
         okr_layout.addWidget(self.sb_okr_speed)
         okr_layout.addStretch()
 
-        self.okr_group = QGroupBox('OKR parameters')
+        self.okr_group = QGroupBox('OKR_CLOSED_LOOP parameters')
         self.okr_group.setLayout(okr_layout)
 
         self.main_layout.addWidget(self.okr_group)
@@ -121,11 +121,11 @@ class OKR_Widget(VisualProtocolItemWidget):
 
         super().from_protocol_item(protocol_item)
 
-        if isinstance(protocol_item, OKR):
+        if isinstance(protocol_item, OKR_CLOSED_LOOP):
             self.sb_okr_spatial_freq.setValue(protocol_item.okr_spatial_frequency_deg)
             self.sb_okr_speed.setValue(protocol_item.okr_speed_deg_per_sec)
 
-    def to_protocol_item(self) -> OKR:
+    def to_protocol_item(self) -> OKR_CLOSED_LOOP:
         
         foreground_color = (
             self.sb_foreground_color_R.value(), 
@@ -139,7 +139,7 @@ class OKR_Widget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
-        protocol = OKR(
+        protocol = OKR_CLOSED_LOOP(
             foreground_color = foreground_color,
             background_color = background_color,
             okr_spatial_frequency_deg = self.sb_okr_spatial_freq.value(),
