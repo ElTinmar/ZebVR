@@ -284,6 +284,7 @@ class SequencerWidget(QWidget):
     def clear_protocol(self):
 
         def update_item(item: QTreeWidgetItem):
+            
             widget = self.tree.itemWidget(item, 0)
             if widget is not None:
                 widget.deleteLater()
