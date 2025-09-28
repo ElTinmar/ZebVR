@@ -1,8 +1,10 @@
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton,
-    QTreeWidget, QTreeWidgetItem, QLineEdit, QSpinBox
+    QTreeWidget, QTreeWidgetItem, QSpinBox
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
+from qt_widgets import LabeledSpinBox
+
 import sys
 from .protocol_widget import StimWidget
 from ..protocol import ProtocolItem, Debouncer
@@ -24,6 +26,7 @@ class MockLoopWidget(QSpinBox):
 
 class SequencerWidget(QWidget):
 
+    state_changed = pyqtSignal()
     DEFAULT_DEBOUNCER_LENGTH = 5
     DEFAULT_BACKGROUND_FILE: Path = Path('ZebVR/default/background.npy')
 
@@ -42,9 +45,12 @@ class SequencerWidget(QWidget):
         if self.DEFAULT_BACKGROUND_FILE.exists():
             self.background_image = np.load(self.DEFAULT_BACKGROUND_FILE)
 
-        self.setWindowTitle("Sequencer Tree Demo")
-        layout = QVBoxLayout(self)
+        self.declare_components()
+        self.layout_components()
+        self.setWindowTitle("Sequencer")
 
+    def declare_components(self):
+        
         self.tree = QTreeWidget()
         self.tree.setHeaderHidden(True)
         self.tree.setAlternatingRowColors(True)
@@ -53,66 +59,84 @@ class SequencerWidget(QWidget):
         self.tree.setDragDropMode(QTreeWidget.InternalMove)
         self.tree.setDefaultDropAction(Qt.MoveAction)
         self.tree.setSelectionMode(QTreeWidget.SingleSelection)
-        layout.addWidget(self.tree)
-
-        # Root loop
         self.root_item = QTreeWidgetItem(self.tree)
         self.tree.addTopLevelItem(self.root_item)
         self.root_widget = MockLoopWidget()
         self.tree.setItemWidget(self.root_item, 0, self.root_widget)
         self.tree.expandAll()
 
-        # Buttons
-        btn_add_stim = QPushButton("Add Stim")
-        btn_add_loop = QPushButton("Add Loop")
-        btn_remove = QPushButton("Remove Selected")
-        btn_move_up = QPushButton("Move Up")
-        btn_move_down = QPushButton("Move Down")
-        btn_print = QPushButton("Print Protocol")
+        self.spb_debouncer_length = LabeledSpinBox()
+        self.spb_debouncer_length.setText('debouncer length')
+        self.spb_debouncer_length.setRange(1,1_000)
+        self.spb_debouncer_length.setValue(self.DEFAULT_DEBOUNCER_LENGTH)
+        self.spb_debouncer_length.valueChanged.connect(self.update_debouncer)
 
-        layout.addWidget(btn_add_stim)
-        layout.addWidget(btn_add_loop)
-        layout.addWidget(btn_remove)
-        layout.addWidget(btn_move_up)
-        layout.addWidget(btn_move_down)
-        layout.addWidget(btn_print)
+        self.btn_add_stim = QPushButton("Add Stim")
+        self.btn_add_loop = QPushButton("Add Loop")
+        self.btn_remove = QPushButton("Remove Selected")
+        self.btn_move_up = QPushButton("Move Up")
+        self.btn_move_down = QPushButton("Move Down")
 
-        btn_add_stim.clicked.connect(self.add_stim)
-        btn_add_loop.clicked.connect(self.add_loop)
-        btn_remove.clicked.connect(self.remove_selected)
-        btn_move_up.clicked.connect(self.move_up)
-        btn_move_down.clicked.connect(self.move_down)
-        btn_print.clicked.connect(self.print_protocol)
-
-    def set_daq_boards(self, daq_boards: Dict[BoardType, List[BoardInfo]]):
-
-        self.daq_boards = daq_boards
-        for i in range(self.list.count()):
-            item = self.list.item(i)
-            stim = self.list.itemWidget(item)
-            stim.blockSignals(True)
-            stim.set_daq_boards(self.daq_boards)
-            stim.blockSignals(False)
-            
-        self.state_changed.emit()
+        self.btn_add_stim.clicked.connect(self.add_stim)
+        self.btn_add_loop.clicked.connect(self.add_loop)
+        self.btn_remove.clicked.connect(self.remove_selected)
+        self.btn_move_up.clicked.connect(self.move_up)
+        self.btn_move_down.clicked.connect(self.move_down)
+    
+    def layout_components(self):
+        
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.spb_debouncer_length)
+        layout.addWidget(self.tree)
+        layout.addWidget(self.btn_add_stim)
+        layout.addWidget(self.btn_add_loop)
+        layout.addWidget(self.btn_remove)
+        layout.addWidget(self.btn_move_up)
+        layout.addWidget(self.btn_move_down)
 
     def update_debouncer(self, value: int) -> None:
         self.debouncer.set_buffer_length(value)
         self.state_changed.emit()
 
-    def set_background_image(self, image: NDArray) -> None:
-        self.background_image = image
-        for i in range(self.list.count()):
-            item = self.list.item(i)
-            stim = self.list.itemWidget(item)
-            stim.set_background_image(image)
+    def set_daq_boards(self, daq_boards: Dict[BoardType, List[BoardInfo]]):
 
-    # TODO check that
+        def update_item(item: QTreeWidgetItem):
+            widget = self.tree.itemWidget(item, 0)
+            if isinstance(widget, StimWidget):
+                widget.blockSignals(True)
+                widget.set_daq_boards(self.daq_boards)
+                widget.blockSignals(False)
+
+            for i in range(item.childCount()):
+                update_item(item.child(i))
+
+        self.daq_boards = daq_boards
+        update_item(self.root_item)
+        self.state_changed.emit()
+
+    def set_background_image(self, image: NDArray) -> None:
+
+        def update_item(item: QTreeWidgetItem):
+            widget = self.tree.itemWidget(item, 0)
+            if isinstance(widget, StimWidget):
+                widget.set_background_image(image)
+            for i in range(item.childCount()):
+                update_item(item.child(i))
+
+        self.background_image = image
+        update_item(self.root_item)
+
     def on_size_change(self):
-        for i in range(self.list.count()):
-            item = self.list.item(i)
-            stim = self.list.itemWidget(item)
-            item.setSizeHint(stim.sizeHint())
+
+        def update_item(item: QTreeWidgetItem):
+            widget = self.tree.itemWidget(item, 0)
+            if widget is not None:
+                item.setSizeHint(0, widget.sizeHint())
+            for i in range(item.childCount()):
+                update_item(item.child(i))
+
+        update_item(self.root_item)
+        self.tree.doItemsLayout()
 
     def _selected_or_root(self):
 
@@ -131,6 +155,8 @@ class SequencerWidget(QWidget):
         parent_item = self._normalize_parent(self._selected_or_root())
         item = QTreeWidgetItem(parent_item)
         stim_widget = StimWidget(self.debouncer, self.daq_boards, self.background_image)
+        stim_widget.state_changed.connect(self.state_changed)
+        stim_widget.size_changed.connect(self.on_size_change)
         self.tree.setItemWidget(item, 0, stim_widget)
         parent_item.setExpanded(True)
 
@@ -161,6 +187,8 @@ class SequencerWidget(QWidget):
         old_widget = self.tree.itemWidget(item, 0)
         if isinstance(old_widget, StimWidget):
             new_widget = StimWidget(self.debouncer, self.daq_boards, self.background_image)
+            new_widget.state_changed.connect(self.state_changed)
+            new_widget.size_changed.connect(self.on_size_change)
             new_widget.set_state(old_widget.get_state())
             self.tree.setItemWidget(new_item, 0, new_widget)
 
@@ -235,6 +263,5 @@ class SequencerWidget(QWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     demo = SequencerWidget()
-    demo.resize(400, 400)
     demo.show()
     sys.exit(app.exec_())
