@@ -481,7 +481,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
 
     # metadata
     if settings['main']['record']:
-        protocol = settings['sequencer']['protocol']*settings['sequencer']['repetitions']
+        protocol = settings['sequencer']['protocol']
         protocol_worker.set_protocol(protocol)
         dag.connect_metadata(
             sender = protocol_worker, 

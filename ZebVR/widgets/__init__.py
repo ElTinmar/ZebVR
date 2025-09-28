@@ -1,6 +1,7 @@
 from .camera_widget import *
 from .audio_widget import *
 from .sequencer_widget import *
+#from .sequencer_tree_widget import *
 from .projector_widget import *
 from .registration_widget import *
 from .calibration_widget import *
