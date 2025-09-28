@@ -67,8 +67,7 @@ class SequencerWidget(QWidget):
         self.tree.addTopLevelItem(self.root_item)
         self.root_widget = LoopWidget()
         self.tree.setItemWidget(self.root_item, 0, self.root_widget)
-        self.tree.expandAll()
-
+        
         self.spb_debouncer_length = LabeledSpinBox()
         self.spb_debouncer_length.setText('debouncer length')
         self.spb_debouncer_length.setRange(1,1_000)
@@ -290,6 +289,11 @@ class SequencerWidget(QWidget):
 
         update_item(self.root_item)
         self.tree.clear()
+
+        self.root_item = QTreeWidgetItem(self.tree)
+        self.tree.addTopLevelItem(self.root_item)
+        self.root_widget = LoopWidget()
+        self.tree.setItemWidget(self.root_item, 0, self.root_widget)
 
     def set_protocol(self, protocol: Deque[ProtocolItem]) -> None:
         self.clear_protocol()
