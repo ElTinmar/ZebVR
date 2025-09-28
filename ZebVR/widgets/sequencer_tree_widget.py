@@ -20,8 +20,7 @@ class MockLoopWidget(QSpinBox):
     def __init__(self):
         super().__init__()
         self.setRange(1, 100)
-        self.setValue(3)
-
+        self.setValue(1)
 
 class SequencerWidget(QWidget):
 
@@ -48,6 +47,7 @@ class SequencerWidget(QWidget):
 
         self.tree = QTreeWidget()
         self.tree.setHeaderHidden(True)
+        self.tree.setAlternatingRowColors(True)
         self.tree.setDragEnabled(True)
         self.tree.setAcceptDrops(True)
         self.tree.setDragDropMode(QTreeWidget.InternalMove)
