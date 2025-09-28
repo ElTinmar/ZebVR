@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton,
-    QTreeWidget, QTreeWidgetItem, QSpinBox, QAbstractItemView
+    QTreeWidget, QTreeWidgetItem, QAbstractItemView
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from qt_widgets import LabeledSpinBox
@@ -122,7 +122,7 @@ class SequencerWidget(QWidget):
     def set_background_image(self, image: NDArray) -> None:
 
         def update_item(item: QTreeWidgetItem):
-            
+
             widget = self.tree.itemWidget(item, 0)
             if isinstance(widget, StimWidget):
                 widget.set_background_image(image)
