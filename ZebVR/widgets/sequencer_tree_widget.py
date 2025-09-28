@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QPushButton,
-    QTreeWidget, QTreeWidgetItem, QSpinBox
+    QTreeWidget, QTreeWidgetItem, QSpinBox, QAbstractItemView
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from qt_widgets import LabeledSpinBox
@@ -15,7 +15,8 @@ from daq_tools import (
 import numpy as np
 from numpy.typing import NDArray
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Deque, Optional
+from collections import deque
 
 class LoopWidget(QSpinBox):
 
@@ -59,6 +60,9 @@ class SequencerWidget(QWidget):
         self.tree.setDragDropMode(QTreeWidget.InternalMove)
         self.tree.setDefaultDropAction(Qt.MoveAction)
         self.tree.setSelectionMode(QTreeWidget.SingleSelection)
+        self.tree.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.tree.verticalScrollBar().setSingleStep(2)
+
         self.root_item = QTreeWidgetItem(self.tree)
         self.tree.addTopLevelItem(self.root_item)
         self.root_widget = LoopWidget()
@@ -77,7 +81,7 @@ class SequencerWidget(QWidget):
         self.btn_move_up = QPushButton("Move Up")
         self.btn_move_down = QPushButton("Move Down")
 
-        self.btn_add_stim.clicked.connect(self.add_stim)
+        self.btn_add_stim.clicked.connect(self.stim_pressed)
         self.btn_add_loop.clicked.connect(self.add_loop)
         self.btn_remove.clicked.connect(self.remove_selected)
         self.btn_move_up.clicked.connect(self.move_up)
@@ -150,15 +154,24 @@ class SequencerWidget(QWidget):
             return parent_item.parent() or self.root_item
         return parent_item
 
-    def add_stim(self):
+    def stim_pressed(self):
+        self.add_stim_widget()
+        
+    def add_stim_widget(self, protocol_item: Optional[ProtocolItem] = None):
 
-        parent_item = self._normalize_parent(self._selected_or_root())
-        item = QTreeWidgetItem(parent_item)
         stim_widget = StimWidget(self.debouncer, self.daq_boards, self.background_image)
         stim_widget.state_changed.connect(self.state_changed)
         stim_widget.size_changed.connect(self.on_size_change)
+
+        if protocol_item is not None:
+            stim_widget.from_protocol_item(protocol_item)
+
+        parent_item = self._normalize_parent(self._selected_or_root())
+        item = QTreeWidgetItem(parent_item)
         self.tree.setItemWidget(item, 0, stim_widget)
         parent_item.setExpanded(True)
+
+        self.state_changed.emit()
 
     def add_loop(self):
 
@@ -259,6 +272,50 @@ class SequencerWidget(QWidget):
         protocol = self._traverse(self.root_item)
         print(protocol)
 
+    # TODO 
+    def get_protocol(self) -> Deque[ProtocolItem]:
+
+        protocol = deque()
+        num_items = self.list.count()
+        for row in range(num_items):
+            item = self.list.item(row)
+            widget = self.list.itemWidget(item)
+            protocol.append(widget.to_protocol_item())
+        return protocol
+
+    def clear_protocol(self):
+
+        def update_item(item: QTreeWidgetItem):
+            widget = self.tree.itemWidget(item, 0)
+            if widget is not None:
+                widget.deleteLater()
+            for i in range(item.childCount()):
+                update_item(item.child(i))
+
+        update_item(self.root_item)
+        self.tree.clear()
+
+    def set_protocol(self, protocol: Deque[ProtocolItem]) -> None:
+        self.clear_protocol()
+        for protocol_item in protocol:
+            self.add_stim_widget(protocol_item)
+
+    def get_state(self) -> Dict:
+        state = {}
+        state['debouncer_length'] = self.spb_debouncer_length.value()
+        state['protocol'] = self.get_protocol()
+        return state
+
+    def set_state(self, state: Dict) -> None:
+        
+        setters = {
+            'debouncer_length': self.spb_debouncer_length.setValue,
+            'protocol': self.set_protocol
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])       
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
