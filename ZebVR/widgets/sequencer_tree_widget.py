@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, pyqtSignal
 from qt_widgets import LabeledSpinBox
 
-import sys
 from .protocol_widget import StimWidget
 from ..protocol import ProtocolItem, Debouncer
 from daq_tools import (
@@ -18,12 +17,12 @@ from pathlib import Path
 from typing import List, Dict, Deque, Optional
 from collections import deque
 
-class LoopWidget(QSpinBox):
+class LoopWidget(LabeledSpinBox):
 
     def __init__(self):
         super().__init__()
-        self.setRange(1, 100)
         self.setValue(1)
+        self.setText("Repetitions:")
 
 class SequencerWidget(QWidget):
 
@@ -62,6 +61,7 @@ class SequencerWidget(QWidget):
         self.tree.setSelectionMode(QTreeWidget.SingleSelection)
         self.tree.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.tree.verticalScrollBar().setSingleStep(2)
+        self.tree.setIndentation(60)
 
         self.root_item = QTreeWidgetItem(self.tree)
         self.tree.addTopLevelItem(self.root_item)
@@ -272,16 +272,28 @@ class SequencerWidget(QWidget):
         protocol = self._traverse(self.root_item)
         print(protocol)
 
-    # TODO 
-    def get_protocol(self) -> Deque[ProtocolItem]:
+    def get_protocol(self):
+        
+        def traverse(item):
+            widget = self.tree.itemWidget(item, 0)
+            if widget is None:
+                return deque()
 
-        protocol = deque()
-        num_items = self.list.count()
-        for row in range(num_items):
-            item = self.list.item(row)
-            widget = self.list.itemWidget(item)
-            protocol.append(widget.to_protocol_item())
-        return protocol
+            if isinstance(widget, StimWidget):
+                # convert to ProtocolItem and return as a 1-element deque
+                return deque([widget.to_protocol_item()])
+
+            elif isinstance(widget, LoopWidget):
+                # collect children
+                queue = deque()
+                for i in range(item.childCount()):
+                    queue.extend(traverse(item.child(i)))
+                # repeat body "count" times
+                return deque(q for _ in range(widget.value()) for q in queue)
+
+            return deque()
+
+        return traverse(self.root_item)
 
     def clear_protocol(self):
 
@@ -318,7 +330,10 @@ class SequencerWidget(QWidget):
                 setter(state[key])       
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    demo = SequencerWidget()
-    demo.show()
-    sys.exit(app.exec_())
+
+    app = QApplication([])
+    window = SequencerWidget()
+    window.show()
+    app.exec_()
+
+    print(window.get_protocol())
