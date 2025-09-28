@@ -17,7 +17,7 @@ from numpy.typing import NDArray
 from pathlib import Path
 from typing import List, Dict
 
-class MockLoopWidget(QSpinBox):
+class LoopWidget(QSpinBox):
 
     def __init__(self):
         super().__init__()
@@ -61,7 +61,7 @@ class SequencerWidget(QWidget):
         self.tree.setSelectionMode(QTreeWidget.SingleSelection)
         self.root_item = QTreeWidgetItem(self.tree)
         self.tree.addTopLevelItem(self.root_item)
-        self.root_widget = MockLoopWidget()
+        self.root_widget = LoopWidget()
         self.tree.setItemWidget(self.root_item, 0, self.root_widget)
         self.tree.expandAll()
 
@@ -164,7 +164,7 @@ class SequencerWidget(QWidget):
 
         parent_item = self._normalize_parent(self._selected_or_root())
         item = QTreeWidgetItem(parent_item)
-        self.tree.setItemWidget(item, 0, MockLoopWidget())
+        self.tree.setItemWidget(item, 0, LoopWidget())
         parent_item.setExpanded(True)
 
     def remove_selected(self):
@@ -192,8 +192,8 @@ class SequencerWidget(QWidget):
             new_widget.set_state(old_widget.get_state())
             self.tree.setItemWidget(new_item, 0, new_widget)
 
-        elif isinstance(old_widget, MockLoopWidget):
-            new_widget = MockLoopWidget()
+        elif isinstance(old_widget, LoopWidget):
+            new_widget = LoopWidget()
             new_widget.setValue(old_widget.value())
             self.tree.setItemWidget(new_item, 0, new_widget)
 
@@ -251,7 +251,7 @@ class SequencerWidget(QWidget):
         if isinstance(widget, StimWidget):
             return {"type": "stim", "name": widget.get_state()}
         
-        elif isinstance(widget, MockLoopWidget):
+        elif isinstance(widget, LoopWidget):
             return {"type": "loop", "count": widget.value(), "body": children}
 
     def print_protocol(self):
