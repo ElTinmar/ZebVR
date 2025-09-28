@@ -266,15 +266,12 @@ class SequencerWidget(QWidget):
                 return deque()
 
             if isinstance(widget, StimWidget):
-                # convert to ProtocolItem and return as a 1-element deque
                 return deque([widget.to_protocol_item()])
 
             elif isinstance(widget, LoopWidget):
-                # collect children
                 queue = deque()
                 for i in range(item.childCount()):
                     queue.extend(traverse(item.child(i)))
-                # repeat body "count" times
                 return deque(q for _ in range(widget.value()) for q in queue)
 
             return deque()
@@ -284,7 +281,7 @@ class SequencerWidget(QWidget):
     def clear_protocol(self):
 
         def update_item(item: QTreeWidgetItem):
-            
+
             widget = self.tree.itemWidget(item, 0)
             if widget is not None:
                 widget.deleteLater()
