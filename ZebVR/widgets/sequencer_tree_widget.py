@@ -105,6 +105,7 @@ class SequencerWidget(QWidget):
     def set_daq_boards(self, daq_boards: Dict[BoardType, List[BoardInfo]]):
 
         def update_item(item: QTreeWidgetItem):
+
             widget = self.tree.itemWidget(item, 0)
             if isinstance(widget, StimWidget):
                 widget.blockSignals(True)
@@ -121,6 +122,7 @@ class SequencerWidget(QWidget):
     def set_background_image(self, image: NDArray) -> None:
 
         def update_item(item: QTreeWidgetItem):
+            
             widget = self.tree.itemWidget(item, 0)
             if isinstance(widget, StimWidget):
                 widget.set_background_image(image)
@@ -133,6 +135,7 @@ class SequencerWidget(QWidget):
     def on_size_change(self):
 
         def update_item(item: QTreeWidgetItem):
+
             widget = self.tree.itemWidget(item, 0)
             if widget is not None:
                 item.setSizeHint(0, widget.sizeHint())
@@ -254,27 +257,10 @@ class SequencerWidget(QWidget):
             return
         self.move_item(items[0], +1)
 
-    def _traverse(self, item):
-
-        widget = self.tree.itemWidget(item, 0)
-        if widget is None: return None
-        children = [self._traverse(item.child(i)) for i in range(item.childCount())]
-        children = [c for c in children if c is not None]
-
-        if isinstance(widget, StimWidget):
-            return {"type": "stim", "name": widget.get_state()}
-        
-        elif isinstance(widget, LoopWidget):
-            return {"type": "loop", "count": widget.value(), "body": children}
-
-    def print_protocol(self):
-
-        protocol = self._traverse(self.root_item)
-        print(protocol)
-
     def get_protocol(self):
         
-        def traverse(item):
+        def traverse(item) -> Deque:
+
             widget = self.tree.itemWidget(item, 0)
             if widget is None:
                 return deque()
