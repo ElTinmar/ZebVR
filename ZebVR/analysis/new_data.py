@@ -124,7 +124,7 @@ for age in DPF:
                 DATAFOLDER / stim_file, 
                 usecols=['timestamp', 'stim_id', 'phototaxis_polarity']
             )
-            phototaxis = find_stim(stim, tracking, StimType.PHOTOTAXIS_CLOSED_LOOP)
+            phototaxis = find_stim(stim, tracking, StimType.PHOTOTAXIS)
             relative_time_sec = get_relative_time_sec(phototaxis)
             angle, angle_unwrapped = get_heading_angle(phototaxis)
             angle_unwrapped_interp = np.interp(interpolated_time, relative_time_sec, angle_unwrapped)
@@ -265,7 +265,7 @@ USE_OLD_DATA = True
 USE_NEW_DATA = True
 
 def get_phototaxis_data_new(stim: pd.DataFrame, tracking: pd.DataFrame, polarity: int) -> pd.DataFrame:
-    data = stim.loc[stim.stim_id == StimType.PHOTOTAXIS_CLOSED_LOOP]
+    data = stim.loc[stim.stim_id == StimType.PHOTOTAXIS]
     timestamp = data.loc[data.phototaxis_polarity == polarity, 'timestamp']
     start = timestamp.iloc[0]
     stop = timestamp.iloc[-1]
@@ -275,7 +275,7 @@ def get_phototaxis_data_new(stim: pd.DataFrame, tracking: pd.DataFrame, polarity
     return relative_time_sec, angle_unwrapped
 
 def get_phototaxis_data_old(data: pd.DataFrame, polarity: int) -> pd.DataFrame:
-    phototaxis = data.loc[(data.stim_id == StimType.PHOTOTAXIS_CLOSED_LOOP) & (data.phototaxis_polarity == polarity), ['t_local', 'pc1_x', 'pc1_y']]
+    phototaxis = data.loc[(data.stim_id == StimType.PHOTOTAXIS) & (data.phototaxis_polarity == polarity), ['t_local', 'pc1_x', 'pc1_y']]
     relative_time_sec = phototaxis['t_local'] - phototaxis['t_local'].iloc[0]
     angle, angle_unwrapped = get_heading_angle(phototaxis)
     return relative_time_sec, angle_unwrapped

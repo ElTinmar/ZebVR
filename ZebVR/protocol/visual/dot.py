@@ -42,11 +42,9 @@ class Dot(VisualProtocolItem):
             'dot_radius_mm': self.dot_radius_mm,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
+            'closed_loop': self.closed_loop
         }
         return command 
-
-class FollowingDot(Dot):
-    STIM_SELECT = Stim.DOT_CLOSED_LOOP
 
 class DotWidget(VisualProtocolItemWidget):
 
@@ -163,9 +161,12 @@ class DotWidget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
+        closed_loop = self.chb_closed_loop.isChecked()
+
         protocol = Dot(
             foreground_color = foreground_color,
             background_color = background_color,
+            closed_loop = closed_loop,
             dot_center_mm = (
                 self.sb_dot_center_mm_x.value(),
                 self.sb_dot_center_mm_y.value()
@@ -175,35 +176,6 @@ class DotWidget(VisualProtocolItemWidget):
         )
         return protocol
 
-class FollowingDotWidget(DotWidget):
-    
-    group_name: str = 'Following dot parameters'
-
-    def to_protocol_item(self) -> FollowingDot:
-
-        foreground_color = (
-            self.sb_foreground_color_R.value(), 
-            self.sb_foreground_color_G.value(),
-            self.sb_foreground_color_B.value(),
-            self.sb_foreground_color_A.value()
-        )
-        background_color = (
-            self.sb_background_color_R.value(), 
-            self.sb_background_color_G.value(),
-            self.sb_background_color_B.value(),
-            self.sb_background_color_A.value()
-        )
-        protocol = FollowingDot(
-            foreground_color = foreground_color,
-            background_color = background_color,
-            dot_center_mm = (
-                self.sb_dot_center_mm_x.value(),
-                self.sb_dot_center_mm_y.value()
-            ),
-            dot_radius_mm = self.sb_dot_radius_mm.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
 
 if __name__ == '__main__':
 
@@ -216,14 +188,6 @@ if __name__ == '__main__':
         )
     )
     window1.show()
-    window2 = FollowingDotWidget(
-        dot_center_mm = (0,0),
-        dot_radius_mm = 10,
-        stop_widget = StopWidget(
-            debouncer = Debouncer()
-        )
-    )
-    window2.show()
     app.exec()
  
 

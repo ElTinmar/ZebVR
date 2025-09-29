@@ -41,7 +41,8 @@ class ConcentricGrating(VisualProtocolItem):
             'concentric_spatial_period_mm': self.spatial_period_mm,
             'concentric_speed_mm_per_sec': self.speed_mm_per_sec,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color
+            'background_color': self.background_color,
+            'closed_loop': self.closed_loop
         }
         return command
     
@@ -63,6 +64,9 @@ class ConcentricGratingWidget(VisualProtocolItemWidget):
     def declare_components(self) -> None:
 
         super().declare_components()
+
+        self.chb_closed_loop.setChecked(False)
+        self.chb_closed_loop.setVisible(False)
 
         self.sb_concentric_spatial_freq = LabeledDoubleSpinBox()
         self.sb_concentric_spatial_freq.setText('Spatial period (mm)')
@@ -139,9 +143,11 @@ class ConcentricGratingWidget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
+        closed_loop = self.chb_closed_loop.isChecked()
         protocol = ConcentricGrating(
             foreground_color = foreground_color,
             background_color = background_color,
+            closed_loop = closed_loop,
             spatial_period_mm = self.sb_concentric_spatial_freq.value(),
             speed_mm_per_sec = self.sb_concentric_speed.value(),
             stop_condition = self.stop_widget.to_stop_condition()

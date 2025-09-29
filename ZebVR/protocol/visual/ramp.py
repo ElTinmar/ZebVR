@@ -45,7 +45,8 @@ class Ramp(VisualProtocolItem):
             'ramp_powerlaw_exponent': self.ramp_powerlaw_exponent,
             'ramp_type': self.ramp_type,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color
+            'background_color': self.background_color,
+            'closed_loop': self.closed_loop
         }
         return command
     
@@ -71,6 +72,9 @@ class RampWidget(VisualProtocolItemWidget):
     def declare_components(self) -> None:
         
         super().declare_components()
+
+        self.chb_closed_loop.setChecked(False)
+        self.chb_closed_loop.setVisible(False)
 
         self.sb_ramp_duration_sec = LabeledDoubleSpinBox()
         self.sb_ramp_duration_sec.setText('Ramp duration (sec)')
@@ -176,9 +180,12 @@ class RampWidget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
+        closed_loop = self.chb_closed_loop.isChecked()
+
         protocol = Ramp(
             foreground_color = foreground_color,
             background_color = background_color,
+            closed_loop = closed_loop,
             ramp_duration_sec = self.sb_ramp_duration_sec.value(),
             ramp_powerlaw_exponent = self.sb_ramp_powerlaw_exponent.value(),
             ramp_type = RampType(self.cb_ramp_type.currentIndex()),

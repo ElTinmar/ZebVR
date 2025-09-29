@@ -1,9 +1,10 @@
-from .stim import RampType
+from .stim import RampType, LoomingType
 from daq_tools import BoardType
 
 DEFAULT = {
     'foreground_color': (0.2, 0.2, 0.2, 1.0),
     'background_color': (0.0, 0.0, 0.0, 1.0),
+    'closed_loop': True,
     'phototaxis_polarity': 1,
     'omr_spatial_period_mm': 10,
     'omr_angle_deg': 0,
@@ -12,6 +13,7 @@ DEFAULT = {
     'concentric_speed_mm_per_sec': 10,
     'okr_spatial_frequency_deg': 20,
     'okr_speed_deg_per_sec': 36,
+    'looming_type': LoomingType.CONSTANT_VELOCITY,
     'looming_center_mm': (0,0),
     'looming_period_sec': 10,
     'looming_expansion_time_sec': 10,

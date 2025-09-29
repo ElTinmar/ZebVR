@@ -5,22 +5,15 @@ class Stim(IntEnum):
     # visual
     DARK = 0
     BRIGHT = 1
-    PHOTOTAXIS_CLOSED_LOOP = 2
-    OMR_CLOSED_LOOP = 3
-    OKR_CLOSED_LOOP = 4
-    LINEAR_RADIUS_LOOMING_CLOSED_LOOP = 5
+    PHOTOTAXIS = 2
+    OMR = 3
+    OKR = 4
+    LOOMING = 5
     PREY_CAPTURE = 6
-    LINEAR_RADIUS_LOOMING = 7
-    CONCENTRIC_GRATING = 8
-    DOT_CLOSED_LOOP = 9
-    DOT = 10
-    IMAGE = 11
-    RAMP = 12
-    PREY_CAPTURE_CLOSED_LOOP = 13
-    LINEAR_ANGLE_LOOMING = 14
-    LINEAR_ANGLE_LOOMING_CLOSED_LOOP = 15
-    CONSTANT_APPROACH_SPEED_LOOMING = 16
-    CONSTANT_APPROACH_SPEED_LOOMING_CLOSED_LOOP = 17
+    CONCENTRIC_GRATING = 7
+    DOT = 8
+    IMAGE = 9
+    RAMP = 10
 
     # acoustic
     PURE_TONE = 100
@@ -54,4 +47,11 @@ class RampType(IntEnum):
 
     def __str__(self) -> str:
         return self.name
-    
+
+class LoomingType(IntEnum):
+    LINEAR_RADIUS = 0
+    LINEAR_ANGLE = 1
+    CONSTANT_VELOCITY = 2 
+
+    def __str__(self) -> str:
+        return self.name

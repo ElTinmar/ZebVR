@@ -18,7 +18,7 @@ from ..default import DEFAULT
 
 class Phototaxis(VisualProtocolItem):
 
-    STIM_SELECT = Stim.PHOTOTAXIS_CLOSED_LOOP
+    STIM_SELECT = Stim.PHOTOTAXIS
 
     def __init__(
             self, 
@@ -38,7 +38,8 @@ class Phototaxis(VisualProtocolItem):
             'stim_select': self.STIM_SELECT,
             'phototaxis_polarity': self.phototaxis_polarity,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color
+            'background_color': self.background_color,
+            'closed_loop': self.closed_loop
         }
         return command
     
@@ -116,9 +117,12 @@ class PhototaxisWidget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
+        closed_loop = self.chb_closed_loop.isChecked()
+
         protocol = Phototaxis(
             foreground_color = foreground_color,
             background_color = background_color,
+            closed_loop = closed_loop,
             phototaxis_polarity = -1+2*self.chb_phototaxis_polarity.isChecked(),
             stop_condition = self.stop_widget.to_stop_condition()
         )

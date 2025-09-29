@@ -69,6 +69,7 @@ class VisualProtocolItem(ProtocolItem):
             self,
             foreground_color: Tuple[float,float,float,float] = DEFAULT['foreground_color'],
             background_color: Tuple[float,float,float,float] = DEFAULT['background_color'],
+            closed_loop: bool = DEFAULT['closed_loop'], 
             *args, 
             **kwargs
         ):
@@ -76,6 +77,7 @@ class VisualProtocolItem(ProtocolItem):
         super().__init__(*args, **kwargs)
         self.foreground_color = foreground_color
         self.background_color = background_color
+        self.closed_loop = closed_loop
 
 class ProtocolItemWidget(QWidget):
     

@@ -31,7 +31,8 @@ class Bright(VisualProtocolItem):
         command = {
             'stim_select': self.STIM_SELECT,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color
+            'background_color': self.background_color,
+            'closed_loop': self.closed_loop
         }
         return command
     
@@ -48,6 +49,8 @@ class BrightWidget(VisualProtocolItemWidget):
     def declare_components(self) -> None:
 
         super().declare_components()
+        self.chb_closed_loop.setChecked(False)
+        self.chb_closed_loop.setVisible(False)
 
     def layout_components(self) -> None:
         
@@ -78,9 +81,12 @@ class BrightWidget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
+        closed_loop = self.chb_closed_loop.isChecked()
+
         protocol = Bright(
             foreground_color = foreground_color,
             background_color = background_color,
+            closed_loop = closed_loop,
             stop_condition = self.stop_widget.to_stop_condition()
         )
         return protocol

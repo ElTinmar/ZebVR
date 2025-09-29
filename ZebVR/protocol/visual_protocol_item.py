@@ -6,6 +6,7 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QLabel,
     QHBoxLayout,
+    QCheckBox
 )
 from ..utils import set_from_dict
 
@@ -19,12 +20,14 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
             self,
             foreground_color: Tuple = DEFAULT['foreground_color'],
             background_color: Tuple = DEFAULT['background_color'],
+            closed_loop: bool = DEFAULT['closed_loop'], 
             *args,
             **kwargs
         ) -> None:
 
         self.foreground_color = foreground_color
         self.background_color = background_color
+        self.closed_loop = closed_loop
 
         super().__init__(*args, **kwargs)
 
@@ -92,6 +95,10 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
         self.sb_background_color_A.setValue(self.background_color[3])
         self.sb_background_color_A.valueChanged.connect(self.state_changed)
 
+        self.chb_closed_loop = QCheckBox('closed-loop')
+        self.chb_closed_loop.setChecked(True)
+        self.chb_closed_loop.toggled.connect(self.state_changed)
+
     def layout_components(self) -> None:
 
         super().layout_components()
@@ -112,6 +119,7 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
         background_color_layout.addWidget(self.sb_background_color_A)
         background_color_layout.addStretch()
 
+        self.main_layout.addWidget(self.chb_closed_loop)
         self.main_layout.addLayout(foreground_color_layout)
         self.main_layout.addLayout(background_color_layout)
 
@@ -119,6 +127,7 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
 
         state = super().get_state()
 
+        state['closed_loop'] = self.chb_closed_loop.isChecked()
         state['foreground_color'] = (
             self.sb_foreground_color_R.value(),
             self.sb_foreground_color_G.value(),
@@ -137,6 +146,13 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
 
         super().set_state(state)
         
+        set_from_dict(
+            dictionary = state,
+            key = 'closed_loop',
+            setter = self.chb_closed_loop.setChecked,
+            default = self.closed_loop,
+            cast = bool
+        )
         set_from_dict(
             dictionary = state,
             key = 'foreground_color',
@@ -200,6 +216,9 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
         super().from_protocol_item(protocol_item)
 
         if isinstance(protocol_item, VisualProtocolItem):
+
+            self.chb_closed_loop.setChecked(protocol_item.closed_loop)
+
             self.sb_foreground_color_R.setValue(protocol_item.foreground_color[0])
             self.sb_foreground_color_G.setValue(protocol_item.foreground_color[1])
             self.sb_foreground_color_B.setValue(protocol_item.foreground_color[2])

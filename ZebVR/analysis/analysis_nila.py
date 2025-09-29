@@ -25,9 +25,9 @@ matplotlib.rcParams['font.size'] = 12
 class StimType(IntEnum):
     DARK = 0
     BRIGHT = 1
-    PHOTOTAXIS_CLOSED_LOOP = 2
-    OMR_CLOSED_LOOP = 3
-    OKR_CLOSED_LOOP = 4
+    PHOTOTAXIS = 2
+    OMR = 3
+    OKR = 4
     LINEAR_RADIUS_LOOMING = 5
 
 COLORS = ('#FF6900', '#002BFF')
@@ -159,7 +159,7 @@ def get_relative_index(data):
     return data.index - data.index[0]
 
 def analyse_phototaxis(data, fish_id, dpf):
-    phototaxis = data[data['stim_id'] == StimType.PHOTOTAXIS_CLOSED_LOOP]
+    phototaxis = data[data['stim_id'] == StimType.PHOTOTAXIS]
 
     def get_data(polarity):
         pol = phototaxis[phototaxis['phototaxis_polarity'] == polarity]

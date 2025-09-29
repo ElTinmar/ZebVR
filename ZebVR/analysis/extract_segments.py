@@ -9,14 +9,14 @@ class Stim(IntEnum):
     # visual
     DARK = 0
     BRIGHT = 1
-    PHOTOTAXIS_CLOSED_LOOP = 2
-    OMR_CLOSED_LOOP = 3
-    OKR_CLOSED_LOOP = 4
-    LINEAR_RADIUS_LOOMING_CLOSED_LOOP = 5
+    PHOTOTAXIS = 2
+    OMR = 3
+    OKR = 4
+    LINEAR_RADIUS_LOOMING = 5
     PREY_CAPTURE = 6
     LINEAR_RADIUS_LOOMING = 7
     CONCENTRIC_GRATING = 8
-    DOT_CLOSED_LOOP = 9
+    DOT = 9
     DOT = 10
     IMAGE = 11
     RAMP = 12
@@ -58,13 +58,13 @@ for i, ev in enumerate(events):
     stim = Stim(stim_num)
     suffix = ""
     
-    if stim == Stim.PHOTOTAXIS_CLOSED_LOOP:
+    if stim == Stim.PHOTOTAXIS:
         suffix = str(ev['phototaxis_polarity'])
-    elif stim == Stim.OMR_CLOSED_LOOP:
+    elif stim == Stim.OMR:
         suffix = str(ev['omr_angle_deg'])
-    elif stim == Stim.OKR_CLOSED_LOOP:
+    elif stim == Stim.OKR:
         suffix = str(ev['okr_speed_deg_per_sec'])
-    elif stim == Stim.LINEAR_RADIUS_LOOMING_CLOSED_LOOP:
+    elif stim == Stim.LINEAR_RADIUS_LOOMING:
         suffix = str(ev['looming_center_mm'][0])
 
 

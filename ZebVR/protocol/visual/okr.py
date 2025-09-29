@@ -16,9 +16,9 @@ from PyQt5.QtWidgets import (
 from ...utils import set_from_dict
 from ..default import DEFAULT
 
-class OKR_CLOSED_LOOP(VisualProtocolItem):
+class OKR(VisualProtocolItem):
 
-    STIM_SELECT = Stim.OKR_CLOSED_LOOP
+    STIM_SELECT = Stim.OKR
 
     def __init__(
             self, 
@@ -41,7 +41,8 @@ class OKR_CLOSED_LOOP(VisualProtocolItem):
             'okr_spatial_frequency_deg': self.okr_spatial_frequency_deg,
             'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color
+            'background_color': self.background_color,
+            'closed_loop': self.closed_loop
         }
         return command
     
@@ -85,7 +86,7 @@ class OKR_Widget(VisualProtocolItemWidget):
         okr_layout.addWidget(self.sb_okr_speed)
         okr_layout.addStretch()
 
-        self.okr_group = QGroupBox('OKR_CLOSED_LOOP parameters')
+        self.okr_group = QGroupBox('OKR parameters')
         self.okr_group.setLayout(okr_layout)
 
         self.main_layout.addWidget(self.okr_group)
@@ -121,11 +122,11 @@ class OKR_Widget(VisualProtocolItemWidget):
 
         super().from_protocol_item(protocol_item)
 
-        if isinstance(protocol_item, OKR_CLOSED_LOOP):
+        if isinstance(protocol_item, OKR):
             self.sb_okr_spatial_freq.setValue(protocol_item.okr_spatial_frequency_deg)
             self.sb_okr_speed.setValue(protocol_item.okr_speed_deg_per_sec)
 
-    def to_protocol_item(self) -> OKR_CLOSED_LOOP:
+    def to_protocol_item(self) -> OKR:
         
         foreground_color = (
             self.sb_foreground_color_R.value(), 
@@ -139,9 +140,12 @@ class OKR_Widget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
-        protocol = OKR_CLOSED_LOOP(
+        closed_loop = self.chb_closed_loop.isChecked()
+
+        protocol = OKR(
             foreground_color = foreground_color,
             background_color = background_color,
+            closed_loop = closed_loop,
             okr_spatial_frequency_deg = self.sb_okr_spatial_freq.value(),
             okr_speed_deg_per_sec = self.sb_okr_speed.value(),
             stop_condition = self.stop_widget.to_stop_condition()

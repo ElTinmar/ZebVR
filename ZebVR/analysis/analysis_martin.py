@@ -51,9 +51,9 @@ matplotlib.rcParams['font.size'] = 12
 class StimType(IntEnum):
     DARK = 0
     BRIGHT = 1
-    PHOTOTAXIS_CLOSED_LOOP = 2
-    OMR_CLOSED_LOOP = 3
-    OKR_CLOSED_LOOP = 4
+    PHOTOTAXIS = 2
+    OMR = 3
+    OKR = 4
     LINEAR_RADIUS_LOOMING = 5
 
 COLORS = ('#FF6900', '#002BFF')
@@ -343,7 +343,7 @@ def remove_data_on_well_edges(data, threshold_radius_mm = 22.5):
     return data
 
 def analyse_phototaxis(data, fish_id, dpf):
-    phototaxis = data[data['stim_id'] == StimType.PHOTOTAXIS_CLOSED_LOOP]
+    phototaxis = data[data['stim_id'] == StimType.PHOTOTAXIS]
 
     def get_data(polarity):
         pol = phototaxis[phototaxis['phototaxis_polarity'] == polarity]
@@ -384,7 +384,7 @@ def analyse_dark_vs_bright(data, fish_id, dpf):
     return res
 
 def analyse_omr(data, fish_id, dpf):
-    omr = data[data['stim_id'] == StimType.OMR_CLOSED_LOOP]
+    omr = data[data['stim_id'] == StimType.OMR]
 
     def get_data(omr_angle):
         ang = omr[omr['omr_angle_deg'] == omr_angle]
@@ -410,7 +410,7 @@ def analyse_omr(data, fish_id, dpf):
     return res
 
 def analyse_okr(data, fish_id, dpf):
-    okr = data[data['stim_id'] == StimType.OKR_CLOSED_LOOP]
+    okr = data[data['stim_id'] == StimType.OKR]
     
     def get_data(okr_angle):
         ang = okr[okr['okr_speed_deg_per_sec'] == okr_angle]
