@@ -13,6 +13,59 @@ from ZebVR.utils import SharedString, get_time_ns
 import queue
 from ctypes import c_bool, c_double, c_ulong
 
+"""
+// --- Hardcoded constants ---
+const float wavelength = 16.0;   // characteristic length scale (pixels)
+const float bandwidth  = 0.08;   // fractional spread around k0
+const int   Nwaves     = 128;    // number of plane waves
+const float seed       = 1.0;  // random seed
+const float threshold  = 0.5;    // binarization threshold
+const float pi         = 3.14159265359;
+const vec2 velocity    = vec2(40.0, 10.0);
+
+// simple hash / pseudo-random
+float hash(float x){
+    return fract(sin(x)*43758.5453123 + seed);
+}
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord){
+    // Canonical coordinates (centered, aspect preserved)
+    vec2 uv = (fragCoord.xy - 0.5*iResolution.xy) / iResolution.y;
+    vec2 pos = uv * iResolution.y; // pixel coords in "pixels" for wavelength
+    pos += velocity * iTime;
+    
+    // target radial frequency
+    float k0 = 2.0 * pi / wavelength;
+
+    float sumv = 0.0;
+    for(int i = 0; i < Nwaves; i++){
+        // direction around circle
+        float t = (float(i) + hash(float(i))) / float(Nwaves) * 2.0 * pi;
+
+        // perturb k by bandwidth
+        float k = k0 * (1.0 + bandwidth * (hash(float(i)*1.234) - 0.5) * 2.0);
+
+        // random phase
+        float phase = hash(float(i)*12.34) * 2.0 * pi;
+
+        vec2 dir = vec2(cos(t), sin(t));
+        float w = cos(k * dot(pos, dir) + phase);
+
+        sumv += w;
+    }
+
+    // Normalize [-1,1]
+    float v = sumv / float(Nwaves);
+    v = clamp(v * 0.5 + 0.5, 0.0, 1.0);
+
+    // Binarize
+    float bin = step(threshold, v);
+    vec3 outColor = vec3(bin);  
+    
+    fragColor = vec4(outColor, 1.0);
+}
+"""
+
 @dataclass
 class SharedFishState:
     num_tail_points_interp: int
