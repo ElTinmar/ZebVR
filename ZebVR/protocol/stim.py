@@ -14,6 +14,7 @@ class Stim(IntEnum):
     DOT = 8
     IMAGE = 9
     RAMP = 10
+    TURING = 11
 
     # acoustic
     PURE_TONE = 100

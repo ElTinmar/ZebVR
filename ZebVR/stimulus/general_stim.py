@@ -84,6 +84,10 @@ class SharedStimParameters:
         self.omr_spatial_period_mm = RawValue(c_double, DEFAULT['omr_spatial_period_mm'])
         self.omr_angle_deg = RawValue(c_double, DEFAULT['omr_angle_deg'])
         self.omr_speed_mm_per_sec = RawValue(c_double, DEFAULT['omr_speed_mm_per_sec'])
+        self.turing_spatial_period_mm = RawValue(c_double, DEFAULT['turing_spatial_period_mm'])
+        self.turing_angle_deg = RawValue(c_double, DEFAULT['turing_angle_deg'])
+        self.turing_speed_mm_per_sec = RawValue(c_double, DEFAULT['turing_speed_mm_per_sec'])
+        self.turing_n_waves = RawValue(c_ulong, DEFAULT['turing_n_waves'])
         self.concentric_spatial_period_mm = RawValue(c_double, DEFAULT['concentric_spatial_period_mm'])
         self.concentric_speed_mm_per_sec = RawValue(c_double, DEFAULT['concentric_speed_mm_per_sec'])
         self.okr_spatial_frequency_deg = RawValue(c_double, DEFAULT['okr_spatial_frequency_deg'])
@@ -123,6 +127,10 @@ class SharedStimParameters:
         self.omr_spatial_period_mm.value = d.get('omr_spatial_period_mm', DEFAULT['omr_spatial_period_mm'])
         self.omr_angle_deg.value = d.get('omr_angle_deg', DEFAULT['omr_angle_deg'])
         self.omr_speed_mm_per_sec.value = d.get('omr_speed_mm_per_sec', DEFAULT['omr_speed_mm_per_sec'])
+        self.turing_spatial_period_mm.value = d.get('turing_spatial_period_mm', DEFAULT['turing_spatial_period_mm'])
+        self.turing_angle_deg.value = d.get('turing_angle_deg', DEFAULT['turing_angle_deg'])
+        self.turing_speed_mm_per_sec.value = d.get('turing_speed_mm_per_sec', DEFAULT['turing_speed_mm_per_sec'])
+        self.turing_n_waves.value = d.get('turing_n_waves', DEFAULT['turing_n_waves'])
         self.concentric_spatial_period_mm.value = d.get('concentric_spatial_period_mm', DEFAULT['concentric_spatial_period_mm'])
         self.concentric_speed_mm_per_sec.value = d.get('concentric_speed_mm_per_sec', DEFAULT['concentric_speed_mm_per_sec'])
         self.okr_spatial_frequency_deg.value = d.get('okr_spatial_frequency_deg', DEFAULT['okr_spatial_frequency_deg'])
@@ -171,6 +179,14 @@ class SharedStimParameters:
                 'omr_spatial_period_mm': self.omr_spatial_period_mm.value,
                 'omr_angle_deg': self.omr_angle_deg.value,
                 'omr_speed_mm_per_sec': self.omr_speed_mm_per_sec.value,
+            })
+
+        if self.stim_select.value == Stim.TURING:
+            res.update({
+                'turing_spatial_period_mm': self.turing_spatial_period_mm.value,
+                'turing_angle_deg': self.turing_angle_deg.value,
+                'turing_speed_mm_per_sec': self.turing_speed_mm_per_sec.value,
+                'turing_n_waves': self.turing_n_waves.value,
             })
 
         if self.stim_select.value == Stim.CONCENTRIC_GRATING:
@@ -297,6 +313,10 @@ class GeneralStim(VisualStim):
         uniform float u_omr_spatial_period_mm;
         uniform float u_omr_angle_deg;
         uniform float u_omr_speed_mm_per_sec;
+        uniform float u_turing_spatial_period_mm;
+        uniform float u_turing_angle_deg;
+        uniform float u_turing_speed_mm_per_sec;
+        uniform float u_turing_n_waves;
         uniform float u_concentric_spatial_period_mm;
         uniform float u_concentric_speed_mm_per_sec;
         uniform float u_okr_spatial_frequency_deg;
@@ -346,6 +366,7 @@ class GeneralStim(VisualStim):
         const int DOT = 8;
         const int IMAGE = 9;
         const int RAMP = 10;
+        const int TURING = 11;
 
         const float PI = radians(180.0);
         const float EPS = 1e-6;
@@ -360,6 +381,11 @@ class GeneralStim(VisualStim):
         mat2 rotate2d(float angle_rad){
             return mat2(cos(angle_rad),-sin(angle_rad),
                         sin(angle_rad),cos(angle_rad));
+        }
+
+        // pseudo-random hash
+        float hash(float x){
+            return fract(sin(x)*43758.5453123);
         }
 
         vec3 linear_to_srgb(vec3 linear)
@@ -445,6 +471,29 @@ class GeneralStim(VisualStim):
                         if ( sin(2*PI*(angle+phase)) > 0.0 ) {
                             gl_FragColor = u_foreground_color;
                         } 
+                    }
+                    else {
+                        //TODO 
+                        gl_FragColor = u_foreground_color;
+                    }
+                }
+
+                if (u_stim_select == TURING) {
+                    if (u_closed_loop) {
+                        vec2 velocity = u_turing_speed_mm_per_sec * vec2(cos(u_turing_angle_deg), sin(u_turing_angle_deg));
+                        vec2 pos = fish_ego_coords_mm + velocity*u_time_s; 
+                        float k0 = 2.0 * PI / u_turing_spatial_period_mm;
+                        float wave_sum = 0.0;
+                        for(int i = 0; i < u_turing_n_waves; i++){
+                            float angle = (float(i) + hash(float(i))) / float(u_turing_n_waves) * 2.0 * PI;
+                            float phase = hash(float(i)*12.34) * 2.0 * PI;
+                            vec2 dir = vec2(cos(angle), sin(angle));
+                            float wave = sin(k0 * dot(pos, dir) + phase);
+                            wave_sum += wave;
+                        }
+                        if (wave_sum > 0) {
+                            gl_FragColor = u_foreground_color;
+                        }
                     }
                     else {
                         //TODO 
@@ -707,6 +756,10 @@ class GeneralStim(VisualStim):
         self.program['u_omr_spatial_period_mm'] = self.shared_stim_parameters.omr_spatial_period_mm.value
         self.program['u_omr_angle_deg'] = self.shared_stim_parameters.omr_angle_deg.value
         self.program['u_omr_speed_mm_per_sec'] = self.shared_stim_parameters.omr_speed_mm_per_sec.value
+        self.program['u_turing_spatial_period_mm'] = self.shared_stim_parameters.turing_spatial_period_mm.value
+        self.program['u_turing_angle_deg'] = self.shared_stim_parameters.turing_angle_deg.value
+        self.program['u_turing_speed_mm_per_sec'] = self.shared_stim_parameters.turing_speed_mm_per_sec.value
+        self.program['u_turing_n_waves'] = self.shared_stim_parameters.turing_n_waves.value
         self.program['u_concentric_spatial_period_mm'] = self.shared_stim_parameters.concentric_spatial_period_mm.value
         self.program['u_concentric_speed_mm_per_sec'] = self.shared_stim_parameters.concentric_speed_mm_per_sec.value
         self.program['u_okr_spatial_frequency_deg'] = self.shared_stim_parameters.okr_spatial_frequency_deg.value
