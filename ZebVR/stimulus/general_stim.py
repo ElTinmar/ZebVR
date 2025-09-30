@@ -16,16 +16,13 @@ from ctypes import c_bool, c_double, c_ulong
 """
 // --- Hardcoded constants ---
 const float wavelength = 16.0;   // characteristic length scale (pixels)
-const float bandwidth  = 0.08;   // fractional spread around k0
 const int   Nwaves     = 128;    // number of plane waves
-const float seed       = 1.0;  // random seed
-const float threshold  = 0.5;    // binarization threshold
-const float pi         = 3.14159265359;
 const vec2 velocity    = vec2(40.0, 10.0);
+const float pi         = 3.14159265359;
 
 // simple hash / pseudo-random
 float hash(float x){
-    return fract(sin(x)*43758.5453123 + seed);
+    return fract(sin(x)*43758.5453123);
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord){
@@ -42,28 +39,20 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord){
         // direction around circle
         float t = (float(i) + hash(float(i))) / float(Nwaves) * 2.0 * pi;
 
-        // perturb k by bandwidth
-        float k = k0 * (1.0 + bandwidth * (hash(float(i)*1.234) - 0.5) * 2.0);
-
         // random phase
         float phase = hash(float(i)*12.34) * 2.0 * pi;
 
         vec2 dir = vec2(cos(t), sin(t));
-        float w = cos(k * dot(pos, dir) + phase);
+        float w = cos(k0 * dot(pos, dir) + phase);
 
         sumv += w;
     }
 
-    // Normalize [-1,1]
-    float v = sumv / float(Nwaves);
-    v = clamp(v * 0.5 + 0.5, 0.0, 1.0);
-
     // Binarize
-    float bin = step(threshold, v);
-    vec3 outColor = vec3(bin);  
-    
-    fragColor = vec4(outColor, 1.0);
+    float bin = step(0.0, sumv);
+    fragColor = vec4(bin, bin, bin, 1.0);
 }
+
 """
 
 @dataclass
