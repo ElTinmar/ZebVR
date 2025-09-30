@@ -65,9 +65,6 @@ class ConcentricGratingWidget(VisualProtocolItemWidget):
 
         super().declare_components()
 
-        self.chb_closed_loop.setChecked(False)
-        self.chb_closed_loop.setVisible(False)
-
         self.sb_concentric_spatial_freq = LabeledDoubleSpinBox()
         self.sb_concentric_spatial_freq.setText('Spatial period (mm)')
         self.sb_concentric_spatial_freq.setRange(0,10_000)

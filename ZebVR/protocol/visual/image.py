@@ -69,9 +69,6 @@ class ImageWidget(VisualProtocolItemWidget):
 
         super().declare_components()
 
-        self.chb_closed_loop.setChecked(False)
-        self.chb_closed_loop.setVisible(False)
-
         self.fs_image_path = FileOpenLabeledEditButton()
         self.fs_image_path.setText(self.image_path)
         self.fs_image_path.textChanged.connect(self.state_changed)

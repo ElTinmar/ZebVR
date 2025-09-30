@@ -386,6 +386,8 @@ class GeneralStim(VisualStim):
                 vec3 proj_bbox_size = u_cam_to_proj * vec3(camera_bbox_px.zw, 0.0);
                 vec4 proj_bbox_px = vec4(proj_bbox_origin.xy, proj_bbox_size.xy);
                 vec4 proj_bbox_mm = vec4(proj_bbox_origin.xy / u_pix_per_mm_proj, proj_bbox_size.xy/ u_pix_per_mm_proj);
+                vec2 proj_bbox_center_mm = proj_bbox_mm.xy + proj_bbox_mm.zw/2.0;
+                vec2 coordinates_centered_mm = coordinates_mm - proj_bbox_center_mm;
                 
                 // compute pixel coordinates in fish egocentric coordinates (mm)
                 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
@@ -412,8 +414,9 @@ class GeneralStim(VisualStim):
                         } 
                     }
                     else {
-                        //TODO 
-                        gl_FragColor = u_foreground_color;
+                        if ( u_phototaxis_polarity * coordinates_centered_mm.x > 0.0 ) {
+                            gl_FragColor = u_foreground_color;
+                        }
                     }
                 }
 
@@ -431,14 +434,22 @@ class GeneralStim(VisualStim):
                         } 
                     }
                     else {
-                        //TODO 
-                        gl_FragColor = u_foreground_color;
+                        vec2 orientation_vector = rotate2d(radians(u_omr_angle_deg)) * vec2(0,1);
+                        float position_on_orientation_vector = dot(coordinates_centered_mm, orientation_vector)/length(orientation_vector);
+                        float spatial_freq = 1/u_omr_spatial_period_mm;
+                        float temporal_freq = u_omr_speed_mm_per_sec/u_omr_spatial_period_mm;
+                        float angle = spatial_freq * position_on_orientation_vector;
+                        float phase = temporal_freq * u_time_s;
+
+                        if ( sin(2*PI*(angle+phase)) > 0.0 ) {
+                            gl_FragColor = u_foreground_color;
+                        } 
                     }
                 }
 
                 if (u_stim_select == TURING) {
                     if (u_closed_loop) {
-                        vec2 velocity = u_turing_speed_mm_per_sec * vec2(cos(u_turing_angle_deg), sin(u_turing_angle_deg));
+                        vec2 velocity = u_turing_speed_mm_per_sec * vec2(cos(radians(u_turing_angle_deg)), sin(radians(u_turing_angle_deg)));
                         vec2 pos = fish_ego_coords_mm + velocity*u_time_s; 
                         float k0 = 2.0 * PI / u_turing_spatial_period_mm;
                         float wave_sum = 0.0;
@@ -454,8 +465,20 @@ class GeneralStim(VisualStim):
                         }
                     }
                     else {
-                        //TODO 
-                        gl_FragColor = u_foreground_color;
+                        vec2 velocity = u_turing_speed_mm_per_sec * vec2(cos(radians(u_turing_angle_deg)), sin(radians(u_turing_angle_deg)));
+                        vec2 pos = coordinates_centered_mm + velocity * u_time_s; 
+                        float k0 = 2.0 * PI / u_turing_spatial_period_mm;
+                        float wave_sum = 0.0;
+                        for(int i = 0; i < u_turing_n_waves; i++){
+                            float angle = (float(i) + hash(float(i))) / float(u_turing_n_waves) * 2.0 * PI;
+                            float phase = hash(float(i)*12.34) * 2.0 * PI;
+                            vec2 dir = vec2(cos(angle), sin(angle));
+                            float wave = sin(k0 * dot(pos, dir) + phase);
+                            wave_sum += wave;
+                        }
+                        if (wave_sum > 0) {
+                            gl_FragColor = u_foreground_color;
+                        }
                     }
                 }
 
@@ -471,8 +494,14 @@ class GeneralStim(VisualStim):
                         } 
                     }
                     else {
-                        //TODO 
-                        gl_FragColor = u_foreground_color;
+                        float angular_spatial_freq = radians(u_okr_spatial_frequency_deg);
+                        float angular_temporal_freq = radians(u_okr_speed_deg_per_sec);
+                        
+                        float angle = atan(coordinates_centered_mm.y, coordinates_centered_mm.x);
+                        float phase = angular_temporal_freq * u_time_s;
+                        if ( mod(angle+phase, angular_spatial_freq) > angular_spatial_freq/2 ) {
+                            gl_FragColor = u_foreground_color;
+                        } 
                     }
                 }
 
@@ -484,8 +513,7 @@ class GeneralStim(VisualStim):
                         }
                     }
                     else {
-                        vec2 dot_center = proj_bbox_mm.xy + proj_bbox_mm.zw/2.0 + u_dot_center_mm; 
-                        if ( distance(coordinates_mm, dot_center) <= u_dot_radius_mm)
+                        if ( distance(coordinates_centered_mm, u_dot_center_mm) <= u_dot_radius_mm)
                         {
                             gl_FragColor = u_foreground_color;
                         }
@@ -507,9 +535,8 @@ class GeneralStim(VisualStim):
                         else {
                             float rel_time = mod(u_time_s-u_start_time_s, u_looming_period_sec); 
                             float looming_on = float(rel_time<=u_looming_expansion_time_sec);
-                            vec2 looming_origin = proj_bbox_mm.xy + proj_bbox_mm.zw/2.0 + u_looming_center_mm;
                             float looming_radius = u_looming_expansion_speed_mm_per_sec * rel_time * looming_on;
-                            if ( distance(coordinates_mm, looming_origin) <= looming_radius )
+                            if ( distance(coordinates_centered_mm, u_looming_center_mm) <= looming_radius )
                             {
                                 gl_FragColor = u_foreground_color;
                             }
@@ -530,10 +557,9 @@ class GeneralStim(VisualStim):
                         else {
                             float rel_time = mod(u_time_s-u_start_time_s, u_looming_period_sec); 
                             float looming_on = float(rel_time<=u_looming_expansion_time_sec);
-                            vec2 looming_origin = proj_bbox_mm.xy + proj_bbox_mm.zw/2.0 + u_looming_center_mm;
                             float visual_angle = radians(u_looming_expansion_speed_deg_per_sec) * rel_time * looming_on;
                             float looming_radius = tan(visual_angle/2); // ??
-                            if ( distance(coordinates_mm, looming_origin) <= looming_radius )
+                            if ( distance(coordinates_centered_mm, u_looming_center_mm) <= looming_radius )
                             {
                                 gl_FragColor = u_foreground_color;
                             }
@@ -558,10 +584,9 @@ class GeneralStim(VisualStim):
                             float t_f = u_looming_size_to_speed_ratio_ms/tan(radians(u_looming_angle_stop_deg)/2);
                             float period = t_0 - t_f;
                             float rel_time = mod(1000*(u_time_s-u_start_time_s), period); 
-                            vec2 looming_origin = proj_bbox_mm.xy + proj_bbox_mm.zw/2.0 + u_looming_center_mm;
                             float visual_angle = 2 * atan(u_looming_size_to_speed_ratio_ms/(t_0 - rel_time));
                             float looming_radius = tan(visual_angle/2); // ??
-                            if ( distance(coordinates_mm, looming_origin) <= looming_radius )
+                            if ( distance(coordinates_centered_mm, u_looming_center_mm) <= looming_radius )
                             {
                                 gl_FragColor = u_foreground_color;
                             }
@@ -571,11 +596,18 @@ class GeneralStim(VisualStim):
 
                 if (u_stim_select == CONCENTRIC_GRATING) {
                     if (u_closed_loop) {
-                        //TODO 
-                        gl_FragColor = u_foreground_color;
+                        float distance_to_center_mm = length(fish_ego_coords_mm);
+                        float spatial_freq = 1/u_concentric_spatial_period_mm;
+                        float temporal_freq = u_concentric_speed_mm_per_sec/u_concentric_spatial_period_mm;
+                        float angle = spatial_freq * distance_to_center_mm;
+                        float phase = temporal_freq * u_time_s;
+                        if ( sin(2*PI*(angle+phase)) > 0.0 ) 
+                        {
+                            gl_FragColor = u_foreground_color;
+                        }
                     }
                     else {
-                        float distance_to_center_mm = distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.zw/2.0);
+                        float distance_to_center_mm = length(coordinates_centered_mm);
                         float spatial_freq = 1/u_concentric_spatial_period_mm;
                         float temporal_freq = u_concentric_speed_mm_per_sec/u_concentric_spatial_period_mm;
                         float angle = spatial_freq * distance_to_center_mm;
@@ -611,12 +643,16 @@ class GeneralStim(VisualStim):
 
                 if (u_stim_select == IMAGE) {
                     if (u_closed_loop) {
-                        //TODO 
-                        gl_FragColor = u_foreground_color;
+                        vec2 image_size_mm = u_image_size / u_image_res_px_per_mm;
+                        vec2 coords = 0.5 + (fish_ego_coords_mm - u_image_offset_mm) / image_size_mm;
+                        if (coords.x >= 0.0 && coords.x <= 1.0 &&
+                            coords.y >= 0.0 && coords.y <= 1.0) {
+                            gl_FragColor = texture2D(u_image_texture, coords);
+                        }
                     }
                     else {
                         vec2 image_size_mm = u_image_size / u_image_res_px_per_mm;
-                        vec2 coords = (coordinates_mm - u_image_offset_mm - proj_bbox_mm.xy) / image_size_mm;
+                        vec2 coords = 0.5 + (coordinates_centered_mm - u_image_offset_mm) / image_size_mm;
                         if (coords.x >= 0.0 && coords.x <= 1.0 &&
                             coords.y >= 0.0 && coords.y <= 1.0) {
                             gl_FragColor = texture2D(u_image_texture, coords);
@@ -625,28 +661,22 @@ class GeneralStim(VisualStim):
                 }
 
                 if (u_stim_select == RAMP) {
-                    if (u_closed_loop) {
-                        //TODO 
-                        gl_FragColor = u_foreground_color;
+                    float t = mod(u_time_s-u_start_time_s, u_ramp_duration_sec);
+                    float frac = clamp(t / u_ramp_duration_sec, 0.0, 1.0);
+                    float ramp_value = 0.0;
+
+                    if (u_ramp_type == LINEAR) {
+                        ramp_value = frac;
                     }
-                    else {
-                        float t = mod(u_time_s-u_start_time_s, u_ramp_duration_sec);
-                        float frac = clamp(t / u_ramp_duration_sec, 0.0, 1.0);
-                        float ramp_value = 0.0;
 
-                        if (u_ramp_type == LINEAR) {
-                            ramp_value = frac;
-                        }
-
-                        if (u_ramp_type == POWER_LAW) {
-                            // Stevens' law: S = kI**a 
-                            float exponent = u_ramp_powerlaw_exponent;
-                            ramp_value = pow(frac, 1/exponent);
-                        }
-
-                        vec4 color = mix(u_background_color, u_foreground_color, ramp_value);
-                        gl_FragColor = color;
+                    if (u_ramp_type == POWER_LAW) {
+                        // Stevens' law: S = kI**a 
+                        float exponent = u_ramp_powerlaw_exponent;
+                        ramp_value = pow(frac, 1/exponent);
                     }
+
+                    vec4 color = mix(u_background_color, u_foreground_color, ramp_value);
+                    gl_FragColor = color;
                 }
             }
 
