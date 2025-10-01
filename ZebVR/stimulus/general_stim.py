@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Sequence
+from typing import List, Tuple, Dict
 from .visual_stim import VisualStim
 from vispy import gloo, app
 from multiprocessing import RawValue, RawArray
@@ -11,7 +11,7 @@ from ZebVR.protocol import DEFAULT, Stim, VISUAL_STIMS
 import cv2
 from ZebVR.utils import SharedString, get_time_ns
 import queue
-from ctypes import c_bool, c_double, c_ulong
+from ctypes import c_double, c_ulong
 
 @dataclass
 class SharedFishState:
@@ -37,7 +37,7 @@ class SharedStimParameters:
         self.stim_select = RawValue(c_double, Stim.DARK) 
         self.foreground_color = RawArray(c_double, DEFAULT['foreground_color'])
         self.background_color = RawArray(c_double, DEFAULT['background_color'])
-        self.closed_loop = RawValue(c_bool, DEFAULT['closed_loop'])
+        self.coordinate_system = RawValue(c_ulong, DEFAULT['coordinate_system'])
         self.phototaxis_polarity = RawValue(c_double, DEFAULT['phototaxis_polarity']) 
         self.omr_spatial_period_mm = RawValue(c_double, DEFAULT['omr_spatial_period_mm'])
         self.omr_angle_deg = RawValue(c_double, DEFAULT['omr_angle_deg'])
@@ -81,7 +81,7 @@ class SharedStimParameters:
         self.stim_select.value = d.get('stim_select', Stim.DARK)
         self.foreground_color[:] = d.get('foreground_color', DEFAULT['foreground_color'])
         self.background_color[:] = d.get('background_color', DEFAULT['background_color'])
-        self.closed_loop.value = d.get('closed_loop', DEFAULT['closed_loop'])
+        self.coordinate_system.value = d.get('coordinate_system', DEFAULT['coordinate_system'])
         self.phototaxis_polarity.value = d.get('phototaxis_polarity', DEFAULT['phototaxis_polarity'])
         self.omr_spatial_period_mm.value = d.get('omr_spatial_period_mm', DEFAULT['omr_spatial_period_mm'])
         self.omr_angle_deg.value = d.get('omr_angle_deg', DEFAULT['omr_angle_deg'])
@@ -126,7 +126,7 @@ class SharedStimParameters:
             'start_time_sec': self.start_time_sec.value,
             'foreground_color': list(self.foreground_color),
             'background_color': list(self.background_color),
-            'closed_loop': self.closed_loop.value
+            'coordinate_sytem': self.coordinate_system.value
         }
 
         if self.stim_select.value == Stim.PHOTOTAXIS:
@@ -268,7 +268,7 @@ class GeneralStim(VisualStim):
         // stim parameters
         uniform vec4 u_foreground_color;
         uniform vec4 u_background_color;
-        uniform bool u_closed_loop;
+        uniform int u_coordinate_system;
         uniform float u_stim_select;
         uniform float u_phototaxis_polarity;
         uniform float u_omr_spatial_period_mm;
@@ -319,6 +319,10 @@ class GeneralStim(VisualStim):
 
         const int RING = 0;
         const int RANDOM_CLOUD = 1;
+
+        const int BOUNDING_BOX_CENTER = 0;
+        const int FISH_CENTERED = 1;
+        const int FISH_EGOCENTRIC = 2; 
         
         const int DARK = 0;
         const int BRIGHT = 1;
@@ -580,7 +584,9 @@ class GeneralStim(VisualStim):
 
                 // choose which coordinate system to use
                 vec2 local_coordinates_mm = coordinates_centered_mm;
-                if (u_closed_loop) {local_coordinates_mm = fish_ego_coords_mm;}
+                if (u_coordinate_system == BOUNDING_BOX_CENTER) {local_coordinates_mm = coordinates_centered_mm;}
+                if (u_coordinate_system == FISH_CENTERED) {local_coordinates_mm = fish_centered_coords_mm;}
+                if (u_coordinate_system == FISH_EGOCENTRIC) {local_coordinates_mm = fish_ego_coords_mm;}
 
                 // choose which stimulus to show
                 gl_FragColor = u_background_color; 
@@ -672,7 +678,7 @@ class GeneralStim(VisualStim):
         self.program['u_start_time_s'] = self.shared_stim_parameters.start_time_sec.value
         self.program['u_foreground_color'] = self.shared_stim_parameters.foreground_color[:]
         self.program['u_background_color'] = self.shared_stim_parameters.background_color[:]
-        self.program['u_closed_loop'] = self.shared_stim_parameters.closed_loop.value
+        self.program['u_coordinate_system'] = self.shared_stim_parameters.coordinate_system.value
         self.program['u_stim_select'] = self.shared_stim_parameters.stim_select.value
         self.program['u_phototaxis_polarity'] = self.shared_stim_parameters.phototaxis_polarity.value
         self.program['u_omr_spatial_period_mm'] = self.shared_stim_parameters.omr_spatial_period_mm.value

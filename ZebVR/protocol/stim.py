@@ -63,3 +63,11 @@ class LoomingType(IntEnum):
 
     def __str__(self) -> str:
         return self.name
+    
+class CoordinateSystem(IntEnum):
+    BOUNDING_BOX_CENTER = 0
+    FISH_CENTERED = 1
+    FISH_EGOCENTRIC = 2 
+
+    def __str__(self) -> str:
+        return self.name

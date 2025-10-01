@@ -64,7 +64,7 @@ class Looming(VisualProtocolItem):
             'looming_size_to_speed_ratio_ms': self.looming_size_to_speed_ratio_ms, 
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'closed_loop': self.closed_loop
+            'coordinate_sytem': self.coordinate_system
         }
         return command 
 
@@ -343,12 +343,12 @@ class LoomingWidget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
-        closed_loop = self.chb_closed_loop.isChecked()
+        coordinate_system = self.cb_coordinate_system.currentIndex()
 
         protocol = Looming(
             foreground_color = foreground_color,
             background_color = background_color,
-            closed_loop = closed_loop,
+            coordinate_system = coordinate_system,
             looming_type = LoomingType(self.cb_looming_type.currentIndex()),
             looming_center_mm = (
                 self.sb_looming_center_mm_x.value(),

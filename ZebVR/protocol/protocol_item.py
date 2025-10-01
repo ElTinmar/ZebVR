@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
 from ..utils import set_from_dict
 from daq_tools import BoardType
 from .default import DEFAULT
+from .stim import CoordinateSystem
 
 class ProtocolItem(ABC):
 
@@ -69,7 +70,7 @@ class VisualProtocolItem(ProtocolItem):
             self,
             foreground_color: Tuple[float,float,float,float] = DEFAULT['foreground_color'],
             background_color: Tuple[float,float,float,float] = DEFAULT['background_color'],
-            closed_loop: bool = DEFAULT['closed_loop'], 
+            coordinate_system: CoordinateSystem = DEFAULT['coordinate_system'], 
             *args, 
             **kwargs
         ):
@@ -77,7 +78,7 @@ class VisualProtocolItem(ProtocolItem):
         super().__init__(*args, **kwargs)
         self.foreground_color = foreground_color
         self.background_color = background_color
-        self.closed_loop = closed_loop
+        self.coordinate_system = coordinate_system
 
 class ProtocolItemWidget(QWidget):
     
