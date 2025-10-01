@@ -58,9 +58,12 @@ class ProjectorWidget(QWidget):
     def declare_components(self) -> None:
 
         self.cb_monitors = LabeledComboBox()
-        self.cb_monitors.setText('Screens')
+        self.cb_monitors.setText('Screens, from left to right')
         for monitor in self.monitors:
             self.cb_monitors.addItem(f"{monitor.name}: {monitor.width}x{monitor.height}, (x={monitor.x},y={monitor.y})")
+        # select rightmost screen by default
+        if self.monitors:
+            self.cb_monitors.setCurrentIndex(len(self.monitors) - 1)
         self.cb_monitors.currentIndexChanged.connect(self.monitor_changed)
 
         self.proj_height = LabeledSpinBox()
@@ -192,6 +195,8 @@ class ProjectorWidget(QWidget):
         self.light_analysis = LightAnalysisWidget()
         self.light_analysis.power_calibration.connect(self.power_calibration)
         self.light_analysis.state_changed.connect(self.state_changed)
+
+        self.monitor_changed()
 
     def monitor_changed(self):
         monitor_index = self.cb_monitors.currentIndex()
