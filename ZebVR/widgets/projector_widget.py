@@ -40,9 +40,9 @@ class ProjectorWidget(QWidget):
     gamma_changed = pyqtSignal(str)
     color_mode_changed = pyqtSignal(str)
     fast_input_mode_changed = pyqtSignal(bool)
-    red_gain_changed = pyqtSignal(int)
-    green_gain_changed = pyqtSignal(int)
-    blue_gain_changed = pyqtSignal(int)
+    red_offset_changed = pyqtSignal(int)
+    green_offset_changed = pyqtSignal(int)
+    blue_offset_changed = pyqtSignal(int)
 
     def __init__(self,*args,**kwargs):
 
@@ -163,35 +163,35 @@ class ProjectorWidget(QWidget):
             self.color_mode.addItem(str(cm))
         self.color_mode.currentTextChanged.connect(self.color_mode_changed)
 
-        self.red_gain_slider = LabeledSliderSpinBox()
-        self.red_gain_slider.setText('Red gain')
-        self.red_gain_slider.setRange(0, 100)
-        self.red_gain_slider.setSingleStep(1)
-        self.red_gain_slider.setValue(50)
-        self.red_gain_slider.valueChanged.connect(self.red_gain_changed)
-        self.red_gain_slider.sliderPressed.connect(self.interaction_started)
-        self.red_gain_slider.textEdited.connect(self.interaction_started)
-        self.red_gain_slider.valueChanged.connect(self.interaction_stopped)
+        self.red_offset_slider = LabeledSliderSpinBox()
+        self.red_offset_slider.setText('Red offset')
+        self.red_offset_slider.setRange(-50, 50)
+        self.red_offset_slider.setSingleStep(1)
+        self.red_offset_slider.setValue(0)
+        self.red_offset_slider.valueChanged.connect(self.red_offset_changed)
+        self.red_offset_slider.sliderPressed.connect(self.interaction_started)
+        self.red_offset_slider.textEdited.connect(self.interaction_started)
+        self.red_offset_slider.valueChanged.connect(self.interaction_stopped)
 
-        self.green_gain_slider = LabeledSliderSpinBox()
-        self.green_gain_slider.setText('Green gain')
-        self.green_gain_slider.setRange(0, 100)
-        self.green_gain_slider.setSingleStep(1)
-        self.green_gain_slider.setValue(50)
-        self.green_gain_slider.valueChanged.connect(self.green_gain_changed)
-        self.green_gain_slider.sliderPressed.connect(self.interaction_started)
-        self.green_gain_slider.textEdited.connect(self.interaction_started)
-        self.green_gain_slider.valueChanged.connect(self.interaction_stopped)
+        self.green_offset_slider = LabeledSliderSpinBox()
+        self.green_offset_slider.setText('Green offset')
+        self.green_offset_slider.setRange(-50, 50)
+        self.green_offset_slider.setSingleStep(1)
+        self.green_offset_slider.setValue(0)
+        self.green_offset_slider.valueChanged.connect(self.green_offset_changed)
+        self.green_offset_slider.sliderPressed.connect(self.interaction_started)
+        self.green_offset_slider.textEdited.connect(self.interaction_started)
+        self.green_offset_slider.valueChanged.connect(self.interaction_stopped)
 
-        self.blue_gain_slider = LabeledSliderSpinBox()
-        self.blue_gain_slider.setText('Blue gain')
-        self.blue_gain_slider.setRange(0, 100)
-        self.blue_gain_slider.setSingleStep(1)
-        self.blue_gain_slider.setValue(50)
-        self.blue_gain_slider.valueChanged.connect(self.blue_gain_changed)
-        self.blue_gain_slider.sliderPressed.connect(self.interaction_started)
-        self.blue_gain_slider.textEdited.connect(self.interaction_started)
-        self.blue_gain_slider.valueChanged.connect(self.interaction_stopped)
+        self.blue_offset_slider = LabeledSliderSpinBox()
+        self.blue_offset_slider.setText('Blue offset')
+        self.blue_offset_slider.setRange(-50, 50)
+        self.blue_offset_slider.setSingleStep(1)
+        self.blue_offset_slider.setValue(0)
+        self.blue_offset_slider.valueChanged.connect(self.blue_offset_changed)
+        self.blue_offset_slider.sliderPressed.connect(self.interaction_started)
+        self.blue_offset_slider.textEdited.connect(self.interaction_started)
+        self.blue_offset_slider.valueChanged.connect(self.interaction_stopped)
 
         self.serial_number = QLabel('S/N:') 
         self.power_status = QLabel('Power:')
@@ -283,9 +283,9 @@ class ProjectorWidget(QWidget):
         serial_layout.addWidget(self.gamma)
         serial_layout.addWidget(self.color_mode)
         serial_layout.addWidget(self.fast_input_mode)
-        serial_layout.addWidget(self.red_gain_slider)
-        serial_layout.addWidget(self.green_gain_slider)
-        serial_layout.addWidget(self.blue_gain_slider)
+        serial_layout.addWidget(self.red_offset_slider)
+        serial_layout.addWidget(self.green_offset_slider)
+        serial_layout.addWidget(self.blue_offset_slider)
         serial_layout.addWidget(self.power_status)
         serial_layout.addWidget(self.serial_number)
         serial_layout.addWidget(self.temperature)
@@ -366,9 +366,9 @@ class ProjectorWidget(QWidget):
             'video_source': self.video_source.setCurrentText,
             'gamma': self.gamma.setCurrentText,
             'color_mode': self.color_mode.setCurrentText,
-            'red_gain': self.red_gain_slider.setValue,
-            'green_gain': self.green_gain_slider.setValue,
-            'blue_gain': self.blue_gain_slider.setValue,
+            'red_offset': self.red_offset_slider.setValue,
+            'green_offset': self.green_offset_slider.setValue,
+            'blue_offset': self.blue_offset_slider.setValue,
             'fast_input_mode': self.fast_input_mode.setChecked,
             'serial_number': lambda x: self.serial_number.setText(f"S/N:{x}"),
             'power_status': lambda x: self.power_status.setText(f"Power:{x}"),
@@ -416,9 +416,9 @@ class ProjectorController(QObject):
         self.view.fast_input_mode_changed.connect(self.change_fast_input_mode)
         self.view.power_on_signal.connect(self.power_on)
         self.view.power_off_signal.connect(self.power_off)
-        self.view.red_gain_changed.connect(self.set_color_temperature_red_gain)
-        self.view.green_gain_changed.connect(self.set_color_temperature_green_gain)
-        self.view.blue_gain_changed.connect(self.set_color_temperature_blue_gain)
+        self.view.red_offset_changed.connect(self.set_color_temperature_red_offset)
+        self.view.green_offset_changed.connect(self.set_color_temperature_green_offset)
+        self.view.blue_offset_changed.connect(self.set_color_temperature_blue_offset)
         self.view.power_calibration.connect(self.power_calibration)
 
         self.new_thread.start()
@@ -449,9 +449,9 @@ class ProjectorController(QObject):
             state['video_source'] = str(self.projector.get_source_input())
             state['gamma'] = str(self.projector.get_gamma())
             state['color_mode'] = str(self.projector.get_color_mode())
-            state['red_gain'] = self.projector.get_color_temperature_red_gain()
-            state['green_gain'] = self.projector.get_color_temperature_green_gain()
-            state['blue_gain'] = self.projector.get_color_temperature_blue_gain()
+            state['red_offset'] = self.projector.get_color_temperature_red_offset()
+            state['green_offset'] = self.projector.get_color_temperature_green_offset()
+            state['blue_offset'] = self.projector.get_color_temperature_blue_offset()
             state['fast_input_mode'] = bool(self.projector.get_fast_input_mode())
             state['serial_number'] = self.projector.get_serial_number()
             state['temperature'] = str(self.projector.get_operating_temperature())
@@ -461,9 +461,9 @@ class ProjectorController(QObject):
             state['video_source'] = 'NONE'
             state['gamma'] = 'GAMMA_1_8'
             state['color_mode'] = 'TV'
-            state['red_gain'] = 50
-            state['green_gain'] = 50
-            state['blue_gain'] = 50
+            state['red_offset'] = 0
+            state['green_offset'] = 0
+            state['blue_offset'] = 0
             state['fast_input_mode'] = False
             state['serial_number'] = ''
             state['temperature'] = ''
@@ -507,26 +507,26 @@ class ProjectorController(QObject):
 
         self.projector = ViewSonicProjector(port=port, verbose=False) 
 
-    def set_color_temperature_red_gain(self, gain: int):
+    def set_color_temperature_red_offset(self, offset: int):
 
         if self.projector is None:
             return
         
-        self.projector.set_color_temperature_red_gain(gain)
+        self.projector.set_color_temperature_red_offset(offset)
 
-    def set_color_temperature_green_gain(self, gain: int):
-
-        if self.projector is None:
-            return
-        
-        self.projector.set_color_temperature_green_gain(gain)
-
-    def set_color_temperature_blue_gain(self, gain: int):
+    def set_color_temperature_green_offset(self, offset: int):
 
         if self.projector is None:
             return
         
-        self.projector.set_color_temperature_blue_gain(gain)
+        self.projector.set_color_temperature_green_offset(offset)
+
+    def set_color_temperature_blue_offset(self, offset: int):
+
+        if self.projector is None:
+            return
+        
+        self.projector.set_color_temperature_blue_offset(offset)
 
     def power_on(self):
         
