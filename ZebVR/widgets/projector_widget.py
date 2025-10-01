@@ -60,7 +60,11 @@ class ProjectorWidget(QWidget):
         self.cb_monitors = LabeledComboBox()
         self.cb_monitors.setText('Screens, from left to right')
         for monitor in self.monitors:
-            self.cb_monitors.addItem(f"{monitor.name}: {monitor.width}x{monitor.height}, (x={monitor.x},y={monitor.y})")
+            if monitor.width_mm is not None:
+                res = monitor.width / monitor.width_mm
+            else:
+                res = -1
+            self.cb_monitors.addItem(f"{monitor.name}: {monitor.width}x{monitor.height} [x={monitor.x},y={monitor.y}] @ {res:.2f}px/mm")
         # select rightmost screen by default
         if self.monitors:
             self.cb_monitors.setCurrentIndex(len(self.monitors) - 1)
