@@ -41,6 +41,13 @@ VISUAL_STIMS = [s for s in Stim if 0 <= s.value <= 99]
 AUDIO_STIMS = [s for s in Stim if 100 <= s.value <= 199]
 DAQ_STIMS =  [s for s in Stim if 200 <= s.value <= 299]
 
+class PreyCaptureType(IntEnum):
+    RING = 0
+    RANDOM_CLOUD = 1 
+
+    def __str__(self) -> str:
+        return self.name
+    
 class RampType(IntEnum):
     LINEAR = 0
     POWER_LAW = 1 # Stevens' law

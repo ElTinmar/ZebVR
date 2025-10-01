@@ -4,10 +4,11 @@ from ZebVR.protocol import (
     VisualProtocolItem,
     VisualProtocolItemWidget, 
     StopWidget, 
-    Debouncer
+    Debouncer,
+    PreyCaptureType
 )
 from typing import Dict
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledComboBox
 from PyQt5.QtWidgets import (
     QGroupBox, 
     QVBoxLayout,
@@ -23,6 +24,7 @@ class PreyCapture(VisualProtocolItem):
 
     def __init__(
             self,
+            prey_capture_type: PreyCaptureType = DEFAULT['prey_capture_type'],
             n_preys: int = DEFAULT['n_preys'],
             prey_speed_mm_s: float = DEFAULT['prey_speed_mm_s'],
             prey_speed_deg_s: float = DEFAULT['prey_speed_deg_s'],
@@ -33,6 +35,7 @@ class PreyCapture(VisualProtocolItem):
         ) -> None:
 
         super().__init__(*args, **kwargs)
+        self.prey_capture_type = prey_capture_type
         self.n_preys = n_preys
         self.prey_speed_mm_s = prey_speed_mm_s 
         self.prey_speed_deg_s = prey_speed_deg_s 
@@ -45,14 +48,15 @@ class PreyCapture(VisualProtocolItem):
         
         command = {
             'stim_select': self.STIM_SELECT,
-            'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'closed_loop': self.closed_loop,
+            'prey_capture_type': self.prey_capture_type,
             'n_preys': self.n_preys,
             'prey_speed_mm_s': self.prey_speed_mm_s,
             'prey_speed_deg_s': self.prey_speed_deg_s,
             'prey_radius_mm': self.prey_radius_mm,
-            'prey_trajectory_radius_mm': self.prey_trajectory_radius_mm
+            'prey_trajectory_radius_mm': self.prey_trajectory_radius_mm,
+            'foreground_color': self.foreground_color,
+            'background_color': self.background_color,
+            'closed_loop': self.closed_loop,
         }
         return command 
     
@@ -60,6 +64,7 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
 
     def __init__(
             self,
+            prey_capture_type: PreyCaptureType = DEFAULT['prey_capture_type'],
             n_preys: int = DEFAULT['n_preys'],
             prey_speed_mm_s: float = DEFAULT['prey_speed_mm_s'],
             prey_speed_deg_s: float = DEFAULT['prey_speed_deg_s'],
@@ -69,6 +74,7 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
             **kwargs
         ) -> None:
 
+        self.prey_capture_type = prey_capture_type
         self.n_preys = n_preys
         self.prey_speed_mm_s = prey_speed_mm_s
         self.prey_speed_deg_s = prey_speed_deg_s
@@ -81,8 +87,13 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
 
         super().declare_components()
 
-        self.chb_closed_loop.toggled.connect(self.closed_loop_toggled)
-        
+        self.cb_prey_capture_type = LabeledComboBox()
+        self.cb_prey_capture_type.setText('Prey capture type')
+        for prey_capture_type in PreyCaptureType:
+            self.cb_prey_capture_type.addItem(str(prey_capture_type))
+        self.cb_prey_capture_type.setCurrentIndex(self.prey_capture_type)
+        self.cb_prey_capture_type.currentIndexChanged.connect(self.prey_capture_type_changed)
+
         self.sb_n_preys = LabeledSpinBox()
         self.sb_n_preys.setText('# preys')
         self.sb_n_preys.setRange(0, MAX_PREY) 
@@ -116,13 +127,14 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
         self.sb_trajectory_prey_radius_mm.setValue(self.prey_trajectory_radius_mm)
         self.sb_trajectory_prey_radius_mm.valueChanged.connect(self.state_changed)
 
-        self.closed_loop_toggled()
+        self.prey_capture_type_changed()
 
     def layout_components(self) -> None:
         
         super().layout_components()
 
         preycapture_layout = QVBoxLayout()
+        preycapture_layout.addWidget(self.cb_prey_capture_type)
         preycapture_layout.addWidget(self.sb_n_preys)
         preycapture_layout.addWidget(self.sb_prey_speed_mm_s)
         preycapture_layout.addWidget(self.sb_prey_speed_deg_s)
@@ -136,23 +148,26 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
         self.main_layout.addWidget(self.preycapture_group)
         self.main_layout.addWidget(self.stop_widget)
 
-    def closed_loop_toggled(self):
+    def prey_capture_type_changed(self):
 
-        closed_loop = self.chb_closed_loop.isChecked()
+        prey_capture_type = PreyCaptureType(self.cb_prey_capture_type.currentIndex())
 
-        if closed_loop:
-            self.sb_prey_speed_mm_s.setVisible(False)
-            self.sb_prey_speed_deg_s.setVisible(True)
-            self.sb_trajectory_prey_radius_mm.setVisible(True)
-
-        else:
+        if prey_capture_type == PreyCaptureType.RANDOM_CLOUD:
             self.sb_prey_speed_mm_s.setVisible(True)
             self.sb_prey_speed_deg_s.setVisible(False)
             self.sb_trajectory_prey_radius_mm.setVisible(False)
 
+        if prey_capture_type == PreyCaptureType.RING:
+            self.sb_prey_speed_mm_s.setVisible(False)
+            self.sb_prey_speed_deg_s.setVisible(True)
+            self.sb_trajectory_prey_radius_mm.setVisible(True)    
+
+        self.state_changed.emit()
+
     def get_state(self) -> Dict:
         
         state = super().get_state()
+        state['prey_capture_type'] = self.cb_prey_capture_type.currentIndex()
         state['n_preys'] = self.sb_n_preys.value()
         state['prey_speed_mm_s'] = self.sb_prey_speed_mm_s.value()
         state['prey_speed_deg_s'] = self.sb_prey_speed_deg_s.value()
@@ -164,6 +179,12 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
         
         super().set_state(state)
 
+        set_from_dict(
+            dictionary = state,
+            key = 'prey_capture_type',
+            setter = self.cb_prey_capture_type.setCurrentIndex,
+            default = self.prey_capture_type
+        )
         set_from_dict(
             dictionary = state,
             key = 'n_preys',
@@ -205,6 +226,7 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
         super().from_protocol_item(protocol_item)
 
         if isinstance(protocol_item, PreyCapture):
+            self.cb_prey_capture_type.setCurrentIndex(protocol_item.prey_capture_type)
             self.sb_n_preys.setValue(protocol_item.n_preys)
             self.sb_prey_speed_mm_s.setValue(protocol_item.prey_speed_mm_s)
             self.sb_prey_speed_deg_s.setValue(protocol_item.prey_speed_deg_s)
@@ -231,6 +253,7 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
             foreground_color = foreground_color,
             background_color = background_color,
             closed_loop = closed_loop,
+            prey_capture_type = PreyCaptureType(self.cb_prey_capture_type.currentIndex()),
             n_preys = self.sb_n_preys.value(),
             prey_speed_mm_s = self.sb_prey_speed_mm_s.value(),
             prey_speed_deg_s = self.sb_prey_speed_deg_s.value(),

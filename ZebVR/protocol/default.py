@@ -1,4 +1,4 @@
-from .stim import RampType, LoomingType
+from .stim import RampType, LoomingType, PreyCaptureType
 from daq_tools import BoardType
 
 DEFAULT = {
@@ -28,6 +28,7 @@ DEFAULT = {
     'looming_size_to_speed_ratio_ms': 90,
     'dot_center_mm': (0.0, 0.0),
     'dot_radius_mm': 1.0,
+    'prey_capture_type': PreyCaptureType.RING,
     'n_preys': 10,
     'prey_speed_mm_s': 4.00,
     'prey_radius_mm': 0.15,

@@ -104,7 +104,7 @@ class LoomingWidget(VisualProtocolItemWidget):
         super().declare_components()
 
         self.cb_looming_type = LabeledComboBox()
-        self.cb_looming_type.setText('Ramp type')
+        self.cb_looming_type.setText('Looming type')
         for looming_type in LoomingType:
             self.cb_looming_type.addItem(str(looming_type))
         self.cb_looming_type.setCurrentIndex(self.looming_type)
