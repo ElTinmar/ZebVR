@@ -299,8 +299,8 @@ class GeneralStim(VisualStim):
         uniform float u_prey_trajectory_radius_mm;
         uniform float u_prey_speed_mm_s;
         uniform float u_prey_speed_deg_s;
-        uniform vec2 u_prey_position[{MAX_PREY}];
-        uniform vec2 u_prey_direction[{MAX_PREY}];
+        uniform vec2 u_prey_position[{MAX_PREY}]; // in projector space
+        uniform float u_prey_trajectory_angle[{MAX_PREY}];  
         uniform sampler2D u_image_texture;
         uniform vec2 u_image_size;
         uniform float u_image_res_px_per_mm;
@@ -499,7 +499,17 @@ class GeneralStim(VisualStim):
             return u_background_color;
         }
 
-        //vec4 prey_capture_random_cloud_stimulus(vec2 coords_mm) {}  TODO
+        vec4 prey_capture_random_cloud_stimulus(vec2 coords_mm, vec4 bbox_mm) {
+            for (int i = 0; i < u_n_preys; i++) {
+                vec2 current_prey_pos_mm = u_prey_position[i] / u_pix_per_mm_proj;
+                vec2 current_prey_dir = vec2(cos(u_prey_trajectory_angle[i]), sin(u_prey_trajectory_angle[i]));
+                vec2 pos = mod(current_prey_pos_mm + u_time_s * u_prey_speed_mm_s * current_prey_dir, bbox_mm.zw) - bbox_mm.zw / 2.0;
+                if ( distance(pos, coords_mm) <= u_prey_radius_mm ) {
+                    return u_foreground_color;
+                }
+            }
+            return u_background_color;  
+        }  
 
         vec4 image_stimulus(vec2 coords_mm) {
             vec2 image_size_mm = u_image_size / u_image_res_px_per_mm;
@@ -602,15 +612,7 @@ class GeneralStim(VisualStim):
                 if (u_stim_select == IMAGE)  {gl_FragColor = image_stimulus(local_coordinates_mm);}
                 if (u_stim_select == PREY_CAPTURE) {
                     if (u_prey_capture_type == RING) {gl_FragColor = prey_capture_ring_stimulus(local_coordinates_mm);}
-                    if (u_prey_capture_type == RANDOM_CLOUD) {
-                        for (int i = 0; i < u_n_preys; i++) {
-                            vec2 pos_camera_px =  camera_bbox_px.xy + mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_pix_per_mm * u_prey_direction[i], camera_bbox_px.zw);
-                            vec3 pos_proj_px = u_cam_to_proj * vec3(pos_camera_px, 1.0);
-                            if ( distance(pos_proj_px.xy/u_pix_per_mm_proj, coordinates_mm) <= u_prey_radius_mm ) {
-                                gl_FragColor = u_foreground_color;
-                            }
-                        }
-                    }
+                    if (u_prey_capture_type == RANDOM_CLOUD) {gl_FragColor = prey_capture_random_cloud_stimulus(local_coordinates_mm, proj_bbox_mm);}
                 }
             }
 
@@ -727,11 +729,10 @@ class GeneralStim(VisualStim):
         np.random.seed(0)
         x = np.random.randint(0, self.camera_resolution[0], MAX_PREY)
         y = np.random.randint(0, self.camera_resolution[1], MAX_PREY)
-        theta = np.random.uniform(0, 2*np.pi, MAX_PREY)
+        theta = np.random.uniform(0, 2*np.pi, (MAX_PREY,1))
         self.program['u_n_animals'] = self.n_animals
-        self.program['u_prey_position'] = np.column_stack((x, y)).astype(np.float32)
-        self.program['u_prey_direction'] = np.column_stack((np.cos(theta), np.sin(theta))).astype(np.float32)
-        self.update_shader_variables(0)
+        self.program['u_prey_position'] = self.transformation_matrix.transform_points(np.column_stack((x, y)).astype(np.float32)).squeeze()
+        self.program['u_prey_trajectory_angle'] = theta.astype(np.float32)
 
         self.show()
         self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
