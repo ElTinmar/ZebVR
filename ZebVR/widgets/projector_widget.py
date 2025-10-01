@@ -57,6 +57,9 @@ class ProjectorWidget(QWidget):
     
     def declare_components(self) -> None:
 
+        self.btn_refresh_monitors = QPushButton('Refresh Monitors')
+        self.btn_refresh_monitors.clicked.connect(self.refresh_monitors)
+
         self.cb_monitors = LabeledComboBox()
         self.cb_monitors.setText('Screens, from left to right')
         for monitor in self.monitors:
@@ -222,6 +225,25 @@ class ProjectorWidget(QWidget):
         self.serial_group.setEnabled(True)
         self.serial_port_changed.emit(port)
 
+    def refresh_monitors(self):
+        self.monitors = list_monitors()
+        
+        self.cb_monitors.blockSignals(True)
+        self.cb_monitors.clear()
+        for monitor in self.monitors:
+            if monitor.width_mm is not None:
+                res = monitor.width / monitor.width_mm
+            else:
+                res = -1
+            self.cb_monitors.addItem(f"{monitor.name}: {monitor.width}x{monitor.height} [x={monitor.x},y={monitor.y}] @ {res:.2f}px/mm")
+        # select rightmost screen by default
+        if self.monitors:
+            self.cb_monitors.setCurrentIndex(len(self.monitors) - 1)
+        self.cb_monitors.currentIndexChanged.connect(self.monitor_changed)
+        self.cb_monitors.blockSignals(False)
+
+        self.monitor_changed()
+
     def interaction_started(self):
         self.user_interaction = True
 
@@ -271,6 +293,7 @@ class ProjectorWidget(QWidget):
         self.serial_group.setLayout(serial_layout)
 
         projector_layout = QVBoxLayout()
+        projector_layout.addWidget(self.btn_refresh_monitors)
         projector_layout.addWidget(self.cb_monitors)
         projector_layout.addLayout(resolution_layout)
         projector_layout.addLayout(offset_layout)
