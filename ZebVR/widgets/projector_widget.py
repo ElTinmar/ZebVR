@@ -22,7 +22,7 @@ def list_monitors() -> List[Monitor]:
     monitor_info = []
     for monitor in get_monitors():
         monitor_info.append(monitor)
-    return monitor_info
+    return sorted(monitor_info, key=lambda x: x.x)
 
 class ProjectorWidget(QWidget):
 
@@ -56,6 +56,12 @@ class ProjectorWidget(QWidget):
         self.layout_components()
     
     def declare_components(self) -> None:
+
+        self.cb_monitors = LabeledComboBox()
+        self.cb_monitors.setText('Screens')
+        for monitor in self.monitors:
+            self.cb_monitors.addItem(f"{monitor.name}: {monitor.width}x{monitor.height}, (x={monitor.x},y={monitor.y})")
+        self.cb_monitors.currentIndexChanged.connect(self.monitor_changed)
 
         self.proj_height = LabeledSpinBox()
         self.proj_height.setText('height:')
@@ -186,7 +192,18 @@ class ProjectorWidget(QWidget):
         self.light_analysis = LightAnalysisWidget()
         self.light_analysis.power_calibration.connect(self.power_calibration)
         self.light_analysis.state_changed.connect(self.state_changed)
-    
+
+    def monitor_changed(self):
+        monitor_index = self.cb_monitors.currentIndex()
+        choosen_monitor = self.monitors[monitor_index]
+
+        self.proj_height.setValue(choosen_monitor.height)
+        self.proj_width.setValue(choosen_monitor.width)
+        self.offset_x.setValue(choosen_monitor.x)
+        self.offset_y.setValue(choosen_monitor.y)
+
+        self.state_changed.emit()
+
     def serial_changed(self, index: int):
         port = self.serial_devices[index].device
         if port == '':
@@ -245,6 +262,7 @@ class ProjectorWidget(QWidget):
         self.serial_group.setLayout(serial_layout)
 
         projector_layout = QVBoxLayout()
+        projector_layout.addWidget(self.cb_monitors)
         projector_layout.addLayout(resolution_layout)
         projector_layout.addLayout(offset_layout)
         projector_layout.addLayout(scale_layout)
