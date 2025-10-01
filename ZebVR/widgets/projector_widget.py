@@ -16,7 +16,13 @@ import time
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledSliderSpinBox, LabeledComboBox
 from ..serial_utils import list_serial_devices, SerialDevice
 from .light_analysis import LightAnalysisWidget
+from screeninfo import get_monitors, Monitor
 
+def list_monitors() -> List[Monitor]:
+    monitor_info = []
+    for monitor in get_monitors():
+        monitor_info.append(monitor)
+    return monitor_info
 
 class ProjectorWidget(QWidget):
 
@@ -43,6 +49,7 @@ class ProjectorWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         self.serial_devices: List[SerialDevice] = [SerialDevice()] + list_serial_devices()
+        self.monitors = list_monitors() 
         self.projector_state = {}
         self.user_interaction = False
         self.declare_components()

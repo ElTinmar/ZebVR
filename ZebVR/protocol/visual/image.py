@@ -44,7 +44,7 @@ class Image(VisualProtocolItem):
             'image_offset_mm': self.image_offset_mm,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'closed_loop': self.closed_loop
+            'coordinate_sytem': self.coordinate_system
         }
         return command
     
@@ -177,12 +177,12 @@ class ImageWidget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
-        closed_loop = self.chb_closed_loop.isChecked()
+        coordinate_system = self.cb_coordinate_system.currentIndex()
 
         protocol = Image(
             foreground_color = foreground_color,
             background_color = background_color,
-            closed_loop = closed_loop,
+            coordinate_system = coordinate_system,
             image_offset_mm = (
                 self.sb_image_offset_mm_x.value(),
                 self.sb_image_offset_mm_y.value()

@@ -16,6 +16,7 @@ dependencies:
 - pyserial
 - pyqtgraph
 - pip:
+  - screeninfo
   - sounddevice
   - statsmodels  
   - psutil

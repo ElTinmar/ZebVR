@@ -1,10 +1,10 @@
-from .stim import RampType, LoomingType, PreyCaptureType
+from .stim import RampType, LoomingType, PreyCaptureType, CoordinateSystem
 from daq_tools import BoardType
 
 DEFAULT = {
     'foreground_color': (0.2, 0.2, 0.2, 1.0),
     'background_color': (0.0, 0.0, 0.0, 1.0),
-    'closed_loop': True,
+    'coordinate_system': CoordinateSystem.BOUNDING_BOX_CENTER,
     'phototaxis_polarity': 1,
     'omr_spatial_period_mm': 10,
     'omr_angle_deg': 0,
