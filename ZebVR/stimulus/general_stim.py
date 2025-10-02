@@ -454,6 +454,9 @@ class GeneralStim(VisualStim):
         }
 
         vec4 looming_linear_angle_stimulus(vec2 coords_mm) {
+            // We compute the visual angle only using vertical distance from fish to screen.
+            // This breaks as the looming is offset in XY
+
             float relative_time = mod(u_time_s - u_start_time_s, u_looming_period_sec); 
             float looming_on = float(relative_time <= u_looming_expansion_time_sec);
             float visual_angle = radians(u_looming_expansion_speed_deg_per_sec) * relative_time * looming_on;
@@ -468,6 +471,9 @@ class GeneralStim(VisualStim):
         }
 
         vec4 looming_constant_velocity_stimulus(vec2 coords_mm) {
+            // We compute the visual angle only using vertical distance from fish to screen.
+            // This breaks as the looming is offset in XY
+
             float angle_start_rad = radians(u_looming_angle_start_deg);
             float angle_stop_rad = radians(u_looming_angle_stop_deg);
             float t_0 = u_looming_size_to_speed_ratio_ms / tan(angle_start_rad/2);
