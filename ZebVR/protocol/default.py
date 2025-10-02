@@ -26,6 +26,7 @@ DEFAULT = {
     'looming_angle_start_deg': 2,
     'looming_angle_stop_deg': 48,
     'looming_size_to_speed_ratio_ms': 90,
+    'looming_distance_to_screen_mm': 4,
     'dot_center_mm': (0.0, 0.0),
     'dot_radius_mm': 1.0,
     'prey_capture_type': PreyCaptureType.RING,

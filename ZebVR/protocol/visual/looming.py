@@ -32,6 +32,7 @@ class Looming(VisualProtocolItem):
             looming_angle_start_deg: float = DEFAULT['looming_angle_start_deg'],
             looming_angle_stop_deg: float = DEFAULT['looming_angle_stop_deg'],
             looming_size_to_speed_ratio_ms: float = DEFAULT['looming_size_to_speed_ratio_ms'],
+            looming_distance_to_screen_mm: float = DEFAULT['looming_distance_to_screen_mm'],
             *args,
             **kwargs   
         ) -> None:
@@ -46,6 +47,7 @@ class Looming(VisualProtocolItem):
         self.looming_angle_start_deg = looming_angle_start_deg
         self.looming_angle_stop_deg = looming_angle_stop_deg
         self.looming_size_to_speed_ratio_ms = looming_size_to_speed_ratio_ms
+        self.looming_distance_to_screen_mm = looming_distance_to_screen_mm
 
     def start(self) -> Dict:
 
@@ -62,6 +64,7 @@ class Looming(VisualProtocolItem):
             'looming_angle_start_deg': self.looming_angle_start_deg,
             'looming_angle_stop_deg': self.looming_angle_stop_deg,
             'looming_size_to_speed_ratio_ms': self.looming_size_to_speed_ratio_ms, 
+            'looming_distance_to_screen_mm': self.looming_distance_to_screen_mm, 
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
             'coordinate_sytem': self.coordinate_system
@@ -83,6 +86,7 @@ class LoomingWidget(VisualProtocolItemWidget):
             looming_angle_start_deg: float = DEFAULT['looming_angle_start_deg'],
             looming_angle_stop_deg: float = DEFAULT['looming_angle_stop_deg'],
             looming_size_to_speed_ratio_ms: float = DEFAULT['looming_size_to_speed_ratio_ms'],
+            looming_distance_to_screen_mm: float = DEFAULT['looming_distance_to_screen_mm'],
             *args, 
             **kwargs
         ) -> None:
@@ -96,6 +100,7 @@ class LoomingWidget(VisualProtocolItemWidget):
         self.looming_angle_start_deg = looming_angle_start_deg
         self.looming_angle_stop_deg = looming_angle_stop_deg
         self.looming_size_to_speed_ratio_ms = looming_size_to_speed_ratio_ms
+        self.looming_distance_to_screen_mm = looming_distance_to_screen_mm
         
         super().__init__(*args, **kwargs)
 
@@ -164,6 +169,12 @@ class LoomingWidget(VisualProtocolItemWidget):
         self.sb_looming_size_to_speed_ratio.setValue(self.looming_size_to_speed_ratio_ms)
         self.sb_looming_size_to_speed_ratio.valueChanged.connect(self.state_changed)
 
+        self.sb_looming_distance_to_screen_mm = LabeledDoubleSpinBox()
+        self.sb_looming_distance_to_screen_mm.setText('distance to screen (mm)')
+        self.sb_looming_distance_to_screen_mm.setRange(0,1000)
+        self.sb_looming_distance_to_screen_mm.setValue(self.looming_distance_to_screen_mm)
+        self.sb_looming_distance_to_screen_mm.valueChanged.connect(self.state_changed)
+
         self.looming_type_changed()
 
     def layout_components(self) -> None:
@@ -174,6 +185,7 @@ class LoomingWidget(VisualProtocolItemWidget):
         looming_layout.addWidget(self.cb_looming_type)
         looming_layout.addWidget(self.sb_looming_center_mm_x)
         looming_layout.addWidget(self.sb_looming_center_mm_y)
+        looming_layout.addWidget(self.sb_looming_distance_to_screen_mm)
         looming_layout.addWidget(self.sb_looming_period_sec)
         looming_layout.addWidget(self.sb_looming_expansion_time_sec)
         looming_layout.addWidget(self.sb_looming_expansion_speed_mm_per_sec)
@@ -201,6 +213,7 @@ class LoomingWidget(VisualProtocolItemWidget):
             self.sb_looming_angle_start_deg.setVisible(False)
             self.sb_looming_angle_stop_deg.setVisible(False)
             self.sb_looming_size_to_speed_ratio.setVisible(False)
+            self.sb_looming_distance_to_screen_mm.setVisible(False)
 
         if looming_type == LoomingType.LINEAR_ANGLE:
             self.sb_looming_period_sec.setVisible(True)
@@ -210,6 +223,7 @@ class LoomingWidget(VisualProtocolItemWidget):
             self.sb_looming_angle_start_deg.setVisible(False)
             self.sb_looming_angle_stop_deg.setVisible(False)
             self.sb_looming_size_to_speed_ratio.setVisible(False)
+            self.sb_looming_distance_to_screen_mm.setVisible(True)
 
         if looming_type == LoomingType.CONSTANT_VELOCITY:
             self.sb_looming_period_sec.setVisible(False)
@@ -219,6 +233,7 @@ class LoomingWidget(VisualProtocolItemWidget):
             self.sb_looming_angle_start_deg.setVisible(True)
             self.sb_looming_angle_stop_deg.setVisible(True)
             self.sb_looming_size_to_speed_ratio.setVisible(True)
+            self.sb_looming_distance_to_screen_mm.setVisible(True)
 
         self.state_changed.emit()
 
@@ -237,6 +252,7 @@ class LoomingWidget(VisualProtocolItemWidget):
         state['looming_angle_start_deg'] = self.sb_looming_angle_start_deg.value()
         state['looming_angle_stop_deg'] = self.sb_looming_angle_stop_deg.value()
         state['looming_size_to_speed_ratio_ms'] = self.sb_looming_size_to_speed_ratio.value()
+        state['looming_distance_to_screen_mm'] = self.sb_looming_distance_to_screen_mm.value()
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -312,6 +328,13 @@ class LoomingWidget(VisualProtocolItemWidget):
             default = self.looming_size_to_speed_ratio_ms,
             cast = float
         )
+        set_from_dict(
+            dictionary = state,
+            key = 'looming_distance_to_screen_mm',
+            setter = self.sb_looming_distance_to_screen_mm.setValue,
+            default = self.looming_distance_to_screen_mm,
+            cast = float
+        )
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
@@ -328,6 +351,7 @@ class LoomingWidget(VisualProtocolItemWidget):
             self.sb_looming_angle_start_deg.setValue(protocol_item.looming_angle_start_deg)
             self.sb_looming_angle_stop_deg.setValue(protocol_item.looming_angle_stop_deg)
             self.sb_looming_size_to_speed_ratio.setValue(protocol_item.looming_size_to_speed_ratio_ms)
+            self.sb_looming_distance_to_screen_mm.setValue(protocol_item.looming_distance_to_screen_mm)
 
     def to_protocol_item(self) -> Looming:
         
@@ -361,6 +385,7 @@ class LoomingWidget(VisualProtocolItemWidget):
             looming_angle_start_deg = self.sb_looming_angle_start_deg.value(),
             looming_angle_stop_deg = self.sb_looming_angle_stop_deg.value(),
             looming_size_to_speed_ratio_ms = self.sb_looming_size_to_speed_ratio.value(),
+            looming_distance_to_screen_mm = self.sb_looming_distance_to_screen_mm.value(),
             stop_condition = self.stop_widget.to_stop_condition()
         )
         return protocol

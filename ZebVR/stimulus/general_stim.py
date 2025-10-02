@@ -59,6 +59,7 @@ class SharedStimParameters:
         self.looming_angle_start_deg = RawValue(c_double, DEFAULT['looming_angle_start_deg'])
         self.looming_angle_stop_deg = RawValue(c_double, DEFAULT['looming_angle_stop_deg'])
         self.looming_size_to_speed_ratio_ms = RawValue(c_double, DEFAULT['looming_size_to_speed_ratio_ms'])
+        self.looming_distance_to_screen_mm = RawValue(c_double, DEFAULT['looming_distance_to_screen_mm'])
         self.dot_center_mm = RawArray(c_double, DEFAULT['dot_center_mm'])
         self.dot_radius_mm = RawValue(c_double, DEFAULT['dot_radius_mm'])
         self.prey_capture_type = RawValue(c_double, DEFAULT['prey_capture_type'])
@@ -103,6 +104,7 @@ class SharedStimParameters:
         self.looming_angle_start_deg.value = d.get('looming_angle_start_deg', DEFAULT['looming_angle_start_deg'])
         self.looming_angle_stop_deg.value = d.get('looming_angle_stop_deg', DEFAULT['looming_angle_stop_deg'])
         self.looming_size_to_speed_ratio_ms.value = d.get('looming_size_to_speed_ratio_ms', DEFAULT['looming_size_to_speed_ratio_ms'])
+        self.looming_distance_to_screen_mm.value = d.get('looming_distance_to_screen_mm', DEFAULT['looming_distance_to_screen_mm'])
         self.dot_center_mm[:] = d.get('dot_center_mm', DEFAULT['dot_center_mm'])
         self.dot_radius_mm.value = d.get('dot_radius_mm', DEFAULT['dot_radius_mm'])
         self.prey_capture_type.value = d.get('prey_capture_type', DEFAULT['prey_capture_type'])
@@ -172,6 +174,7 @@ class SharedStimParameters:
                 'looming_angle_start_deg': self.looming_angle_start_deg.value,
                 'looming_angle_stop_deg': self.looming_angle_stop_deg.value,
                 'looming_size_to_speed_ratio_ms': self.looming_size_to_speed_ratio_ms.value,
+                'looming_distance_to_screen_mm': self.looming_distance_to_screen_mm.value,
             })
 
         if self.stim_select.value == Stim.DOT:
@@ -291,6 +294,7 @@ class GeneralStim(VisualStim):
         uniform float u_looming_angle_start_deg;
         uniform float u_looming_angle_stop_deg;
         uniform float u_looming_size_to_speed_ratio_ms;
+        uniform float u_looming_distance_to_screen_mm;
         uniform vec2 u_dot_center_mm;
         uniform float u_dot_radius_mm;
         uniform int u_prey_capture_type;
@@ -453,7 +457,9 @@ class GeneralStim(VisualStim):
             float relative_time = mod(u_time_s - u_start_time_s, u_looming_period_sec); 
             float looming_on = float(relative_time <= u_looming_expansion_time_sec);
             float visual_angle = radians(u_looming_expansion_speed_deg_per_sec) * relative_time * looming_on;
-            float looming_radius = length(u_looming_center_mm) * tan(visual_angle/2);
+            
+            // simplifying hypothesis: for small xy offsets compared to distance to screen, this is an ok approximation
+            float looming_radius = u_looming_distance_to_screen_mm * tan(visual_angle/2);
 
             if ( distance(coords_mm, u_looming_center_mm) <= looming_radius ) {
                 return u_foreground_color;
@@ -468,7 +474,9 @@ class GeneralStim(VisualStim):
             float t_f = u_looming_size_to_speed_ratio_ms / tan(angle_stop_rad/2);
             float period_ms = t_0 - t_f;
             float relative_time_ms = mod(1000*(u_time_s - u_start_time_s), period_ms); 
-            float looming_radius = length(u_looming_center_mm) * u_looming_size_to_speed_ratio_ms / (t_0 - relative_time_ms);
+            
+            // simplifying hypothesis: for small xy offsets compared to distance to screen, this is an ok approximation
+            float looming_radius = u_looming_distance_to_screen_mm * u_looming_size_to_speed_ratio_ms / (t_0 - relative_time_ms);
 
             if ( distance(coords_mm, u_looming_center_mm) <= looming_radius ) {
                 return u_foreground_color;
@@ -703,6 +711,7 @@ class GeneralStim(VisualStim):
         self.program['u_looming_angle_start_deg'] = self.shared_stim_parameters.looming_angle_start_deg.value
         self.program['u_looming_angle_stop_deg'] = self.shared_stim_parameters.looming_angle_stop_deg.value
         self.program['u_looming_size_to_speed_ratio_ms'] = self.shared_stim_parameters.looming_size_to_speed_ratio_ms.value
+        self.program['u_looming_distance_to_screen_mm'] = self.shared_stim_parameters.looming_distance_to_screen_mm.value
         self.program['u_dot_center_mm'] = self.shared_stim_parameters.dot_center_mm[:]
         self.program['u_dot_radius_mm'] = self.shared_stim_parameters.dot_radius_mm.value
         self.program['u_prey_speed_mm_s'] = self.shared_stim_parameters.prey_speed_mm_s.value
