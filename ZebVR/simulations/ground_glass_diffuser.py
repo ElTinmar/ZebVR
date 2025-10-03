@@ -117,8 +117,15 @@ def plot_results(
 if __name__ == '__main__':
     
     # ground glass diffuser
-    intensity = run_sim(square_law=False, beer_lambert=False)
-    plot_results(intensity)
+    intensity = run_sim(
+        square_law=False, 
+        beer_lambert=False,
+        num_points_bottom = 201, 
+        num_points_interface = 201)
+    plot_results(
+        intensity,
+        num_points_bottom=201
+    )
 
     intensity = run_sim(beer_lambert=False)
     plot_results(intensity)
