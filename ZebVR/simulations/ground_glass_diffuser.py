@@ -110,11 +110,15 @@ def plot_results(
     plt.tight_layout()
     plt.show(block=False)
 
-
+.
 if __name__ == '__main__':
     
     # ground glass diffuser
     intensity = run_sim()
+    plot_results(intensity)
+
+    # air-water
+    intensity = run_sim(n_glass=1.0)
     plot_results(intensity)
 
     # circular ground glass diffuser
@@ -124,11 +128,11 @@ if __name__ == '__main__':
     # air-water interface (rosco diffuser film)
     intensity_air = run_sim(
         n_glass = 1.0, 
-        glass_thickness=6, 
-        num_points_bottom=201, 
-        num_points_interface=201, 
-        boundaries=disk_boundaries, 
-        glass_size_mm=90
+        glass_thickness = 6, 
+        num_points_bottom = 201, 
+        num_points_interface = 201, 
+        boundaries = disk_boundaries, 
+        glass_size_mm = 90
     )
     plot_results(intensity_air, num_points_bottom=201)
 
