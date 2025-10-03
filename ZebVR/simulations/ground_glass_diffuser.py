@@ -116,51 +116,74 @@ def plot_results(
 
 if __name__ == '__main__':
     
-    # ground glass diffuser
+    # # ground glass diffuser
+    # intensity = run_sim(
+    #     square_law=False, 
+    #     beer_lambert=False,
+    #     num_points_bottom = 201, 
+    #     num_points_interface = 201
+    # )
+    # plot_results(
+    #     intensity,
+    #     num_points_bottom=201
+    # )
+
+    # intensity = run_sim(beer_lambert=False)
+    # plot_results(intensity)
+
+    # intensity = run_sim(square_law=False)
+    # plot_results(intensity)
+
+    # intensity = run_sim()
+    # plot_results(intensity)
+
+    # intensity = run_sim(water_absorption_coefficient=1)
+    # plot_results(intensity)
+
+    # # air-water
+    # intensity = run_sim(n_glass=1.0, square_law=False, beer_lambert=False)
+    # plot_results(intensity)
+
+    # intensity = run_sim(n_glass=1.0)
+    # plot_results(intensity)
+
+    # # circular ground glass diffuser
+    # intensity = run_sim(boundaries=disk_boundaries)
+    # plot_results(intensity)
+
+    # intensity_air = run_sim(
+    #     n_glass = 1.0, 
+    #     glass_thickness = 6, 
+    #     num_points_bottom = 201, 
+    #     num_points_interface = 201, 
+    #     boundaries = disk_boundaries, 
+    #     glass_size_mm = 90
+    # )
+    # plot_results(intensity_air, num_points_bottom=201)
+
+    # # with a larger ground glass diffuser
+    # intensity_larger_diffuser = run_sim(glass_size_mm=100, bottom_size_mm=200)
+    # plot_results(intensity_larger_diffuser, bottom_size_mm=200)
+
     intensity = run_sim(
         square_law=False, 
         beer_lambert=False,
-        num_points_bottom = 201, 
-        num_points_interface = 201
+        num_points_bottom = 101, 
+        num_points_interface = 401
     )
     plot_results(
         intensity,
-        num_points_bottom=201
+        num_points_bottom=101
     )
 
-    intensity = run_sim(beer_lambert=False)
-    plot_results(intensity)
-
-    intensity = run_sim(square_law=False)
-    plot_results(intensity)
-
-    intensity = run_sim()
-    plot_results(intensity)
-
-    intensity = run_sim(water_absorption_coefficient=1)
-    plot_results(intensity)
-
-    # air-water
-    intensity = run_sim(n_glass=1.0, square_law=False, beer_lambert=False)
-    plot_results(intensity)
-
-    intensity = run_sim(n_glass=1.0)
-    plot_results(intensity)
-
-    # circular ground glass diffuser
-    intensity = run_sim(boundaries=disk_boundaries)
-    plot_results(intensity)
-
-    intensity_air = run_sim(
-        n_glass = 1.0, 
-        glass_thickness = 6, 
-        num_points_bottom = 201, 
-        num_points_interface = 201, 
-        boundaries = disk_boundaries, 
-        glass_size_mm = 90
+    intensity = run_sim(
+        square_law=False, 
+        beer_lambert=False,
+        num_points_bottom = 101, 
+        num_points_interface = 401,
+        n_glass=1
     )
-    plot_results(intensity_air, num_points_bottom=201)
-
-    # with a larger ground glass diffuser
-    intensity_larger_diffuser = run_sim(glass_size_mm=100, bottom_size_mm=200)
-    plot_results(intensity_larger_diffuser, bottom_size_mm=200)
+    plot_results(
+        intensity,
+        num_points_bottom=101
+    )
