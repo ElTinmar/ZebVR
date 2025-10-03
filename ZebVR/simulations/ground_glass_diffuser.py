@@ -14,8 +14,8 @@ def trace_rays(
         n_water: float, n_glass: float,
         water_depth: float, glass_thickness: float, 
         water_absorption_coefficient: float, glass_absorption_coefficient: float, 
-        glass_size_mm: float,
-        boundaries: Callable[[np.ndarray, np.ndarray, float], np.ndarray]
+        glass_size_mm: float, boundaries: Callable[[np.ndarray, np.ndarray, float], np.ndarray],
+        square_law: bool, beer_lambert: bool
     ):
 
     # trace rays in the water
@@ -36,8 +36,12 @@ def trace_rays(
     # check boudaries
     valid = boundaries(x_glass, y_glass, glass_size_mm/2) & boundaries(X_interface, Y_interface, glass_size_mm/2)
     
-    # Lambertian diffuser + inverse square law + Beer-Lambert
-    intensity = (np.cos(theta_g) / (r_water+r_glass)**2) * np.exp(-water_absorption_coefficient * r_water) * np.exp(-glass_absorption_coefficient * r_glass) 
+    intensity = np.cos(theta_g) 
+    if square_law:
+        intensity /= (r_water+r_glass)**2 
+    if beer_lambert:
+        intensity *= np.exp(-water_absorption_coefficient * r_water) * np.exp(-glass_absorption_coefficient * r_glass) 
+
     intensity[~valid] = 0
     
     return intensity
@@ -53,7 +57,9 @@ def run_sim(
     n_water = 1.33,
     water_absorption_coefficient = 0.001,
     glass_absorption_coefficient = 0.00000001,
-    boundaries = square_boundaries
+    boundaries = square_boundaries,
+    square_law = True,
+    beer_lambert = True
 ):
     
     # Water-glass interface
@@ -73,14 +79,11 @@ def run_sim(
                 n_water, n_glass,
                 water_depth, glass_thickness, 
                 water_absorption_coefficient, glass_absorption_coefficient, 
-                glass_size_mm,
-                boundaries
+                glass_size_mm, boundaries,
+                square_law, beer_lambert
             )
             intensity[i,j] = np.nansum(rays)
 
-
-    # Normalize intensity 
-    #intensity /= intensity.max()
     return intensity
 
 def plot_results(
@@ -110,14 +113,29 @@ def plot_results(
     plt.tight_layout()
     plt.show(block=False)
 
-.
+
 if __name__ == '__main__':
     
     # ground glass diffuser
+    intensity = run_sim(square_law=False, beer_lambert=False)
+    plot_results(intensity)
+
+    intensity = run_sim(beer_lambert=False)
+    plot_results(intensity)
+
+    intensity = run_sim(square_law=False)
+    plot_results(intensity)
+
     intensity = run_sim()
     plot_results(intensity)
 
+    intensity = run_sim(water_absorption_coefficient=1)
+    plot_results(intensity)
+
     # air-water
+    intensity = run_sim(n_glass=1.0, square_law=False, beer_lambert=False)
+    plot_results(intensity)
+
     intensity = run_sim(n_glass=1.0)
     plot_results(intensity)
 
@@ -125,7 +143,6 @@ if __name__ == '__main__':
     intensity = run_sim(boundaries=disk_boundaries)
     plot_results(intensity)
 
-    # air-water interface (rosco diffuser film)
     intensity_air = run_sim(
         n_glass = 1.0, 
         glass_thickness = 6, 
