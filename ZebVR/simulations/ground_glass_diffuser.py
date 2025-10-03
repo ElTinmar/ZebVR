@@ -37,7 +37,7 @@ def trace_rays(
     valid = boundaries(x_glass, y_glass, glass_size_mm/2) & boundaries(X_interface, Y_interface, glass_size_mm/2)
     
     intensity = np.cos(theta_g) 
-    if square_law: # Should I do that ?
+    if square_law: # I should probably not do that
         intensity /= (r_water+r_glass)**2 
     if beer_lambert:
         intensity *= np.exp(-water_absorption_coefficient * r_water) * np.exp(-glass_absorption_coefficient * r_glass) 
