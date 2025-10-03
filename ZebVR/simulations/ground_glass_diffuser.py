@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from typing import Callable
 
 def square_boundaries(x: np.ndarray, y: np.ndarray, b: float) -> np.ndarray:
-    return (x>=-b) & (x<=b) & (x>=-b) & (x<=b)
+    return (x>=-b) & (x<=b) & (y>=-b) & (y<=b)
 
 def disk_boundaries(x: np.ndarray, y: np.ndarray, r: float) -> np.ndarray:
     return x**2 + y**2 <= r**2
