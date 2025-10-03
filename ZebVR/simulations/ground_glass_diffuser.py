@@ -121,7 +121,8 @@ if __name__ == '__main__':
         square_law=False, 
         beer_lambert=False,
         num_points_bottom = 201, 
-        num_points_interface = 201)
+        num_points_interface = 201
+    )
     plot_results(
         intensity,
         num_points_bottom=201
