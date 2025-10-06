@@ -122,7 +122,7 @@ def run_sim(
                 map_image(
                     X_bottom[i,j], Y_bottom[i,j], 
                     X_interface, Y_interface, 
-                    np.ones(1),
+                    np.ones((2,2)),
                     n_water, n_glass,
                     water_depth, glass_thickness, 
                     water_absorption_coefficient, glass_absorption_coefficient, 
@@ -218,6 +218,7 @@ if __name__ == '__main__':
 
     ## image from a single point
     x_b, y_b = 0, 0
+    num_points_interface = 1001
 
     points_interface = np.linspace(-50/2, 50/2, num_points_interface)
     X_interface, Y_interface = np.meshgrid(points_interface, points_interface)
