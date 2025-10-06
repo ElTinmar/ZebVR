@@ -169,14 +169,13 @@ def plot_image(
     glass_size_mm: float
 ):
     
-    fig = plt.figure(figsize=(6, 6))
-    im = plt.imshow(
+    plt.figure(figsize=(6, 6))
+    plt.imshow(
         intensity, 
         extent = [-glass_size_mm/2, glass_size_mm/2, -glass_size_mm/2, glass_size_mm/2],
         origin = 'lower', 
         cmap = 'inferno'
     )
-    plt.title('Intensity profile')
     plt.xlabel('x (mm)')
     plt.ylabel('y (mm)')
     plt.show(block=False)
@@ -236,6 +235,7 @@ if __name__ == '__main__':
         intensity,
         glass_size_mm=50
     )
+    plt.title('Ground-glass diffuser + glass/water interface')
 
     points_interface = np.linspace(-50/2, 50/2, num_points_interface)
     X_interface, Y_interface = np.meshgrid(points_interface, points_interface)
@@ -253,3 +253,4 @@ if __name__ == '__main__':
         intensity,
         glass_size_mm=50
     )
+    plt.title('Diffuser screen + air/water interface')
