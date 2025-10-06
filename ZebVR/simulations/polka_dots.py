@@ -41,9 +41,9 @@ if __name__ == '__main__':
     
     # Plot profile
     plt.figure(figsize=(6,6))
-    x = np.linspace(0,1,100)
-    plt.plot(x, polynomial_profile(x))
-    plt.show()
+    r_norm = np.linspace(0,1,100)
+    plt.plot(r_norm, polynomial_profile(r_norm))
+    plt.show(block=False)
 
     # Plot dots
     plt.figure(figsize=(6,6))
