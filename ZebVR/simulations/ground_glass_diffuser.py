@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Callable
+from tqdm import tqdm
 
 
 # --------------------------------------- top: ground-glass diffusion layer
@@ -79,7 +80,7 @@ def run_sim(
     X_bottom, Y_bottom = np.meshgrid(points_bottom, points_bottom)
         
     intensity = np.zeros_like(X_bottom)
-    for i in range(num_points_bottom):
+    for i in tqdm(range(num_points_bottom)):
         for j in range(num_points_bottom):
             intensity[i,j] = compute_intensity(
                 X_bottom[i,j], Y_bottom[i,j], 
@@ -208,8 +209,8 @@ def plot_results(
 
 if __name__ == '__main__':
     
-    num_points_bottom = 401 
-    num_points_interface = 401
+    num_points_bottom = 201 
+    num_points_interface = 201
 
     # glass-water
     intensity = run_sim(
