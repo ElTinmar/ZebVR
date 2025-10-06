@@ -209,8 +209,8 @@ def plot_results(
 
 if __name__ == '__main__':
     
-    num_points_bottom = 201 
-    num_points_interface = 201
+    num_points_bottom = 101 
+    num_points_interface = 401
 
     # glass-water
     intensity = run_sim(
