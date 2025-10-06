@@ -41,8 +41,8 @@ def compute_intensity(
     theta_g = np.arcsin(n_water/n_glass * np.sin(theta_w)) # Snell's law
     r_glass = glass_thickness / np.cos(theta_g) # ray length in glass   
     l_top = glass_thickness * np.tan(theta_g)
-    dx_top, dy_top = l_top * np.cos(phi_w), l_top * np.sin(phi_w)
-    x_top, y_top = X_interface + dx_top, Y_interface + dy_top
+    dx_glass, dy_glass = l_top * np.cos(phi_w), l_top * np.sin(phi_w)
+    x_top, y_top = X_interface + dx_glass, Y_interface + dy_glass
     
     # compute intensity
     intensity: np.ndarray = np.cos(theta_g) 
@@ -128,11 +128,11 @@ def compute_intensity_vectorized(
 
     r_glass = glass_thickness / np.cos(theta_g)
     l_top = glass_thickness * np.tan(theta_g)
-    dx_top = l_top * np.cos(phi_w)
-    dy_top = l_top * np.sin(phi_w)
+    dx_glass = l_top * np.cos(phi_w)
+    dy_glass = l_top * np.sin(phi_w)
 
-    x_top = X_interface[None, :, :] + dx_top
-    y_top = Y_interface[None, :, :] + dy_top
+    x_top = X_interface[None, :, :] + dx_glass
+    y_top = Y_interface[None, :, :] + dy_glass
 
     intensity = np.cos(theta_g)
     if absorption:
