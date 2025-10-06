@@ -65,7 +65,7 @@ for i, x_b in enumerate(x_b_array):
 import matplotlib.pyplot as plt
 plt.plot(x_b_array, I_profile)
 plt.plot(x_b_array, I, color='r')
-plt.plot(x_b_array, I_corrected,color='g')
+plt.plot(x_b_array, I_corrected, color='g')
 plt.xlabel("x_b (mm)")
 plt.ylabel("Normalized intensity")
 plt.title("1D intensity profile along bottom (top boundary applied)")
