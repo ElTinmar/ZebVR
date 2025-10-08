@@ -642,8 +642,8 @@ class MainGui(QMainWindow):
         prefix = Path(self.settings['settings']['prefix'])
         filename = prefix.with_suffix('.metadata')
         filename = append_timestamp_to_filename(filename)       
-        with open(filename,'w') as fp:
-            pprint.pprint(self.settings, fp) 
+        with open(filename,'wb') as fp:
+            pickle.dump(self.settings, fp)
 
         if self.open_loop_button.isChecked():
             self.dag, self.worker_logger, self.queue_logger = open_loop(self.settings)
