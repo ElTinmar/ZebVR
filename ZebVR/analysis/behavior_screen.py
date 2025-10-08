@@ -82,6 +82,24 @@ tracking_filename_regexp = filename_regexp('tracking_','csv')
 video_filename_regexp = filename_regexp('','mp4')
 video_timestamps_filename_regexp = filename_regexp('','csv')
 
+def parse_filename(path: Path, regexp: Pattern) -> FileNameInfo:
+    m = regexp.match(path.name)
+    if not m:
+        raise ValueError(f"Filename does not match expected pattern: {path.name}")
+    g = m.groupdict()
+    return FileNameInfo(
+        fish_id = int(g["fish_id"]),
+        age = int(g["age"]),
+        line = g["line"],
+        weekday = g["weekday"],
+        day = int(g["day"]),
+        month = g["month"],
+        year = int(g["year"]),
+        hour = int(g["hour"]),
+        minute = int(g["minute"]),
+        second = int(g["second"])
+    )
+
 def load_metadata(metadata_file: Path) -> str:
     with open(metadata_file, 'r') as f:
         metadata = f.read()
@@ -117,24 +135,6 @@ def load_data(files: BehaviorFiles) -> BehaviorData:
         tracking = load_tracking(files.tracking),
         video = load_video(files.video),
         video_timestamps = load_video_timestamps(files.video_timestamps)
-    )
-    
-def parse_filename(path: Path, regexp: Pattern) -> FileNameInfo:
-    m = regexp.match(path.name)
-    if not m:
-        raise ValueError(f"Filename does not match expected pattern: {path.name}")
-    g = m.groupdict()
-    return FileNameInfo(
-        fish_id = int(g["fish_id"]),
-        age = int(g["age"]),
-        line = g["line"],
-        weekday = g["weekday"],
-        day = int(g["day"]),
-        month = g["month"],
-        year = int(g["year"]),
-        hour = int(g["hour"]),
-        minute = int(g["minute"]),
-        second = int(g["second"])
     )
 
 def find_file(file_info: FileNameInfo, dir: Path, regexp: Pattern, extension: str) -> Path:
