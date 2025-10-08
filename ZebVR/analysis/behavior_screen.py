@@ -64,7 +64,7 @@ def filename_regexp(prefix: str, extension: str) -> Pattern:
         f"^{prefix}"
         r"(?P<fish_id>\d{2})_"
         r"(?P<age>[0-9]+)dpf_"
-        r"(?P<line>[A-Za-z0-9]+)_"
+        r"(?P<line>[^_]+)_"
         r"(?P<weekday>[A-Za-z]{3})_"
         r"(?P<day>\d{2})_"
         r"(?P<month>[A-Za-z]{3})_"
