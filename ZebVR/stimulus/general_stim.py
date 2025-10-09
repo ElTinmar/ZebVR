@@ -396,7 +396,8 @@ class GeneralStim(VisualStim):
             float angle = spatial_freq * position_on_orientation_vector;
             float phase = temporal_freq * u_time_s;
 
-            if ( sin(2*PI*(angle+phase)) > 0.0 ) { 
+            # positive phase shift moves the grating backwards
+            if ( sin(2*PI*(angle-phase)) > 0.0 ) { 
                 return u_foreground_color;
             }
             return u_background_color;
