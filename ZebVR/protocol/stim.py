@@ -44,6 +44,7 @@ DAQ_STIMS =  [s for s in Stim if 200 <= s.value <= 299]
 class PreyCaptureType(IntEnum):
     RING = 0
     RANDOM_CLOUD = 1 
+    ARC = 2
 
     def __str__(self) -> str:
         return self.name

@@ -68,6 +68,8 @@ class SharedStimParameters:
         self.prey_speed_deg_s = RawValue(c_double, DEFAULT['prey_speed_deg_s'])
         self.prey_radius_mm = RawValue(c_double, DEFAULT['prey_radius_mm'])
         self.prey_trajectory_radius_mm = RawValue(c_double, DEFAULT['prey_trajectory_radius_mm'])
+        self.prey_arc_start_deg = RawValue(c_double, DEFAULT['prey_arc_start_deg'])
+        self.prey_arc_stop_deg = RawValue(c_double, DEFAULT['prey_arc_stop_deg'])
         self.image_path = SharedString(initializer = DEFAULT['image_path'])
         self.image_res_px_per_mm = RawValue(c_double, DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm = RawArray(c_double, DEFAULT['image_offset_mm'])
@@ -113,6 +115,8 @@ class SharedStimParameters:
         self.prey_speed_deg_s.value = d.get('prey_speed_deg_s', DEFAULT['prey_speed_deg_s'])
         self.prey_radius_mm.value = d.get('prey_radius_mm', DEFAULT['prey_radius_mm'])
         self.prey_trajectory_radius_mm.value = d.get('prey_trajectory_radius_mm', DEFAULT['prey_trajectory_radius_mm'])
+        self.prey_arc_start_deg.value = d.get('prey_arc_start_deg', DEFAULT['prey_arc_start_deg'])
+        self.prey_arc_stop_deg.value = d.get('prey_arc_stop_deg', DEFAULT['prey_arc_stop_deg'])
         self.image_path.value = d.get('image_path', DEFAULT['image_path'])
         self.image_res_px_per_mm.value = d.get('image_res_px_per_mm', DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm[:] = d.get('image_offset_mm', DEFAULT['image_offset_mm'])
@@ -191,6 +195,8 @@ class SharedStimParameters:
                 'prey_speed_deg_s': self.prey_speed_deg_s.value,
                 'prey_radius_mm': self.prey_radius_mm.value,
                 'prey_trajectory_radius_mm': self.prey_trajectory_radius_mm.value,
+                'prey_arc_start_deg': self.prey_arc_start_deg.value,
+                'prey_arc_stop_deg': self.prey_arc_stop_deg.value,
             })
 
         if self.stim_select.value == Stim.IMAGE:
@@ -303,6 +309,8 @@ class GeneralStim(VisualStim):
         uniform float u_prey_trajectory_radius_mm;
         uniform float u_prey_speed_mm_s;
         uniform float u_prey_speed_deg_s;
+        uniform float u_prey_arc_start_deg;
+        uniform float u_prey_arc_stop_deg;
         uniform vec2 u_prey_position[{MAX_PREY}]; // in projector space
         uniform float u_prey_trajectory_angle[{MAX_PREY}];  
         uniform sampler2D u_image_texture;
@@ -323,6 +331,7 @@ class GeneralStim(VisualStim):
 
         const int RING = 0;
         const int RANDOM_CLOUD = 1;
+        const int ARC = 2;
 
         const int BOUNDING_BOX_CENTER = 0;
         const int FISH_CENTERED = 1;
@@ -515,6 +524,20 @@ class GeneralStim(VisualStim):
             return u_background_color;
         }
 
+        vec4 prey_capture_arc_stimulus(vec2 coords_mm) {
+            float relative_time_s = u_time_s - u_start_time_s;
+            float arc_start_rad = radians(u_prey_arc_start_deg);
+            float arc_stop_rad = radians(u_prey_arc_stop_deg);
+            float angle_range_rad = arc_stop_rad - arc_start_rad;
+            float freq = radians(u_prey_speed_deg_s) / (2*abs(angle_range_rad));
+            float angle_rad = arc_start_rad + angle_range_rad * (sin(2*PI*freq*relative_time_s)/2 + 0.5);
+            vec2 prey_pos = vec2(-u_prey_trajectory_radius_mm * sin(angle_rad), u_prey_trajectory_radius_mm*cos(angle_rad));
+            if ( distance(coords_mm, prey_pos) <= u_prey_radius_mm) {
+                return u_foreground_color;
+            }
+            return u_background_color;
+        }
+
         vec4 prey_capture_random_cloud_stimulus(vec2 coords_mm, vec4 bbox_mm) {
             for (int i = 0; i < u_n_preys; i++) {
                 vec2 current_prey_pos_mm = u_prey_position[i] / u_pix_per_mm_proj;
@@ -631,6 +654,7 @@ class GeneralStim(VisualStim):
                 if (u_stim_select == PREY_CAPTURE) {
                     if (u_prey_capture_type == RING) {gl_FragColor = prey_capture_ring_stimulus(local_coordinates_mm);}
                     if (u_prey_capture_type == RANDOM_CLOUD) {gl_FragColor = prey_capture_random_cloud_stimulus(local_coordinates_mm, proj_bbox_mm);}
+                    if (u_prey_capture_type == ARC) {gl_FragColor = prey_capture_arc_stimulus(local_coordinates_mm);}
                 }
             }
 
@@ -722,6 +746,8 @@ class GeneralStim(VisualStim):
         self.program['u_prey_speed_deg_s'] = self.shared_stim_parameters.prey_speed_deg_s.value
         self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
         self.program['u_prey_trajectory_radius_mm'] = self.shared_stim_parameters.prey_trajectory_radius_mm.value
+        self.program['u_prey_arc_start_deg'] = self.shared_stim_parameters.prey_arc_start_deg.value
+        self.program['u_prey_arc_stop_deg'] = self.shared_stim_parameters.prey_arc_stop_deg.value
         self.program['u_prey_capture_type'] = self.shared_stim_parameters.prey_capture_type
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
         self.program['u_ramp_duration_sec'] = self.shared_stim_parameters.ramp_duration_sec.value
