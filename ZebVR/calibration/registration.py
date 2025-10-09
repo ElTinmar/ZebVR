@@ -357,10 +357,6 @@ def registration(
     pts_cam = pts_cam[~nans]
     pts_proj = pts_proj[~nans]
 
-    # OpenCV origin topleft, OpenGL origin bottomleft 
-    # Need to match coordinate systems
-    #TODO  pts_cam[:,1] = cam_height - pts_cam[:,1]
-
     # compute least-square estimate of the transformation and output to json
     transformation = np.linalg.lstsq(homogeneous_coord_2d(pts_cam), homogeneous_coord_2d(pts_proj), rcond=None)[0]
     transformation = np.transpose(transformation)
