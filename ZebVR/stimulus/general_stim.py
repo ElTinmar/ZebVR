@@ -350,11 +350,6 @@ class GeneralStim(VisualStim):
             return all(greaterThanEqual(point, minBounds)) && all(lessThanEqual(point, maxBounds));
         }
 
-        mat2 rotate2d(float angle_rad){
-            return mat2(cos(angle_rad),-sin(angle_rad),
-                        sin(angle_rad),cos(angle_rad));
-        }
-
         // pseudo-random hash
         float hash(float x){
             return fract(sin(x)*43758.5453123);
@@ -389,14 +384,15 @@ class GeneralStim(VisualStim):
         }
 
         vec4 omr_stimulus(vec2 coords_mm) {
-            vec2 orientation_vector = rotate2d(radians(u_omr_angle_deg)) * vec2(0,1);
-            float position_on_orientation_vector = dot(coords_mm, orientation_vector)/length(orientation_vector);
+            float angle_rad = radians(u_omr_angle_deg);
+            vec2 orientation_vector = vec2(-sin(angle_rad), cos(angle_rad)); // angle with y+ axis
+            float position_on_orientation_vector = dot(coords_mm, orientation_vector);
             float spatial_freq = 1/u_omr_spatial_period_mm;
             float temporal_freq = u_omr_speed_mm_per_sec/u_omr_spatial_period_mm;
             float angle = spatial_freq * position_on_orientation_vector;
             float phase = temporal_freq * u_time_s;
 
-            # positive phase shift moves the grating backwards
+            // positive phase shift moves the grating backwards
             if ( sin(2*PI*(angle-phase)) > 0.0 ) { 
                 return u_foreground_color;
             }
@@ -405,9 +401,9 @@ class GeneralStim(VisualStim):
 
         vec4 turing_stimulus(vec2 coords_mm) {
             float angle_rad = radians(u_turing_angle_deg);
-            vec2 velocity = u_turing_speed_mm_per_sec * vec2(cos(angle_rad), sin(angle_rad));
-            vec2 pos = coords_mm + velocity * u_time_s; 
-            float k0 = 2.0 * PI / u_turing_spatial_period_mm;
+            vec2 velocity = u_turing_speed_mm_per_sec * vec2(-sin(angle_rad), cos(angle_rad)); // angle with y+ axis
+            vec2 pos = coords_mm - velocity * u_time_s; 
+            float k0 = 4*PI / u_turing_spatial_period_mm; // each pocket should be half period 
 
             float wave_sum = 0.0;
             for(int i = 0; i < u_turing_n_waves; i++) {
@@ -430,7 +426,8 @@ class GeneralStim(VisualStim):
             float angle = atan(coords_mm.y, coords_mm.x);
             float phase = angular_temporal_freq * u_time_s;
 
-            if ( mod(angle+phase, angular_spatial_freq) > angular_spatial_freq/2 ) {
+            // positive angle = counter-clockwise (trigonometric) rotation
+            if ( mod(angle-phase, angular_spatial_freq) > angular_spatial_freq/2 ) {
                 return u_foreground_color;
             } 
             return u_background_color;
@@ -806,7 +803,7 @@ class GeneralStim(VisualStim):
                 self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body']['centroid_global']).squeeze()
                 body_axes = data['tracking']['body']['body_axes_global']                
                 self.shared_fish_state[ID].fish_caudorostral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze() # TODO: CHECK WHY -1 ? maybe OpenCV vs OpenGL y axis direction?
-                self.shared_fish_state[ID].fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
+                self.shared_fish_state[ID].fish_mediolateral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
             else:
                 self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroids_global']).squeeze()
 
