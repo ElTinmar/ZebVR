@@ -170,7 +170,7 @@ def get_trials(behavior_data: BehaviorData) -> pd.DataFrame:
 
     last_timestamp = max(
         behavior_data.tracking['timestamp'].max(),
-        behavior_data.video_timestamps['timestamp'].max()
+        behavior_data.video_timestamps['timestamp'].max()e
     )
 
     rows = []
@@ -262,6 +262,13 @@ def compute_tracking_metrics(behavior_data: BehaviorData) -> Dict:
                 metrics[identity][stim]['parameters'].append(row)
                 
     return metrics
+
+def superimpose_video_trials(behavior_data: BehaviorData) -> None:
+
+    stim_trials = get_trials(behavior_data)
+    for stim, stim_data in stim_trials.groupby('stim_select'):
+        for trial_idx, row in stim_data.iterrows():
+            video_segment = get_video_between(behavior_data, row['start_timestamp'], row['stop_timestamp'])
 
 def plot_dark(metrics: Dict, ax: Axes):
     num_trials = len(metrics['relative_time'])
