@@ -804,7 +804,7 @@ class GeneralStim(VisualStim):
             if 'body' in fields and data['tracking']['body']['success']:
                 self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body']['centroid_global']).squeeze()
                 body_axes = data['tracking']['body']['body_axes_global']                
-                self.shared_fish_state[ID].fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
+                self.shared_fish_state[ID].fish_caudorostral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze() # TODO: CHECK WHY -1 ? maybe OpenCV vs OpenGL y axis direction?
                 self.shared_fish_state[ID].fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
             else:
                 self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroids_global']).squeeze()
