@@ -56,4 +56,4 @@ if __name__ == '__main__':
         pool.map(_extract_videos, behavior_files)
 
     for behavior_file in behavior_files:
-        run(directories, behavior_file)
+        run(behavior_file)
