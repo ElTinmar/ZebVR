@@ -176,9 +176,8 @@ def superimpose_video_trials(
 
     stim_trials = get_trials(behavior_data)
     for stim, stim_data in tqdm(stim_trials.groupby('stim_select')):
-        num_trials = len(stim_data['start_timestamp'])
-        output_path = directories.results / f"{behavior_file.video.stem}_{Stim(stim)}.mp4"
 
+        output_path = directories.results / f"{behavior_file.video.stem}_{Stim(stim)}.mp4"
         writer = OpenCV_VideoWriter(
             height = height, 
             width = width,
@@ -195,6 +194,7 @@ def superimpose_video_trials(
             reader.seek_to(frame_index_start)
             readers.append(reader)
 
+        num_trials = len(stim_data['start_timestamp'])
         mip = np.zeros((height, width, num_trials), dtype=np.uint8)
         for _ in tqdm(range(num_frames)):
             for trial_idx in range(num_trials):
