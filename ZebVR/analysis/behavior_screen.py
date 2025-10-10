@@ -236,7 +236,6 @@ def compute_tracking_metrics(behavior_data: BehaviorData) -> Dict:
     for identity, data in behavior_data.tracking.groupby('identity'):
         metrics[identity] = {}
         for stim, stim_data in stim_trials.groupby('stim_select'):
-
             metrics[identity][stim] = {}
             metrics[identity][stim]['relative_time'] = []
             metrics[identity][stim]['heading_angle'] = []
@@ -253,6 +252,27 @@ def compute_tracking_metrics(behavior_data: BehaviorData) -> Dict:
                 metrics[identity][stim]['parameters'].append(row)
                 
     return metrics
+
+def compute_trajectories(behavior_data: BehaviorData) -> Dict:
+
+    stim_trials = get_trials(behavior_data)
+    mm_per_pix = 1/float(behavior_data.metadata['calibration']['pix_per_mm'])
+
+    trajectories = {}
+    for identity, data in behavior_data.tracking.groupby('identity'):
+        trajectories[identity] = {}
+        for stim, stim_data in stim_trials.groupby('stim_select'):
+            trajectories[identity][stim] = {}
+            trajectories[identity][stim]['x'] = []
+            trajectories[identity][stim]['y'] = []
+            trajectories[identity][stim]['parameters'] = []
+            for trial_idx, row in stim_data.iterrows():
+                segment = get_tracking_between(data, row['start_timestamp'], row['stop_timestamp'])
+                trajectories[identity][stim]['x'].append(segment['centroid_x'] * mm_per_pix)
+                trajectories[identity][stim]['y'].append(segment['centroid_y'] * mm_per_pix)
+                trajectories[identity][stim]['parameters'].append(row)
+    
+    return trajectories
 
 # def superimpose_video_trials(behavior_data: BehaviorData) -> None:
 
@@ -487,6 +507,7 @@ if __name__ == '__main__':
     for behavior_file in behavior_files:
         behavior_data: BehaviorData = load_data(behavior_file)
         metrics = compute_tracking_metrics(behavior_data)
+        trajectories = compute_trajectories(behavior_data)
         for identity, data in metrics.items():
             plot_tracking_metrics(data)
         
