@@ -151,9 +151,9 @@ def analyse_helper(
 
     return trials, avg, sem
 
-# def superimpose_video_trials(behavior_data: BehaviorData) -> None:
+def superimpose_video_trials(behavior_data: BehaviorData) -> None:
 
-#     stim_trials = get_trials(behavior_data)
-#     for stim, stim_data in stim_trials.groupby('stim_select'):
-#         for trial_idx, row in stim_data.iterrows():
-#             video_segment = get_video_between(behavior_data, row['start_timestamp'], row['stop_timestamp'])
+    stim_trials = get_trials(behavior_data)
+    for stim, stim_data in stim_trials.groupby('stim_select'):
+        for trial_idx, row in stim_data.iterrows():
+            # video_segment = get_video_between(behavior_data, row['start_timestamp'], row['stop_timestamp'])
