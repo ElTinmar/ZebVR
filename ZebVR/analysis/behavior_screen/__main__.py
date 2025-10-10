@@ -22,6 +22,7 @@ from .plot import (
 # TODO overlay video trials
 # TODO average trial-average over fish
 # TODO plot trajectories / heatmap position for each stimulus 
+# TODO filter bouts on edges?
 
 def run(behavior_files: BehaviorFiles):
 
