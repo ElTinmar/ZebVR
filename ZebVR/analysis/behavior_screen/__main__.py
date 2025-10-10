@@ -1,4 +1,6 @@
 from pathlib import Path
+from multiprocessing import Pool
+from functools import partial
 
 from .load import (
     Directories, 
@@ -8,7 +10,8 @@ from .load import (
 )
 from .process import (
     compute_tracking_metrics, 
-    compute_trajectories
+    compute_trajectories,
+    superimpose_video_trials
 )
 from .plot import (
     plot_tracking_metrics, 
@@ -23,11 +26,13 @@ from .plot import (
 # TODO average trial-average over fish
 # TODO plot trajectories / heatmap position for each stimulus 
 # TODO filter bouts on edges?
-
-
 # TODO separate analysis and plotting. Use multiprocessing for analysis here
-def run(behavior_file: BehaviorFiles):
 
+def extract_videos(behavior_file: BehaviorFiles, directories: Directories):
+    behavior_data = load_data(behavior_file)
+    superimpose_video_trials(directories, behavior_data, behavior_file, 30)
+
+def run(behavior_file: BehaviorFiles):
     behavior_data = load_data(behavior_file)
     metrics = compute_tracking_metrics(behavior_data)
     #trajectories = compute_trajectories(behavior_data)
@@ -38,7 +43,6 @@ def run(behavior_file: BehaviorFiles):
     # for identity, data in trajectories.items():
     #     plot_trajectories(data)
     
-
 if __name__ == '__main__':
 
     base_dir = Path('/media/martin/MARTIN_8TB_0/Work/Baier/DATA/Behavioral_screen/output')
@@ -46,5 +50,10 @@ if __name__ == '__main__':
     directories = Directories(base_dir)
     behavior_files = find_files(directories)
 
+    _extract_videos = partial(extract_videos, directories = directories)
+    # NOTE all behavior data loaded in RAM can be heavy
+    with Pool(processes=16) as pool:
+        pool.map(_extract_videos, behavior_files)
+
     for behavior_file in behavior_files:
-        run(behavior_file)
+        run(directories, behavior_file)

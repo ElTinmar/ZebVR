@@ -32,6 +32,8 @@ class Directories:
         self.temperature: Path = self.root / 'data' 
         self.video: Path = self.root / 'video'
         self.video_timestamps: Path = self.root / 'video'
+        self.results: Path = self.root / 'results'
+        self.plots: Path = self.root / 'plots'
 
 class FileNameInfo(NamedTuple):
     fish_id: int
@@ -105,7 +107,7 @@ def load_tracking(tracking_file: Path) -> pd.DataFrame:
 
 def load_video(video_file: Path) -> OpenCV_VideoReader:
     reader = OpenCV_VideoReader()
-    reader.open_file(video_file.as_posix())
+    reader.open_file(str(video_file))
     return reader 
 
 def load_video_timestamps(video_timestamp_file: Path) -> pd.DataFrame:

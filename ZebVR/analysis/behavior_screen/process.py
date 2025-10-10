@@ -1,7 +1,10 @@
 import pandas as pd
 from typing import  Dict, Callable, Tuple, List
 import numpy as np
-from .load import BehaviorData
+from tqdm import tqdm
+from video_tools import OpenCV_VideoWriter, OpenCV_VideoReader
+from ZebVR.protocol import Stim
+from .load import BehaviorData, BehaviorFiles, Directories
 
 def get_trials(behavior_data: BehaviorData) -> pd.DataFrame:
 
@@ -151,11 +154,52 @@ def analyse_helper(
 
     return trials, avg, sem
 
-def superimpose_video_trials(behavior_data: BehaviorData) -> None:
+def timestamp_to_frame_index(behavior_data: BehaviorData, timestamp: int) -> int:
+    distance = behavior_data.video_timestamps['timestamp'] - timestamp
+    idx_closest = distance.abs().argmin()
+    frame_index = behavior_data.video_timestamps['index'][idx_closest]
+    return frame_index
+
+def superimpose_video_trials(
+        directories: Directories,
+        behavior_data: BehaviorData,
+        behavior_file: BehaviorFiles,
+        trial_duration_sec: float
+    ) -> None:
+    
+    height = behavior_data.metadata['camera']['height_value']
+    width = behavior_data.metadata['camera']['width_value']
+    fps = int(behavior_data.metadata['camera']['framerate_value'])
+    num_frames = int(trial_duration_sec * behavior_data.metadata['camera']['framerate_value'])
+    directories.results.mkdir(parents=True, exist_ok=True)
 
     stim_trials = get_trials(behavior_data)
-    for stim, stim_data in stim_trials.groupby('stim_select'):
-        for trial_idx, row in stim_data.iterrows():
-            # video_segment = get_video_between(behavior_data, row['start_timestamp'], row['stop_timestamp'])
-            ...
-            
+    for stim, stim_data in tqdm(stim_trials.groupby('stim_select')):
+        num_trials = len(stim_data['start_timestamp'])
+        output_path = directories.results / f"{behavior_file.video.stem}_{Stim(stim)}.mp4"
+
+        writer = OpenCV_VideoWriter(
+            height = height, 
+            width = width,
+            fps = fps,
+            filename = str(output_path),
+            fourcc = 'mp4v'
+        )
+
+        readers = []
+        for start_timestamp in stim_data['start_timestamp']:
+            frame_index_start = timestamp_to_frame_index(behavior_data, start_timestamp)
+            reader = OpenCV_VideoReader()
+            reader.open_file(str(behavior_file.video))
+            reader.seek_to(frame_index_start)
+            readers.append(reader)
+
+        mip = np.zeros((height, width, num_trials), dtype=np.uint8)
+        for _ in tqdm(range(num_frames)):
+            for trial_idx in range(num_trials):
+                _, frame = readers[trial_idx].next_frame()
+                mip[:,:,trial_idx] =  frame[:,:,0]
+            writer.write_frame(np.min(mip, axis=2))
+
+        writer.close()
+
