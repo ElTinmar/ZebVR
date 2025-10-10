@@ -166,12 +166,13 @@ def superimpose_video_trials(
         behavior_file: BehaviorFiles,
         trial_duration_sec: float
     ) -> None:
+
+    directories.results.mkdir(parents=True, exist_ok=True)
     
     height = behavior_data.metadata['camera']['height_value']
     width = behavior_data.metadata['camera']['width_value']
     fps = int(behavior_data.metadata['camera']['framerate_value'])
     num_frames = int(trial_duration_sec * behavior_data.metadata['camera']['framerate_value'])
-    directories.results.mkdir(parents=True, exist_ok=True)
 
     stim_trials = get_trials(behavior_data)
     for stim, stim_data in tqdm(stim_trials.groupby('stim_select')):
