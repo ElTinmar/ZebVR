@@ -24,7 +24,7 @@ from .plot import (
 # TODO plot trajectories / heatmap position for each stimulus 
 # TODO filter bouts on edges?
 
-def run(behavior_files: BehaviorFiles):
+def run(behavior_file: BehaviorFiles):
 
     behavior_data = load_data(behavior_file)
     metrics = compute_tracking_metrics(behavior_data)
