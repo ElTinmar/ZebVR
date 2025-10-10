@@ -24,6 +24,8 @@ from .plot import (
 # TODO plot trajectories / heatmap position for each stimulus 
 # TODO filter bouts on edges?
 
+
+# TODO separate analysis and plotting. Use multiprocessing for analysis here
 def run(behavior_file: BehaviorFiles):
 
     behavior_data = load_data(behavior_file)
