@@ -26,7 +26,7 @@ def get_trials(
         stim_select = int(stim_dict["stim_select"])
 
         row = {
-            "stim_select": int(stim_dict["stim_select"]),
+            "stim_select": stim_select,
             "start_timestamp": start_timestamp,
             "stop_timestamp": stop_timestamp,
             "start_time_sec": stim_dict.get("start_time_sec", pd.NA),
