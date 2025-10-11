@@ -1,14 +1,17 @@
 import pandas as pd
-from typing import  Dict, Callable, Tuple, List
+from typing import  Dict, Callable, Tuple, List, Iterable
 import numpy as np
 from tqdm import tqdm
 from video_tools import OpenCV_VideoWriter, OpenCV_VideoReader
 from ZebVR.protocol import Stim
 from .load import BehaviorData, BehaviorFiles, Directories
 
+def get_well_edges(behavior_data: BehaviorData):
+    ...
+    
 def get_trials(
         behavior_data: BehaviorData, 
-        keep_stim: List[Stim] = [stim for stim in Stim]
+        keep_stim: Iterable[Stim] = [stim for stim in Stim]
     ) -> pd.DataFrame:
 
     last_timestamp = max(
@@ -20,6 +23,7 @@ def get_trials(
     for i, stim_dict in enumerate(behavior_data.stimuli):
         start_timestamp = stim_dict["timestamp"]
         stop_timestamp = behavior_data.stimuli[i + 1]["timestamp"] if i + 1 < len(behavior_data.stimuli) else last_timestamp
+        stim_select = int(stim_dict["stim_select"])
 
         row = {
             "stim_select": int(stim_dict["stim_select"]),
@@ -35,7 +39,7 @@ def get_trials(
             "background_color": str(stim_dict["background_color"]),
         }
 
-        if int(stim_dict["stim_select"]) in keep_stim:
+        if Stim(stim_select) in keep_stim:
             rows.append(row)
 
     return pd.DataFrame(rows)
@@ -167,7 +171,7 @@ def timestamp_to_frame_index(behavior_data: BehaviorData, timestamp: int) -> int
     frame_index = behavior_data.video_timestamps['index'][idx_closest]
     return frame_index
 
-grouping_parameter = {
+GROUPING_PARAMETER = {
     Stim.DARK: 'background_color',
     Stim.BRIGHT: 'foreground_color',
     Stim.PHOTOTAXIS: 'phototaxis_polarity',
@@ -181,7 +185,8 @@ def superimpose_video_trials(
         directories: Directories,
         behavior_data: BehaviorData,
         behavior_file: BehaviorFiles,
-        trial_duration_sec: float
+        trial_duration_sec: float,
+        grouping_parameter: Dict[Stim, str] = GROUPING_PARAMETER
     ) -> None:
 
     directories.results.mkdir(parents=True, exist_ok=True)
@@ -193,7 +198,7 @@ def superimpose_video_trials(
 
     stim_trials = get_trials(
         behavior_data,
-        [Stim.PREY_CAPTURE, Stim.PHOTOTAXIS, Stim.OMR, Stim.OKR, Stim.LOOMING]
+        grouping_parameter.keys()
     )
     for stim, stim_data in tqdm(stim_trials.groupby('stim_select')):
         for parameter_value, data in stim_data.groupby(grouping_parameter[Stim(stim)]):
