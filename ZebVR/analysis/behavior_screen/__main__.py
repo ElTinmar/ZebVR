@@ -22,11 +22,15 @@ from .plot import (
 # TODO eye tracking + tail tracking and classification J-turn PREY_CAPTURE
 # TODO bout segmentation and distribution of heading change per bout
 # TODO bout classification for every behavior + ethogram? 
-# TODO overlay video trials
-# TODO average trial-average over fish
-# TODO plot trajectories / heatmap position for each stimulus 
-# TODO filter bouts on edges?
+
+# TODO auto detect edges/center coordinates on video/picture
+# TODO filter bouts on edges (bout that starts and ends on the edge)?
+
 # TODO separate analysis and plotting. Use multiprocessing for analysis here
+
+# TODO linear mixed effects analysis to get within and between individual variability
+
+# TODO filter dark/bright events to remove transition/rest periods
 
 def extract_videos(behavior_file: BehaviorFiles, directories: Directories):
     behavior_data = load_data(behavior_file)
@@ -35,13 +39,13 @@ def extract_videos(behavior_file: BehaviorFiles, directories: Directories):
 def run(behavior_file: BehaviorFiles):
     behavior_data = load_data(behavior_file)
     metrics = compute_tracking_metrics(behavior_data)
-    #trajectories = compute_trajectories(behavior_data)
+    trajectories = compute_trajectories(behavior_data)
 
     for identity, data in metrics.items():
         plot_tracking_metrics(data)
 
-    # for identity, data in trajectories.items():
-    #     plot_trajectories(data)
+    for identity, data in trajectories.items():
+        plot_trajectories(data)
     
 if __name__ == '__main__':
 
