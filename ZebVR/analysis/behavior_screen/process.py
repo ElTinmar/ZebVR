@@ -6,7 +6,10 @@ from video_tools import OpenCV_VideoWriter, OpenCV_VideoReader
 from ZebVR.protocol import Stim
 from .load import BehaviorData, BehaviorFiles, Directories
 
-def get_trials(behavior_data: BehaviorData) -> pd.DataFrame:
+def get_trials(
+        behavior_data: BehaviorData, 
+        keep_stim: List[Stim] = [stim for stim in Stim]
+    ) -> pd.DataFrame:
 
     last_timestamp = max(
         behavior_data.tracking['timestamp'].max(),
@@ -23,13 +26,17 @@ def get_trials(behavior_data: BehaviorData) -> pd.DataFrame:
             "start_timestamp": start_timestamp,
             "stop_timestamp": stop_timestamp,
             "start_time_sec": stim_dict.get("start_time_sec", pd.NA),
+            "prey_arc_start_deg": stim_dict.get("prey_arc_start_deg", pd.NA),
+            "phototaxis_polarity": stim_dict.get("phototaxis_polarity", pd.NA),
+            "omr_angle_deg": stim_dict.get("omr_angle_deg", pd.NA),
+            "okr_speed_deg_per_sec": stim_dict.get("okr_speed_deg_per_sec", pd.NA),
+            "looming_center_mm_x": stim_dict.get("looming_center_mm", [pd.NA, pd.NA])[0],
+            "foreground_color": str(stim_dict["foreground_color"]),
+            "background_color": str(stim_dict["background_color"]),
         }
 
-        for key, val in stim_dict.items():
-            if key not in ["stim_select", "timestamp", "start_time_sec"]:
-                row[key] = val
-
-        rows.append(row)
+        if int(stim_dict["stim_select"]) in keep_stim:
+            rows.append(row)
 
     return pd.DataFrame(rows)
 
@@ -160,6 +167,16 @@ def timestamp_to_frame_index(behavior_data: BehaviorData, timestamp: int) -> int
     frame_index = behavior_data.video_timestamps['index'][idx_closest]
     return frame_index
 
+grouping_parameter = {
+    Stim.DARK: 'background_color',
+    Stim.BRIGHT: 'foreground_color',
+    Stim.PHOTOTAXIS: 'phototaxis_polarity',
+    Stim.OMR: 'omr_angle_deg',
+    Stim.OKR: 'okr_speed_deg_per_sec',
+    Stim.LOOMING: 'looming_center_mm_x',
+    Stim.PREY_CAPTURE: 'prey_arc_start_deg'
+}
+
 def superimpose_video_trials(
         directories: Directories,
         behavior_data: BehaviorData,
@@ -174,33 +191,37 @@ def superimpose_video_trials(
     fps = int(behavior_data.metadata['camera']['framerate_value'])
     num_frames = int(trial_duration_sec * behavior_data.metadata['camera']['framerate_value'])
 
-    stim_trials = get_trials(behavior_data)
+    stim_trials = get_trials(
+        behavior_data,
+        [Stim.PREY_CAPTURE, Stim.PHOTOTAXIS, Stim.OMR, Stim.OKR, Stim.LOOMING]
+    )
     for stim, stim_data in tqdm(stim_trials.groupby('stim_select')):
+        for parameter_value, data in stim_data.groupby(grouping_parameter[Stim(stim)]):
+            
+            output_path = directories.results / f"{behavior_file.video.stem}_{Stim(stim)}_{grouping_parameter[Stim(stim)]}_{parameter_value}.mp4"
+            writer = OpenCV_VideoWriter(
+                height = height, 
+                width = width,
+                fps = fps,
+                filename = str(output_path),
+                fourcc = 'mp4v'
+            )
 
-        output_path = directories.results / f"{behavior_file.video.stem}_{Stim(stim)}.mp4"
-        writer = OpenCV_VideoWriter(
-            height = height, 
-            width = width,
-            fps = fps,
-            filename = str(output_path),
-            fourcc = 'mp4v'
-        )
+            readers = []
+            for start_timestamp in data['start_timestamp']:
+                frame_index_start = timestamp_to_frame_index(behavior_data, start_timestamp)
+                reader = OpenCV_VideoReader()
+                reader.open_file(str(behavior_file.video))
+                reader.seek_to(frame_index_start)
+                readers.append(reader)
 
-        readers = []
-        for start_timestamp in stim_data['start_timestamp']:
-            frame_index_start = timestamp_to_frame_index(behavior_data, start_timestamp)
-            reader = OpenCV_VideoReader()
-            reader.open_file(str(behavior_file.video))
-            reader.seek_to(frame_index_start)
-            readers.append(reader)
+            num_trials = len(data['start_timestamp'])
+            mip = np.zeros((height, width, num_trials), dtype=np.uint8)
+            for _ in tqdm(range(num_frames)):
+                for trial_idx in range(num_trials):
+                    _, frame = readers[trial_idx].next_frame()
+                    mip[:,:,trial_idx] =  frame[:,:,0]
+                writer.write_frame(np.min(mip, axis=2))
 
-        num_trials = len(stim_data['start_timestamp'])
-        mip = np.zeros((height, width, num_trials), dtype=np.uint8)
-        for _ in tqdm(range(num_frames)):
-            for trial_idx in range(num_trials):
-                _, frame = readers[trial_idx].next_frame()
-                mip[:,:,trial_idx] =  frame[:,:,0]
-            writer.write_frame(np.min(mip, axis=2))
-
-        writer.close()
+            writer.close()
 
