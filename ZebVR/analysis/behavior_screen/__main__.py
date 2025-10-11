@@ -9,8 +9,8 @@ from .load import (
     load_data
 )
 from .process import (
-    compute_tracking_metrics, 
-    compute_trajectories,
+    extract_metrics, 
+    get_well_coords_mm,
     superimpose_video_trials
 )
 from .plot import (
@@ -38,13 +38,11 @@ def extract_videos(behavior_file: BehaviorFiles, directories: Directories):
 
 def run(behavior_file: BehaviorFiles):
     behavior_data = load_data(behavior_file)
-    metrics = compute_tracking_metrics(behavior_data)
-    trajectories = compute_trajectories(behavior_data)
+    well_coords_mm = get_well_coords_mm(behavior_data)
+    metrics = extract_metrics(behavior_data, well_coords_mm)
 
     for identity, data in metrics.items():
         plot_tracking_metrics(data)
-
-    for identity, data in trajectories.items():
         plot_trajectories(data)
     
 if __name__ == '__main__':

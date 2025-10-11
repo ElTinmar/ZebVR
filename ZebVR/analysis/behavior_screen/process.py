@@ -1,13 +1,126 @@
 import pandas as pd
-from typing import  Dict, Callable, Tuple, List, Iterable
+from typing import (
+    Dict, 
+    Callable, 
+    Tuple, 
+    List, 
+    Iterable, 
+    TypedDict, 
+)
 import numpy as np
 from tqdm import tqdm
 from video_tools import OpenCV_VideoWriter, OpenCV_VideoReader
 from ZebVR.protocol import Stim
+import cv2
 from .load import BehaviorData, BehaviorFiles, Directories
 
-def get_well_edges(behavior_data: BehaviorData):
-    ...
+class WellDimensions(TypedDict):
+    well_radius_mm: float
+    distance_between_well_centers_mm: float
+    
+# TODO put right dimensions here
+AGAROSE_WELL_DIMENSIONS: WellDimensions = {
+    'well_radius_mm': 19.5/2,
+    'distance_between_well_centers_mm': 22
+}
+
+def get_background_image(
+        behavior_data: BehaviorData, 
+        num_samples: int = 100
+    ) -> np.ndarray:
+
+    height = behavior_data.video.get_height()
+    width = behavior_data.video.get_width()
+    num_frames = behavior_data.video.get_number_of_frame()
+    samples = np.linspace(0, num_frames, num_samples, endpoint=False, dtype=int)
+    video_samples = np.zeros((height, width, num_samples), dtype=np.uint8)
+
+    for i, frame_idx in enumerate(samples):
+        behavior_data.video.seek_to(frame_idx)
+        _, frame = behavior_data.video.next_frame()
+        video_samples[:,:,i] = frame[:,:,0]
+
+    background_image = np.median(video_samples, axis=2).astype(np.uint8)
+    return background_image
+
+def get_circles(
+        image: np.ndarray, 
+        pix_per_mm: float,
+        tolerance_mm: float,
+        well_dimensions: WellDimensions
+    ) -> np.ndarray:
+
+    tolerance = int(tolerance_mm * pix_per_mm) 
+
+    circle_radius = int(pix_per_mm * well_dimensions['well_radius_mm'])
+    min_radius = circle_radius - tolerance
+    max_radius = circle_radius + tolerance
+
+    well_distance = pix_per_mm * well_dimensions['distance_between_well_centers_mm']
+    min_distance = well_distance - tolerance
+
+    circles = cv2.HoughCircles(
+        image,
+        cv2.HOUGH_GRADIENT,
+        dp = 1,
+        minDist = min_distance,
+        param1 = 50,
+        param2 = 30,
+        minRadius = min_radius,
+        maxRadius = max_radius
+    )[0]
+
+    return circles
+
+def show_detected_circles(image: np.ndarray, circles: np.ndarray) -> None:
+
+    if len(image.shape) == 2:  # grayscale
+        img_color = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+    else:
+        img_color = image.copy()
+
+    circles = np.around(circles).astype(np.uint16)
+    for x, y, radius in circles:
+        center = (x, y)
+        cv2.circle(img_color, center, radius, (0, 255, 0), 2)
+        cv2.circle(img_color, center, 2, (0, 0, 255), 3)
+
+    cv2.imshow('detected wells', img_color)
+    cv2.waitKey(0)
+
+def circle_roi_index(circles: np.ndarray, rois: List[Tuple[int,int,int,int]]):
+    indices = []
+    for x, y, _ in circles:
+        index = -1
+        for i, (rx, ry, rw, rh) in enumerate(rois):
+            if rx <= x < rx + rw and ry <= y < ry + rh:
+                index = i
+        
+        if index == -1:
+            RuntimeError('Circle does not belong to any ROI')
+        
+        indices.append(index)
+    return indices
+
+def get_well_coords_mm(
+        behavior_data: BehaviorData, 
+        num_samples: int = 100,
+        tolerance_mm = 2,
+    ) -> np.ndarray:
+
+    background_image = get_background_image(behavior_data, num_samples)
+    pix_per_mm = behavior_data.metadata['calibration']['pix_per_mm']
+    circles = get_circles(
+        background_image, 
+        pix_per_mm, 
+        tolerance_mm, 
+        AGAROSE_WELL_DIMENSIONS
+    )
+    show_detected_circles(background_image, circles)
+    ind = circle_roi_index(circles, behavior_data.metadata['identity']['ROIs'])
+    circles_mm = 1/pix_per_mm * circles[ind,:]
+
+    return circles_mm
     
 def get_trials(
         behavior_data: BehaviorData, 
@@ -79,7 +192,18 @@ def get_speed_mm_per_sec(tracking_data: pd.DataFrame, mm_per_pix: float) -> pd.S
     dx = get_distance_mm(tracking_data, mm_per_pix)
     dt = get_relative_time_sec(tracking_data).diff()
     return dx/dt
-    
+
+def get_coordinates_mm(
+        tracking_data: pd.DataFrame, 
+        mm_per_pix: float, 
+        arena_center_mm: np.ndarray
+    ) -> Tuple[pd.Series, pd.Series, pd.Series]:
+
+    x_mm = (tracking_data['centroid_x'] * mm_per_pix) - arena_center_mm[0]
+    y_mm = (tracking_data['centroid_y'] * mm_per_pix) - arena_center_mm[1]
+    radial_distance_mm = (x_mm**2 + y_mm**2)**0.5
+    return x_mm, y_mm, radial_distance_mm
+
 def common_time(trial_duration, fps) -> np.ndarray:
     num_points = int(fps * trial_duration)
     return np.linspace(0, trial_duration, num_points, endpoint=False)
@@ -87,7 +211,17 @@ def common_time(trial_duration, fps) -> np.ndarray:
 def interpolate_ts(target_time, time, values) -> np.ndarray:
     return np.interp(target_time, time, values)
 
-def compute_tracking_metrics(behavior_data: BehaviorData) -> Dict:
+class TrialMetrics(TypedDict):
+    relative_time: List[pd.Series]
+    heading_angle: List[pd.Series]
+    distance_traveled: List[pd.Series]
+    speed: List[pd.Series]
+    parameters: List[pd.Series]
+    x: List[pd.Series]
+    y: List[pd.Series]
+    distance_from_center: List[pd.Series]
+
+def extract_metrics(behavior_data: BehaviorData, well_coords_mm: np.ndarray) -> Dict[int, Dict[Stim, TrialMetrics]]:
     
     stim_trials = get_trials(behavior_data)
     mm_per_pix = 1/float(behavior_data.metadata['calibration']['pix_per_mm'])
@@ -95,44 +229,30 @@ def compute_tracking_metrics(behavior_data: BehaviorData) -> Dict:
     metrics = {}
     for identity, data in behavior_data.tracking.groupby('identity'):
         metrics[identity] = {}
-        for stim, stim_data in stim_trials.groupby('stim_select'):
+        for stim_select, stim_data in stim_trials.groupby('stim_select'):
+            stim = Stim(stim_select)
             metrics[identity][stim] = {}
             metrics[identity][stim]['relative_time'] = []
             metrics[identity][stim]['heading_angle'] = []
             metrics[identity][stim]['distance_traveled'] = [] 
             metrics[identity][stim]['speed'] = [] 
             metrics[identity][stim]['parameters'] = []
-
+            metrics[identity][stim]['x'] = []
+            metrics[identity][stim]['y'] = []
+            metrics[identity][stim]['distance_from_center'] = []
             for trial_idx, row in stim_data.iterrows():
                 segment = get_tracking_between(data, row['start_timestamp'], row['stop_timestamp'])
                 metrics[identity][stim]['relative_time'].append(get_relative_time_sec(segment))
                 metrics[identity][stim]['heading_angle'].append(get_heading_angle_deg(segment))
-                metrics[identity][stim]['distance_traveled'].append(get_distance_mm(segment, mm_per_pix=mm_per_pix))
-                metrics[identity][stim]['speed'].append(get_speed_mm_per_sec(segment, mm_per_pix=mm_per_pix))
+                metrics[identity][stim]['distance_traveled'].append(get_distance_mm(segment, mm_per_pix))
+                metrics[identity][stim]['speed'].append(get_speed_mm_per_sec(segment, mm_per_pix))
+                x_mm, y_mm, radial_distance_mm = get_coordinates_mm(segment, mm_per_pix, well_coords_mm[identity,:])
+                metrics[identity][stim]['x'].append(x_mm)
+                metrics[identity][stim]['y'].append(y_mm)
+                metrics[identity][stim]['distance_from_center'].append(radial_distance_mm)
                 metrics[identity][stim]['parameters'].append(row)
                 
     return metrics
-
-def compute_trajectories(behavior_data: BehaviorData) -> Dict:
-
-    stim_trials = get_trials(behavior_data)
-    mm_per_pix = 1/float(behavior_data.metadata['calibration']['pix_per_mm'])
-
-    trajectories = {}
-    for identity, data in behavior_data.tracking.groupby('identity'):
-        trajectories[identity] = {}
-        for stim, stim_data in stim_trials.groupby('stim_select'):
-            trajectories[identity][stim] = {}
-            trajectories[identity][stim]['x'] = []
-            trajectories[identity][stim]['y'] = []
-            trajectories[identity][stim]['parameters'] = []
-            for trial_idx, row in stim_data.iterrows():
-                segment = get_tracking_between(data, row['start_timestamp'], row['stop_timestamp'])
-                trajectories[identity][stim]['x'].append(segment['centroid_x'] * mm_per_pix)
-                trajectories[identity][stim]['y'].append(segment['centroid_y'] * mm_per_pix)
-                trajectories[identity][stim]['parameters'].append(row)
-    
-    return trajectories
 
 # TODO
 def analyse_helper(
