@@ -172,13 +172,12 @@ def get_relative_time_sec(tracking_data: pd.DataFrame) -> pd.Series:
     relative_time = tracking_data['timestamp'] - tracking_data['timestamp'].iloc[0]
     return relative_time*1e-9
 
-def get_heading_angle_deg(tracking_data: pd.DataFrame) -> pd.Series:
+def get_theta(tracking_data: pd.DataFrame) -> Tuple[np.ndarray, pd.Series]:
     angle = np.arctan2(tracking_data['pc1_y'], tracking_data['pc1_x'])
     notna = ~np.isnan(angle)
     angle_unwrapped = pd.Series(np.nan, index=tracking_data.index, dtype=float)
     angle_unwrapped[notna] = np.unwrap(angle[notna]) 
-    angle_unwrapped_deg = angle_unwrapped * 180/np.pi
-    return angle_unwrapped_deg - angle_unwrapped_deg.iloc[0] 
+    return angle, angle_unwrapped - angle_unwrapped.iloc[0] 
 
 def get_distance_mm(tracking_data: pd.DataFrame, mm_per_pix: float) -> pd.Series:
     x = tracking_data['centroid_x'].astype(float)
@@ -213,15 +212,19 @@ def interpolate_ts(target_time, time, values) -> np.ndarray:
 
 class TrialMetrics(TypedDict):
     relative_time: List[pd.Series]
-    heading_angle: List[pd.Series]
+    theta_unwrapped: List[pd.Series]
     distance_traveled: List[pd.Series]
     speed: List[pd.Series]
     parameters: List[pd.Series]
     x: List[pd.Series]
     y: List[pd.Series]
+    theta: List[np.ndarray]
     distance_from_center: List[pd.Series]
 
-def extract_metrics(behavior_data: BehaviorData, well_coords_mm: np.ndarray) -> Dict[int, Dict[Stim, TrialMetrics]]:
+def extract_metrics(
+        behavior_data: BehaviorData, 
+        well_coords_mm: np.ndarray
+    ) -> Dict[int, Dict[Stim, TrialMetrics]]:
     
     stim_trials = get_trials(behavior_data)
     mm_per_pix = 1/float(behavior_data.metadata['calibration']['pix_per_mm'])
@@ -233,22 +236,25 @@ def extract_metrics(behavior_data: BehaviorData, well_coords_mm: np.ndarray) -> 
             stim = Stim(stim_select)
             metrics[identity][stim] = {}
             metrics[identity][stim]['relative_time'] = []
-            metrics[identity][stim]['heading_angle'] = []
+            metrics[identity][stim]['theta_unwrapped'] = []
             metrics[identity][stim]['distance_traveled'] = [] 
             metrics[identity][stim]['speed'] = [] 
             metrics[identity][stim]['parameters'] = []
             metrics[identity][stim]['x'] = []
             metrics[identity][stim]['y'] = []
+            metrics[identity][stim]['theta'] = []
             metrics[identity][stim]['distance_from_center'] = []
             for trial_idx, row in stim_data.iterrows():
                 segment = get_tracking_between(data, row['start_timestamp'], row['stop_timestamp'])
                 metrics[identity][stim]['relative_time'].append(get_relative_time_sec(segment))
-                metrics[identity][stim]['heading_angle'].append(get_heading_angle_deg(segment))
                 metrics[identity][stim]['distance_traveled'].append(get_distance_mm(segment, mm_per_pix))
                 metrics[identity][stim]['speed'].append(get_speed_mm_per_sec(segment, mm_per_pix))
                 x_mm, y_mm, radial_distance_mm = get_coordinates_mm(segment, mm_per_pix, well_coords_mm[identity,:])
+                theta, theta_unwrapped = get_theta(segment)
+                metrics[identity][stim]['theta_unwrapped'].append(theta_unwrapped)
                 metrics[identity][stim]['x'].append(x_mm)
                 metrics[identity][stim]['y'].append(y_mm)
+                metrics[identity][stim]['theta'].append(theta)
                 metrics[identity][stim]['distance_from_center'].append(radial_distance_mm)
                 metrics[identity][stim]['parameters'].append(row)
                 

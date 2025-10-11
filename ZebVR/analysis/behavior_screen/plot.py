@@ -70,7 +70,7 @@ def plot_dark(metrics: Dict, ax: Sequence[Axes]):
         trial_duration_s = 30,
         fps = 100,
         group_names = ['dark'],
-        value_func = lambda metrics, trial_idx: metrics['heading_angle'][trial_idx],
+        value_func = lambda metrics, trial_idx: metrics['theta_unwrapped'][trial_idx],
         group_func = lambda metrics, trial_idx: 0, 
         color_func = lambda group_idx: 'k'
     )
@@ -96,7 +96,7 @@ def plot_phototaxis(metrics: Dict, ax: Axes):
         trial_duration_s = 30,
         fps = 100,
         group_names = ['-1', '1'],
-        value_func = lambda metrics, trial_idx: metrics['heading_angle'][trial_idx],
+        value_func = lambda metrics, trial_idx: metrics['theta_unwrapped'][trial_idx],
         group_func = lambda metrics, trial_idx: 0 if metrics['parameters'][trial_idx]['phototaxis_polarity'] == -1 else 1, # TODO check
         color_func = lambda group_idx: COLORS[group_idx]
     )
@@ -109,7 +109,7 @@ def plot_omr(metrics: Dict, ax: Axes):
         trial_duration_s = 30,
         fps = 100,
         group_names = ['-90', '90'],
-        value_func = lambda metrics, trial_idx: metrics['heading_angle'][trial_idx],
+        value_func = lambda metrics, trial_idx: metrics['theta_unwrapped'][trial_idx],
         group_func = lambda metrics, trial_idx: 0 if metrics['parameters'][trial_idx]['omr_angle_deg'] == -90 else 1, 
         color_func = lambda group_idx: COLORS[group_idx]
     )
@@ -122,7 +122,7 @@ def plot_okr(metrics: Dict, ax: Axes):
         trial_duration_s = 30,
         fps = 100,
         group_names = ['-36', '36'],
-        value_func = lambda metrics, trial_idx: metrics['heading_angle'][trial_idx],
+        value_func = lambda metrics, trial_idx: metrics['theta_unwrapped'][trial_idx],
         group_func = lambda metrics, trial_idx: 0 if metrics['parameters'][trial_idx]['okr_speed_deg_per_sec'] == -36 else 1, 
         color_func = lambda group_idx: COLORS[group_idx]
     )
@@ -135,7 +135,7 @@ def plot_loomings(metrics: Dict, ax: Sequence[Axes]):
         trial_duration_s = 10,
         fps = 100,
         group_names = ['-2', '2'],
-        value_func = lambda metrics, trial_idx: metrics['heading_angle'][trial_idx],
+        value_func = lambda metrics, trial_idx: metrics['theta_unwrapped'][trial_idx],
         group_func = lambda metrics, trial_idx: 0 if metrics['parameters'][trial_idx]['looming_center_mm'][0] == -2 else 1, 
         color_func = lambda group_idx: COLORS[group_idx]
     )
@@ -159,7 +159,7 @@ def plot_prey_capture(metrics: Dict, ax: Axes):
         trial_duration_s = 30,
         fps = 100,
         group_names = ['-20', '20'],
-        value_func = lambda metrics, trial_idx: metrics['heading_angle'][trial_idx],
+        value_func = lambda metrics, trial_idx: metrics['theta_unwrapped'][trial_idx],
         group_func = lambda metrics, trial_idx: 0 if metrics['parameters'][trial_idx]['prey_arc_start_deg'] == -20 else 1, 
         color_func = lambda group_idx: COLORS[group_idx]
     )
