@@ -579,6 +579,7 @@ class MainGui(QMainWindow):
 
         # update background widget
         image = np.load(self.settings['background']['background_file'])
+        self.settings['background']['image'] = image
         self.background_widget.set_image(image)
         self.sequencer_widget.set_background_image(image)
         self.identity_widget.set_image(image)
@@ -632,6 +633,9 @@ class MainGui(QMainWindow):
         )
         p.start()
         p.join()
+
+    def serialize_to_json(self):
+        ...
 
     def start(self):
         self.camera_controller.set_preview(False)
