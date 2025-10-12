@@ -6,6 +6,8 @@ import pickle
 import pprint
 from pathlib import Path 
 from typing import Dict
+from enum import Enum
+from array import array
 
 import cv2
 import numpy as np
@@ -45,7 +47,7 @@ from .widgets import (
     AudioWidget,
     DaqWidget
 )
-from .utils import append_timestamp_to_filename
+from .utils import append_timestamp_to_filename, serialize
 from .dags import closed_loop, open_loop, video_recording, tracking
         
 class MainGui(QMainWindow):
@@ -634,8 +636,15 @@ class MainGui(QMainWindow):
         p.start()
         p.join()
 
-    def serialize_to_json(self):
-        ...
+    def serialize_to_json(self, filename: Path):
+        serializers = { 
+            np.ndarray: lambda x: x.tolist(),
+            Path: lambda x: str(x),
+            Enum: lambda x: x.value,
+            array: lambda x: x.tolist(),
+        } 
+        with open(filename, 'w') as f:
+            json.dump(serialize(self.settings, serializers), f)
 
     def start(self):
         self.camera_controller.set_preview(False)
@@ -646,8 +655,7 @@ class MainGui(QMainWindow):
         prefix = Path(self.settings['settings']['prefix'])
         filename = prefix.with_suffix('.metadata')
         filename = append_timestamp_to_filename(filename)       
-        with open(filename,'wb') as fp:
-            pickle.dump(self.settings, fp)
+        self.serialize_to_json(filename)
 
         if self.open_loop_button.isChecked():
             self.dag, self.worker_logger, self.queue_logger = open_loop(self.settings)
