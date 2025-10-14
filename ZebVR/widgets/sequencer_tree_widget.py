@@ -182,6 +182,8 @@ class SequencerWidget(QWidget):
         self.tree.setItemWidget(item, 0, LoopWidget())
         parent_item.setExpanded(True)
 
+        self.state_changed.emit()
+
     def remove_selected(self):
 
         items = self.tree.selectedItems()
@@ -193,6 +195,8 @@ class SequencerWidget(QWidget):
             return
         parent = item.parent() or self.tree.invisibleRootItem()
         parent.takeChild(parent.indexOfChild(item))
+
+        self.state_changed.emit()
 
     def clone_item(self, item, parent, index):
 
@@ -242,6 +246,8 @@ class SequencerWidget(QWidget):
         parent.takeChild(index_removal)
         self.tree.setCurrentItem(new_item)
 
+        self.state_changed.emit()
+
     def move_up(self):
 
         items = self.tree.selectedItems()
@@ -249,12 +255,16 @@ class SequencerWidget(QWidget):
             return
         self.move_item(items[0], -1)
 
+        self.state_changed.emit()
+
     def move_down(self):
 
         items = self.tree.selectedItems()
         if not items:
             return
         self.move_item(items[0], +1)
+
+        self.state_changed.emit()
 
     def get_protocol(self):
         
@@ -294,6 +304,8 @@ class SequencerWidget(QWidget):
         self.tree.addTopLevelItem(self.root_item)
         self.root_widget = LoopWidget()
         self.tree.setItemWidget(self.root_item, 0, self.root_widget)
+
+        self.state_changed.emit()
 
     def set_protocol(self, protocol: Deque[ProtocolItem]) -> None:
         self.clear_protocol()
