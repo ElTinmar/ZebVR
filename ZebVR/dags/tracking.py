@@ -2,7 +2,6 @@ from typing import Dict, Optional, Tuple
 
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
-from video_tools import BackgroundImage, Polarity
 from dagline import ProcessingDAG, receive_strategy, send_strategy
 from tracker import (
     SingleFishTracker_CPU,
@@ -16,7 +15,6 @@ from ..workers import (
     TrackingDisplay,
     QueueMonitor,
     TrackingSaver,
-    TemperatureLoggerWorker
 )
 from ..utils import tracker_from_json
 
