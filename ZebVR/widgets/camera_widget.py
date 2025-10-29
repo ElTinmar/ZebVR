@@ -13,7 +13,6 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import pyqtSignal, QRunnable, QThreadPool, QObject, QTimer, Qt
 from PyQt5.QtGui import QImage
 import numpy as np
-import cv2
 from pathlib import Path
 from functools import partial
 from typing import Dict, Optional, Callable, Union

@@ -1,15 +1,13 @@
+import time
+
 from multiprocessing import set_start_method, Process
 import os
 os.environ["OMP_NUM_THREADS"] = "1" # this may not be necessary when setting affinity
 from PyQt5.QtWidgets import QApplication
-from .gui import MainGui
 import pickle
 import sys
-import time
 import pprint
 from pathlib import Path
-from .utils import append_timestamp_to_filename
-from .dags import open_loop, closed_loop, video_recording, tracking
 
 def set_realtime_priority(priority):
     
@@ -28,6 +26,9 @@ def set_realtime_priority(priority):
         print(f"Failed to set real-time priority: {e}")
 
 def run_vr_file(vr_file, *args) -> None:
+
+    from .dags import open_loop, closed_loop, video_recording, tracking
+    from .utils import append_timestamp_to_filename
 
     with open(vr_file, 'rb') as fp:
         settings = pickle.load(fp)
@@ -80,11 +81,13 @@ def main():
 
     else:
         # GUI mode
+
+        from .gui import MainGui
+
         app = QApplication(sys.argv)
         main_window = MainGui()
         main_window.show()
         app.exec_()
-
 
 if __name__ == "__main__":
     main()

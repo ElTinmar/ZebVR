@@ -1,6 +1,6 @@
+import time
 from multiprocessing import Process
 from threading import Thread
-import time
 import json
 import pickle
 import pprint
@@ -24,6 +24,9 @@ from PyQt5.QtWidgets import (
     QSizePolicy
 )
 from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import QTimer
+
+from qt_widgets import LabeledDoubleSpinBox, BusyOverlay
 from .calibration import (
     check_pix_per_mm, 
     check_registration, 
@@ -32,7 +35,6 @@ from .calibration import (
     power_calibration
 )
 from .background import inpaint_background, static_background
-from qt_widgets import LabeledDoubleSpinBox
 from .widgets import (
     CameraWidget, CameraController,
     ProjectorWidget, ProjectorController,
@@ -49,7 +51,7 @@ from .widgets import (
 )
 from .utils import append_timestamp_to_filename, serialize
 from .dags import closed_loop, open_loop, video_recording, tracking
-        
+
 class MainGui(QMainWindow):
     
     def __init__(self, *args, **kwargs):
@@ -72,6 +74,8 @@ class MainGui(QMainWindow):
 
     def create_components(self):
 
+        self.busy_overlay = BusyOverlay(self)
+
         self.camera_widget = CameraWidget()
         self.camera_controller = CameraController(self.camera_widget)
         self.camera_controller.state_changed.connect(self.update_camera_settings)
@@ -79,7 +83,7 @@ class MainGui(QMainWindow):
         self.projector_widget = ProjectorWidget()
         self.projector_controller = ProjectorController(self.projector_widget)
         self.projector_controller.state_changed.connect(self.update_projector_settings)
-        self.projector_controller.power_calibration.connect(self.power_calibration_callback)
+        self.projector_controller.power_calibration.connect(self.start_power_calibration)
 
         self.audio_widget = AudioWidget()
         self.audio_widget.state_changed.connect(self.update_audio_settings)
@@ -89,17 +93,17 @@ class MainGui(QMainWindow):
 
         self.registration_widget = RegistrationWidget()
         self.registration_widget.state_changed.connect(self.update_registration_settings)
-        self.registration_widget.registration_signal.connect(self.registration_callback)
-        self.registration_widget.check_registration_signal.connect(self.check_registration_callback)
+        self.registration_widget.registration_signal.connect(self.start_registration)
+        self.registration_widget.check_registration_signal.connect(self.start_check_registration)
 
         self.calibration_widget = CalibrationWidget()
         self.calibration_widget.state_changed.connect(self.update_calibration_settings)
-        self.calibration_widget.calibration_signal.connect(self.get_pix_per_mm_callback)
-        self.calibration_widget.check_calibration_signal.connect(self.check_pix_per_mm_callback)
+        self.calibration_widget.calibration_signal.connect(self.start_pix_per_mm)
+        self.calibration_widget.check_calibration_signal.connect(self.start_check_pix_per_mm)
 
         self.background_widget = BackgroundWidget()
         self.background_widget.state_changed.connect(self.update_background_settings)
-        self.background_widget.background_signal.connect(self.background_callback)
+        self.background_widget.background_signal.connect(self.start_background)
 
         self.identity_widget = IdentityWidget()
         self.identity_widget.state_changed.connect(self.update_identity_settings)
@@ -187,6 +191,8 @@ class MainGui(QMainWindow):
         file_menu.addAction(save_action)
 
         self.close_loop_button.click()
+
+        self.process_timer = QTimer(self)
 
     def layout_components(self) -> None:
 
@@ -328,6 +334,7 @@ class MainGui(QMainWindow):
             with open(filename, 'rb') as fp:
                 state = pickle.load(fp)
             self.set_state(state)
+
         except FileNotFoundError:
             print(f"Error: The file '{filename}' does not exist.")
 
@@ -363,9 +370,15 @@ class MainGui(QMainWindow):
             'main': self.set_main_state
         }
 
-        for key, setter in setters.items():
-            if key in state:
-                setter(state[key])
+        self.busy_overlay.show_overlay() # TODO fix the overlay here?
+        try:
+            for key, setter in setters.items():
+                if key in state:
+                    setter(state[key])
+        except Exception as e:
+            print(e)
+
+        self.busy_overlay.hide_overlay()
         
     def get_state(self) -> Dict:
         self.refresh_settings()
@@ -429,12 +442,24 @@ class MainGui(QMainWindow):
         self.update_sequencer_settings()
         self.update_temperature()
         self.update_main_settings()
+
+    def register_done_callback(self, callback):
+
+        self.process_timer.stop()
+        try:
+            self.process_timer.timeout.disconnect()
+        except TypeError:
+            pass
+        self.process_timer.timeout.connect(callback)
+        self.process_timer.start(100)
     
-    def power_calibration_callback(self):
+    def start_power_calibration(self):
 
         powermeter_settings = self.settings['projector']['light_analysis']['powermeter']
         if powermeter_settings['powermeter_constructor'] is None:
             return
+        
+        self.busy_overlay.show_overlay()
 
         p = Process(
             target = power_calibration,
@@ -457,8 +482,18 @@ class MainGui(QMainWindow):
             }
         )
         p.start()
-        p.join()
 
+        self.register_done_callback(lambda: self.power_calibration_done(p))
+
+    def power_calibration_done(self, process: Process):
+
+        if process.is_alive():
+            return 
+    
+        process.join()
+        self.process_timer.stop()
+        
+        powermeter_settings = self.settings['projector']['light_analysis']['powermeter']
         with open(powermeter_settings['calibration_file'], 'rb') as f:
             calibration = pickle.load(f)
             state = {}
@@ -469,7 +504,12 @@ class MainGui(QMainWindow):
             state['light_analysis']['powermeter']['calibration_blue'] = calibration['calibration_blue']
             self.projector_widget.set_state(state)
 
-    def registration_callback(self):
+        self.busy_overlay.hide_overlay()
+
+    def start_registration(self):
+
+        self.busy_overlay.show_overlay()
+
         self.camera_controller.set_preview(False)
 
         p = Process(
@@ -501,8 +541,17 @@ class MainGui(QMainWindow):
             }
         )
         p.start()
-        p.join()
+        
+        self.register_done_callback(lambda: self.registration_done(p))
+    
+    def registration_done(self, process: Process):
 
+        if process.is_alive():
+            return 
+    
+        process.join()
+        self.process_timer.stop()
+        
         # update registration widget
         with open(self.settings['registration']['registration_file'],  'r') as f:
             registration_data = json.load(f)
@@ -510,7 +559,12 @@ class MainGui(QMainWindow):
             state['transformation_matrix'] = registration_data['cam_to_proj']
             self.registration_widget.set_state(state)
         
-    def check_registration_callback(self):
+        self.busy_overlay.hide_overlay()
+
+    def start_check_registration(self):
+
+        self.busy_overlay.show_overlay()
+
         self.camera_controller.set_preview(False)
 
         p = Process(
@@ -534,9 +588,20 @@ class MainGui(QMainWindow):
             }
         )
         p.start()
-        p.join()
+
+        self.register_done_callback(lambda: self.check_registration_done(p))
+
+    def check_registration_done(self, process):
         
-    def background_callback(self):
+        if process.is_alive():
+            return 
+    
+        process.join()
+        self.process_timer.stop()
+        self.busy_overlay.hide_overlay()
+        
+    def start_background(self):
+
         self.camera_controller.set_preview(False)
 
         if self.settings['background']['bckgsub_method'] == 'inpaint':
@@ -556,9 +621,6 @@ class MainGui(QMainWindow):
                     "algo": cv2.INPAINT_NS if self.settings['background']['inpaint_algo'] == 'navier-stokes' else cv2.INPAINT_TELEA
                 }
             )
-            p.start()
-            p.join()
-
         elif self.settings['background']['bckgsub_method'] == 'static':
             p = Process(
                 target = static_background,
@@ -576,8 +638,20 @@ class MainGui(QMainWindow):
                     "time_between_images": self.settings['background']['static_pause_duration']
                 }
             )
-            p.start()
-            p.join()
+        else:
+            return
+        
+        self.busy_overlay.show_overlay()
+        p.start()
+        self.register_done_callback(lambda: self.background_done(p))
+
+    def background_done(self, process: Process):
+        
+        if process.is_alive():
+            return 
+    
+        process.join()
+        self.process_timer.stop()
 
         # update background widget
         image = np.load(self.settings['background']['background_file'])
@@ -586,7 +660,11 @@ class MainGui(QMainWindow):
         self.sequencer_widget.set_background_image(image)
         self.identity_widget.set_image(image)
 
-    def get_pix_per_mm_callback(self):
+        self.busy_overlay.hide_overlay()
+
+    def start_pix_per_mm(self):
+
+        self.busy_overlay.show_overlay()
         self.camera_controller.set_preview(False)
 
         p = Process(
@@ -606,7 +684,15 @@ class MainGui(QMainWindow):
             }
         )
         p.start()
-        p.join()
+        self.register_done_callback(lambda: self.pix_per_mm_done(p))
+
+    def pix_per_mm_done(self, process: Process):
+
+        if process.is_alive():
+            return 
+    
+        process.join()
+        self.process_timer.stop()
 
         # update calibration widget pix/mm
         with open(self.settings['calibration']['calibration_file'],  'r') as f:
@@ -615,7 +701,11 @@ class MainGui(QMainWindow):
             state['pix_per_mm'] = pix_per_mm_val
             self.calibration_widget.set_state(state)
 
-    def check_pix_per_mm_callback(self):
+        self.busy_overlay.hide_overlay()
+
+    def start_check_pix_per_mm(self):
+        
+        self.busy_overlay.show_overlay()
 
         p = Process(
             target = check_pix_per_mm,
@@ -634,7 +724,16 @@ class MainGui(QMainWindow):
             }
         )
         p.start()
-        p.join()
+        self.register_done_callback(lambda: self.check_pix_per_mm_done(p))
+
+    def check_pix_per_mm_done(self, process: Process):
+
+        if process.is_alive():
+            return 
+    
+        process.join()
+        self.process_timer.stop()
+        self.busy_overlay.hide_overlay()
 
     def serialize_to_json(self, filename: Path):
         serializers = { 
@@ -674,18 +773,27 @@ class MainGui(QMainWindow):
 
         self.p_worker_logger = Process(target=self.worker_logger.run)
         self.p_queue_logger = Process(target=self.queue_logger.run)
+
+        # TODO fix overlay here
+        self.busy_overlay.show_overlay()
         self.p_worker_logger.start()
         self.p_queue_logger.start()
-        self.dag.start()
+        self.dag.start() # blocking: start in a process
+        self.busy_overlay.hide_overlay()
 
     def stop(self):
+        
+        # TODO fix overlay here
+        self.busy_overlay.show_overlay()
 
         if self.dag is not None:
-            self.dag.stop()
-            self.worker_logger.stop()
+            self.dag.stop() # this is a bunch of joins: blocking, check in a process
+            self.worker_logger.stop() 
             self.queue_logger.stop()
             self.p_worker_logger.join()
             self.p_queue_logger.join()
+
+        self.busy_overlay.hide_overlay()
 
     def preview(self):
         self.settings['main']['record'] = False
