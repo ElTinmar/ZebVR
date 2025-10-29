@@ -36,8 +36,10 @@ from .calibration import (
 )
 from .background import inpaint_background, static_background
 from .widgets import (
-    CameraWidget, CameraController,
-    ProjectorWidget, ProjectorController,
+    CameraWidget, 
+    CameraController,
+    ProjectorWidget, 
+    ProjectorController,
     RegistrationWidget,
     CalibrationWidget,
     BackgroundWidget,
