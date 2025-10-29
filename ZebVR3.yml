@@ -2,16 +2,14 @@ name: ZebVR3
 channels:
 - conda-forge
 dependencies:
-- python == 3.8.16
+- python >= 3.8, <3.14
 - ipython
-- pyqt # somehow, install pyqt and opencv in conda seem to solve the qt library version issues
-- opencv == 4.6.0
+- pyqt 
 - numpy
 - vispy
 - pip
 - snakeviz
-- cupy
-- ffmpeg == 4.4.2 # old version necessary for spinnaker
+- ffmpeg
 - av
 - pyserial
 - pyqtgraph
@@ -20,7 +18,7 @@ dependencies:
   - sounddevice
   - statsmodels  
   - psutil
-  - git+https://github.com/ElTinmar/video_tools.git@main#egg=video_tools[gpu]
+  - git+https://github.com/ElTinmar/video_tools.git@main
   - git+https://github.com/ElTinmar/tracker.git@main
   - git+https://github.com/ElTinmar/Lightcrafter.git@main  
   - git+https://github.com/ElTinmar/ViewSonicProjectorRS232.git@main

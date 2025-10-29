@@ -9,6 +9,7 @@ from image_tools import im2single, im2rgb, im2uint8, im2gray
 import cv2
 from numpy.typing import NDArray
 from image_tools import regular_polygon, star
+from qt_widgets import imshow, waitKey, destroyAllWindows
 
 RESIZED_HEIGHT = 512 # make sure that display fits on various screens
 
@@ -193,8 +194,8 @@ def check_registration(
     resized_width = int(RESIZED_HEIGHT * cam_width/cam_height)
     disp = cv2.resize(image,(resized_width, RESIZED_HEIGHT))
     print('Press key to close...')
-    cv2.imshow('calibration test', disp)
-    cv2.waitKey(10_000) 
-    cv2.destroyAllWindows() 
+    imshow('calibration test', disp)
+    waitKey(10_000) 
+    destroyAllWindows() 
         
     proj.terminate()

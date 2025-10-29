@@ -5,6 +5,7 @@ from tqdm import tqdm
 from image_tools import im2single, im2gray, im2uint8
 import cv2
 from typing import Callable
+from qt_widgets import imshow, waitKey, destroyWindow
 
 RESIZED_HEIGHT = 512 # make sure that display fits on various screens
 
@@ -33,7 +34,6 @@ def static_background(
 
     sample_frames = np.empty((cam_height, cam_width, num_images), dtype=np.float32)
     resized_width = int(RESIZED_HEIGHT * cam_width/cam_height)    
-    cv2.namedWindow('acquisition')
 
     print('Acquiring images')
     for i in tqdm(range(num_images)):
@@ -46,21 +46,15 @@ def static_background(
         sample_frames[:,:,i] = image
         
         image_resized = cv2.resize(image,(resized_width,RESIZED_HEIGHT))
-        cv2.imshow('acquisition', image_resized)
-        cv2.waitKey(1)
+        imshow('acquisition', image_resized)
+        waitKey(1)
 
         time.sleep(time_between_images)
 
-    cv2.destroyWindow('acquisition')
+    destroyWindow('acquisition')
 
     print('Compute background')
     background = mode(sample_frames)
-
-    print('Background done, press key to save...')
-    background_resized = cv2.resize(background,(resized_width,RESIZED_HEIGHT))
-    cv2.imshow('background', background_resized)
-    cv2.waitKey(10_000) 
-    cv2.destroyAllWindows() 
 
     print(f'Saving image to {background_file}')
     with open(background_file, 'wb') as f:

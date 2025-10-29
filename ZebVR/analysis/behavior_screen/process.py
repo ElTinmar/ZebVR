@@ -13,6 +13,7 @@ from video_tools import OpenCV_VideoWriter, OpenCV_VideoReader
 from ZebVR.protocol import Stim
 import cv2
 from .load import BehaviorData, BehaviorFiles, Directories
+from qt_widgets import imshow, waitKey
 
 class WellDimensions(TypedDict):
     well_radius_mm: float
@@ -85,8 +86,8 @@ def show_detected_circles(image: np.ndarray, circles: np.ndarray) -> None:
         cv2.circle(img_color, center, radius, (0, 255, 0), 2)
         cv2.circle(img_color, center, 2, (0, 0, 255), 3)
 
-    cv2.imshow('detected wells', img_color)
-    cv2.waitKey(0)
+    imshow('detected wells', img_color)
+    waitKey(0)
 
 def circle_roi_index(circles: np.ndarray, rois: List[Tuple[int,int,int,int]]):
     indices = []
