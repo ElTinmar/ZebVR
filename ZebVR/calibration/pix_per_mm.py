@@ -42,5 +42,8 @@ def pix_per_mm(
         distortion_coef=None    
     )
 
+    if px_per_mm is None:
+        return
+
     with open(calibration_file, 'w') as f:
         json.dump(px_per_mm, f)
