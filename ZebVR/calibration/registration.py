@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 import json
 from image_tools import im2single, enhance, im2rgb, im2uint8, im2gray, bwareafilter_centroids
 import cv2
-from geometry import homogeneous_coord_2d, AffineTransform2D
+from geometry import homogeneous_coord_2d
 from enum import IntEnum
 from functools import partial
 from camera_tools import Camera
@@ -180,6 +180,8 @@ def bar_intensity_profile(
         (height, width) = image.shape[:2]
         resized_width = int(RESIZED_HEIGHT * width/height)
         disp = cv2.resize(image,(resized_width, RESIZED_HEIGHT))
+        disp *= 255
+        disp = disp.astype(np.uint8)
         imshow('calibration', disp)
         waitKey(1)
     
