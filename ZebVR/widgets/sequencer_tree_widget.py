@@ -1,21 +1,28 @@
+from pathlib import Path
+from typing import List, Dict, Deque, Optional
+from collections import deque
+
+import numpy as np
+from numpy.typing import NDArray
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QPushButton,
-    QTreeWidget, QTreeWidgetItem, QAbstractItemView
+    QApplication, 
+    QWidget, 
+    QVBoxLayout, 
+    QPushButton,
+    QTreeWidget, 
+    QTreeWidgetItem, 
+    QAbstractItemView
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-from qt_widgets import LabeledSpinBox
 
+from qt_widgets import LabeledSpinBox
 from .protocol_widget import StimWidget
 from ..protocol import ProtocolItem, Debouncer
 from daq_tools import (
     BoardInfo,
     BoardType
 )
-import numpy as np
-from numpy.typing import NDArray
-from pathlib import Path
-from typing import List, Dict, Deque, Optional
-from collections import deque
+
 
 class LoopWidget(LabeledSpinBox):
 

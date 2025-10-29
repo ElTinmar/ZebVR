@@ -19,7 +19,6 @@ from qt_widgets import (
     LabeledDoubleSpinBox,
     NDarray_to_QPixmap
 )
-import numpy as np
 
 class IdentityWidget(QWidget):
 

@@ -20,7 +20,6 @@ from qt_widgets import (
     NDarray_to_QPixmap, 
     FileSaveLabeledEditButton
 )
-import numpy as np
 
 class BackgroundWidget(QWidget):
 

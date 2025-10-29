@@ -6,10 +6,9 @@ import numpy as np
 from numpy.typing import NDArray
 from .debouncer import Debouncer
 from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton, NDarray_to_QPixmap, CodeEditor
-from image_tools import DrawPolyMaskDialog, im2uint8
+from image_tools import DrawPolyMaskDialog, im2uint8, ImageViewerCoord
 import cv2
 from pathlib import Path
-from image_tools import ImageViewerCoord
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -21,8 +20,7 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QLabel,
     QPushButton,
-    QDialog,
-    QApplication
+    QDialog
 )
 
 class StopPolicy(IntEnum):

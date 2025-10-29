@@ -1,3 +1,8 @@
+from pathlib import Path
+from functools import partial
+from typing import Dict, Optional, Callable, Union
+from enum import IntEnum
+
 from PyQt5.QtWidgets import (
     QWidget, 
     QVBoxLayout, 
@@ -12,14 +17,11 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal, QRunnable, QThreadPool, QObject, QTimer, Qt
 from PyQt5.QtGui import QImage
-import numpy as np
-from pathlib import Path
-from functools import partial
-from typing import Dict, Optional, Callable, Union
 from numpy.typing import NDArray
-from enum import IntEnum
+import numpy as np
 
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap, ZoomableGraphicsView
+
 from camera_tools import (
     Camera, 
     OpenCV_Webcam, 
@@ -29,6 +31,16 @@ from camera_tools import (
     MovieFileCamGray,
     ZeroCam
 )
+try:
+    from camera_tools import XimeaCamera, XimeaCamera_Transport
+    XIMEA_ENABLED = True
+except ImportError:
+    XIMEA_ENABLED = False
+try:
+    from camera_tools import SpinnakerCamera
+    SPINNAKER_ENABLED = True
+except ImportError:
+    SPINNAKER_ENABLED = False
 
 class CameraModel(IntEnum):
     ZERO_GRAY = 0
@@ -40,18 +52,6 @@ class CameraModel(IntEnum):
     SPINNAKER = 6
     MOVIE = 7
     MOVIE_GRAY = 8
-
-try:
-    from camera_tools import XimeaCamera, XimeaCamera_Transport
-    XIMEA_ENABLED = True
-except ImportError:
-    XIMEA_ENABLED = False
-
-try:
-    from camera_tools import SpinnakerCamera
-    SPINNAKER_ENABLED = True
-except ImportError:
-    SPINNAKER_ENABLED = False
 
 class CameraWidget(QWidget):
 
