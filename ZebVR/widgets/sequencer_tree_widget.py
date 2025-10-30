@@ -11,10 +11,12 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QTreeWidget, 
     QTreeWidgetItem, 
-    QAbstractItemView
+    QAbstractItemView,
+    QStyledItemDelegate,
+    QStyle
 )
-from PyQt5.QtCore import Qt, pyqtSignal
-
+from PyQt5.QtCore import Qt, pyqtSignal, QRect
+from PyQt5.QtGui import QColor, QBrush, QPen, QPainter
 from qt_widgets import LabeledSpinBox
 from .protocol_widget import StimWidget
 from ..protocol import ProtocolItem, Debouncer
@@ -23,6 +25,32 @@ from daq_tools import (
     BoardType
 )
 
+from itertools import cycle
+import matplotlib.pyplot as plt 
+colors = cycle(plt.cm.Pastel1.colors)
+
+class BorderHighlightDelegate(QStyledItemDelegate):
+    def __init__(self, border_color=QColor("#0078D7"), parent=None):
+        super().__init__(parent)
+        self.border_color = border_color
+
+
+    def paint(self, painter, option, index):
+        
+        opt = option
+        opt.state = opt.state & ~QStyle.State_Selected
+        super().paint(painter, opt, index)
+
+        if option.state & QStyle.State_Selected:
+            rect = QRect(option.rect)
+            pen = QPen(self.border_color, 2)
+            painter.save()
+            painter.setRenderHint(QPainter.Antialiasing)
+            painter.setPen(pen)
+            painter.setBrush(Qt.NoBrush)
+            rect.adjust(1, 1, -1, -1)
+            painter.drawRect(rect)
+            painter.restore()
 
 class LoopWidget(LabeledSpinBox):
 
@@ -60,17 +88,18 @@ class SequencerWidget(QWidget):
         
         self.tree = QTreeWidget()
         self.tree.setHeaderHidden(True)
-        self.tree.setAlternatingRowColors(True)
-        self.tree.setDragEnabled(True)
-        self.tree.setAcceptDrops(True)
-        self.tree.setDragDropMode(QTreeWidget.InternalMove)
-        self.tree.setDefaultDropAction(Qt.MoveAction)
+        self.tree.setDragEnabled(False)
+        self.tree.setAcceptDrops(False)
+        self.tree.setDragDropMode(QTreeWidget.NoDragDrop)
+
         self.tree.setSelectionMode(QTreeWidget.SingleSelection)
         self.tree.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.tree.verticalScrollBar().setSingleStep(2)
-        self.tree.setIndentation(60)
+        self.tree.setIndentation(20)
+        self.tree.setItemDelegate(BorderHighlightDelegate(QColor("#0078D7"), self.tree))
 
         self.root_item = QTreeWidgetItem(self.tree)
+        self.root_item.setBackground(0, QBrush(QColor('white')))
         self.tree.addTopLevelItem(self.root_item)
         self.root_widget = LoopWidget()
         self.tree.setItemWidget(self.root_item, 0, self.root_widget)
@@ -176,7 +205,9 @@ class SequencerWidget(QWidget):
             stim_widget.from_protocol_item(protocol_item)
 
         parent_item = self._normalize_parent(self._selected_or_root())
+        parent_brush = parent_item.background(0) 
         item = QTreeWidgetItem(parent_item)
+        item.setBackground(0, parent_brush)
         self.tree.setItemWidget(item, 0, stim_widget)
         parent_item.setExpanded(True)
 
@@ -186,6 +217,9 @@ class SequencerWidget(QWidget):
 
         parent_item = self._normalize_parent(self._selected_or_root())
         item = QTreeWidgetItem(parent_item)
+        rgb = next(colors)
+        loop_color = QColor(*(int(c * 255) for c in rgb))
+        item.setBackground(0, QBrush(loop_color.lighter(0)))
         self.tree.setItemWidget(item, 0, LoopWidget())
         parent_item.setExpanded(True)
 
@@ -224,6 +258,7 @@ class SequencerWidget(QWidget):
             self.tree.setItemWidget(new_item, 0, new_widget)
 
         new_item.setExpanded(item.isExpanded())
+        new_item.setBackground(0, item.background(0))
 
         for i in range(item.childCount()):
             self.clone_item(item.child(i), new_item, i)
@@ -314,22 +349,82 @@ class SequencerWidget(QWidget):
 
         self.state_changed.emit()
 
-    def set_protocol(self, protocol: Deque[ProtocolItem]) -> None:
+    def serialize_item(self, item: QTreeWidgetItem) -> dict:
+        
+        widget = self.tree.itemWidget(item, 0)
+        node = {}
+
+        if isinstance(widget, LoopWidget):
+            node['type'] = 'loop'
+            node['repetitions'] = widget.value()
+            node['expanded'] = item.isExpanded()
+            node['children'] = [self.serialize_item(item.child(i)) for i in range(item.childCount())]
+
+        elif isinstance(widget, StimWidget):
+            node['type'] = 'stim'
+            node['protocol'] = widget.to_protocol_item()  
+
+        brush = item.background(0)
+        if brush is not None:
+            node['color'] = brush.color().name()
+
+        return node
+
+    def deserialize_item(self, parent: QTreeWidgetItem, node: dict):
+    
+        item = QTreeWidgetItem(parent)
+        if node['type'] == 'loop':
+            loop_widget = LoopWidget()
+            loop_widget.setValue(node.get('repetitions', 1))
+            self.tree.setItemWidget(item, 0, loop_widget)
+            item.setExpanded(node.get('expanded', True))
+
+            for child_node in node.get('children', []):
+                self.deserialize_item(item, child_node)
+
+        elif node['type'] == 'stim':
+            stim_widget = StimWidget(self.debouncer, self.daq_boards, self.background_image)
+            stim_widget.state_changed.connect(self.state_changed)
+            stim_widget.size_changed.connect(self.on_size_change)
+            protocol_item = node.get('protocol')
+            if protocol_item:
+                stim_widget.from_protocol_item(protocol_item)
+            self.tree.setItemWidget(item, 0, stim_widget)
+        
+        color_name = node.get('color')
+        if color_name:
+            item.setBackground(0, QBrush(QColor(color_name)))
+
+    def save_tree(self) -> dict:
+        return self.serialize_item(self.root_item)
+
+    def load_tree(self, protocol_tree: dict):
         self.clear_protocol()
-        for protocol_item in protocol:
-            self.add_stim_widget(protocol_item)
+
+        widget = self.tree.itemWidget(self.root_item, 0)
+        widget.setValue(protocol_tree.get('repetitions', 1))
+        color_name = protocol_tree.get('color')
+        self.root_item.setExpanded(protocol_tree.get('expanded', True))
+        if color_name:
+            self.root_item.setBackground(0, QBrush(QColor(color_name)))
+
+        for child_node in protocol_tree.get('children', []):
+            self.deserialize_item(self.root_item, child_node)
+
+        self.state_changed.emit()
 
     def get_state(self) -> Dict:
         state = {}
         state['debouncer_length'] = self.spb_debouncer_length.value()
         state['protocol'] = self.get_protocol()
+        state['tree'] = self.save_tree()
         return state
 
     def set_state(self, state: Dict) -> None:
         
         setters = {
             'debouncer_length': self.spb_debouncer_length.setValue,
-            'protocol': self.set_protocol
+            'tree': self.load_tree
         }
 
         for key, setter in setters.items():
@@ -343,4 +438,5 @@ if __name__ == "__main__":
     window.show()
     app.exec_()
 
-    print(window.get_protocol())
+    tree = window.save_tree()
+    print(tree)
