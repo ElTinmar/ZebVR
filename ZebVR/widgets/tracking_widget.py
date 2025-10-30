@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import (
     QApplication,
     QVBoxLayout,
     QGroupBox,
-    QCheckBox
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
