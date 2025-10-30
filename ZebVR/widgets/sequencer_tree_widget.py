@@ -251,7 +251,7 @@ class SequencerWidget(QWidget):
             new_widget.size_changed.connect(self.on_size_change)
             new_widget.set_state(old_widget.get_state())
             self.tree.setItemWidget(new_item, 0, new_widget)
-            new_widget.on_change() # mae sure thigs are sized properly
+            new_widget.on_change() # make sure things are sized properly
 
         elif isinstance(old_widget, LoopWidget):
             new_widget = LoopWidget()
