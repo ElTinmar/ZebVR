@@ -1,5 +1,4 @@
 import time
-t0 = time.perf_counter()
 from multiprocessing import set_start_method, Process
 import os
 os.environ["OMP_NUM_THREADS"] = "1" # this may not be necessary when setting affinity
