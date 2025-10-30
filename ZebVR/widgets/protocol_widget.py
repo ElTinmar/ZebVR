@@ -107,17 +107,17 @@ class StimWidget(QWidget):
 
     def stim_changed(self):
         self.stack.setCurrentIndex(self.cmb_stim_select.currentIndex())
+        self.on_change()
+
+    def on_change(self):
         current_widget = self.stack.currentWidget()
         if current_widget:
             new_height = current_widget.sizeHint().height()  
             self.stack.setFixedHeight(new_height)
             self.adjustSize() 
         self.size_changed.emit()
-        self.on_change()
-
-    def on_change(self):
-        self.updated = True
         self.state_changed.emit()
+        self.updated = True
 
     def is_updated(self) -> bool:
         return self.updated
@@ -141,6 +141,7 @@ class StimWidget(QWidget):
 
         current_widget = self.stack.currentWidget()
         current_widget.set_state(state)
+        self.state_changed.emit()
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
         self.cmb_stim_select.setCurrentIndex(protocol_item.STIM_SELECT) 
