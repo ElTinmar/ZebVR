@@ -91,7 +91,6 @@ class SequencerWidget(QWidget):
         self.tree.setDragEnabled(False)
         self.tree.setAcceptDrops(False)
         self.tree.setDragDropMode(QTreeWidget.NoDragDrop)
-
         self.tree.setSelectionMode(QTreeWidget.SingleSelection)
         self.tree.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.tree.verticalScrollBar().setSingleStep(2)
@@ -219,7 +218,7 @@ class SequencerWidget(QWidget):
         item = QTreeWidgetItem(parent_item)
         rgb = next(colors)
         loop_color = QColor(*(int(c * 255) for c in rgb))
-        item.setBackground(0, QBrush(loop_color.lighter(0)))
+        item.setBackground(0, QBrush(loop_color))
         self.tree.setItemWidget(item, 0, LoopWidget())
         parent_item.setExpanded(True)
 
