@@ -1,6 +1,4 @@
-import time
 from typing import Dict, Optional, List
-
 from numpy.typing import NDArray
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
@@ -9,8 +7,6 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, 
     QComboBox,
 )
-
-t0 = time.perf_counter()
 from ZebVR.protocol import (
     Debouncer,
     Stim,
@@ -20,8 +16,6 @@ from ZebVR.protocol import (
     DAQ_ProtocolItemWidget,
     ProtocolItemWidget
 )
-print(time.perf_counter()-t0)
-
 from daq_tools import (
     BoardInfo,
     BoardType
