@@ -35,7 +35,6 @@ class BorderHighlightDelegate(QStyledItemDelegate):
         super().__init__(parent)
 
     def paint(self, painter, option, index):
-        # TODO why does it work for even rows??
         
         selected_color = option.palette.highlight()
         original_color = index.data(Qt.BackgroundRole).color()
@@ -43,6 +42,7 @@ class BorderHighlightDelegate(QStyledItemDelegate):
         # make sure super().paint doesn't know about selection
         opt = QStyleOptionViewItem(option)
         opt.state = opt.state & ~QStyle.State_Selected
+        opt.state = opt.state & ~QStyle.State_HasFocus
         super().paint(painter, opt, index) 
 
         # covers only the widget
@@ -56,12 +56,15 @@ class BorderHighlightDelegate(QStyledItemDelegate):
         painter.save()
         painter.setRenderHint(QPainter.Antialiasing)
 
+        is_selected = option.state & QStyle.State_Selected
+
         if index.row() % 2 == 1:
-            painter.fillRect(widget_rect, QBrush(original_color.darker(110)))
-            if option.state & QStyle.State_Selected:
-                painter.fillRect(indent_rect, QBrush(QColor(selected_color)))   
-            else:
+            painter.fillRect(widget_rect, QBrush(original_color.darker(110)))            
+            if not is_selected:
                 painter.fillRect(indent_rect, QBrush(QColor('white').darker(110)))
+        
+        if is_selected:
+            painter.fillRect(indent_rect, QBrush(QColor(selected_color)))
             
         painter.restore()
 
