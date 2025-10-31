@@ -13,7 +13,8 @@ from PyQt5.QtWidgets import (
     QTreeWidgetItem, 
     QAbstractItemView,
     QStyledItemDelegate,
-    QStyle
+    QStyle,
+    QStyleOptionViewItem
 )
 from PyQt5.QtCore import Qt, pyqtSignal, QRect
 from PyQt5.QtGui import QColor, QBrush, QPen, QPainter
@@ -30,27 +31,34 @@ import matplotlib.pyplot as plt
 colors = cycle(plt.cm.Pastel1.colors)
 
 class BorderHighlightDelegate(QStyledItemDelegate):
-    def __init__(self, border_color=QColor("#0078D7"), parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.border_color = border_color
-
 
     def paint(self, painter, option, index):
         
-        opt = option
+        selected_color = option.palette.highlight()
+        original_color = index.data(Qt.BackgroundRole).color()
+
+        opt = QStyleOptionViewItem(option)
         opt.state = opt.state & ~QStyle.State_Selected
         super().paint(painter, opt, index)
 
-        if option.state & QStyle.State_Selected:
-            rect = QRect(option.rect)
-            pen = QPen(self.border_color, 2)
-            painter.save()
-            painter.setRenderHint(QPainter.Antialiasing)
-            painter.setPen(pen)
-            painter.setBrush(Qt.NoBrush)
-            rect.adjust(1, 1, -1, -1)
-            painter.drawRect(rect)
-            painter.restore()
+        widget_rect = QRect(option.rect)
+        indent_rect = QRect(option.rect)
+        indent_rect.setLeft(0)
+        indent_rect.setWidth(widget_rect.left())
+
+        painter.save()
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        if index.row() % 2 == 1:
+            painter.fillRect(widget_rect, QBrush(original_color.darker(110)))
+            if option.state & QStyle.State_Selected:
+                painter.fillRect(indent_rect, QBrush(QColor(selected_color)))   
+            else:
+                painter.fillRect(indent_rect, QBrush(QColor('white').darker(110)))
+            
+        painter.restore()
 
 class LoopWidget(LabeledSpinBox):
 
@@ -95,7 +103,7 @@ class SequencerWidget(QWidget):
         self.tree.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.tree.verticalScrollBar().setSingleStep(2)
         self.tree.setIndentation(20)
-        self.tree.setItemDelegate(BorderHighlightDelegate(QColor("#0078D7"), self.tree))
+        self.tree.setItemDelegate(BorderHighlightDelegate(self.tree))
 
         self.root_item = QTreeWidgetItem(self.tree)
         self.root_item.setBackground(0, QBrush(QColor('white')))
