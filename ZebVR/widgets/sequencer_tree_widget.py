@@ -35,15 +35,20 @@ class BorderHighlightDelegate(QStyledItemDelegate):
         super().__init__(parent)
 
     def paint(self, painter, option, index):
+        # TODO why does it work for even rows??
         
         selected_color = option.palette.highlight()
         original_color = index.data(Qt.BackgroundRole).color()
 
+        # make sure super().paint doesn't know about selection
         opt = QStyleOptionViewItem(option)
         opt.state = opt.state & ~QStyle.State_Selected
-        super().paint(painter, opt, index)
+        super().paint(painter, opt, index) 
 
+        # covers only the widget
         widget_rect = QRect(option.rect)
+
+        # covers the indentation zone
         indent_rect = QRect(option.rect)
         indent_rect.setLeft(0)
         indent_rect.setWidth(widget_rect.left())
