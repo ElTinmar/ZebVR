@@ -5,7 +5,7 @@ import json
 import pickle
 import pprint
 from pathlib import Path 
-from typing import Dict
+from typing import Dict, Callable
 from enum import Enum
 from array import array
 
@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy
 )
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QThread
 
 from qt_widgets import LabeledDoubleSpinBox, BusyOverlay
 from .calibration import (
@@ -53,6 +53,19 @@ from .widgets import (
 )
 from .utils import append_timestamp_to_filename, serialize
 from .dags import closed_loop, open_loop, video_recording, tracking
+
+class WorkerThread(QThread):
+
+    def __init__(self, target: Callable, *args, **kwargs):
+        
+        super().__init__()
+
+        self.target = target
+        self.args = args
+        self.kwargs = kwargs 
+
+    def run(self):
+        self.target(*self.args, **self.kwargs)
 
 class MainGui(QMainWindow):
     
@@ -748,8 +761,17 @@ class MainGui(QMainWindow):
             json.dump(serialize(self.settings, serializers), f)
 
     def start(self):
+        
+        self.busy_overlay.show_overlay()
         self.camera_controller.set_preview(False)
         self.temperature_widget.stop_monitor()
+        
+        self.start_thread = WorkerThread(self.start_dag)
+        self.start_thread.finished.connect(self.busy_overlay.hide_overlay)
+        self.start_thread.finished.connect(self.start_thread.deleteLater)
+        self.start_thread.start()
+
+    def start_dag(self):
 
         pprint.pprint(self.settings)
 
@@ -776,49 +798,46 @@ class MainGui(QMainWindow):
         self.p_worker_logger = Process(target=self.worker_logger.run)
         self.p_queue_logger = Process(target=self.queue_logger.run)
 
-        # TODO fix overlay here
-        self.busy_overlay.show_overlay()
         self.p_worker_logger.start()
         self.p_queue_logger.start()
-        self.dag.start() # blocking: start in a process
-        self.busy_overlay.hide_overlay()
+        self.dag.start() 
+
+    def stop_dag(self):
+
+        if self.dag is None:
+            return
+        
+        self.dag.stop() 
+        self.worker_logger.stop() 
+        self.queue_logger.stop()
+        self.p_worker_logger.join()
+        self.p_queue_logger.join()
 
     def stop(self):
         
-        # TODO fix overlay here
         self.busy_overlay.show_overlay()
-
-        if self.dag is not None:
-            self.dag.stop() # this is a bunch of joins: blocking, check in a process
-            self.worker_logger.stop() 
-            self.queue_logger.stop()
-            self.p_worker_logger.join()
-            self.p_queue_logger.join()
-
-        self.busy_overlay.hide_overlay()
+        
+        self.stop_thread = WorkerThread(self.stop_dag)
+        self.stop_thread.finished.connect(self.busy_overlay.hide_overlay)
+        self.stop_thread.finished.connect(self.stop_thread.deleteLater)
+        self.stop_thread.start()
 
     def preview(self):
         self.settings['main']['record'] = False
         self.start()
 
-    def _record(self, refresh_interval_s: float = 0.1) -> None:
-
-        self.settings['main']['record'] = True
-        duration = self.settings['main']['recording_duration']
-        
+    def record(self) -> None:
+        self.settings['main']['record'] = True    
         self.start() 
-        elapsed = 0
-        while elapsed < duration:
-            if not self.dag.running:
-                return
-            time.sleep(refresh_interval_s)
-            elapsed += refresh_interval_s
-        self.stop()
+        self.start_thread.finished.connect(self._record)
 
-    def record(self):
+    def _record(self):
 
-        self.recording_thread = Thread(target=self._record)
-        self.recording_thread.start()
+        duration = self.settings['main']['recording_duration']
+        self.wait_thread = WorkerThread(time.sleep, duration)
+        self.wait_thread.finished.connect(self.stop)
+        self.wait_thread.finished.connect(self.wait_thread.deleteLater)
+        self.wait_thread.start()
 
     def closeEvent(self, event):
         # close all widgets. Ensures that cleanup logic defined in closeEvent 
