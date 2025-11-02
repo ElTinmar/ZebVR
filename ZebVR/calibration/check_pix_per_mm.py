@@ -96,8 +96,7 @@ class Projector(app.Canvas, Process):
             app.run()
 
     def on_key_press(self, event):
-
-        if event.key.name == 'Escape':
+        if event.key.name in ['Escape', 'Q']:
             self.finished.set()
             self.close()
 
@@ -147,6 +146,7 @@ def check_pix_per_mm(
 
     # project point        
     proj.draw_image(mask_proj)
+    print('press escape or q to stop')
     proj.finished.wait()
     proj.terminate()
 
