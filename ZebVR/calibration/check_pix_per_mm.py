@@ -6,7 +6,6 @@ import numpy as np
 import json
 import cv2
 from numpy.typing import NDArray
-import time
 
 VERT_SHADER_CALIBRATION = """
 attribute vec2 a_position;
