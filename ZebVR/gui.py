@@ -1,6 +1,5 @@
 import time
 from multiprocessing import Process
-from threading import Thread
 import json
 import pickle
 import pprint
@@ -761,7 +760,7 @@ class MainGui(QMainWindow):
             json.dump(serialize(self.settings, serializers), f)
 
     def start(self):
-        
+
         self.busy_overlay.show_overlay()
         self.camera_controller.set_preview(False)
         self.temperature_widget.stop_monitor()
