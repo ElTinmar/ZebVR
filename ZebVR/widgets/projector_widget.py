@@ -415,6 +415,8 @@ class ProjectorController(QObject):
         self.view = view
         self.projector = None
         
+        self.power_off_thread = None
+        self.power_on_thread = None
         self.polling_thread = QThread()
         self.polling_thread.started.connect(self.start_polling)
         self.polling_thread.finished.connect(self.stop_polling)
@@ -432,9 +434,6 @@ class ProjectorController(QObject):
         self.view.green_offset_changed.connect(self.set_color_temperature_green_offset)
         self.view.blue_offset_changed.connect(self.set_color_temperature_blue_offset)
         self.view.power_calibration.connect(self.power_calibration)
-
-        self.power_off_thread = None
-        self.power_on_thread = None
 
         self.polling_thread.start()
 
