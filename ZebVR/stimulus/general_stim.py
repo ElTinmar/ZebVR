@@ -63,6 +63,7 @@ class SharedStimParameters:
         self.dot_center_mm = RawArray(c_double, DEFAULT['dot_center_mm'])
         self.dot_radius_mm = RawValue(c_double, DEFAULT['dot_radius_mm'])
         self.prey_capture_type = RawValue(c_double, DEFAULT['prey_capture_type'])
+        self.prey_periodic_function = RawValue(c_double, DEFAULT['prey_periodic_function'])
         self.n_preys = RawValue(c_ulong, DEFAULT['n_preys'])
         self.prey_speed_mm_s = RawValue(c_double, DEFAULT['prey_speed_mm_s'])
         self.prey_speed_deg_s = RawValue(c_double, DEFAULT['prey_speed_deg_s'])
@@ -110,6 +111,7 @@ class SharedStimParameters:
         self.dot_center_mm[:] = d.get('dot_center_mm', DEFAULT['dot_center_mm'])
         self.dot_radius_mm.value = d.get('dot_radius_mm', DEFAULT['dot_radius_mm'])
         self.prey_capture_type.value = d.get('prey_capture_type', DEFAULT['prey_capture_type'])
+        self.prey_periodic_function.value = d.get('prey_periodic_function', DEFAULT['prey_periodic_function'])
         self.n_preys.value = int(d.get('n_preys', DEFAULT['n_preys']))
         self.prey_speed_mm_s.value = d.get('prey_speed_mm_s', DEFAULT['prey_speed_mm_s'])
         self.prey_speed_deg_s.value = d.get('prey_speed_deg_s', DEFAULT['prey_speed_deg_s'])
@@ -190,6 +192,7 @@ class SharedStimParameters:
         if self.stim_select.value == Stim.PREY_CAPTURE:
             res.update({
                 'prey_capture_type': self.prey_capture_type.value,
+                'prey_periodic_function': self.prey_periodic_function.value,
                 'n_preys': self.n_preys.value,
                 'prey_speed_mm_s': self.prey_speed_mm_s.value,
                 'prey_speed_deg_s': self.prey_speed_deg_s.value,
@@ -304,6 +307,7 @@ class GeneralStim(VisualStim):
         uniform vec2 u_dot_center_mm;
         uniform float u_dot_radius_mm;
         uniform int u_prey_capture_type;
+        uniform int u_prey_periodic_function;
         uniform float u_n_preys;
         uniform float u_prey_radius_mm;
         uniform float u_prey_trajectory_radius_mm;
@@ -325,18 +329,28 @@ class GeneralStim(VisualStim):
         const int LINEAR = 0;
         const int POWER_LAW = 1;
 
+        // looming type
         const int LINEAR_RADIUS = 0;
         const int LINEAR_ANGLE = 1;
         const int CONSTANT_VELOCITY = 2;
 
+        // prey capture type
         const int RING = 0;
         const int RANDOM_CLOUD = 1;
         const int ARC = 2;
 
+        //coordinate system
         const int BOUNDING_BOX_CENTER = 0;
         const int FISH_CENTERED = 1;
         const int FISH_EGOCENTRIC = 2; 
+
+        //periodic function
+        const int SINE = 0;
+        const int MODULO = 1;
+        const int TRIANGLE = 2;
+        const int SQUARE = 3;
         
+        // stimuli
         const int DARK = 0;
         const int BRIGHT = 1;
         const int PHOTOTAXIS = 2;
@@ -530,7 +544,10 @@ class GeneralStim(VisualStim):
             float arc_stop_rad = radians(u_prey_arc_stop_deg);
             float angle_range_rad = arc_stop_rad - arc_start_rad;
             float freq = radians(u_prey_speed_deg_s) / (2*abs(angle_range_rad));
-            float angle_rad = arc_start_rad + angle_range_rad * (sin(2*PI*freq*relative_time_s)/2 + 0.5);
+
+            if (u_prey_periodic_function == SINE) {
+                float angle_rad = arc_start_rad + angle_range_rad * (sin(2*PI*freq*relative_time_s)/2 + 0.5);
+            }
             vec2 prey_pos = vec2(-u_prey_trajectory_radius_mm * sin(angle_rad), u_prey_trajectory_radius_mm*cos(angle_rad));
             if ( distance(coords_mm, prey_pos) <= u_prey_radius_mm) {
                 return u_foreground_color;
