@@ -550,6 +550,7 @@ class ProjectorController(QObject):
         if self.power_off_thread is not None:
             return
         
+        self.view.serial_group.setEnabled(False)
         self.power_on_thread = WorkerThread(self.projector.power_on)
         self.power_on_thread.finished.connect(self.power_on_thread.deleteLater)
         self.power_on_thread.start()
@@ -560,6 +561,7 @@ class ProjectorController(QObject):
         
         self.power_on_thread.deleteLater()
         self.power_on_thread = None
+        self.view.serial_group.setEnabled(True)
 
     def power_off(self):
         if self.projector is None:
@@ -567,7 +569,8 @@ class ProjectorController(QObject):
 
         if self.power_off_thread is not None:
             return
-            
+        
+        self.view.serial_group.setEnabled(False)
         self.power_off_thread = WorkerThread(self.projector.power_off)
         self.power_off_thread.finished.connect(self.power_off_done)
         self.power_off_thread.start()
@@ -578,6 +581,7 @@ class ProjectorController(QObject):
         
         self.power_off_thread.deleteLater()
         self.power_off_thread = None
+        self.view.serial_group.setEnabled(True)
 
     def get_state(self):
 
