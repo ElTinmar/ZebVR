@@ -25,7 +25,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QTimer, QThread
 
-from qt_widgets import LabeledDoubleSpinBox, BusyOverlay
+from qt_widgets import LabeledDoubleSpinBox, BusyOverlay, WorkerThread
 from .calibration import (
     check_pix_per_mm, 
     check_registration, 
@@ -52,19 +52,6 @@ from .widgets import (
 )
 from .utils import append_timestamp_to_filename, serialize
 from .dags import closed_loop, open_loop, video_recording, tracking
-
-class WorkerThread(QThread):
-
-    def __init__(self, target: Callable, *args, **kwargs):
-        
-        super().__init__()
-
-        self.target = target
-        self.args = args
-        self.kwargs = kwargs 
-
-    def run(self):
-        self.target(*self.args, **self.kwargs)
 
 class MainGui(QMainWindow):
     

@@ -11,9 +11,21 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer
 from typing import Dict, List
-from viewsonic_serial import ViewSonicProjector, SourceInput, Bool, Gamma, ColorMode
+from viewsonic_serial import (
+    ViewSonicProjector, 
+    SourceInput, 
+    Bool, 
+    Gamma, 
+    ColorMode
+)
 import time
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledSliderSpinBox, LabeledComboBox
+from qt_widgets import (
+    LabeledDoubleSpinBox, 
+    LabeledSpinBox, 
+    LabeledSliderSpinBox, 
+    LabeledComboBox,
+    WorkerThread
+)
 from ..serial_utils import list_serial_devices, SerialDevice
 from .light_analysis import LightAnalysisWidget
 from screeninfo import get_monitors, Monitor
@@ -421,6 +433,9 @@ class ProjectorController(QObject):
         self.view.blue_offset_changed.connect(self.set_color_temperature_blue_offset)
         self.view.power_calibration.connect(self.power_calibration)
 
+        self.power_off_thread = None
+        self.power_on_thread = None
+
         self.new_thread.start()
 
     def start_polling(self):
@@ -529,18 +544,40 @@ class ProjectorController(QObject):
         self.projector.set_color_temperature_blue_offset(offset)
 
     def power_on(self):
-        
         if self.projector is None:
             return
 
-        self.projector.power_on()
+        if self.power_off_thread is not None:
+            return
+        
+        self.power_on_thread = WorkerThread(self.projector.power_on)
+        self.power_on_thread.finished.connect(self.power_on_thread.deleteLater)
+        self.power_on_thread.start()
+
+    def power_on_done(self):
+        if self.power_on_thread is None:
+            return
+        
+        self.power_on_thread.deleteLater()
+        self.power_on_thread = None
 
     def power_off(self):
-
         if self.projector is None:
             return
+
+        if self.power_off_thread is not None:
+            return
+            
+        self.power_off_thread = WorkerThread(self.projector.power_off)
+        self.power_off_thread.finished.connect(self.power_off_done)
+        self.power_off_thread.start()
+
+    def power_off_done(self):
+        if self.power_off_thread is None:
+            return
         
-        self.projector.power_off()
+        self.power_off_thread.deleteLater()
+        self.power_off_thread = None
 
     def get_state(self):
 
