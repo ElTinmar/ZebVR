@@ -552,7 +552,7 @@ class ProjectorController(QObject):
         
         self.view.serial_group.setEnabled(False)
         self.power_on_thread = WorkerThread(self.projector.power_on)
-        self.power_on_thread.finished.connect(self.power_on_thread.deleteLater)
+        self.power_on_thread.finished.connect(self.power_on_done)
         self.power_on_thread.start()
 
     def power_on_done(self):
