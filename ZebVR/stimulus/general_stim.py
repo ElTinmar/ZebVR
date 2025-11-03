@@ -548,11 +548,11 @@ class GeneralStim(VisualStim):
             float angle_rad = arc_start_rad;
             if (u_prey_periodic_function == SINE) {
                 float freq = radians(u_prey_speed_deg_s) / (2*abs(angle_range_rad));
-                angle_rad += arc_start_rad + angle_range_rad * (sin(2*PI*freq*relative_time_s)/2 + 0.5);
+                angle_rad += angle_range_rad * (sin(2*PI*freq*relative_time_s)/2 + 0.5);
             }
             if (u_prey_periodic_function == MODULO) {
                 float period = abs(angle_range_rad) / radians(u_prey_speed_deg_s);
-                angle_rad += arc_start_rad + angle_range_rad * mod(relative_time_s, period)/period;
+                angle_rad += angle_range_rad * mod(relative_time_s, period)/period;
             }
 
             vec2 prey_pos = vec2(-u_prey_trajectory_radius_mm * sin(angle_rad), u_prey_trajectory_radius_mm*cos(angle_rad));
