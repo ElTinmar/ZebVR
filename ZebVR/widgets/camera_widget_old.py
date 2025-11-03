@@ -2,10 +2,6 @@ from pathlib import Path
 from functools import partial
 from typing import Dict, Optional, Callable, Union
 from enum import IntEnum
-from dataclasses import dataclass, asdict, field
-from threading import Lock
-from queue import Queue
-import time
 
 from PyQt5.QtWidgets import (
     QWidget, 
@@ -19,23 +15,12 @@ from PyQt5.QtWidgets import (
     QGraphicsPixmapItem,
     QApplication
 )
-from PyQt5.QtCore import (
-    pyqtSignal, 
-    QRunnable, 
-    QThreadPool, 
-    QObject, 
-    QTimer, 
-    Qt
-)
+from PyQt5.QtCore import pyqtSignal, QRunnable, QThreadPool, QObject, QTimer, Qt
 from PyQt5.QtGui import QImage
 from numpy.typing import NDArray
 import numpy as np
-from qt_widgets import (
-    LabeledDoubleSpinBox, 
-    LabeledSpinBox, 
-    NDarray_to_QPixmap, 
-    ZoomableGraphicsView
-)
+
+from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap, ZoomableGraphicsView
 
 from camera_tools import (
     Camera, 
@@ -47,7 +32,7 @@ from camera_tools import (
     ZeroCam
 )
 try:
-    from camera_tools import XimeaCamera_Transport
+    from camera_tools import XimeaCamera, XimeaCamera_Transport
     XIMEA_ENABLED = True
 except ImportError:
     XIMEA_ENABLED = False
@@ -68,101 +53,10 @@ class CameraModel(IntEnum):
     MOVIE = 7
     MOVIE_GRAY = 8
 
-@dataclass
-class CameraParameter:
-    enabled: bool = False
-    value: float = 0
-    min: float = 0
-    max: float = 0
-    step: float = 0
-
-@dataclass
-class CameraState:
-    model: CameraModel = CameraModel.ZERO_GRAY
-    camera_id: int = 0
-    movie_file: str = ""
-    num_channels: int = 1
-    
-    width: CameraParameter = field(default_factory=partial(CameraParameter, True, 1080, 0, 1080, 1))
-    height: CameraParameter = field(default_factory=partial(CameraParameter, True, 720, 0, 720, 1))
-    framerate: CameraParameter = field(default_factory=partial(CameraParameter, True, 30, 30, 30, 1))
-    offsetX: CameraParameter = field(default_factory=partial(CameraParameter, True, 0, 0, 1080, 1))
-    offsetY: CameraParameter = field(default_factory=partial(CameraParameter, True, 0, 0, 720, 1))
-    exposure: CameraParameter = field(default_factory=partial(CameraParameter, True, 1000, 1, 1000, 1))
-    gain: CameraParameter = field(default_factory=partial(CameraParameter, True, 0, 0, 0, 1))
-
-class SharedCameraState:
-    def __init__(self):
-        self._state = CameraState()
-        self._lock = Lock()
-
-    def set_state(self, **kwargs):
-        with self._lock:
-            for k, v in kwargs.items():
-                if hasattr(self._state, k):
-                    setattr(self._state, k, v)
-                else:
-                    raise AttributeError(f"Invalid field: {k}")
-
-    def get_state(self) -> Dict:
-        with self._lock:
-            return asdict(self._state)
-        
-class CameraWorker(QObject):
-    frame_ready = pyqtSignal()
-    state_ready = pyqtSignal(Dict)
-    error = pyqtSignal(str)
-
-    def __init__(self, shared_state: SharedCameraState, frame_queue: Queue):
-        super().__init__()
-        self.shared_state = shared_state
-        self.frame_queue = frame_queue
-        self.keep_running = False
-        self.camera = None
-
-    def start_preview(self):
-        self.keep_running = True
-        state = self.shared_state.get_state()
-        try:
-            self.camera = self._make_camera(state)
-            self.camera.start_acquisition()
-        except Exception as e:
-            self.error.emit(str(e))
-            return
-
-        while self.keep_running:
-            try:
-                frame = self.camera.get_frame()['image']
-                if frame is not None:
-                    self.frame_queue.put(frame)
-                    self.frame_ready.emit()
-            except Exception as e:
-                self.error.emit(str(e))
-            time.sleep(0.001)
-
-        self.camera.stop_acquisition()
-
-    def stop_preview(self):
-        self.keep_running = False
-
-    def update_settings(self, settings: Dict):
-        if not self.camera:
-            return
-        for k, v in settings.items():
-            setter = getattr(self.camera, f"set_{k}", None)
-            if callable(setter):
-                try:
-                    setter(v)
-                except Exception as e:
-                    self.error.emit(f"{k}: {e}")
-
-    def _make_camera(self, state) -> Camera:
-        # Return camera constructor depending on model (like your existing logic)
-        ...
-
 class CameraWidget(QWidget):
 
-    state_changed = pyqtSignal(CameraState)
+    source_changed = pyqtSignal(int, int, str)
+    state_changed = pyqtSignal()
     preview = pyqtSignal(bool)
     PREVIEW_HEIGHT: int = 480
     REFRESH_RATE = 30
