@@ -96,6 +96,7 @@ class Projector(app.Canvas, Process):
             app.run()
 
     def on_key_press(self, event):
+        # TODO use arrows to move reticle around?
         if event.key.name in ['Escape', 'Q']:
             self.finished.set()
             self.close()
