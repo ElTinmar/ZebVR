@@ -543,11 +543,18 @@ class GeneralStim(VisualStim):
             float arc_start_rad = radians(u_prey_arc_start_deg);
             float arc_stop_rad = radians(u_prey_arc_stop_deg);
             float angle_range_rad = arc_stop_rad - arc_start_rad;
-            float freq = radians(u_prey_speed_deg_s) / (2*abs(angle_range_rad));
-
+            
+            
+            float angle_rad = arc_start_rad;
             if (u_prey_periodic_function == SINE) {
-                float angle_rad = arc_start_rad + angle_range_rad * (sin(2*PI*freq*relative_time_s)/2 + 0.5);
+                float freq = radians(u_prey_speed_deg_s) / (2*abs(angle_range_rad));
+                angle_rad += arc_start_rad + angle_range_rad * (sin(2*PI*freq*relative_time_s)/2 + 0.5);
             }
+            if (u_prey_periodic_function == MODULO) {
+                float period = abs(angle_range_rad) / radians(u_prey_speed_deg_s);
+                angle_rad += arc_start_rad + angle_range_rad * mod(relative_time_s, period)/period;
+            }
+
             vec2 prey_pos = vec2(-u_prey_trajectory_radius_mm * sin(angle_rad), u_prey_trajectory_radius_mm*cos(angle_rad));
             if ( distance(coords_mm, prey_pos) <= u_prey_radius_mm) {
                 return u_foreground_color;
@@ -766,6 +773,7 @@ class GeneralStim(VisualStim):
         self.program['u_prey_arc_start_deg'] = self.shared_stim_parameters.prey_arc_start_deg.value
         self.program['u_prey_arc_stop_deg'] = self.shared_stim_parameters.prey_arc_stop_deg.value
         self.program['u_prey_capture_type'] = self.shared_stim_parameters.prey_capture_type
+        self.program['u_prey_periodic_function'] = self.shared_stim_parameters.prey_periodic_function
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
         self.program['u_ramp_duration_sec'] = self.shared_stim_parameters.ramp_duration_sec.value
         self.program['u_ramp_powerlaw_exponent'] = self.shared_stim_parameters.ramp_powerlaw_exponent.value

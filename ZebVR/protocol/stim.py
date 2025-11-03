@@ -48,6 +48,9 @@ class PeriodicFunction(IntEnum):
     #TRIANGLE = 2
     #SQUARE = 3
 
+    def __str__(self) -> str:
+        return self.name
+    
 class PreyCaptureType(IntEnum):
     RING = 0
     RANDOM_CLOUD = 1 
