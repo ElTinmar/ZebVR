@@ -68,7 +68,6 @@ class CameraModel(IntEnum):
     MOVIE = 7
     MOVIE_GRAY = 8
 
-
 @dataclass
 class CameraParameter:
     enabled: bool = False
@@ -84,13 +83,13 @@ class CameraState:
     movie_file: str = ""
     num_channels: int = 1
     
-    width: CameraParameter = CameraParameter(True, 1080, 0, 1080, 1)
-    height: CameraParameter = CameraParameter(True, 720, 0, 720, 1)
-    framerate: CameraParameter = CameraParameter(True, 30, 30, 30, 1)
-    offsetX: CameraParameter = CameraParameter(True, 0, 0, 1080, 1)
-    offsetY: CameraParameter = CameraParameter(True, 0, 0, 720, 1)
-    exposure: CameraParameter = CameraParameter(True, 1000, 1, 1000, 1)
-    gain: CameraParameter = CameraParameter(True, 0, 0, 0, 1)
+    width: CameraParameter = field(default_factory=partial(CameraParameter, True, 1080, 0, 1080, 1))
+    height: CameraParameter = field(default_factory=partial(CameraParameter, True, 720, 0, 720, 1))
+    framerate: CameraParameter = field(default_factory=partial(CameraParameter, True, 30, 30, 30, 1))
+    offsetX: CameraParameter = field(default_factory=partial(CameraParameter, True, 0, 0, 1080, 1))
+    offsetY: CameraParameter = field(default_factory=partial(CameraParameter, True, 0, 0, 720, 1))
+    exposure: CameraParameter = field(default_factory=partial(CameraParameter, True, 1000, 1, 1000, 1))
+    gain: CameraParameter = field(default_factory=partial(CameraParameter, True, 0, 0, 0, 1))
 
 class SharedCameraState:
     def __init__(self):
