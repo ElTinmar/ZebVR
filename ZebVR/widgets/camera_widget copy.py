@@ -2,7 +2,7 @@ from pathlib import Path
 from functools import partial
 from typing import Dict, Optional, Callable, Union
 from enum import IntEnum
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from threading import Lock
 from queue import Queue
 import time
@@ -30,7 +30,12 @@ from PyQt5.QtCore import (
 from PyQt5.QtGui import QImage
 from numpy.typing import NDArray
 import numpy as np
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap, ZoomableGraphicsView
+from qt_widgets import (
+    LabeledDoubleSpinBox, 
+    LabeledSpinBox, 
+    NDarray_to_QPixmap, 
+    ZoomableGraphicsView
+)
 
 from camera_tools import (
     Camera, 
@@ -63,40 +68,29 @@ class CameraModel(IntEnum):
     MOVIE = 7
     MOVIE_GRAY = 8
 
+
+@dataclass
+class CameraParameter:
+    enabled: bool = False
+    value: float = 0
+    min: float = 0
+    max: float = 0
+    step: float = 0
+
 @dataclass
 class CameraState:
     model: CameraModel = CameraModel.ZERO_GRAY
     camera_id: int = 0
     movie_file: str = ""
-    width: int = 1080
-    width_min: int = 0
-    width_max: int = 1080
-    width_step: int = 1
-    height: int = 720
-    height_min: int = 0
-    height_max: int = 720
-    height_step: int = 1
     num_channels: int = 1
-    framerate: float = 30
-    framerate_min: float = 30
-    framerate_max: float = 30 
-    framerate_step: float = 1
-    offsetX: int = 0
-    offsetX_min: int = 0
-    offsetX_max: int = 1080
-    offsetX_step: int = 1
-    offsetY: int = 0
-    offsetY_min: int = 0
-    offsetY_max: int = 720
-    offsetY_step: int = 1
-    exposure: float = 1000
-    exposure_min: float = 1 
-    exposure_max: float = 1000
-    exposure_step: float = 1
-    gain: float = 0
-    gain_min: float = 0
-    gain_max: float = 0
-    gain_step: float = 1
+    
+    width: CameraParameter = CameraParameter(True, 1080, 0, 1080, 1)
+    height: CameraParameter = CameraParameter(True, 720, 0, 720, 1)
+    framerate: CameraParameter = CameraParameter(True, 30, 30, 30, 1)
+    offsetX: CameraParameter = CameraParameter(True, 0, 0, 1080, 1)
+    offsetY: CameraParameter = CameraParameter(True, 0, 0, 720, 1)
+    exposure: CameraParameter = CameraParameter(True, 1000, 1, 1000, 1)
+    gain: CameraParameter = CameraParameter(True, 0, 0, 0, 1)
 
 class SharedCameraState:
     def __init__(self):
@@ -106,7 +100,10 @@ class SharedCameraState:
     def set_state(self, **kwargs):
         with self._lock:
             for k, v in kwargs.items():
-                setattr(self._state, k, v)
+                if hasattr(self._state, k):
+                    setattr(self._state, k, v)
+                else:
+                    raise AttributeError(f"Invalid field: {k}")
 
     def get_state(self) -> Dict:
         with self._lock:
