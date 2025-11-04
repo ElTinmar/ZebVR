@@ -304,6 +304,16 @@ class CameraHandler(QObject):
         self.acquisition_started = False
         self.timer_update_ms = timer_update_ms
 
+    def start_handler(self):
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.get_frame)
+        self.timer.start(self.timer_update_ms)  
+
+    def stop_handler(self):
+        self.timer.stop()
+        if self.camera is not None:
+            self.camera.stop_acquisition()
+
     def frame_acquisition(self, enabled: bool):
         
         self.timer.stop()
@@ -330,15 +340,10 @@ class CameraHandler(QObject):
 
         self.timer.start(self.timer_update_ms)  
 
-    def start_handler(self):
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.get_frame)
-        self.timer.start(self.timer_update_ms)  
-
-    def stop_handler(self):
+    def state_changed(self):
         self.timer.stop()
-        if self.camera is not None:
-            self.camera.stop_acquisition()
+        self.apply_state()
+        self.timer.start(self.timer_update_ms)
 
     def validate_state(self):
 
@@ -392,7 +397,6 @@ class CameraHandler(QObject):
 
         state['num_channels'] = self.camera.get_num_channels()
         
-        print(f'validated state: {state}')
         self.validated_state.emit(state)
 
     def apply_state(self):
@@ -401,8 +405,6 @@ class CameraHandler(QObject):
             return
 
         state = self.view.get_state()
-
-        print(f'state: {state}')
 
         if self.acquisition_started:
             self.camera.stop_acquisition()
@@ -437,8 +439,7 @@ class CameraHandler(QObject):
             if frame['image'] is not None:
                 self.view.set_image(frame['image'])
         except Exception as e:
-            print(e)
-                
+            print(f'Caught exception: {e}')               
 
 class CameraController(QObject):
 
@@ -459,7 +460,7 @@ class CameraController(QObject):
         self.camera_thread.started.connect(self.camera_handler.start_handler)
 
         self.view.source_changed.connect(self.on_source_changed)
-        self.view.state_changed.connect(self.camera_handler.apply_state)
+        self.view.state_changed.connect(self.camera_handler.state_changed)
         self.view.state_changed.connect(self.state_changed)
         self.view.preview.connect(self.camera_handler.frame_acquisition)
         self.view.stop_signal.connect(self.camera_handler.stop_handler)
@@ -527,7 +528,6 @@ class CameraController(QObject):
         self.camera_thread.quit()
         self.camera_thread.wait()
 
-        
 if __name__ == "__main__":
 
     app = QApplication([])
