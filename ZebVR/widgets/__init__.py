@@ -1,4 +1,6 @@
 from .camera_widget import *
+#from .camera_widget_new import *
+
 from .audio_widget import *
 from .sequencer_tree_widget import *
 from .projector_widget import *
