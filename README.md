@@ -68,6 +68,7 @@ the SDK needs to be reinstalled.
 ### Thorlabs hardware 
 
 ```bash
+sudo apt install innoextract
 python -m thorlabs_ccs.get_firmware
 ```
 
