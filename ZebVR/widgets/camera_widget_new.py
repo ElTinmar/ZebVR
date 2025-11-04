@@ -334,9 +334,15 @@ class CameraHandler(QObject):
 
         self.timer.stop()
 
+        if self.camera is not None:
+            self.camera.stop_acquisition()
+
         self.camera_constructor = camera_constructor
         self.camera = self.camera_constructor()
         self.apply_state()
+
+        if self.acquisition_started:
+            self.camera.start_acquisition()
 
         self.timer.start(self.timer_update_ms)  
 
@@ -406,9 +412,6 @@ class CameraHandler(QObject):
 
         state = self.view.get_state()
 
-        if self.acquisition_started:
-            self.camera.stop_acquisition()
-
         # set state
         self.camera.set_width(state['width_value'])
         self.camera.set_height(state['height_value'])
@@ -420,9 +423,6 @@ class CameraHandler(QObject):
 
         # validate state
         self.validate_state()
-
-        if self.acquisition_started:
-            self.camera.start_acquisition()
     
     def get_frame(self):
 
@@ -444,6 +444,7 @@ class CameraHandler(QObject):
 class CameraController(QObject):
 
     state_changed = pyqtSignal()
+    preview = pyqtSignal(bool)
     constructor_changed = pyqtSignal(object)
 
     def __init__(self, view: CameraWidget, *args, **kwargs):
@@ -466,6 +467,7 @@ class CameraController(QObject):
         self.view.stop_signal.connect(self.camera_handler.stop_handler)
         self.view.stop_signal.connect(self.stop)
 
+        self.preview.connect(self.camera_handler.frame_acquisition)
         self.constructor_changed.connect(self.camera_handler.set_constructor)
         self.camera_constructor = None
         
@@ -517,6 +519,9 @@ class CameraController(QObject):
 
         if self.camera_constructor is not None:
             self.constructor_changed.emit(self.camera_constructor)
+
+    def set_preview(self, enable: bool):
+        self.preview.emit(enable)
 
     def get_state(self):
 
