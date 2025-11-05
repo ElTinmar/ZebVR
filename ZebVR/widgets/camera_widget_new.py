@@ -1,6 +1,6 @@
 from pathlib import Path
 from functools import partial
-from typing import Dict, Optional, Callable, Union
+from typing import Dict, Callable, Union
 from enum import IntEnum
 import time
 
@@ -16,12 +16,17 @@ from PyQt5.QtWidgets import (
     QGraphicsPixmapItem,
     QApplication
 )
-from PyQt5.QtCore import pyqtSignal, QRunnable, QThreadPool, QObject, QTimer, Qt, QThread
+from PyQt5.QtCore import pyqtSignal, QObject, QTimer, Qt, QThread
 from PyQt5.QtGui import QImage
 from numpy.typing import NDArray
 import numpy as np
 
-from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, NDarray_to_QPixmap, ZoomableGraphicsView
+from qt_widgets import (
+    LabeledDoubleSpinBox, 
+    LabeledSpinBox, 
+    NDarray_to_QPixmap, 
+    ZoomableGraphicsView
+)
 
 from camera_tools import (
     Camera, 
@@ -33,7 +38,7 @@ from camera_tools import (
     ZeroCam
 )
 try:
-    from camera_tools import XimeaCamera, XimeaCamera_Transport
+    from camera_tools import XimeaCamera_Transport
     XIMEA_ENABLED = True
 except ImportError:
     XIMEA_ENABLED = False
