@@ -490,6 +490,7 @@ class CameraHandler(QObject):
         self.camera_constructor = camera_constructor
         self.camera = self.camera_constructor()
         if camera_model in WEBCAMS:
+            # wait until changes propagate in the GUI
             loop = QEventLoop()
             self.view.webcam_modes_set.connect(loop.quit)
             self.webcam_modes.emit(self.camera.supported_configs)
