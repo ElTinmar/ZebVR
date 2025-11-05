@@ -208,7 +208,7 @@ class CameraWidget(QWidget):
         for width, config_height in config_width.items():
             for height, framerates in config_height.items():
                 self.webcam_resolution.addItem(f'{width}x{height}', (width, height))
-        self.webcam_format.setCurrentData((width, height))
+        self.webcam_resolution.setCurrentData((width, height))
         self.width_spinbox.setValue(width)
         self.height_spinbox.setValue(height)
 
@@ -235,7 +235,7 @@ class CameraWidget(QWidget):
         for width, config_height in config_width.items():
             for height, framerates in config_height.items():
                 self.webcam_resolution.addItem(f'{width}x{height}', (width, height))
-        self.webcam_format.setCurrentData((width, height))
+        self.webcam_resolution.setCurrentData((width, height))
         self.width_spinbox.setValue(width)
         self.height_spinbox.setValue(height)
         
