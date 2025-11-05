@@ -21,7 +21,8 @@ from PyQt5.QtCore import (
     QObject, 
     QTimer, 
     Qt, 
-    QThread
+    QThread,
+    QEventLoop
 )
 from PyQt5.QtGui import QImage
 from numpy.typing import NDArray
@@ -75,6 +76,7 @@ class CameraWidget(QWidget):
     state_changed = pyqtSignal()
     preview = pyqtSignal(bool)
     stop_signal = pyqtSignal()
+    webcam_modes_set = pyqtSignal()
 
     PREVIEW_HEIGHT: int = 480
     REFRESH_RATE = 60
@@ -217,8 +219,8 @@ class CameraWidget(QWidget):
         self.webcam_framerate.setCurrentData(fps)
         self.framerate_spinbox.setValue(fps)
         self.block_signals(False)
-
-        self.state_changed.emit()
+        
+        self.webcam_modes_set.emit()
 
     def webcam_format_changed(self):
         
@@ -488,7 +490,11 @@ class CameraHandler(QObject):
         self.camera_constructor = camera_constructor
         self.camera = self.camera_constructor()
         if camera_model in WEBCAMS:
+            loop = QEventLoop()
+            self.view.webcam_modes_set.connect(loop.quit)
             self.webcam_modes.emit(self.camera.supported_configs)
+            loop.exec_()
+            self.view.webcam_modes_set.disconnect(loop.quit)
 
         self.apply_state()
 
@@ -553,7 +559,7 @@ class CameraHandler(QObject):
         state['offsetY_value'] = self.camera.get_offsetY() if offsetY_enabled else 0
 
         state['num_channels'] = self.camera.get_num_channels()
-        
+
         self.validated_state.emit(state)
 
     def apply_state(self):
