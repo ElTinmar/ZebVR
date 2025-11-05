@@ -227,6 +227,8 @@ class CameraWidget(QWidget):
         layout_controls.addStretch()
 
     def on_source_change(self):
+        # TODO show different widgets for webcam (format/res/fps), movie, ...
+
         model = self.camera_model.currentIndex()
         id = self.camera_id.value() 
         filename = self.filename.text()
