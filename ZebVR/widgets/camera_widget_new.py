@@ -364,9 +364,9 @@ class CameraWidget(QWidget):
             self.webcam_format.setVisible(True)
             self.webcam_resolution.setVisible(True)
             self.webcam_framerate.setVisible(True)
-            self.width_spinbox.setVisible(True)
-            self.height_spinbox.setVisible(True)
-            self.framerate_spinbox.setVisible(True)
+            self.width_spinbox.setVisible(False)
+            self.height_spinbox.setVisible(False)
+            self.framerate_spinbox.setVisible(False)
         else:
             self.webcam_format.setVisible(False)
             self.webcam_resolution.setVisible(False)
