@@ -336,6 +336,7 @@ class CameraHandler(QObject):
 
         if self.camera is not None:
             self.camera.stop_acquisition()
+            del(self.camera)
 
         self.camera_constructor = camera_constructor
         self.camera = self.camera_constructor()
