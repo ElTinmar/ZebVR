@@ -16,7 +16,13 @@ from PyQt5.QtWidgets import (
     QGraphicsPixmapItem,
     QApplication
 )
-from PyQt5.QtCore import pyqtSignal, QObject, QTimer, Qt, QThread
+from PyQt5.QtCore import (
+    pyqtSignal, 
+    QObject, 
+    QTimer, 
+    Qt, 
+    QThread
+)
 from PyQt5.QtGui import QImage
 from numpy.typing import NDArray
 import numpy as np
@@ -24,6 +30,7 @@ import numpy as np
 from qt_widgets import (
     LabeledDoubleSpinBox, 
     LabeledSpinBox, 
+    LabeledComboBox,
     NDarray_to_QPixmap, 
     ZoomableGraphicsView
 )
@@ -59,6 +66,9 @@ class CameraModel(IntEnum):
     MOVIE = 7
     MOVIE_GRAY = 8
 
+WEBCAMS = [CameraModel.WEBCAM, CameraModel.WEBCAM_GRAY, CameraModel.WEBCAM_REGISTRATION]
+MOVIES = [CameraModel.MOVIE, CameraModel.MOVIE_GRAY]
+
 class CameraWidget(QWidget):
 
     source_changed = pyqtSignal(int, int, str)
@@ -67,7 +77,7 @@ class CameraWidget(QWidget):
     stop_signal = pyqtSignal()
 
     PREVIEW_HEIGHT: int = 480
-    REFRESH_RATE = 30
+    REFRESH_RATE = 60
 
     def __init__(self, *args, **kwargs):
 
@@ -87,6 +97,7 @@ class CameraWidget(QWidget):
         self.current_preview_width = self.PREVIEW_HEIGHT
         self.current_width = self.PREVIEW_HEIGHT
         self.current_height = self.PREVIEW_HEIGHT
+        self.webcam_modes = {}
 
         self.declare_components()
         self.layout_components()
@@ -131,6 +142,21 @@ class CameraWidget(QWidget):
             spinbox.setEnabled(False)
             spinbox.valueChanged.connect(self.state_changed)
 
+        self.webcam_format = LabeledComboBox()
+        self.webcam_format.setText('Format:')
+        self.webcam_format.currentIndexChanged.connect(self.webcam_format_changed)
+        self.webcam_format.setVisible(False)
+
+        self.webcam_resolution = LabeledComboBox()
+        self.webcam_resolution.setText('Resolution:')
+        self.webcam_resolution.currentIndexChanged.connect(self.webcam_resolution_changed)
+        self.webcam_resolution.setVisible(False)
+
+        self.webcam_framerate = LabeledComboBox()
+        self.webcam_framerate.setText('Framerate:')
+        self.webcam_framerate.currentIndexChanged.connect(self.webcam_framerate_changed)
+        self.webcam_framerate.setVisible(False)
+
         self.num_channels_label = QLabel()
         self.num_channels_label.setText('Num channels:')
         self.num_channels = QLabel()
@@ -161,6 +187,95 @@ class CameraWidget(QWidget):
         )
         self.filename.setText(filename)
         self.on_source_change()
+
+    def set_webcam_modes(self, modes: Dict):
+        self.webcam_modes = modes
+
+        self.block_signals(True)
+        self.webcam_format.clear()
+        self.webcam_resolution.clear()
+        self.webcam_framerate.clear()
+        self.block_signals(False)
+        
+        if not modes:
+            return
+        
+        self.block_signals(True)
+        for fmt, config_width in modes.items():
+            self.webcam_format.addItem(str(fmt), fmt)
+        self.webcam_format.setCurrentData(fmt)
+
+        for width, config_height in config_width.items():
+            for height, framerates in config_height.items():
+                self.webcam_resolution.addItem(f'{width}x{height}', (width, height))
+        self.webcam_format.setCurrentData((width, height))
+        self.width_spinbox.setValue(width)
+        self.height_spinbox.setValue(height)
+
+        for fps in framerates:
+            self.webcam_framerate.addItem(str(fps), fps)
+        self.webcam_framerate.setCurrentData(fps)
+        self.framerate_spinbox.setValue(fps)
+        self.block_signals(False)
+
+        self.state_changed.emit()
+
+    def webcam_format_changed(self):
+        
+        if not self.webcam_modes:
+            return
+        
+        fmt = self.webcam_format.currentData()
+        config_width = self.webcam_modes[fmt]
+
+        self.block_signals(True)
+        self.webcam_resolution.clear()
+        self.webcam_framerate.clear()
+
+        for width, config_height in config_width.items():
+            for height, framerates in config_height.items():
+                self.webcam_resolution.addItem(f'{width}x{height}', (width, height))
+        self.webcam_format.setCurrentData((width, height))
+        self.width_spinbox.setValue(width)
+        self.height_spinbox.setValue(height)
+        
+        for fps in framerates:
+            self.webcam_framerate.addItem(str(fps), fps)
+        self.webcam_framerate.setCurrentData(fps)
+        self.framerate_spinbox.setValue(fps)
+
+        self.block_signals(False)
+        self.state_changed.emit()
+
+    def webcam_resolution_changed(self):
+
+        if not self.webcam_modes:
+            return
+        
+        fmt = self.webcam_format.currentData()
+        width, height = self.webcam_resolution.currentData()
+        
+        self.block_signals(True)
+
+        self.width_spinbox.setValue(width)
+        self.height_spinbox.setValue(height)
+
+        framerates = self.webcam_modes[fmt][width][height]
+        self.webcam_framerate.clear()
+        for fps in framerates:
+            self.webcam_framerate.addItem(str(fps), fps)
+        self.webcam_framerate.setCurrentData(fps)
+        self.framerate_spinbox.setValue(fps)
+
+        self.block_signals(False)
+        self.state_changed.emit()
+
+    def webcam_framerate_changed(self):
+        fps = self.webcam_framerate.currentData()
+        self.block_signals(True)
+        self.framerate_spinbox.setValue(fps)
+        self.block_signals(False)
+        self.state_changed.emit()
 
     def start(self):
         self.preview.emit(True)
@@ -210,6 +325,9 @@ class CameraWidget(QWidget):
         layout_controls = QVBoxLayout(self)
         layout_controls.addWidget(self.camera_model)
         layout_controls.addLayout(layout_cam)
+        layout_controls.addWidget(self.webcam_format)
+        layout_controls.addWidget(self.webcam_resolution)
+        layout_controls.addWidget(self.webcam_framerate)
 
         for control in self.controls:
             spinbox = getattr(self, control + '_spinbox')
@@ -233,12 +351,27 @@ class CameraWidget(QWidget):
         id = self.camera_id.value() 
         filename = self.filename.text()
 
-        if model in [CameraModel.MOVIE, CameraModel.MOVIE_GRAY]:
+        if model in MOVIES:
             self.camera_id.setEnabled(False)
             self.movie_load.setEnabled(True)
         else:
             self.camera_id.setEnabled(True)
             self.movie_load.setEnabled(False)
+
+        if model in WEBCAMS:
+            self.webcam_format.setVisible(True)
+            self.webcam_resolution.setVisible(True)
+            self.webcam_framerate.setVisible(True)
+            self.width_spinbox.setVisible(True)
+            self.height_spinbox.setVisible(True)
+            self.framerate_spinbox.setVisible(True)
+        else:
+            self.webcam_format.setVisible(False)
+            self.webcam_resolution.setVisible(False)
+            self.webcam_framerate.setVisible(False)
+            self.width_spinbox.setVisible(True)
+            self.height_spinbox.setVisible(True)
+            self.framerate_spinbox.setVisible(True)
 
         self.source_changed.emit(model, id, filename)
 
@@ -300,6 +433,7 @@ class CameraWidget(QWidget):
 class CameraHandler(QObject):
 
     validated_state = pyqtSignal(dict)
+    webcam_modes = pyqtSignal(dict)
 
     def __init__(self, view: CameraWidget, timer_update_ms: int = 1):
 
@@ -308,6 +442,7 @@ class CameraHandler(QObject):
         self.view = view
 
         self.camera = None
+        self.camera_constructor = None
         self.acquisition_started = False
         self.timer_update_ms = timer_update_ms
 
@@ -326,19 +461,24 @@ class CameraHandler(QObject):
         self.timer.stop()
 
         if self.camera is None:
-            return 
+            if self.camera_constructor is None:
+                return
+            self.camera = self.camera_constructor()
+            self.apply_state()
         
         if enabled:
             self.camera.start_acquisition()
             self.acquisition_started = True
         else:
             self.camera.stop_acquisition()
+            del(self.camera) 
+            self.camera = None
             self.acquisition_started = False
 
         self.timer.start(self.timer_update_ms)
         
-    def set_constructor(self, camera_constructor: Callable[[], Camera]):
-
+    def set_constructor(self, camera_constructor: Callable[[], Camera], camera_model: CameraModel):
+        
         self.timer.stop()
 
         if self.camera is not None:
@@ -347,6 +487,9 @@ class CameraHandler(QObject):
 
         self.camera_constructor = camera_constructor
         self.camera = self.camera_constructor()
+        if camera_model in WEBCAMS:
+            self.webcam_modes.emit(self.camera.supported_configs)
+
         self.apply_state()
 
         if self.acquisition_started:
@@ -423,10 +566,10 @@ class CameraHandler(QObject):
         # set state
         self.camera.set_width(state['width_value'])
         self.camera.set_height(state['height_value'])
+        self.camera.set_framerate(state['framerate_value'])
         self.camera.set_offsetX(state['offsetX_value'])
         self.camera.set_offsetY(state['offsetY_value'])
         self.camera.set_exposure(state['exposure_value'])
-        self.camera.set_framerate(state['framerate_value'])
         self.camera.set_gain(state['gain_value'])
 
         # validate state
@@ -453,7 +596,7 @@ class CameraController(QObject):
 
     state_changed = pyqtSignal()
     preview = pyqtSignal(bool)
-    constructor_changed = pyqtSignal(object)
+    constructor_changed = pyqtSignal(object, object)
 
     def __init__(self, view: CameraWidget, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -466,6 +609,7 @@ class CameraController(QObject):
 
         # wire up signals and slots
         self.camera_handler.validated_state.connect(self.view.set_state)
+        self.camera_handler.webcam_modes.connect(self.view.set_webcam_modes)
         self.camera_thread.started.connect(self.camera_handler.start_handler)
 
         self.view.source_changed.connect(self.on_source_changed)
@@ -526,7 +670,7 @@ class CameraController(QObject):
             self.camera_constructor = partial(XimeaCamera_Transport, dev_id=camera_index)
 
         if self.camera_constructor is not None:
-            self.constructor_changed.emit(self.camera_constructor)
+            self.constructor_changed.emit(self.camera_constructor, camera_model)
 
     def set_preview(self, enable: bool):
         self.preview.emit(enable)
