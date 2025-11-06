@@ -486,6 +486,7 @@ class CameraHandler(QObject):
                 self.camera.stop_acquisition()
                 del(self.camera) 
                 self.camera = None
+                self.last_camera_state = None
                 self.acquisition_started = False
 
         self.timer.start(self.timer_update_ms)
@@ -500,6 +501,8 @@ class CameraHandler(QObject):
 
         self.camera_constructor = camera_constructor
         self.camera = self.camera_constructor()
+        self.last_camera_state = None
+
         if camera_model in WEBCAMS:
             # wait until changes propagate in the GUI
             loop = QEventLoop()
@@ -579,7 +582,7 @@ class CameraHandler(QObject):
     def requires_acquisition_restart(self, new_state: Dict) -> bool:
         
         if self.last_camera_state is None:
-            return False
+            return True
         
         width_changed = (new_state['width_value'] != self.last_camera_state['width_value'])
         height_changed = (new_state['height_value'] != self.last_camera_state['height_value'])
