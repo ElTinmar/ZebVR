@@ -46,4 +46,4 @@ def pix_per_mm(
         return
 
     with open(calibration_file, 'w') as f:
-        json.dump(px_per_mm, f)
+        json.dump(float(px_per_mm), f)
