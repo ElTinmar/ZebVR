@@ -462,6 +462,7 @@ class CameraHandler(QObject):
         self.timer.stop()
         if self.camera is not None:
             self.camera.stop_acquisition()
+            del(self.camera)
 
     def frame_acquisition(self, enabled: bool):
         
