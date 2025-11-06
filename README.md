@@ -13,7 +13,7 @@ This program is meant to run on Ubuntu >= 22.04
 ### Dependencies
 
 ```bash
-sudo apt-get install libportaudio2 build-essential libusb-1.0-0-dev
+sudo apt-get install libportaudio2 build-essential libusb-1.0-0-dev 
 ```
 
 ### Labjack exodriver
@@ -95,8 +95,7 @@ sudo usermod -a -G plugdev,dialout "$USER"
 
 ### CUDA
 
-This seems necessary for now
-TODO make that optional
+TODO check this is no longer required
 
 ```bash
 sudo apt install nvidia-cuda-toolkit
@@ -203,6 +202,14 @@ if error 56 No Devices Found, reinstall SDK (requires sudo)
 
 ```bash
 python setup_ximea.py --only-sdk
+```
+
+## libtiff.so.5: cannot open shared object file
+
+```
+sudo apt install libtiff6
+cd /usr/lib/x86_64-linux-gnu/
+sudo ln -s libtiff.so.6 libtiff.so.5
 ```
 
 ## modprobe: ERROR: could not insert 'ximea_cam_pcie': Key was rejected by service
