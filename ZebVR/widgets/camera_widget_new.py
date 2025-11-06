@@ -430,7 +430,7 @@ class CameraWidget(QWidget):
     
     def set_state(self, state: Dict) -> None:
         self.update_state(state)
-        self.state_changed.emit()
+        self.on_source_change()
 
     def closeEvent(self, event):
         self.stop_signal.emit()
@@ -590,12 +590,17 @@ class CameraHandler(QObject):
         state = self.view.get_state()
 
         if self.requires_acquisition_restart(state):
-            self.camera.stop_acquisition()
+
+            if self.acquisition_started:
+                self.camera.stop_acquisition()
+
             self.camera.set_width(state['width_value'])
             self.camera.set_height(state['height_value'])
             self.camera.set_offsetX(state['offsetX_value'])
             self.camera.set_offsetY(state['offsetY_value'])
-            self.camera.start_acquisition()
+
+            if self.acquisition_started:
+                self.camera.start_acquisition()
         
         self.camera.set_framerate(state['framerate_value'])
         self.camera.set_exposure(state['exposure_value'])
