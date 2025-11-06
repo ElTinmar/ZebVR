@@ -475,10 +475,10 @@ class CameraHandler(QObject):
             
             if enabled:
                 self.camera = self.camera_constructor()
-                self.apply_state()
         
         if enabled:
             if not self.acquisition_started:
+                self.apply_state()
                 self.camera.start_acquisition()
                 self.acquisition_started = True
         else:
