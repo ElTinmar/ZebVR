@@ -445,6 +445,7 @@ class CameraHandler(QObject):
 
         self.camera = None
         self.camera_constructor = None
+        self.last_camera_state = None
         self.acquisition_started = False
         self.timer_update_ms = timer_update_ms
 
@@ -561,7 +562,20 @@ class CameraHandler(QObject):
 
         state['num_channels'] = self.camera.get_num_channels()
 
+        self.last_camera_state = state
+
         self.validated_state.emit(state)
+
+    def requires_acquisition_restart(self, new_state: Dict) -> bool:
+        
+        if self.last_camera_state is None:
+            return False
+        
+        width_changed = (new_state['width_value'] != self.last_camera_state['width_value'])
+        height_changed = (new_state['height_value'] != self.last_camera_state['height_value'])
+        offsetX_changed = (new_state['offsetX_value'] != self.last_camera_state['offsetX_value'])
+        offsetY_changed = (new_state['offsetY_value'] != self.last_camera_state['offsetY_value'])
+        return width_changed or height_changed or offsetX_changed or offsetY_changed
 
     def apply_state(self):
 
@@ -570,12 +584,15 @@ class CameraHandler(QObject):
 
         state = self.view.get_state()
 
-        # set state
-        self.camera.set_width(state['width_value'])
-        self.camera.set_height(state['height_value'])
+        if self.requires_acquisition_restart(state):
+            self.camera.stop_acquisition()
+            self.camera.set_width(state['width_value'])
+            self.camera.set_height(state['height_value'])
+            self.camera.set_offsetX(state['offsetX_value'])
+            self.camera.set_offsetY(state['offsetY_value'])
+            self.camera.start_acquisition()
+        
         self.camera.set_framerate(state['framerate_value'])
-        self.camera.set_offsetX(state['offsetX_value'])
-        self.camera.set_offsetY(state['offsetY_value'])
         self.camera.set_exposure(state['exposure_value'])
         self.camera.set_gain(state['gain_value'])
 
