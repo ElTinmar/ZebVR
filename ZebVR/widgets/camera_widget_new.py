@@ -397,7 +397,7 @@ class CameraWidget(QWidget):
         state['num_channels'] = int(self.num_channels.text())
         return state
     
-    def set_state(self, state: Dict) -> None:
+    def update_state(self, state: Dict) -> None:
 
         self.block_signals(True)
 
@@ -428,6 +428,10 @@ class CameraWidget(QWidget):
 
         self.block_signals(False)
     
+    def set_state(self, state: Dict) -> None:
+        self.update_state(state)
+        self.state_changed.emit()
+
     def closeEvent(self, event):
         self.stop_signal.emit()
         self.stop()
@@ -632,7 +636,7 @@ class CameraController(QObject):
         self.camera_handler.moveToThread(self.camera_thread)
 
         # wire up signals and slots
-        self.camera_handler.validated_state.connect(self.view.set_state)
+        self.camera_handler.validated_state.connect(self.view.update_state)
         self.camera_handler.webcam_modes.connect(self.view.set_webcam_modes)
         self.camera_thread.started.connect(self.camera_handler.start_handler)
 
