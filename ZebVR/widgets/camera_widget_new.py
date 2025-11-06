@@ -607,11 +607,9 @@ class CameraHandler(QObject):
     def get_frame(self):
 
         if self.camera is None:
-            time.sleep(0.001)
             return
 
         if not self.acquisition_started:
-            time.sleep(0.001)
             return
 
         try:                
