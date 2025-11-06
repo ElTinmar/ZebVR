@@ -148,6 +148,7 @@ class CameraWidget(QWidget):
         self.webcam_format.setText('Format:')
         self.webcam_format.currentIndexChanged.connect(self.webcam_format_changed)
         self.webcam_format.setVisible(False)
+        self.webcam_format.setEnabled(False)
 
         self.webcam_resolution = LabeledComboBox()
         self.webcam_resolution.setText('Resolution:')
