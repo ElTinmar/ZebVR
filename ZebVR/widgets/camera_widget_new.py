@@ -476,13 +476,15 @@ class CameraHandler(QObject):
             self.apply_state()
         
         if enabled:
-            self.camera.start_acquisition()
-            self.acquisition_started = True
+            if not self.acquisition_started:
+                self.camera.start_acquisition()
+                self.acquisition_started = True
         else:
-            self.camera.stop_acquisition()
-            del(self.camera) 
-            self.camera = None
-            self.acquisition_started = False
+            if self.acquisition_started:
+                self.camera.stop_acquisition()
+                del(self.camera) 
+                self.camera = None
+                self.acquisition_started = False
 
         self.timer.start(self.timer_update_ms)
         
