@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 from typing import Tuple, Optional
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import (
     QApplication, 
     QDialog, 
@@ -16,7 +15,13 @@ from PyQt5.QtWidgets import (
     QDoubleSpinBox,
     QGraphicsPixmapItem
 )
-from qt_widgets import ZoomableGraphicsView, NDarray_to_QPixmap
+from image_tools import im2gray
+from qt_widgets import (
+    ZoomableGraphicsView, 
+    NDarray_to_QPixmap,
+    WorkerThread,
+    BusyOverlay
+)
 
 def find_circular_arenas(        
         image: np.ndarray, 
@@ -58,7 +63,7 @@ def find_circular_arenas(
     min_distance_px = well_distance_px - detection_tolerance_px
 
     circles_px = cv2.HoughCircles(
-        image,
+        im2gray(image),
         cv2.HOUGH_GRADIENT,
         dp = 1,
         minDist = min_distance_px,
@@ -84,6 +89,12 @@ def find_circular_arenas(
     h, w = detected_wells.shape[:2]
 
     for x, y, r in circles_px:
+
+        # numpy uint16 can overflow, convert to regular int
+        x = int(x)
+        y = int(y)
+        r = int(r)
+        
         center = (x, y)
         cv2.circle(detected_wells, center, r, (0, 255, 0), 2)
         cv2.circle(detected_wells, center, 2, (0, 0, 255), 3)
@@ -106,12 +117,31 @@ def find_circular_arenas(
     return circles, ROIs, detected_wells
 
 class FindCircularArenasDialog(QDialog):
-    parametersAccepted = pyqtSignal(dict)
-    resultsReady = pyqtSignal(np.ndarray, np.ndarray, np.ndarray)
+
+    data = pyqtSignal(np.ndarray, np.ndarray, np.ndarray)
     RESIZED_HEIGHT = 512
 
-    def __init__(self, image: np.ndarray, parent=None):
+    def __init__(
+            self, 
+            image: np.ndarray, 
+            pix_per_mm: float,
+            detection_tolerance_mm: float = 2.0,
+            radius_mm: float = 9.75,
+            distance_mm: float = 22.0,
+            gradient_thresh: float = 50,
+            circle_thresh: float = 30,
+            box_tolerance_mm: float = 1.0,
+            parent=None
+        ):
         super().__init__(parent)
+
+        self.pix_per_mm = pix_per_mm
+        self.detection_tolerance_mm = detection_tolerance_mm
+        self.radius_mm = radius_mm
+        self.distance_mm = distance_mm
+        self.gradient_thresh = gradient_thresh
+        self.circle_thresh = circle_thresh
+        self.box_tolerance_mm = box_tolerance_mm
         self.setWindowTitle("Find Circular Arenas")
         self.setModal(True)
 
@@ -131,24 +161,26 @@ class FindCircularArenasDialog(QDialog):
         self.view.setScene(self.scene)
         layout.addWidget(self.view)
 
+        self.busy = BusyOverlay(self)
+
         # Parameter form
         form = QFormLayout()
 
-        self.pix_per_mm = QDoubleSpinBox(); self.pix_per_mm.setValue(32); self.pix_per_mm.setDecimals(2)
-        self.detection_tolerance_mm = QDoubleSpinBox(); self.detection_tolerance_mm.setValue(2)
-        self.radius_mm = QDoubleSpinBox(); self.radius_mm.setValue(9.75)
-        self.distance_mm = QDoubleSpinBox(); self.distance_mm.setValue(22)
-        self.gradient_thresh = QDoubleSpinBox(); self.gradient_thresh.setValue(50)
-        self.circle_thresh = QDoubleSpinBox(); self.circle_thresh.setValue(30)
-        self.box_tolerance_mm = QDoubleSpinBox(); self.box_tolerance_mm.setValue(1.0)
+        self.sb_pix_per_mm = QDoubleSpinBox(); self.sb_pix_per_mm.setValue(self.pix_per_mm); self.sb_pix_per_mm.setDecimals(2)
+        self.sb_detection_tolerance_mm = QDoubleSpinBox(); self.sb_detection_tolerance_mm.setValue(self.detection_tolerance_mm)
+        self.sb_radius_mm = QDoubleSpinBox(); self.sb_radius_mm.setValue(self.radius_mm)
+        self.sb_distance_mm = QDoubleSpinBox(); self.sb_distance_mm.setValue(self.distance_mm)
+        self.sb_gradient_thresh = QDoubleSpinBox(); self.sb_gradient_thresh.setValue(self.gradient_thresh)
+        self.sb_circle_thresh = QDoubleSpinBox(); self.sb_circle_thresh.setValue(self.circle_thresh)
+        self.sb_box_tolerance_mm = QDoubleSpinBox(); self.sb_box_tolerance_mm.setValue(self.box_tolerance_mm)
 
-        form.addRow("Pixels per mm:", self.pix_per_mm)
-        form.addRow("Detection tolerance (mm):", self.detection_tolerance_mm)
-        form.addRow("Well radius (mm):", self.radius_mm)
-        form.addRow("Distance between centers (mm):", self.distance_mm)
-        form.addRow("Gradient threshold:", self.gradient_thresh)
-        form.addRow("Circle detection threshold:", self.circle_thresh)
-        form.addRow("Bounding box tolerance (mm):", self.box_tolerance_mm)
+        form.addRow("Pixels per mm:", self.sb_pix_per_mm)
+        form.addRow("Detection tolerance (mm):", self.sb_detection_tolerance_mm)
+        form.addRow("Well radius (mm):", self.sb_radius_mm)
+        form.addRow("Distance between centers (mm):", self.sb_distance_mm)
+        form.addRow("Gradient threshold:", self.sb_gradient_thresh)
+        form.addRow("Circle detection threshold:", self.sb_circle_thresh)
+        form.addRow("Bounding box tolerance (mm):", self.sb_box_tolerance_mm)
 
         layout.addLayout(form)
 
@@ -175,55 +207,61 @@ class FindCircularArenasDialog(QDialog):
 
     def on_detect(self):
         params = dict(
-            pix_per_mm=self.pix_per_mm.value(),
-            detection_tolerance_mm=self.detection_tolerance_mm.value(),
-            well_radius_mm=self.radius_mm.value(),
-            distance_between_well_centers_mm=self.distance_mm.value(),
-            gradient_threshold_high=self.gradient_thresh.value(),
-            circle_detection_threshold=self.circle_thresh.value(),
-            bounding_box_tolerance_mm=self.box_tolerance_mm.value()
+            pix_per_mm=self.sb_pix_per_mm.value(),
+            detection_tolerance_mm=self.sb_detection_tolerance_mm.value(),
+            well_radius_mm=self.sb_radius_mm.value(),
+            distance_between_well_centers_mm=self.sb_distance_mm.value(),
+            gradient_threshold_high=self.sb_gradient_thresh.value(),
+            circle_detection_threshold=self.sb_circle_thresh.value(),
+            bounding_box_tolerance_mm=self.sb_box_tolerance_mm.value()
         )
 
-        gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        result = find_circular_arenas(gray, **params)
+        self.busy.show_overlay()
+        self.thread = WorkerThread(find_circular_arenas, self.image, **params)
+        self.thread.result.connect(self.handle_results)
+        self.thread.exception.connect(self.handle_exception)
+        self.thread.start()
 
-        if result is None:
+    def handle_results(self, detection: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]]):
+        
+        self.busy.hide_overlay()
+
+        if detection is None:
             QMessageBox.warning(self, "No Circles", "No circles were detected.")
             return
-
-        circles, rois, annotated = result
+        
+        circles, rois, annotated = detection
         self.results = (circles, rois, annotated)
         self.detected_image = annotated
         self._update_display(annotated)
 
+    def handle_exception(self, exception: Exception):
+        print(exception)
+
     def on_accept(self):
         if self.results:
             circles, rois, annotated = self.results
-            self.resultsReady.emit(circles, rois, annotated)
+            self.data.emit(circles, rois, annotated)
 
-        params = dict(
-            pix_per_mm=self.pix_per_mm.value(),
-            detection_tolerance_mm=self.detection_tolerance_mm.value(),
-            well_radius_mm=self.radius_mm.value(),
-            distance_between_well_centers_mm=self.distance_mm.value(),
-            gradient_threshold_high=self.gradient_thresh.value(),
-            circle_detection_threshold=self.circle_thresh.value(),
-            bounding_box_tolerance_mm=self.box_tolerance_mm.value()
-        )
-        self.parametersAccepted.emit(params)
         self.accept()
 
+    def closeEvent(self, event):
+        if hasattr(self, "thread") and self.thread.isRunning():
+            self.thread.quit()
+            self.thread.wait()
+
+        super().closeEvent(event)
 
 if __name__ == "__main__":
+
     app = QApplication([])
 
     image = cv2.imread("ZebVR/resources/background_example.png")
     if image is None:
         raise FileNotFoundError("Please place a 'test_image.jpg' in the working directory.")
 
-    dlg = FindCircularArenasDialog(image)
-    dlg.resultsReady.connect(lambda c, r, a: print(f"Detected {len(c)} circles"))
+    dlg = FindCircularArenasDialog(image, pix_per_mm=35)
+    dlg.data.connect(lambda c, r, a: print(f"Detected {len(c)} circles"))
     if dlg.exec_() == QDialog.Accepted:
         print("Parameters accepted!")
 
-    app.exec_()
