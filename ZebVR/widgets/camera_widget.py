@@ -645,7 +645,8 @@ class CameraController(QObject):
         super().__init__(*args, **kwargs)
 
         self.view = view
-        
+        self.camera_constructor = None
+
         self.camera_thread = QThread()
         self.camera_handler = CameraHandler(self.view)
         self.camera_handler.moveToThread(self.camera_thread)
@@ -665,7 +666,6 @@ class CameraController(QObject):
 
         self.preview.connect(self.camera_handler.frame_acquisition)
         self.constructor_changed.connect(self.camera_handler.set_constructor)
-        self.camera_constructor = None
         
         self.camera_thread.start()
 
