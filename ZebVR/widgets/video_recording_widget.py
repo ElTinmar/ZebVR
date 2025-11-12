@@ -113,7 +113,7 @@ class VideoOutputWidget(QWidget):
         self.video_quality = LabeledSpinBox()
         self.video_quality.setText('Video quality (crf):')
         self.video_quality.setRange(-12, 51)
-        self.video_quality.setValue(23)
+        self.video_quality.setValue(18)
         self.video_quality.valueChanged.connect(self.state_changed)
 
         # stack
