@@ -711,6 +711,7 @@ class CameraController(QObject):
 
         if self.camera_constructor is not None:
             self.constructor_changed.emit(self.camera_constructor, camera_model)
+            self.state_changed.emit()
 
     def set_preview(self, enable: bool):
         self.preview.emit(enable)
