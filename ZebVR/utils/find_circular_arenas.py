@@ -13,9 +13,10 @@ from PyQt5.QtWidgets import (
     QGraphicsScene, 
     QMessageBox, 
     QDialogButtonBox, 
-    QDoubleSpinBox
+    QDoubleSpinBox,
+    QGraphicsPixmapItem
 )
-from qt_widgets import ZoomableGraphicsView
+from qt_widgets import ZoomableGraphicsView, NDarray_to_QPixmap
 
 def find_circular_arenas(        
         image: np.ndarray, 
@@ -107,6 +108,7 @@ def find_circular_arenas(
 class FindCircularArenasDialog(QDialog):
     parametersAccepted = pyqtSignal(dict)
     resultsReady = pyqtSignal(np.ndarray, np.ndarray, np.ndarray)
+    RESIZED_HEIGHT = 512
 
     def __init__(self, image: np.ndarray, parent=None):
         super().__init__(parent)
@@ -123,6 +125,8 @@ class FindCircularArenasDialog(QDialog):
 
         # Graphics view
         self.scene = QGraphicsScene()
+        self.image_item = QGraphicsPixmapItem()
+        self.scene.addItem(self.image_item)
         self.view = ZoomableGraphicsView()
         self.view.setScene(self.scene)
         layout.addWidget(self.view)
@@ -130,10 +134,10 @@ class FindCircularArenasDialog(QDialog):
         # Parameter form
         form = QFormLayout()
 
-        self.pix_per_mm = QDoubleSpinBox(); self.pix_per_mm.setValue(10); self.pix_per_mm.setDecimals(2)
-        self.detection_tolerance_mm = QDoubleSpinBox(); self.detection_tolerance_mm.setValue(0.5)
-        self.radius_mm = QDoubleSpinBox(); self.radius_mm.setValue(5.0)
-        self.distance_mm = QDoubleSpinBox(); self.distance_mm.setValue(12.0)
+        self.pix_per_mm = QDoubleSpinBox(); self.pix_per_mm.setValue(32); self.pix_per_mm.setDecimals(2)
+        self.detection_tolerance_mm = QDoubleSpinBox(); self.detection_tolerance_mm.setValue(2)
+        self.radius_mm = QDoubleSpinBox(); self.radius_mm.setValue(9.75)
+        self.distance_mm = QDoubleSpinBox(); self.distance_mm.setValue(22)
         self.gradient_thresh = QDoubleSpinBox(); self.gradient_thresh.setValue(50)
         self.circle_thresh = QDoubleSpinBox(); self.circle_thresh.setValue(30)
         self.box_tolerance_mm = QDoubleSpinBox(); self.box_tolerance_mm.setValue(1.0)
@@ -164,12 +168,10 @@ class FindCircularArenasDialog(QDialog):
         self._update_display(self.image)
 
     def _update_display(self, image):
-        rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        qimage = QImage(rgb.data, rgb.shape[1], rgb.shape[0], rgb.strides[0], QImage.Format_RGB888)
-        pixmap = QPixmap.fromImage(qimage)
-        self.scene.clear()
-        self.scene.addPixmap(pixmap)
-        self.scene.setSceneRect(pixmap.rect())
+        h, w = image.shape[:2]
+        resized_width = int(self.RESIZED_HEIGHT * w/h)
+        image_resized = cv2.resize(image,(resized_width,self.RESIZED_HEIGHT))
+        self.image_item.setPixmap(NDarray_to_QPixmap(image_resized))
 
     def on_detect(self):
         params = dict(
@@ -215,7 +217,7 @@ class FindCircularArenasDialog(QDialog):
 if __name__ == "__main__":
     app = QApplication([])
 
-    image = cv2.imread("test_image.jpg")
+    image = cv2.imread("ZebVR/resources/background_example.png")
     if image is None:
         raise FileNotFoundError("Please place a 'test_image.jpg' in the working directory.")
 
