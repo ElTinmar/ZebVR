@@ -77,6 +77,7 @@ class CameraWidget(QWidget):
     preview = pyqtSignal(bool)
     stop_signal = pyqtSignal()
     webcam_modes_set = pyqtSignal()
+    update_done = pyqtSignal()
 
     PREVIEW_HEIGHT: int = 480
     REFRESH_RATE = 60
@@ -428,6 +429,8 @@ class CameraWidget(QWidget):
                 setter(state[key])
 
         self.block_signals(False)
+
+        self.update_done.emit()
     
     def set_state(self, state: Dict) -> None:
         self.update_state(state)
@@ -655,6 +658,7 @@ class CameraController(QObject):
         self.view.source_changed.connect(self.on_source_changed)
         self.view.state_changed.connect(self.camera_handler.state_changed)
         self.view.state_changed.connect(self.state_changed)
+        self.view.update_done.connect(self.state_changed)
         self.view.preview.connect(self.camera_handler.frame_acquisition)
         self.view.stop_signal.connect(self.camera_handler.stop_handler)
         self.view.stop_signal.connect(self.stop)
