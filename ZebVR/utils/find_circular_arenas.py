@@ -1,12 +1,19 @@
 import numpy as np
 import cv2
 from typing import Tuple, Optional
-from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import (
-    QApplication, QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QLabel, QPushButton, QGraphicsScene, QGraphicsPixmapItem, 
-    QMessageBox, QGraphicsView, QDialogButtonBox, QDoubleSpinBox
+    QApplication, 
+    QDialog, 
+    QVBoxLayout, 
+    QHBoxLayout, 
+    QFormLayout,
+    QPushButton, 
+    QGraphicsScene, 
+    QMessageBox, 
+    QDialogButtonBox, 
+    QDoubleSpinBox
 )
 from qt_widgets import ZoomableGraphicsView
 
@@ -164,7 +171,6 @@ class FindCircularArenasDialog(QDialog):
         self.scene.addPixmap(pixmap)
         self.scene.setSceneRect(pixmap.rect())
 
-    @pyqtSlot()
     def on_detect(self):
         params = dict(
             pix_per_mm=self.pix_per_mm.value(),
@@ -188,7 +194,6 @@ class FindCircularArenasDialog(QDialog):
         self.detected_image = annotated
         self._update_display(annotated)
 
-    @pyqtSlot()
     def on_accept(self):
         if self.results:
             circles, rois, annotated = self.results
