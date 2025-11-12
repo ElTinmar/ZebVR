@@ -301,6 +301,9 @@ class IdentityWidget(QWidget):
 
         self.state_changed.emit()
 
+    def set_pix_per_mm(self, pix_per_mm: float) -> None:
+        self.pix_per_mm = pix_per_mm
+        
     def set_open_loop_visible(self, visible: bool) -> None:
         self.open_loop_group.setVisible(visible)
         self.open_loop_visible = visible

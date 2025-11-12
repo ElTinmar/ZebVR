@@ -403,6 +403,8 @@ class MainGui(QMainWindow):
 
     def update_calibration_settings(self):
         self.settings['calibration'] = self.calibration_widget.get_state()
+        pix_per_mm = self.settings['calibration']['pix_per_mm']
+        self.identity_widget.set_pix_per_mm(pix_per_mm)
 
     def update_background_settings(self):
         self.settings['background'] = self.background_widget.get_state()
@@ -701,6 +703,7 @@ class MainGui(QMainWindow):
             state = self.settings['calibration']
             state['pix_per_mm'] = pix_per_mm_val
             self.calibration_widget.set_state(state)
+            self.identity_widget.set_pix_per_mm(pix_per_mm_val)
 
         self.busy_overlay.hide_overlay()
 
