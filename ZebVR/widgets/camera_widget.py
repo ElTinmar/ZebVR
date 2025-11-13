@@ -487,10 +487,11 @@ class CameraHandler(QObject):
         else:
             if self.acquisition_started:
                 self.camera.stop_acquisition()
-                del(self.camera) 
-                self.camera = None
-                self.last_camera_state = None
-                self.acquisition_started = False
+                
+            del(self.camera) 
+            self.camera = None
+            self.last_camera_state = None
+            self.acquisition_started = False
 
         self.timer.start(self.timer_update_ms)
         
