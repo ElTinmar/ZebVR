@@ -660,6 +660,7 @@ class CameraController(QObject):
         self.view.state_changed.connect(self.camera_handler.state_changed)
         self.view.state_changed.connect(self.state_changed)
         self.view.update_done.connect(self.state_changed)
+        self.view.webcam_modes_set.connect(self.state_changed)
         self.view.preview.connect(self.camera_handler.frame_acquisition)
         self.view.stop_signal.connect(self.camera_handler.stop_handler)
         self.view.stop_signal.connect(self.stop)
