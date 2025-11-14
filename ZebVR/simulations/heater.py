@@ -78,7 +78,7 @@ from scipy.optimize import fsolve
 # --- 1. Define Thermal Constants and Known Parameters ---
 
 # Internal Heat Generation (Qin)
-Q_in = 75.0  # Watts
+Q_in = 400.0  # Watts
 
 # Material Properties (Acrylic)
 k_acrylic = 0.2          # Thermal conductivity of acrylic [W/(m*K)]
@@ -89,7 +89,7 @@ h_conv = 8.0             # Estimated natural convection coefficient to ambient a
                          # (Typical range for still air is 5-10 W/(m^2*K))
 
 # Ambient Conditions
-T_ambient_C = 20.0       # Ambient temperature [°C]
+T_ambient_C = 22.0       # Ambient temperature [°C]
 T_ambient_K = T_ambient_C + 273.15  # Convert to Kelvin [K] (required for radiation)
 T_surr_K = T_ambient_K   # Assume surrounding temperature (T_surr) equals T_ambient
 
@@ -138,7 +138,7 @@ def heat_loss_residual(T_surf_K):
 
 # --- 5. Solve the System for Steady-State Surface Temperature (T_surf) ---
 
-# Initial guess for the surface temperature (slightly higher than ambient)
+# Initial guess for the surface temperature 
 T_surf_guess_K = T_ambient_K 
 
 # Use fsolve to find the root (T_surf_K where the residual is zero)
@@ -160,7 +160,7 @@ T_int_steady_C = T_int_steady_K - 273.15
 
 # Recalculate Q_conv and Q_rad using the solved T_surf for verification
 Q_conv_solved = h_conv * Area * (T_surf_steady_K - T_ambient_K)
-Q_rad_solved = epsilon_acrylic * sigma * Area * (T_surf_steady_K**4 - T_surr_K**4)
+Q_rad_solved = epsilon_acrylic * sigma * Area * (T_surf_steady_K**4 - T_ambient_K**4)
 
 print(f"\n--- Simulation Parameters ---")
 print(f"Internal Heat Source (Q_in): {Q_in} W")
