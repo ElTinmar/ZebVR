@@ -165,7 +165,7 @@ class VideoOutputWidget(QWidget):
         
         if self.codec_combobox.currentText() == 'h264':
             self.video_quality.setRange(-12, 51)
-            self.video_quality.setValue(23)
+            self.video_quality.setValue(18)
             self.video_preset.setEnabled(True)
         
         elif self.codec_combobox.currentText() == 'hevc':
@@ -180,7 +180,7 @@ class VideoOutputWidget(QWidget):
 
         elif self.codec_combobox.currentText() == 'h264_nvenc':
             self.video_quality.setRange(0, 51)
-            self.video_quality.setValue(0)
+            self.video_quality.setValue(18)
             self.video_preset.setEnabled(True)
 
         elif self.codec_combobox.currentText() == 'hevc_nvenc':
