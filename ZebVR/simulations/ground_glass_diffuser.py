@@ -219,6 +219,11 @@ if __name__ == '__main__':
     x_b, y_b = 0, 0
     num_points_interface = 1001
 
+    plot_image(
+        checkerboard(256,16),
+        glass_size_mm=50
+    )
+
     points_interface = np.linspace(-50/2, 50/2, num_points_interface)
     X_interface, Y_interface = np.meshgrid(points_interface, points_interface)
     intensity = map_image(

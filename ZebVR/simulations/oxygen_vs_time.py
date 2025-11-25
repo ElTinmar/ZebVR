@@ -17,7 +17,7 @@ hypoxia_threshold_mg_per_L = 2.0   # mg/L (hypoxia threshold), https://doi.org/1
 
 # Volume
 well_radius_mm = 19.5/2
-well_depth_mm = 3
+well_depth_mm = 5
 well_volume_L = np.pi*well_depth_mm*well_radius_mm**2 * 1e-6
 
 # Larval metabolism 
@@ -58,13 +58,15 @@ def plot(
 
     plt.figure(figsize=(8,5))
     plt.plot(time_hr, oxygen_mg_L, label='$O_2$', color='r')
-    plt.plot(time_hr, carbon_dioxyde_mg_L, '--', label='$CO_2$', color='k')
+    #plt.plot(time_hr, carbon_dioxyde_mg_L, '--', label='$CO_2$', color='k')
     plt.axhline(hypoxia_threshold_mg_per_L, color='red', linestyle=':', label='Hypoxia threshold')
     plt.xlabel('Time (h)')
     plt.ylabel('Concentration (mg/L)')
-    plt.title('$O_2$ Depletion and $CO_2$ Accumulation')
+    plt.ylim(0,10)
+    plt.title('$O_2$ Depletion')
     plt.legend()
     plt.grid(True)
+    plt.savefig('ZebVR/simulations/oxygen.png')
     plt.show()
 
 if __name__ == "__main__":
