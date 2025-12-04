@@ -43,7 +43,7 @@ DAQ_STIMS =  [s for s in Stim if 200 <= s.value <= 299]
 
 
 class PeriodicFunction(IntEnum):
-    SINE = 0
+    COSINE = 0
     MODULO = 1
     #TRIANGLE = 2
     #SQUARE = 3

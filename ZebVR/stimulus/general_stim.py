@@ -345,7 +345,7 @@ class GeneralStim(VisualStim):
         const int FISH_EGOCENTRIC = 2; 
 
         //periodic function
-        const int SINE = 0;
+        const int COSINE = 0;
         const int MODULO = 1;
         const int TRIANGLE = 2;
         const int SQUARE = 3;
@@ -546,9 +546,9 @@ class GeneralStim(VisualStim):
             
             
             float angle_rad = arc_start_rad;
-            if (u_prey_periodic_function == SINE) {
+            if (u_prey_periodic_function == COSINE) {
                 float freq = radians(u_prey_speed_deg_s) / (2*abs(angle_range_rad));
-                angle_rad += angle_range_rad * (sin(2*PI*freq*relative_time_s)/2 + 0.5);
+                angle_rad += angle_range_rad * ((1-cos(2*PI*freq*relative_time_s))/2);
             }
             if (u_prey_periodic_function == MODULO) {
                 float period = abs(angle_range_rad) / radians(u_prey_speed_deg_s);
