@@ -17,6 +17,7 @@ protocol.json
 registration.json
 
 *.vr
+!default/*.vr
 *.csv
 *.pkl
 
