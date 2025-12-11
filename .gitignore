@@ -17,7 +17,7 @@ protocol.json
 registration.json
 
 *.vr
-!default/*.vr
+!behavioral_screen_v4_december_2025.vr
 *.csv
 *.pkl
 
