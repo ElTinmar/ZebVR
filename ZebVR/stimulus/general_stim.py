@@ -71,6 +71,7 @@ class SharedStimParameters:
         self.prey_trajectory_radius_mm = RawValue(c_double, DEFAULT['prey_trajectory_radius_mm'])
         self.prey_arc_start_deg = RawValue(c_double, DEFAULT['prey_arc_start_deg'])
         self.prey_arc_stop_deg = RawValue(c_double, DEFAULT['prey_arc_stop_deg'])
+        self.prey_arc_phase_deg = RawValue(c_double, DEFAULT['prey_arc_phase_deg'])
         self.image_path = SharedString(initializer = DEFAULT['image_path'])
         self.image_res_px_per_mm = RawValue(c_double, DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm = RawArray(c_double, DEFAULT['image_offset_mm'])
@@ -119,6 +120,7 @@ class SharedStimParameters:
         self.prey_trajectory_radius_mm.value = d.get('prey_trajectory_radius_mm', DEFAULT['prey_trajectory_radius_mm'])
         self.prey_arc_start_deg.value = d.get('prey_arc_start_deg', DEFAULT['prey_arc_start_deg'])
         self.prey_arc_stop_deg.value = d.get('prey_arc_stop_deg', DEFAULT['prey_arc_stop_deg'])
+        self.prey_arc_phase_deg.value = d.get('prey_arc_phase_deg', DEFAULT['prey_arc_phase_deg'])
         self.image_path.value = d.get('image_path', DEFAULT['image_path'])
         self.image_res_px_per_mm.value = d.get('image_res_px_per_mm', DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm[:] = d.get('image_offset_mm', DEFAULT['image_offset_mm'])
@@ -200,6 +202,7 @@ class SharedStimParameters:
                 'prey_trajectory_radius_mm': self.prey_trajectory_radius_mm.value,
                 'prey_arc_start_deg': self.prey_arc_start_deg.value,
                 'prey_arc_stop_deg': self.prey_arc_stop_deg.value,
+                'prey_arc_phase_deg': self.prey_arc_phase_deg.value,
             })
 
         if self.stim_select.value == Stim.IMAGE:
@@ -315,6 +318,7 @@ class GeneralStim(VisualStim):
         uniform float u_prey_speed_deg_s;
         uniform float u_prey_arc_start_deg;
         uniform float u_prey_arc_stop_deg;
+        uniform float u_prey_arc_phase_deg;
         uniform vec2 u_prey_position[{MAX_PREY}]; // in projector space
         uniform float u_prey_trajectory_angle[{MAX_PREY}];  
         uniform sampler2D u_image_texture;
@@ -542,13 +546,14 @@ class GeneralStim(VisualStim):
             float relative_time_s = u_time_s - u_start_time_s;
             float arc_start_rad = radians(u_prey_arc_start_deg);
             float arc_stop_rad = radians(u_prey_arc_stop_deg);
+            float arc_phase_rad = radians(u_prey_arc_phase_deg);
             float angle_range_rad = arc_stop_rad - arc_start_rad;
             
             
             float angle_rad = arc_start_rad;
             if (u_prey_periodic_function == COSINE) {
                 float freq = radians(u_prey_speed_deg_s) / (2*abs(angle_range_rad));
-                angle_rad += angle_range_rad * ((1-cos(2*PI*freq*relative_time_s))/2);
+                angle_rad += angle_range_rad * ((1-cos(2*PI*freq*relative_time_s + arc_phase_rad))/2);
             }
             if (u_prey_periodic_function == MODULO) {
                 float period = abs(angle_range_rad) / radians(u_prey_speed_deg_s);
@@ -772,6 +777,7 @@ class GeneralStim(VisualStim):
         self.program['u_prey_trajectory_radius_mm'] = self.shared_stim_parameters.prey_trajectory_radius_mm.value
         self.program['u_prey_arc_start_deg'] = self.shared_stim_parameters.prey_arc_start_deg.value
         self.program['u_prey_arc_stop_deg'] = self.shared_stim_parameters.prey_arc_stop_deg.value
+        self.program['u_prey_arc_phase_deg'] = self.shared_stim_parameters.prey_arc_phase_deg.value
         self.program['u_prey_capture_type'] = self.shared_stim_parameters.prey_capture_type
         self.program['u_prey_periodic_function'] = self.shared_stim_parameters.prey_periodic_function
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
