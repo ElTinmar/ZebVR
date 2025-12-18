@@ -18,6 +18,8 @@ registration.json
 
 *.vr
 !behavioral_screen_v4_december_2025.vr
+!prey_capture_size.vr
+!prey_capture_phase.vr
 *.csv
 *.pkl
 
