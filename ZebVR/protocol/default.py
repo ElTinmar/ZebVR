@@ -37,6 +37,7 @@ DEFAULT = {
     'prey_trajectory_radius_mm': 3.0,
     'prey_arc_start_deg': 20,
     'prey_arc_stop_deg': 90,
+    'prey_arc_phase_deg': 0,
     'prey_periodic_function': PeriodicFunction.COSINE,
     'ramp_duration_sec': 1.0,
     'ramp_powerlaw_exponent': 0.33,

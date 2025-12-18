@@ -33,6 +33,7 @@ class PreyCapture(VisualProtocolItem):
             prey_trajectory_radius_mm: float = DEFAULT['prey_trajectory_radius_mm'],
             prey_arc_start_deg: float = DEFAULT['prey_arc_start_deg'],
             prey_arc_stop_deg: float = DEFAULT['prey_arc_stop_deg'],
+            prey_arc_phase_deg: float = DEFAULT['prey_arc_phase_deg'],
             prey_periodic_function: PeriodicFunction = DEFAULT['prey_periodic_function'],
             *args,
             **kwargs   
@@ -47,6 +48,7 @@ class PreyCapture(VisualProtocolItem):
         self.prey_trajectory_radius_mm = prey_trajectory_radius_mm
         self.prey_arc_start_deg = prey_arc_start_deg
         self.prey_arc_stop_deg = prey_arc_stop_deg
+        self.prey_arc_phase_deg = prey_arc_phase_deg
         self.prey_periodic_function = prey_periodic_function
 
     def start(self) -> Dict:
@@ -63,6 +65,7 @@ class PreyCapture(VisualProtocolItem):
             'prey_trajectory_radius_mm': self.prey_trajectory_radius_mm,
             'prey_arc_start_deg': self.prey_arc_start_deg,
             'prey_arc_stop_deg': self.prey_arc_stop_deg,
+            'prey_arc_phase_deg': self.prey_arc_phase_deg,
             'prey_periodic_function': self.prey_periodic_function,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
@@ -82,6 +85,7 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
             prey_trajectory_radius_mm: float = DEFAULT['prey_trajectory_radius_mm'],
             prey_arc_start_deg: float = DEFAULT['prey_arc_start_deg'],
             prey_arc_stop_deg: float = DEFAULT['prey_arc_stop_deg'],
+            prey_arc_phase_deg: float = DEFAULT['prey_arc_phase_deg'],
             prey_periodic_function: PeriodicFunction = DEFAULT['prey_periodic_function'],
             *args, 
             **kwargs
@@ -95,6 +99,7 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
         self.prey_trajectory_radius_mm = prey_trajectory_radius_mm
         self.prey_arc_start_deg = prey_arc_start_deg
         self.prey_arc_stop_deg = prey_arc_stop_deg
+        self.prey_arc_phase_deg = prey_arc_phase_deg
         self.prey_periodic_function = prey_periodic_function
 
         super().__init__(*args, **kwargs)
@@ -162,6 +167,12 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
         self.sb_prey_arc_stop_deg.setValue(self.prey_arc_stop_deg)
         self.sb_prey_arc_stop_deg.valueChanged.connect(self.state_changed)
 
+        self.sb_prey_arc_phase_deg = LabeledDoubleSpinBox()
+        self.sb_prey_arc_phase_deg.setText('start phase (deg)')
+        self.sb_prey_arc_phase_deg.setRange(0,360)
+        self.sb_prey_arc_phase_deg.setValue(self.prey_arc_phase_deg)
+        self.sb_prey_arc_phase_deg.valueChanged.connect(self.state_changed)
+        
         self.prey_capture_type_changed()
 
     def layout_components(self) -> None:
@@ -178,6 +189,7 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
         preycapture_layout.addWidget(self.sb_trajectory_prey_radius_mm)
         preycapture_layout.addWidget(self.sb_prey_arc_start_deg)
         preycapture_layout.addWidget(self.sb_prey_arc_stop_deg)
+        preycapture_layout.addWidget(self.sb_prey_arc_phase_deg)
         preycapture_layout.addStretch()
 
         self.preycapture_group = QGroupBox('Prey capture parameters')
@@ -198,6 +210,7 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
             self.sb_trajectory_prey_radius_mm.setVisible(False)
             self.sb_prey_arc_start_deg.setVisible(False)
             self.sb_prey_arc_stop_deg.setVisible(False)  
+            self.sb_prey_arc_phase_deg.setVisible(False)  
 
         if prey_capture_type == PreyCaptureType.RING:
             self.sb_n_preys.setVisible(True)
@@ -206,7 +219,8 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
             self.sb_prey_speed_deg_s.setVisible(True)
             self.sb_trajectory_prey_radius_mm.setVisible(True)    
             self.sb_prey_arc_start_deg.setVisible(False)
-            self.sb_prey_arc_stop_deg.setVisible(False)  
+            self.sb_prey_arc_stop_deg.setVisible(False)
+            self.sb_prey_arc_phase_deg.setVisible(False)
 
         if prey_capture_type == PreyCaptureType.ARC:
             self.sb_n_preys.setVisible(False)
@@ -215,7 +229,8 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
             self.sb_prey_speed_deg_s.setVisible(True)
             self.sb_trajectory_prey_radius_mm.setVisible(True) 
             self.sb_prey_arc_start_deg.setVisible(True)
-            self.sb_prey_arc_stop_deg.setVisible(True)   
+            self.sb_prey_arc_stop_deg.setVisible(True)
+            self.sb_prey_arc_phase_deg.setVisible(True)
 
         self.state_changed.emit()
 
@@ -231,6 +246,7 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
         state['prey_trajectory_radius_mm'] = self.sb_trajectory_prey_radius_mm.value()
         state['prey_arc_start_deg'] = self.sb_prey_arc_start_deg.value()
         state['prey_arc_stop_deg'] = self.sb_prey_arc_stop_deg.value()
+        state['prey_arc_phase_deg'] = self.sb_prey_arc_phase_deg.value()
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -298,6 +314,13 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
             default = self.prey_arc_stop_deg,
             cast = float
         )
+        set_from_dict(
+            dictionary = state,
+            key = 'prey_arc_phase_deg',
+            setter = self.sb_prey_arc_phase_deg.setValue,
+            default = self.prey_arc_phase_deg,
+            cast = float
+        )
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
@@ -313,6 +336,7 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
             self.sb_trajectory_prey_radius_mm.setValue(protocol_item.prey_trajectory_radius_mm)
             self.sb_prey_arc_start_deg.setValue(protocol_item.prey_arc_start_deg)
             self.sb_prey_arc_stop_deg.setValue(protocol_item.prey_arc_stop_deg)
+            self.sb_prey_arc_phase_deg.setValue(protocol_item.prey_arc_phase_deg)
         
     def to_protocol_item(self) -> PreyCapture:
         
@@ -343,6 +367,7 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
             prey_trajectory_radius_mm = self.sb_trajectory_prey_radius_mm.value(),
             prey_arc_start_deg = self.sb_prey_arc_start_deg.value(),
             prey_arc_stop_deg = self.sb_prey_arc_stop_deg.value(),
+            prey_arc_phase_deg = self.sb_prey_arc_phase_deg.value(),
             stop_condition = self.stop_widget.to_stop_condition()
         )
         return protocol
