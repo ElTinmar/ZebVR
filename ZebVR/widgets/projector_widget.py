@@ -75,7 +75,7 @@ class ProjectorWidget(QWidget):
         self.cb_monitors = LabeledComboBox()
         self.cb_monitors.setText('Screens, from left to right')
         for monitor in self.monitors:
-            if monitor.width_mm is not None:
+            if (monitor.width_mm is not None) and (monitor.width_mm > 0):
                 res = monitor.width / monitor.width_mm
             else:
                 res = -1
@@ -243,7 +243,7 @@ class ProjectorWidget(QWidget):
         self.cb_monitors.blockSignals(True)
         self.cb_monitors.clear()
         for monitor in self.monitors:
-            if monitor.width_mm is not None:
+            if (monitor.width_mm is not None) and (monitor.width_mm > 0):
                 res = monitor.width / monitor.width_mm
             else:
                 res = -1
