@@ -327,16 +327,37 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
         super().from_protocol_item(protocol_item)
 
         if isinstance(protocol_item, PreyCapture):
-            self.cb_prey_capture_type.setCurrentIndex(protocol_item.prey_capture_type)
-            self.cb_prey_periodic_function.setCurrentIndex(protocol_item.prey_periodic_function)
-            self.sb_n_preys.setValue(protocol_item.n_preys)
-            self.sb_prey_speed_mm_s.setValue(protocol_item.prey_speed_mm_s)
-            self.sb_prey_speed_deg_s.setValue(protocol_item.prey_speed_deg_s)
-            self.sb_prey_radius_mm.setValue(protocol_item.prey_radius_mm)
-            self.sb_trajectory_prey_radius_mm.setValue(protocol_item.prey_trajectory_radius_mm)
-            self.sb_prey_arc_start_deg.setValue(protocol_item.prey_arc_start_deg)
-            self.sb_prey_arc_stop_deg.setValue(protocol_item.prey_arc_stop_deg)
-            self.sb_prey_arc_phase_deg.setValue(protocol_item.prey_arc_phase_deg)
+
+            self.cb_prey_capture_type.setCurrentIndex(
+                getattr(protocol_item, "prey_capture_type", DEFAULT['prey_capture_type'])
+            )
+            self.cb_prey_periodic_function.setCurrentIndex(
+                getattr(protocol_item, "prey_periodic_function", DEFAULT['prey_periodic_function'])
+            )
+            self.sb_n_preys.setValue(
+                getattr(protocol_item, "n_preys", DEFAULT['n_preys'])
+            )
+            self.sb_prey_speed_mm_s.setValue(
+                getattr(protocol_item, "prey_speed_mm_s", DEFAULT['prey_speed_mm_s'])
+            )
+            self.sb_prey_speed_deg_s.setValue(
+                getattr(protocol_item, "prey_speed_deg_s", DEFAULT['prey_speed_deg_s'])
+            )
+            self.sb_prey_radius_mm.setValue(
+                getattr(protocol_item, "prey_radius_mm", DEFAULT['prey_radius_mm'])
+            )
+            self.sb_trajectory_prey_radius_mm.setValue(
+                getattr(protocol_item, "prey_trajectory_radius_mm", DEFAULT['prey_trajectory_radius_mm'])
+            )
+            self.sb_prey_arc_start_deg.setValue(
+                getattr(protocol_item, "prey_arc_start_deg", DEFAULT['prey_arc_start_deg'])
+            )
+            self.sb_prey_arc_stop_deg.setValue(
+                getattr(protocol_item, "prey_arc_stop_deg", DEFAULT['prey_arc_stop_deg'])
+            )
+            self.sb_prey_arc_phase_deg.setValue(
+                getattr(protocol_item, "prey_arc_phase_deg", DEFAULT['prey_arc_phase_deg'])
+            )
         
     def to_protocol_item(self) -> PreyCapture:
         
