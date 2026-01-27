@@ -21,6 +21,7 @@ registration.json
 !prey_capture_size.vr
 !prey_capture_phase.vr
 *.csv
+!doc/BOM/bom.csv
 *.pkl
 
 # thorlabs firmware
