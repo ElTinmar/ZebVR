@@ -1,0 +1,48 @@
+| system | subsystem | manufacturer | description | parts name / ref | num parts | link | estimated price per part | total price |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| mechanical | breadboard | Thorlabs | main breadboard | MB4545/M | 1 | https://www.thorlabs.com/item/MB4545_M | 303.58 | 303.58 |
+| mechanical | main column  | Thorlabs | 34mm column  | XT34-1000 | 1 | https://www.thorlabs.com/item/XT34-1000 | 106.87 | 106.87 |
+| mechanical | main column  | Thorlabs | dovetail plates | XT34HP/M | 7 | https://www.thorlabs.com/item/XT34HP_M | 60.96 | 426.72 |
+| mechanical | main column  | Thorlabs | post holder 75mm | PH75/M | 3 | https://www.thorlabs.com/item/PH75_M | 9.35 | 28.05 |
+| mechanical | main column  | Thorlabs | post 75mm | TR75/M | 3 | https://www.thorlabs.com/item/TR75_M | 5.98 | 17.94 |
+| mechanical | main column  | Thorlabs | post holder 50mm | PH50/M | 3 | https://www.thorlabs.com/item/PH50_M | 8.71 | 26.13 |
+| mechanical | main column  | Thorlabs | post 50mm | TR50/M | 3 | https://www.thorlabs.com/item/TR50_M | 5.74 | 17.22 |
+| mechanical | main column/projector column | Thorlabs | vertical mounting plate | XT66P1 | 2 | https://www.thorlabs.com/item/XT66P1 | 41.02 | 82.04 |
+| mechanical | projector column | Thorlabs | 66mm column | XT66-750 | 1 | https://www.thorlabs.com/item/XT66-750 | 116.92 | 116.92 |
+| mechanical | projector column | Thorlabs | 66mm column | XT66-200 | 1 | https://www.thorlabs.com/item/XT66-200 | 59.8 | 59.8 |
+| mechanical | projector column | Thorlabs | right angle bracket | XT66RA2 | 1 | https://www.thorlabs.com/item/XT66RA2 | 47.09 | 47.09 |
+| mechanical | projector column | Thorlabs | double dovetail clamp | XT66C2 | 2 | https://www.thorlabs.com/item/XT66C2 | 24.91 | 49.82 |
+| mechanical | projector column | Thorlabs | dovetail plate | XT66P2/M | 1 | https://www.thorlabs.com/item/XT66P2_M | 79.16 | 79.16 |
+| mechanical | projector column | Thorlabs | horizontal mounting plate | XT66P3 | 1 | https://www.thorlabs.com/item/XT66P3 | 62.68 | 62.68 |
+| mechanical | projector column | Thorlabs | projector breadboard | MB3045/M | 1 | https://www.thorlabs.com/item/MB3045_M | 209.79 | 209.79 |
+| illumination | LED | Intelligent LED Solutions | high power IR LED array | ILR-IO16-85NL-SC201-WIR200 | 1 | https://de.rs-online.com/web/p/ir-leds/7732912 | 106.21 | 106.21 |
+| illumination | power supply |  | power supply |  | 1 |  |  | 0 |
+| projector | screen | EdmundOptics | ground glass diffuser | #49-159 | 2 | https://www.edmundoptics.de/p/50-x-50mm-uv-fused-silica-ground-glass-optical-diffuser/9502/ | 115 | 230 |
+| projector | projector | ViewSonic | 240Hz projector | X2-4KE Pro | 1 | https://www.visunext.de/p/viewsonic-x2-4ke-pro-beamer-1000033494/ | 1678.99 | 1678.99 |
+| projector | UV mod | Luminus Devices  | UV LED | CBM-50X-UV-Y31-FA380-22  | 1 | https://www.mouser.de/ProductDetail/Luminus-Devices/CBM-50X-UV-Y31-FA380-22?qs=tlsG%2FOw5FFgEjhF0xGTq5w%3D%3D | 237.11 | 237.11 |
+| projector | UV mod | Molex  | power cable | 218396-1080  | 1 | https://www.mouser.de/ProductDetail/Molex/218396-1080?qs=XAiT9M5g4x96QOBtZ0G04Q%3D%3D | 2.77 | 2.77 |
+| projector | UV mod | JLCPCB | power adapter board | PicoSpoxAdapter_v2 | 1 | https://github.com/ElTinmar/ZebVR/tree/dev/PCB_X2-4K_UV_mod | 40 | 40 |
+| projector | UV mod | Molex  | connector 10pin | 87438-1043  | 10 | https://www.mouser.de/ProductDetail/Molex/87438-1043?qs=yoOJgkCG%2FJuVV3eNIak6LQ%3D%3D | 0.851 | 8.51 |
+| projector | UV mod | Molex  | connector 8pin | 87438-0843  | 10 | https://www.mouser.de/ProductDetail/Molex/87438-0843?qs=JAINH4q0Y0FNXejwT7VIEw%3D%3D | 0.765 | 7.65 |
+| camera | lens | EdmundOptics | C-mount adapter | #54-341  | 1 | https://www.edmundoptics.com/p/c-mount-nikon-f-mount-camera-lens-adapter/11135/ | 85 | 85 |
+| camera | lens | Venus | 60mm macro lens  | Laowa 60mm f/2.8 2X Ultra-Macro (Nikon F-mount version) | 1 | https://www.venuslens.net/product/laowa-60mm-f2/ | 400 | 400 |
+| camera | lens | Hoya | IR filter | HOYA INFRARED R72 (62mm) | 1 | https://hoya-filter.eu/de/effektfilter/577-hoya-infrared-r72-infrarotfilter-62mm-0024066015464.html | 50.99 | 50.99 |
+| camera | camera | Ximea | high speed IR camera | MX042RG-CM-X2G2 | 1 | https://www.ximea.com/products/embedded-system/xix-embedded-vision-multiple-cameras/cmosis-cmv4000-pcie-b-w-nir-embedded-camera | 3000 | 3000 |
+| camera | interface | Ximea | PCIe firefly board | HA-2P-X4G3-FF-X8G3 | 1 | https://www.ximea.com/accessories/hostadapters/host-adapter-with-2-ports-for-pcie-gen-3-x4-firefly-cables | 608.09 | 608.09 |
+| computer | computer | Corsair | case | Corsair Frame 4000D | 1 | https://www.mindfactory.de/product_info.php/Corsair-Frame-4000D-Midi-Tower-ohne-Netzteil-schwarz_1612286.html | 84.66 | 84.66 |
+| computer | computer | MSI | motherboard | MSI X870E Gaming Plus WIFI AMD X870E | 1 | https://www.mindfactory.de/product_info.php/MSI-X870E-Gaming-Plus-WIFI-AMD-X870E-So-AM5-DDR5-ATX-Retail_1617259.html | 249.87 | 249.87 |
+| computer | computer | AMD | CPU | AMD Ryzen 9 9950X  | 1 | https://www.mindfactory.de/product_info.php/AMD-Ryzen-9-9950X-16x-4-30GHz-So-AM5-WOF_1538191.html | 512.82 | 512.82 |
+| computer | computer | Noctua | CPU Cooler | Noctua NH-D15  | 1 | https://www.mindfactory.de/product_info.php/Noctua-NH-D15-Tower-Kuehler_958701.html | 108.69 | 108.69 |
+| computer | computer | NVIDIA | GPU | GeForce RTX 5070Ti | 1 | https://www.mindfactory.de/product_info.php/16GB-INNO3D-GeForce-RTX-5070-Ti-X3-Aktiv-PCIe-5-0-x16--Retail-_1615596.html | 949 | 949 |
+| computer | computer | G. Skill | RAM | 64GB G.Skill F5-6000J3040G32GX2-RS5W | 1 | https://www.mindfactory.de/product_info.php/64GB-G-Skill-Ripjaws-S5-weiss-DDR5-6000-DIMM-CL30-Dual-Kit_1474164.html | 1076.97 | 1076.97 |
+| computer | computer | Samsung | nvme storage | Samsung 990 PRO 1 TB  | 1 | https://www.mindfactory.de/product_info.php/1TB-Samsung-990-PRO-M-2-PCIe-4--3D-NAND-TLC--MZ-V9P1T0BW-_1471173.html | 189 | 189 |
+| computer | computer | Seagate | HDD | 6TB Seagate IronWolf  | 1 | https://www.mindfactory.de/product_info.php/6TB-Seagate-IronWolf-ST6000VN006-256MB-3-5Zoll--8-9cm--SATA-6Gb-s_1478263.html | 203.86 | 203.86 |
+| computer | computer | Seasonic | power supply | Seasonic Vertex PX-850  | 1 | https://www.mindfactory.de/product_info.php/850-Watt-Seasonic-Vertex-PX-850-Modular-80--Platinum_1511793.html | 207.81 | 207.81 |
+| computer | computer | Noctua | fans | Noctua NF-A14 PWM  | 4 | https://www.mindfactory.de/product_info.php/Noctua-NF-A14-PWM-chromax-black-swap-140x140x25mm-300-1500-U-min-24-6-d_1203222.html | 28.85 | 115.4 |
+|  |  |  |  |  |  |  |  |  |
+| TOTAL | mechanical | 1633.81 |  |  |  |  |  |  |
+|  | illumination | 106.21 |  |  |  |  |  |  |
+|  | projector | 2205.03 |  |  |  |  |  |  |
+|  | camera | 4144.08 |  |  |  |  |  |  |
+|  | computer | 3698.08 |  |  |  |  |  |  |
+|  |  | 11787.21 |  |  |  |  |  |  |
