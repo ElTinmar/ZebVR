@@ -136,7 +136,7 @@ class SharedStimParameters:
             'start_time_sec': self.start_time_sec.value,
             'foreground_color': list(self.foreground_color),
             'background_color': list(self.background_color),
-            'coordinate_sytem': self.coordinate_system.value
+            'coordinate_system': self.coordinate_system.value
         }
 
         if self.stim_select.value == Stim.PHOTOTAXIS:
