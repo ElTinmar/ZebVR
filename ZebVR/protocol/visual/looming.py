@@ -67,7 +67,7 @@ class Looming(VisualProtocolItem):
             'looming_distance_to_screen_mm': self.looming_distance_to_screen_mm, 
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'coordinate_sytem': self.coordinate_system
+            'coordinate_system': self.coordinate_system
         }
         return command 
 

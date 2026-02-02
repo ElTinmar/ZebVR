@@ -42,7 +42,7 @@ class OKR(VisualProtocolItem):
             'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'coordinate_sytem': self.coordinate_system
+            'coordinate_system': self.coordinate_system
         }
         return command
     

@@ -39,7 +39,7 @@ class Phototaxis(VisualProtocolItem):
             'phototaxis_polarity': self.phototaxis_polarity,
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
-            'coordinate_sytem': self.coordinate_system
+            'coordinate_system': self.coordinate_system
         }
         return command
     
