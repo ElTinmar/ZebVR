@@ -80,15 +80,27 @@ class VisualProtocolItem(ProtocolItem):
         self.background_color = background_color
         self.coordinate_system = coordinate_system
 
+
+# TODO come up with some proper class/type that can represent a generic calibration structure for audio/video/daq 
+class Calibration:
+    ...
+
 class ProtocolItemWidget(QWidget):
     
     state_changed = pyqtSignal()
 
-    def __init__(self, stop_widget: StopWidget, *args, **kwargs) -> None:
+    def __init__(
+            self, 
+            stop_widget: StopWidget, 
+            calibration: Optional[Any] = None, # TODO come up with some proper class/type that can represent a generic calibration structure for audio/video/daq 
+            *args, 
+            **kwargs
+        ) -> None:
         
         super().__init__(*args, **kwargs)
 
         self.stop_widget = stop_widget
+        self.calibration = calibration
         self.declare_components()
         self.layout_components() 
 
