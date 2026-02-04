@@ -471,7 +471,7 @@ class PowermeterWidget(QWidget):
         self.calibration_steps_sb.setMinimum(1)
         self.calibration_steps_sb.setMaximum(51)
         self.calibration_steps_sb.setSingleStep(1)
-        self.calibration_steps_sb.setValue(11)
+        self.calibration_steps_sb.setValue(21)
         self.calibration_steps_sb.valueChanged.connect(self.state_changed)
 
         self.calibration_pause_sb = LabeledDoubleSpinBox()
