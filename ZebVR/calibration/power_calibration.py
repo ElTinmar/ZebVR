@@ -6,6 +6,7 @@ import time
 from thorlabs_pmd import TLPMD, Bandwidth, LineFrequency
 import numpy as np
 import pickle
+from scipy.interpolate import interp1d
 
 class PowerCalibration(NamedTuple):
     x: np.ndarray
@@ -14,6 +15,7 @@ class PowerCalibration(NamedTuple):
     slope: float
     intercept: float
     r_squared: float
+    inv_lut: Callable[[float], float] 
 
 VERT_SHADER_CALIBRATION = """
 attribute vec2 a_position;
@@ -176,20 +178,26 @@ def power_calibration(
     powermeter.close()
 
     # linear regression
-    A = np.column_stack([x, np.ones_like(x)])
-    y = np.column_stack([y_red, y_green, y_blue])
+    linear_mask = (x <= 0.75)
+    A = np.column_stack([x[linear_mask], np.ones_like(x[linear_mask])])
+    y = np.column_stack([y_red[linear_mask], y_green[linear_mask], y_blue[linear_mask]])
     [slope, icpt], ss_res, rank, s = np.linalg.lstsq(A, y, rcond=None)
     y_pred = A @ np.vstack([slope, icpt])
     y_red_pred, y_green_pred, y_blue_pred = y_pred.T
     ss_tot = np.sum((y - np.mean(y, axis=0))**2, axis=0)
     r_squared_red, r_squared_green, r_squared_blue  = 1 - ss_res/ss_tot
 
+    # interpolation
+    inv_red   = interp1d(y_red, x, kind='linear', bounds_error=False, fill_value=(0, 1))
+    inv_green = interp1d(y_green, x, kind='linear', bounds_error=False, fill_value=(0, 1))
+    inv_blue  = interp1d(y_blue, x, kind='linear', bounds_error=False, fill_value=(0, 1))
+
     # save results
     with open(calibration_file, 'wb') as f:
         pickle.dump({
-            'calibration_red':  PowerCalibration(x, y_red, y_red_pred, slope[0], icpt[0], r_squared_red),
-            'calibration_green': PowerCalibration(x, y_green, y_green_pred, slope[1], icpt[1], r_squared_green),
-            'calibration_blue':  PowerCalibration(x, y_blue, y_blue_pred, slope[2], icpt[2], r_squared_blue)
+            'calibration_red':  PowerCalibration(x, y_red, y_red_pred, slope[0], icpt[0], r_squared_red, inv_red),
+            'calibration_green': PowerCalibration(x, y_green, y_green_pred, slope[1], icpt[1], r_squared_green, inv_green),
+            'calibration_blue':  PowerCalibration(x, y_blue, y_blue_pred, slope[2], icpt[2], r_squared_blue, inv_blue)
         }, f)
 
 if __name__ == "__main__":
