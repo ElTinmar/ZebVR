@@ -12,6 +12,8 @@ output/logs/*
 !output/video/README.md
 !output/logs/README.md
 
+ZebVR/default/*
+
 tracking.json
 protocol.json
 registration.json
