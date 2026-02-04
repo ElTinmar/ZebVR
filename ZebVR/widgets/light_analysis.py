@@ -432,7 +432,8 @@ class PowermeterWidget(QWidget):
             y_pred = np.zeros((11,)),
             slope = 0,
             intercept = 0,
-            r_squared = 0
+            r_squared = 0,
+            inv_lut = lambda x: 0.0
         )
         self.calibration_red: PowerCalibration = default_cal
         self.calibration_green: PowerCalibration = default_cal
