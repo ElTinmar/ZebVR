@@ -178,11 +178,15 @@ def power_calibration(
     powermeter.close()
 
     # linear regression
+    A_full = np.column_stack([x, np.ones_like(x)])
+    y_full = np.column_stack([y_red, y_green, y_blue])
+
     linear_mask = (x <= 0.75)
-    A = np.column_stack([x[linear_mask], np.ones_like(x[linear_mask])])
-    y = np.column_stack([y_red[linear_mask], y_green[linear_mask], y_blue[linear_mask]])
+    A = A_full[linear_mask,:]
+    y = y_full[linear_mask,:]
+    
     [slope, icpt], ss_res, rank, s = np.linalg.lstsq(A, y, rcond=None)
-    y_pred = A @ np.vstack([slope, icpt])
+    y_pred = A_full @ np.vstack([slope, icpt])
     y_red_pred, y_green_pred, y_blue_pred = y_pred.T
     ss_tot = np.sum((y - np.mean(y, axis=0))**2, axis=0)
     r_squared_red, r_squared_green, r_squared_blue  = 1 - ss_res/ss_tot
