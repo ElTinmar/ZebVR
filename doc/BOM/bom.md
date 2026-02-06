@@ -42,10 +42,14 @@
 | computer | computer | Seagate | HDD | 6TB Seagate IronWolf | 1 | https://www.mindfactory.de/product_info.php/6TB-Seagate-IronWolf-ST6000VN006-256MB-3-5Zoll--8-9cm--SATA-6Gb-s_1478263.html | 203.86 | 203.86 |
 | computer | computer | Seasonic | power supply | Seasonic Vertex PX-850 | 1 | https://www.mindfactory.de/product_info.php/850-Watt-Seasonic-Vertex-PX-850-Modular-80--Platinum_1511793.html | 207.81 | 207.81 |
 | computer | computer | Noctua | fans | Noctua NF-A14 PWM | 4 | https://www.mindfactory.de/product_info.php/Noctua-NF-A14-PWM-chromax-black-swap-140x140x25mm-300-1500-U-min-24-6-d_1203222.html | 28.85 | 115.4 |
+| measurement | powermeter console | Thorlabs  | powermeter console | PM100D (discontinued) / PM100D2 | 1 | https://www.thorlabs.com/item/pm100d | 1200 | 1200 |
+| measurement | photodiode sensor | Thorlabs | photodiode sensor | S120C | 1 | https://www.thorlabs.com/item/S120C | 346.64 | 346.64 |
+| measurement | spectrophotometer | Thorlabs | spectrophotometer | CCS100 (discontinued) / CCT11 | 1 | https://www.thorlabs.com/item/ccs100 | 3000 | 3000 |
 |  |  |  |  |  |  |  |  |  |
-| TOTAL | mechanical | 1633.81 |  |  |  |  |  |  |
-|  | illumination | 147.69 |  |  |  |  |  |  |
-|  | projector | 2245.29 |  |  |  |  |  |  |
-|  | camera | 2805.99 |  |  |  |  |  |  |
-|  | computer | 3698.08 |  |  |  |  |  |  |
-|  |  | 10530.86 |  |  |  |  |  |  |
+|  | SYSTEM TOTAL | CUMULATIVE TOTAL |  |  |  |  |  |  |
+| mechanical | 1633.81 | 1633.81 |  |  |  |  |  |  |
+| illumination | 147.69 | 1781.5 |  |  |  |  |  |  |
+| projector | 2245.29 | 4026.79 |  |  |  |  |  |  |
+| camera | 2805.99 | 6832.78 |  |  |  |  |  |  |
+| computer | 3698.08 | 10530.86 |  |  |  |  |  |  |
+| measurement | 4546.64 | 15077.5 |  |  |  |  |  |  |
