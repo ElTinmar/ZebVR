@@ -910,6 +910,8 @@ class TrackerWidget(QWidget):
         for i in range(self.n_animals):
             self.substate[i] = self._get_substate()
 
+        # FIXME: if you are loading a file with different number of animals
+        # this will cause issues
         if settings_file.exists():
             self.load_from_file(settings_file)
 
@@ -1078,6 +1080,9 @@ class TrackerWidget(QWidget):
 
         with open(filename, 'r') as fp:
             state = json.load(fp)
+
+        # FIXME if that files contains different numbers of animals, all hell might break loose
+        # make sure that extra animals are eliminated, and missing animals created
 
         self.set_state(state)
         self.updated = True
