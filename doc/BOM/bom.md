@@ -17,6 +17,7 @@
 | mechanical | projector column | Thorlabs | projector breadboard | MB3045/M | 1 | https://www.thorlabs.com/item/MB3045_M | 209.79 | 209.79 |
 | illumination | LED | Intelligent LED Solutions | high power IR LED array | ILR-IO16-85NL-SC201-WIR200 | 1 | https://de.rs-online.com/web/p/ir-leds/7732912 | 106.21 | 106.21 |
 | illumination | power supply | Mean Well | LED driver / power supply | LPF-25D-24 | 1 | https://de.rs-online.com/web/p/led-treiber/7647271 | 41.48 | 41.48 |
+| illumination | cold mirror | Edmund Optics | cold mirror | #64-452  | 1 | https://www.edmundoptics.de/p/45deg-aoi-101-x-127mm-cold-mirror/19164/ | 238 | 238 |
 | projector | screen | EdmundOptics | ground glass diffuser | #49-159 | 2 | https://www.edmundoptics.de/p/50-x-50mm-uv-fused-silica-ground-glass-optical-diffuser/9502/ | 115 | 230 |
 | projector | projector | ViewSonic | 240Hz projector | X2-4KE Pro | 1 | https://www.visunext.de/p/viewsonic-x2-4ke-pro-beamer-1000033494/ | 1678.99 | 1678.99 |
 | projector | UV mod | Luminus Devices | UV LED | CBM-50X-UV-Y31-FA380-22 | 1 | https://www.mouser.de/ProductDetail/Luminus-Devices/CBM-50X-UV-Y31-FA380-22?qs=tlsG%2FOw5FFgEjhF0xGTq5w%3D%3D | 237.11 | 237.11 |
@@ -42,14 +43,14 @@
 | computer | computer | Seagate | HDD | 6TB Seagate IronWolf | 1 | https://www.mindfactory.de/product_info.php/6TB-Seagate-IronWolf-ST6000VN006-256MB-3-5Zoll--8-9cm--SATA-6Gb-s_1478263.html | 203.86 | 203.86 |
 | computer | computer | Seasonic | power supply | Seasonic Vertex PX-850 | 1 | https://www.mindfactory.de/product_info.php/850-Watt-Seasonic-Vertex-PX-850-Modular-80--Platinum_1511793.html | 207.81 | 207.81 |
 | computer | computer | Noctua | fans | Noctua NF-A14 PWM | 4 | https://www.mindfactory.de/product_info.php/Noctua-NF-A14-PWM-chromax-black-swap-140x140x25mm-300-1500-U-min-24-6-d_1203222.html | 28.85 | 115.4 |
-| measurement | powermeter console | Thorlabs  | powermeter console | PM100D (discontinued) / PM100D2 | 1 | https://www.thorlabs.com/item/pm100d | 1200 | 1200 |
-| measurement | photodiode sensor | Thorlabs | photodiode sensor | S120C | 1 | https://www.thorlabs.com/item/S120C | 346.64 | 346.64 |
+| measurement | powermeter console | Thorlabs | powermeter console | PM100D (discontinued) / PM100D2 | 1 | https://www.thorlabs.com/item/pm100d | 1200 | 1200 |
+| measurement | photodiode sensor | Thorlabs | photodiode sensor | S120VC | 1 | https://www.thorlabs.com/item/S120VC | 480.64 | 346.64 |
 | measurement | spectrophotometer | Thorlabs | spectrophotometer | CCS100 (discontinued) / CCT11 | 1 | https://www.thorlabs.com/item/ccs100 | 3000 | 3000 |
 |  |  |  |  |  |  |  |  |  |
 |  | SYSTEM TOTAL | CUMULATIVE TOTAL |  |  |  |  |  |  |
 | mechanical | 1633.81 | 1633.81 |  |  |  |  |  |  |
-| illumination | 147.69 | 1781.5 |  |  |  |  |  |  |
-| projector | 2245.29 | 4026.79 |  |  |  |  |  |  |
-| camera | 2805.99 | 6832.78 |  |  |  |  |  |  |
-| computer | 3698.08 | 10530.86 |  |  |  |  |  |  |
-| measurement | 4546.64 | 15077.5 |  |  |  |  |  |  |
+| illumination | 385.69 | 2019.5 |  |  |  |  |  |  |
+| projector | 2245.29 | 4264.79 |  |  |  |  |  |  |
+| camera | 2805.99 | 7070.78 |  |  |  |  |  |  |
+| computer | 3698.08 | 10768.86 |  |  |  |  |  |  |
+| measurement | 4680.64 | 15449.5 |  |  |  |  |  |  |
