@@ -910,8 +910,6 @@ class TrackerWidget(QWidget):
         for i in range(self.n_animals):
             self.substate[i] = self._get_substate()
 
-        # FIXME: if you are loading a file with different number of animals
-        # this will cause issues
         if settings_file.exists():
             self.load_from_file(settings_file)
 
