@@ -1,10 +1,9 @@
-import time
 from multiprocessing import Process
 import json
 import pickle
 import pprint
 from pathlib import Path 
-from typing import Dict, Callable
+from typing import Dict
 from enum import Enum
 from array import array
 
@@ -23,7 +22,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy
 )
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QTimer, QThread
+from PyQt5.QtCore import QTimer, Qt
 
 from qt_widgets import LabeledDoubleSpinBox, BusyOverlay, WorkerThread
 from .calibration import (
@@ -53,6 +52,15 @@ from .widgets import (
 from .utils import append_timestamp_to_filename, serialize
 from .dags import closed_loop, open_loop, video_recording, tracking
 
+from enum import Enum
+
+class State(Enum):
+    IDLE = 0
+    STARTING = 1
+    PREVIEW = 2
+    RECORDING = 3
+    STOPPING = 4
+
 class MainGui(QMainWindow):
     
     def __init__(self, *args, **kwargs):
@@ -61,6 +69,7 @@ class MainGui(QMainWindow):
 
         self.settings = {}
         self.settings['main'] = {}
+        self.state = State.IDLE
 
         self.dag = None
         self.worker_logger = None
@@ -194,6 +203,10 @@ class MainGui(QMainWindow):
         self.close_loop_button.click()
 
         self.process_timer = QTimer(self)
+
+        self.stop_recording_timer = QTimer(self)
+        self.stop_recording_timer.setSingleShot(True)
+        self.stop_recording_timer.timeout.connect(self.stop)
 
     def layout_components(self) -> None:
 
@@ -754,11 +767,24 @@ class MainGui(QMainWindow):
         self.busy_overlay.show_overlay()
         self.camera_controller.set_preview(False)
         self.temperature_widget.stop_monitor()
-        
+
         self.start_thread = WorkerThread(self.start_dag)
-        self.start_thread.finished.connect(self.busy_overlay.hide_overlay)
+        self.start_thread.finished.connect(self._on_start_finished, Qt.UniqueConnection)
         self.start_thread.finished.connect(self.start_thread.deleteLater)
         self.start_thread.start()
+
+    def _on_start_finished(self):
+
+        self.busy_overlay.hide_overlay()
+
+        if self.settings['main']['record']:
+            self.state = State.RECORDING
+
+            duration = self.settings['main']['recording_duration']
+            self.stop_recording_timer.start(int(duration * 1000))
+
+        else:
+            self.state = State.PREVIEW
 
     def start_dag(self):
 
@@ -802,31 +828,50 @@ class MainGui(QMainWindow):
         self.p_worker_logger.join()
         self.p_queue_logger.join()
 
+
     def stop(self):
-        
+
+        if self.state not in (State.PREVIEW, State.RECORDING):
+            print(f"ZebVR is in {self.state} state, cannot be stopped")
+            return
+
+        self.state = State.STOPPING
+
         self.busy_overlay.show_overlay()
-        
+
+        if self.stop_recording_timer.isActive():
+            self.stop_recording_timer.stop()
+
         self.stop_thread = WorkerThread(self.stop_dag)
-        self.stop_thread.finished.connect(self.busy_overlay.hide_overlay)
+        self.stop_thread.finished.connect(self._on_stop_finished, Qt.UniqueConnection)
         self.stop_thread.finished.connect(self.stop_thread.deleteLater)
         self.stop_thread.start()
 
+    def _on_stop_finished(self):
+
+        self.busy_overlay.hide_overlay()
+        self.state = State.IDLE
+
     def preview(self):
+
+        if self.state != State.IDLE:
+            print(f"ZebVR is in {self.state} state, cannot be started")
+            return
+
+        self.state = State.STARTING
         self.settings['main']['record'] = False
         self.start()
 
-    def record(self) -> None:
-        self.settings['main']['record'] = True    
-        self.start() 
-        self.start_thread.finished.connect(self._record)
 
-    def _record(self):
+    def record(self):
 
-        duration = self.settings['main']['recording_duration']
-        self.wait_thread = WorkerThread(time.sleep, duration)
-        self.wait_thread.finished.connect(self.stop)
-        self.wait_thread.finished.connect(self.wait_thread.deleteLater)
-        self.wait_thread.start()
+        if self.state != State.IDLE:
+            print(f"ZebVR is in {self.state} state, cannot be started")
+            return
+
+        self.state = State.STARTING
+        self.settings['main']['record'] = True
+        self.start()
 
     def closeEvent(self, event):
         # close all widgets. Ensures that cleanup logic defined in closeEvent 
