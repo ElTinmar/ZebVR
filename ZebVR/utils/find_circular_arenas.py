@@ -62,8 +62,13 @@ def find_circular_arenas(
     max_radius_px = circle_radius_px + detection_tolerance_px
     min_distance_px = well_distance_px - detection_tolerance_px
 
+    gray = im2gray(image)
+    background = cv2.GaussianBlur(gray, (101, 101), 0)
+    flat = cv2.divide(gray, background, scale=255)
+    blurred = cv2.GaussianBlur(flat, (13, 13), 0)
+
     circles_px = cv2.HoughCircles(
-        im2gray(image),
+        blurred,
         cv2.HOUGH_GRADIENT,
         dp = 1,
         minDist = min_distance_px,
