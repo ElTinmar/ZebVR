@@ -34,7 +34,7 @@ def find_circular_arenas(
         bounding_box_tolerance_mm: float = 1,
         blur_kernel_large_mm: float = 2.5,
         blur_kernel_small_mm: float = 0.3,
-    ) -> Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
+    ) -> Optional[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
     """
     Detect circular arenas (e.g. wells) and compute bounding boxes around them.
 
@@ -51,6 +51,7 @@ def find_circular_arenas(
     Returns:
         circles_px: np.ndarray of shape (N, 3) with (x, y, radius) in pixels.
         ROIs_px: np.ndarray of shape (N, 4) with (x_min, y_min, x_max, y_max) in pixels.
+        blurred: processed image used for hough transform.
         detected_wells: BGR image with circles and bounding boxes drawn.
         Returns None if no circles were detected.
     """
@@ -93,7 +94,6 @@ def find_circular_arenas(
     else:
         detected_wells = image.copy()
 
-    
     bounding_boxes = []
     h, w = detected_wells.shape[:2]
 
@@ -123,7 +123,7 @@ def find_circular_arenas(
     circles = circles_px[sort_idx]
     ROIs = ROIs[sort_idx]
 
-    return circles, ROIs, detected_wells
+    return circles, ROIs, blurred, detected_wells
 
 class FindCircularArenasDialog(QDialog):
 
@@ -166,13 +166,24 @@ class FindCircularArenasDialog(QDialog):
     def _setup_ui(self):
         layout = QVBoxLayout(self)
 
+        image_layout = QHBoxLayout()
+
         # Graphics view
         self.scene = QGraphicsScene()
-        self.image_item = QGraphicsPixmapItem()
-        self.scene.addItem(self.image_item)
+        self.annotated_image = QGraphicsPixmapItem()
+        self.scene.addItem(self.annotated_image)
         self.view = ZoomableGraphicsView()
         self.view.setScene(self.scene)
-        layout.addWidget(self.view)
+
+        self.scene_processed = QGraphicsScene()
+        self.processed_image = QGraphicsPixmapItem()
+        self.scene_processed.addItem(self.processed_image)
+        self.view_processed = ZoomableGraphicsView()
+        self.view_processed.setScene(self.scene_processed)
+
+        image_layout.addWidget(self.view)
+        image_layout.addWidget(self.view_processed)
+        layout.addLayout(image_layout)
 
         self.busy = BusyOverlay(self)
 
@@ -214,13 +225,19 @@ class FindCircularArenasDialog(QDialog):
 
         layout.addLayout(btn_layout)
 
-        self._update_display(self.image)
+        self._update_display(self.image, self.image)
 
-    def _update_display(self, image):
-        h, w = image.shape[:2]
+    def _update_display(self, processed, annotated):
+
+        h, w = annotated.shape[:2]
         resized_width = int(self.RESIZED_HEIGHT * w/h)
-        image_resized = cv2.resize(image,(resized_width,self.RESIZED_HEIGHT))
-        self.image_item.setPixmap(NDarray_to_QPixmap(image_resized))
+        image_resized = cv2.resize(annotated,(resized_width,self.RESIZED_HEIGHT))
+        self.annotated_image.setPixmap(NDarray_to_QPixmap(image_resized))
+
+        h, w = processed.shape[:2]
+        resized_width = int(self.RESIZED_HEIGHT * w/h)
+        image_resized = cv2.resize(processed,(resized_width,self.RESIZED_HEIGHT))
+        self.processed_image.setPixmap(NDarray_to_QPixmap(image_resized))
 
     def on_detect(self):
         params = dict(
@@ -241,7 +258,7 @@ class FindCircularArenasDialog(QDialog):
         self.thread.exception.connect(self.handle_exception)
         self.thread.start()
 
-    def handle_results(self, detection: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]]):
+    def handle_results(self, detection: Optional[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]):
         
         self.busy.hide_overlay()
 
@@ -249,17 +266,17 @@ class FindCircularArenasDialog(QDialog):
             QMessageBox.warning(self, "No Circles", "No circles were detected.")
             return
         
-        circles, rois, annotated = detection
-        self.results = (circles, rois, annotated)
+        circles, rois, processed, annotated = detection
+        self.results = (circles, rois, processed, annotated)
         self.detected_image = annotated
-        self._update_display(annotated)
+        self._update_display(processed, annotated)
 
     def handle_exception(self, exception: Exception):
         print(exception)
 
     def on_accept(self):
         if self.results:
-            circles, rois, annotated = self.results
+            circles, rois, _, annotated = self.results
             self.data.emit(circles, rois, annotated)
 
         self.accept()
