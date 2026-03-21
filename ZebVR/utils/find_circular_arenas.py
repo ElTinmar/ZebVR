@@ -31,7 +31,9 @@ def find_circular_arenas(
         distance_between_well_centers_mm: float,
         gradient_threshold_high: float = 50,
         circle_detection_threshold: float = 30,
-        bounding_box_tolerance_mm: float = 1
+        bounding_box_tolerance_mm: float = 1,
+        blur_kernel_large_mm: float = 2.5,
+        blur_kernel_small_mm: float = 0.3,
     ) -> Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
     """
     Detect circular arenas (e.g. wells) and compute bounding boxes around them.
@@ -57,15 +59,17 @@ def find_circular_arenas(
     bounding_box_tolerance_px = int(bounding_box_tolerance_mm * pix_per_mm) 
     circle_radius_px = int(pix_per_mm * well_radius_mm)
     well_distance_px = int(pix_per_mm * distance_between_well_centers_mm)
+    blur_kernel_large_px = int(pix_per_mm * blur_kernel_large_mm) | 1
+    blur_kernel_small_px =  int(pix_per_mm * blur_kernel_small_mm) | 1
 
     min_radius_px = circle_radius_px - detection_tolerance_px
     max_radius_px = circle_radius_px + detection_tolerance_px
     min_distance_px = well_distance_px - detection_tolerance_px
 
     gray = im2gray(image)
-    background = cv2.GaussianBlur(gray, (101, 101), 0)
+    background = cv2.GaussianBlur(gray, (blur_kernel_large_px, blur_kernel_large_px), 0)
     flat = cv2.divide(gray, background, scale=255)
-    blurred = cv2.GaussianBlur(flat, (13, 13), 0)
+    blurred = cv2.GaussianBlur(flat, (blur_kernel_small_px, blur_kernel_small_px), 0)
 
     circles_px = cv2.HoughCircles(
         blurred,
@@ -136,6 +140,8 @@ class FindCircularArenasDialog(QDialog):
             gradient_thresh: float = 50,
             circle_thresh: float = 30,
             box_tolerance_mm: float = 1.0,
+            blur_kernel_large_mm: float = 2.5,
+            blur_kernel_small_mm: float = 0.3,
             parent=None
         ):
         super().__init__(parent)
@@ -147,6 +153,8 @@ class FindCircularArenasDialog(QDialog):
         self.gradient_thresh = gradient_thresh
         self.circle_thresh = circle_thresh
         self.box_tolerance_mm = box_tolerance_mm
+        self.blur_kernel_large_mm = blur_kernel_large_mm
+        self.blur_kernel_small_mm = blur_kernel_small_mm
         self.setWindowTitle("Find Circular Arenas")
         self.setModal(True)
 
@@ -178,6 +186,8 @@ class FindCircularArenasDialog(QDialog):
         self.sb_gradient_thresh = QDoubleSpinBox(); self.sb_gradient_thresh.setValue(self.gradient_thresh)
         self.sb_circle_thresh = QDoubleSpinBox(); self.sb_circle_thresh.setValue(self.circle_thresh)
         self.sb_box_tolerance_mm = QDoubleSpinBox(); self.sb_box_tolerance_mm.setValue(self.box_tolerance_mm)
+        self.sb_blur_kernel_large_mm = QDoubleSpinBox(); self.sb_blur_kernel_large_mm.setValue(self.blur_kernel_large_mm)
+        self.sb_blur_kernel_small_mm = QDoubleSpinBox(); self.sb_blur_kernel_small_mm.setValue(self.blur_kernel_small_mm)
 
         form.addRow("Pixels per mm:", self.sb_pix_per_mm)
         form.addRow("Detection tolerance (mm):", self.sb_detection_tolerance_mm)
@@ -186,6 +196,8 @@ class FindCircularArenasDialog(QDialog):
         form.addRow("Gradient threshold:", self.sb_gradient_thresh)
         form.addRow("Circle detection threshold:", self.sb_circle_thresh)
         form.addRow("Bounding box tolerance (mm):", self.sb_box_tolerance_mm)
+        form.addRow("Blur kernel large (mm):", self.sb_blur_kernel_large_mm)
+        form.addRow("Blur kernel small (mm):", self.sb_blur_kernel_small_mm)
 
         layout.addLayout(form)
 
@@ -218,7 +230,9 @@ class FindCircularArenasDialog(QDialog):
             distance_between_well_centers_mm=self.sb_distance_mm.value(),
             gradient_threshold_high=self.sb_gradient_thresh.value(),
             circle_detection_threshold=self.sb_circle_thresh.value(),
-            bounding_box_tolerance_mm=self.sb_box_tolerance_mm.value()
+            bounding_box_tolerance_mm=self.sb_box_tolerance_mm.value(),
+            blur_kernel_large_mm=self.sb_blur_kernel_large_mm.value(),
+            blur_kernel_small_mm=self.sb_blur_kernel_small_mm.value()
         )
 
         self.busy.show_overlay()
