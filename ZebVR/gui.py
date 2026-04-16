@@ -214,7 +214,7 @@ class MainGui(QMainWindow):
         top_buttons.addWidget(self.close_loop_button)
         top_buttons.addWidget(self.open_loop_button)
         top_buttons.addWidget(self.video_recording_button)
-        top_buttons.addWidget(self.tracking_button)
+        #top_buttons.addWidget(self.tracking_button)
         
         controls = QHBoxLayout()
         controls.addWidget(self.start_button)

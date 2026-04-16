@@ -133,6 +133,39 @@ However, for demonstration/testing purposes, the program can be run using a vide
 In the camera tab, select `MOVIE` in the dropdown menu, then click on `Load file`
 An example movie is provided in `example/4_fish.mp4`
 
+## Instructions for use
+
+
+![Screenshot of the main user interface](example/gui.png)
+
+Select a mode:
+
+- Close-loop: animals are tracked, the stimulus can react to fish actions in real time.
+- Open-loop: no live tracking, stimulation still possible 
+- Record Video: only record behavior, no stimulation
+
+
+The system is configured by moving down the tabs, in order:
+
+- Camera: Select a camera and set relevant parameters (exposure, resolution. framerate, ...). Live preview
+- Projector: Select a monitor for output. Setup ViewSonic projector parameters. Run power calibration.
+- Audio (optional): Select audio output and audio stream parameters.
+- DAQs (optional): Select connected DAQ devices (Arduino running pyfirmata, Labjack, NI card)
+- Registration: Compute transformation between camera space and screen space.
+- Calibration: Calibrate camera (px/mm)
+- Background: Get an image of the background, used for attributing identities, and background subtraction during live tracking
+- Identity: Set a grid identify animals.
+- Protocol (optional): prepare a stimulation protocol 
+- Settings: enable/configure video recording. Set experiment metadata / configuration file location.
+- Logs (optional): used for debugging only
+- T (C) (optional): setup a temperature probe via serial port
+
+In order to run a pre-specified protocol (setup in the Protocol tab), set a `recording duration` and hit `record`.
+To specify stimulations manually on the fly, press `start` instead.
+The`stop` button will stop any running experiment.
+
+A full manual is not written yet but will be added once all features are stable. 
+
 ## Troubleshooting
 
 ### PCIe Camera No LED 
