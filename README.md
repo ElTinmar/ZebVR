@@ -66,21 +66,21 @@ in the conda environment site-packages folder (e.g. /home/user/miniconda3/envs/Z
 
 ```bash
 conda activate ZebVR3
-python setup_ximea.py
-python setup_spinnaker.py
+python scripts/setup_ximea.py
+python scripts/setup_spinnaker.py
 ```
 
 You can also install the SDK (requires sudo) or python bindings separately:
 
 ```bash
-python setup_ximea.py --only-sdk
-python setup_spinnaker.py --only-sdk
+python scripts/setup_ximea.py --only-sdk
+python scripts/setup_spinnaker.py --only-sdk
 ```
 
 ```bash
 conda activate ZebVR3
-python setup_ximea.py --only-python
-python setup_spinnaker.py --only-python
+python scripts/setup_ximea.py --only-python
+python scripts/setup_spinnaker.py --only-python
 ```
 
 Please note that every time a new kernel is installed during a system update,
@@ -185,7 +185,7 @@ sudo killall python
 if error 56 No Devices Found, reinstall SDK (requires sudo)
 
 ```bash
-python setup_ximea.py --only-sdk
+python scripts/setup_ximea.py --only-sdk
 ```
 
 ### libtiff.so.5: cannot open shared object file
