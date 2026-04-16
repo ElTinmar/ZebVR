@@ -19,6 +19,7 @@ Parts of the installation process require sudo rights.
 - ViewSonic X2-4K projector
 - Thorlabs PM100D
 - Thorlabs CCS100
+- Ximea camera 
 
 For a full list of hardware used for the VR setup, see doc/BOM/bom.md
 
