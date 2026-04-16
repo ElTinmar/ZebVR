@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=ZebVR
-GenericName=ZebVR
-X-GNOME-FullName=ZebVR
-Comment=Virtual reality for fish
-Exec=bash -c "source ~/miniconda3/etc/profile.d/conda.sh && conda activate ZebVR3 && cd /home/martinprivat/Development/ZebVR && python -m ZebVR"
-Icon=/home/martinprivat/Development/ZebVR/ZebVR/resources/zebvr.png
-Terminal=true
-Type=Application
