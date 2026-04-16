@@ -6,11 +6,25 @@ Virtual reality for zebrafish.
 Add screenshots of the GUI
 -->
 
-## Installation
+## System requirements
 
-This program is meant to run on Ubuntu >= 22.04
+This program has been tested on Ubuntu 24.04 with X11 (no Wayland support yet).
+It should also run on Windows 10/11 but hasn't been extensively tested, and full
+installation instructions on Windows are not listed here.
+We recommend using a modern multicore machine with at least 32GB of RAM.
+Parts of the installation process require sudo rights.
 
-### Dependencies
+## Extra Hardware (optional)
+
+- ViewSonic X2-4K projector
+- Thorlabs PM100D
+- Thorlabs CCS100
+
+For a full list of hardware used for the VR setup, see doc/BOM/bom.md
+
+## Software dependencies
+
+### deb packages on Ubuntu
 
 ```bash
 sudo apt-get install libportaudio2 build-essential libusb-1.0-0-dev 
@@ -18,7 +32,7 @@ sudo apt-get install libportaudio2 build-essential libusb-1.0-0-dev
 
 ### Labjack exodriver
 
-Ubuntu
+On Ubuntu:
 ```bash
 git clone https://github.com/labjack/exodriver.git
 cd exodriver/
@@ -29,7 +43,9 @@ rm -rf exodriver
 
 Windows: https://files.labjack.com/installers/LJM/Windows/x86_64/release/LabJack_2024-05-16.exe
 
-### Get code from github and create conda environment
+## Installation instructions
+
+Solving the environment might take a few minutes.
 
 ```bash
 git clone https://github.com/ElTinmar/ZebVR.git
@@ -38,10 +54,14 @@ conda env create -f ZebVR3.yml
 conda activate ZebVR3
 ```
 
+A full list of dependencies with version number can be found in requirements.txt
+
 ### Install camera SDK and python bindings into environment
 
 The SDK and python binding URLs are hardcoded in the script and will break
-if the camera manufacturers decide to change their website.
+if the camera manufacturers decide to change their website layout. The SDK 
+can be manually downloaded from the manufacturer website, and the python module placed
+in the conda environment site-packages folder (e.g. /home/user/miniconda3/envs/ZebVR3/lib/python3.13/site-packages/ximea)
 
 ```bash
 conda activate ZebVR3
@@ -66,6 +86,9 @@ Please note that every time a new kernel is installed during a system update,
 the SDK needs to be reinstalled.
 
 ### Thorlabs hardware 
+
+This is needed to communicate with Thorlabs spectrophotometer and power measurement unit 
+for automated power measurements.
 
 ```bash
 sudo apt install innoextract
@@ -93,94 +116,21 @@ sudo udevadm trigger
 sudo usermod -a -G plugdev,dialout "$USER"
 ```
 
-### CUDA
-
-TODO check this is no longer required
-
-```bash
-sudo apt install nvidia-cuda-toolkit
-```
-
-## Run
+## Running the software 
 
 ```bash
 conda activate ZebVR3
 python -m ZebVR
 ```
 
-## Using .desktop
+## Demo
 
-Change the content depending on where ZebVR was downloaded
-
-(Otional) If you change settings and want to check syntax:
-
-```bash
-desktop-file-validate ZebVR.desktop
-```
-
-```bash
-cp ZebVR.desktop ~/.local/share/applications/
-```
-
-## Optimizations (experimental)
-
-### Allow the python interpreter to set scheduler
-
-```bash
-sudo setcap cap_sys_nice=eip /home/martinprivat/miniconda3/envs/ZebVR3/bin/python3.8
-```
-
-### CPU shield and affinity
-
-```bash
-sudo apt install cpuset
-```
-
-```bash
-sudo cset shield --cpu 1-31 --kthread=on
-sudo cset shield --exec bash
-su username
-conda activate ZebVR3
-python -m ZebVR
-```
-
-```bash
-sudo cset shield --reset
-```
-
-### OpenGL check number of uniforms
-
-```python
-from vispy import app, gloo
-from OpenGL.GL import GL_FRAMEBUFFER_SRGB, glIsEnabled
-canvas = app.Canvas()
-canvas.show()
-app.process_events()
-
-gpu_info = {
-    "sRGB": glIsEnabled(GL_FRAMEBUFFER_SRGB),
-    "Renderer": gloo.gl.glGetParameter(gloo.gl.GL_RENDERER),
-    "Vendor": gloo.gl.glGetParameter(gloo.gl.GL_VENDOR),
-    "OpenGL Version": gloo.gl.glGetParameter(gloo.gl.GL_VERSION),
-    "Shading Language Version": gloo.gl.glGetParameter(gloo.gl.GL_SHADING_LANGUAGE_VERSION),
-    "Max Vertex Uniform Vectors": gloo.gl.glGetParameter(gloo.gl.GL_MAX_VERTEX_UNIFORM_VECTORS),
-    "Max Fragment Uniform Vectors": gloo.gl.glGetParameter(gloo.gl.GL_MAX_FRAGMENT_UNIFORM_VECTORS),
-    "Max Varying Vectors": gloo.gl.glGetParameter(gloo.gl.GL_MAX_VARYING_VECTORS),
-    "Max Texture Size": gloo.gl.glGetParameter(gloo.gl.GL_MAX_TEXTURE_SIZE),
-    "Max Cube Map Texture Size": gloo.gl.glGetParameter(gloo.gl.GL_MAX_CUBE_MAP_TEXTURE_SIZE),
-    "Max Combined Texture Image Units": gloo.gl.glGetParameter(gloo.gl.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS),
-    "Max Vertex Attributes": gloo.gl.glGetParameter(gloo.gl.GL_MAX_VERTEX_ATTRIBS),
-    "Max Vertex Texture Image Units": gloo.gl.glGetParameter(gloo.gl.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS),
-    "Max Renderbuffer Size": gloo.gl.glGetParameter(gloo.gl.GL_MAX_RENDERBUFFER_SIZE),
-}
-
-for key, value in gpu_info.items():
-    print(f"{key}: {value}")
+This is virtual reality program and is meant to be run with a camera input.
+However, for demonstration/testing purposes, the program can be run using a video file as input:
 
 
-canvas.close()
-```
-
+In the camera tab, select `MOVIE` in the dropdown menu, then click on `Load file`
+An example movie is provided in `example/4_fish.mp4`
 
 ## Troubleshooting
 
@@ -204,7 +154,7 @@ if error 56 No Devices Found, reinstall SDK (requires sudo)
 python setup_ximea.py --only-sdk
 ```
 
-## libtiff.so.5: cannot open shared object file
+### libtiff.so.5: cannot open shared object file
 
 ```
 sudo apt install libtiff6
@@ -212,11 +162,11 @@ cd /usr/lib/x86_64-linux-gnu/
 sudo ln -s libtiff.so.6 libtiff.so.5
 ```
 
-## modprobe: ERROR: could not insert 'ximea_cam_pcie': Key was rejected by service
+### modprobe: ERROR: could not insert 'ximea_cam_pcie': Key was rejected by service
 
 Disable secure boot in the BIOS
 
-## module not found
+### module not found
 
 Try refreshing the environment
 
