@@ -36,6 +36,7 @@ registration.json
 # Video examples
 *.avi
 *.mp4
+!example/4_fish.mp4
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
