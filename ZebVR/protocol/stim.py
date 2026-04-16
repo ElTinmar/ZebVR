@@ -8,41 +8,57 @@ class Stim(IntEnum):
     PHOTOTAXIS = 2
     OMR = 3
     OKR = 4
-    FOLLOWING_LOOMING = 5
+    LOOMING = 5
     PREY_CAPTURE = 6
-    LOOMING = 7
-    CONCENTRIC_GRATING = 8
-    FOLLOWING_DOT = 9
-    DOT = 10
-    IMAGE = 11
-    RAMP = 12
-    FOLLOWING_PREY_CAPTURE = 13
+    CONCENTRIC_GRATING = 7
+    DOT = 8
+    IMAGE = 9
+    RAMP = 10
+    TURING = 11
 
     # acoustic
-    PURE_TONE = 20
-    FREQUENCY_RAMP = 21
-    WHITE_NOISE = 22
-    PINK_NOISE = 23
-    BROWN_NOISE = 24
-    CLICK_TRAIN = 25
-    SILENCE = 26
-    AUDIO_FILE = 27
+    PURE_TONE = 100
+    FREQUENCY_RAMP = 101
+    WHITE_NOISE = 102
+    PINK_NOISE = 103
+    BROWN_NOISE = 104
+    CLICK_TRAIN = 105
+    SILENCE = 106
+    AUDIO_FILE = 107
 
     # daq
-    DIGITAL_WRITE = 30
-    ANALOG_WRITE = 31
-    PWM_WRITE = 32
-    DIGITAL_PULSE = 33
-    PWM_PULSE = 34
-    ANALOG_PULSE = 35
+    DIGITAL_WRITE = 200
+    ANALOG_WRITE = 201
+    PWM_WRITE = 202
+    DIGITAL_PULSE = 203
+    PWM_PULSE = 204
+    ANALOG_PULSE = 205
 
     def __str__(self):
         return self.name
     
-VISUAL_STIMS = [s for s in Stim if 0 <= s.value <= 19]
-AUDIO_STIMS = [s for s in Stim if 20 <= s.value <= 29]
-DAQ_STIMS =  [s for s in Stim if 30 <= s.value <= 39]
+VISUAL_STIMS = [s for s in Stim if 0 <= s.value <= 99]
+AUDIO_STIMS = [s for s in Stim if 100 <= s.value <= 199]
+DAQ_STIMS =  [s for s in Stim if 200 <= s.value <= 299]
 
+
+class PeriodicFunction(IntEnum):
+    COSINE = 0
+    MODULO = 1
+    #TRIANGLE = 2
+    #SQUARE = 3
+
+    def __str__(self) -> str:
+        return self.name
+    
+class PreyCaptureType(IntEnum):
+    RING = 0
+    RANDOM_CLOUD = 1 
+    ARC = 2
+
+    def __str__(self) -> str:
+        return self.name
+    
 class RampType(IntEnum):
     LINEAR = 0
     POWER_LAW = 1 # Stevens' law
@@ -50,4 +66,19 @@ class RampType(IntEnum):
 
     def __str__(self) -> str:
         return self.name
+
+class LoomingType(IntEnum):
+    LINEAR_RADIUS = 0
+    LINEAR_ANGLE = 1
+    CONSTANT_VELOCITY = 2 
+
+    def __str__(self) -> str:
+        return self.name
     
+class CoordinateSystem(IntEnum):
+    BOUNDING_BOX_CENTER = 0
+    FISH_CENTERED = 1
+    FISH_EGOCENTRIC = 2 
+
+    def __str__(self) -> str:
+        return self.name

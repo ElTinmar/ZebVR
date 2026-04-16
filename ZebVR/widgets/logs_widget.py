@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import pyqtSignal
 from typing import Dict
-from qt_widgets import LabeledSpinBox
 from .log_output_widget import LogOutputWidget
 
 # TODO add loglevel to choose for each log

@@ -41,7 +41,8 @@ class ConcentricGrating(VisualProtocolItem):
             'concentric_spatial_period_mm': self.spatial_period_mm,
             'concentric_speed_mm_per_sec': self.speed_mm_per_sec,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color
+            'background_color': self.background_color,
+            'coordinate_system': self.coordinate_system
         }
         return command
     
@@ -139,9 +140,11 @@ class ConcentricGratingWidget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
+        coordinate_system = self.cb_coordinate_system.currentIndex()
         protocol = ConcentricGrating(
             foreground_color = foreground_color,
             background_color = background_color,
+            coordinate_system = coordinate_system,
             spatial_period_mm = self.sb_concentric_spatial_freq.value(),
             speed_mm_per_sec = self.sb_concentric_speed.value(),
             stop_condition = self.stop_widget.to_stop_condition()

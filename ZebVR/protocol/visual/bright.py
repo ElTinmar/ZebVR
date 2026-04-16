@@ -31,7 +31,8 @@ class Bright(VisualProtocolItem):
         command = {
             'stim_select': self.STIM_SELECT,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color
+            'background_color': self.background_color,
+            'coordinate_system': self.coordinate_system
         }
         return command
     
@@ -48,6 +49,7 @@ class BrightWidget(VisualProtocolItemWidget):
     def declare_components(self) -> None:
 
         super().declare_components()
+        self.cb_coordinate_system.setVisible(False)
 
     def layout_components(self) -> None:
         
@@ -78,9 +80,12 @@ class BrightWidget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
+        coordinate_system = self.cb_coordinate_system.currentIndex()
+
         protocol = Bright(
             foreground_color = foreground_color,
             background_color = background_color,
+            coordinate_system = coordinate_system,
             stop_condition = self.stop_widget.to_stop_condition()
         )
         return protocol

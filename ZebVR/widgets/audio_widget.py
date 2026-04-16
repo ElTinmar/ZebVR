@@ -41,14 +41,20 @@ class AudioWidget(QWidget):
 
         self.channels_spinbox = LabeledSpinBox()
         self.channels_spinbox.setText('channels')
-        self.channels_spinbox.setRange(1, self.output_devices[0]['max_output_channels'])
-        self.channels_spinbox.setValue(self.output_devices[0]['max_output_channels'])
+        if self.output_devices:
+            self.channels_spinbox.setRange(1, self.output_devices[0]['max_output_channels'])
+            self.channels_spinbox.setValue(self.output_devices[0]['max_output_channels'])
+        else:
+            self.channels_spinbox.setEnabled(False)
         self.channels_spinbox.valueChanged.connect(self.state_changed)
     
         self.samplerate_spinbox = LabeledSpinBox()
         self.samplerate_spinbox.setText('samplerate')
         self.samplerate_spinbox.setRange(8000, 192_000)
-        self.samplerate_spinbox.setValue(int(self.output_devices[0]['default_samplerate']))
+        if self.output_devices:
+            self.samplerate_spinbox.setValue(int(self.output_devices[0]['default_samplerate']))
+        else:
+            self.samplerate_spinbox.setEnabled(False)
         self.samplerate_spinbox.setEnabled(False)
 
         self.blocksize_spinbox = LabeledSpinBox()
@@ -129,7 +135,7 @@ class AudioWidget(QWidget):
     def get_state(self):
         state = {}
         state['index'] = self.device_combo.currentIndex()
-        state['device_index'] = self.output_devices[self.device_combo.currentIndex()]['index']
+        state['device_index'] = self.output_devices[self.device_combo.currentIndex()]['index'] if self.output_devices else -1
         state['channels'] = self.channels_spinbox.value()
         state['samplerate'] = self.samplerate_spinbox.value()
         state['blocksize'] = self.blocksize_spinbox.value()

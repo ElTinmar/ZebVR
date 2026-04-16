@@ -28,7 +28,7 @@ class StimType(IntEnum):
     PHOTOTAXIS = 2
     OMR = 3
     OKR = 4
-    LOOMING = 5
+    LINEAR_RADIUS_LOOMING = 5
 
 COLORS = ('#FF6900', '#002BFF')
 DATA_FOLDER = 'output/data'

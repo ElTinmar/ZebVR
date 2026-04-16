@@ -3,10 +3,6 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, 
     QHBoxLayout, 
     QPushButton, 
-    QFrame, 
-    QHeaderView, 
-    QTableWidget, 
-    QTableWidgetItem,
     QLabel
 )
 from PyQt5.QtCore import pyqtSignal, Qt
@@ -201,7 +197,10 @@ class CalibrationWidget(QWidget):
 
         for key, setter in setters.items():
             if key in state:
-                setter(state[key])
+                try:
+                    setter(state[key])
+                except Exception as e:
+                    print(e)
 
 if __name__ == "__main__":
 

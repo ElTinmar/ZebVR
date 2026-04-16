@@ -75,7 +75,7 @@ class VideoSaverWorker(WorkerNode):
             filename: Union[str, Path], 
             decimation: int = 1,
             fps: int = 30,
-            video_quality: int = 23,
+            video_quality: int = 18,
             video_codec: str = 'h264', 
             video_profile: str = 'main',
             video_preset: str = 'p2',

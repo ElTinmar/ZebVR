@@ -3,7 +3,6 @@ import numpy as np
 
 from multiprocessing_logger import Logger
 from ipc_tools import MonitoredQueue, ModifiableRingBuffer, QueueMP
-from video_tools import BackgroundImage, Polarity
 from dagline import ProcessingDAG, receive_strategy, send_strategy
 from geometry import AffineTransform2D
 
@@ -481,7 +480,7 @@ def closed_loop_3D(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple
 
     # metadata
     if settings['main']['record']:
-        protocol = settings['sequencer']['protocol']*settings['sequencer']['repetitions']
+        protocol = settings['sequencer']['protocol']
         protocol_worker.set_protocol(protocol)
         dag.connect_metadata(
             sender = protocol_worker, 

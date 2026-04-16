@@ -1079,6 +1079,18 @@ class TrackerWidget(QWidget):
         with open(filename, 'r') as fp:
             state = json.load(fp)
 
+        # if more animals in saved file, discard the last one
+        # if not enough animals, create with defaults
+        loaded_substate = state.get("substate", {})
+        normalized_substate = {}
+        for i in range(self.n_animals):
+            key = str(i)
+            if key in loaded_substate:
+                normalized_substate[i] = loaded_substate[key]
+            else:
+                normalized_substate[i] = self._get_substate()
+        state["substate"] = normalized_substate
+
         self.set_state(state)
         self.updated = True
 

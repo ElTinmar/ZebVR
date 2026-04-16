@@ -432,7 +432,8 @@ class PowermeterWidget(QWidget):
             y_pred = np.zeros((11,)),
             slope = 0,
             intercept = 0,
-            r_squared = 0
+            r_squared = 0,
+            inv_lut = lambda x: 0.0
         )
         self.calibration_red: PowerCalibration = default_cal
         self.calibration_green: PowerCalibration = default_cal
@@ -470,7 +471,7 @@ class PowermeterWidget(QWidget):
         self.calibration_steps_sb.setMinimum(1)
         self.calibration_steps_sb.setMaximum(51)
         self.calibration_steps_sb.setSingleStep(1)
-        self.calibration_steps_sb.setValue(11)
+        self.calibration_steps_sb.setValue(21)
         self.calibration_steps_sb.valueChanged.connect(self.state_changed)
 
         self.calibration_pause_sb = LabeledDoubleSpinBox()

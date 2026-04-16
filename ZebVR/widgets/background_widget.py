@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QStackedWidget,
     QApplication
 )
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal
 from typing import Dict
 from numpy.typing import NDArray
 import numpy as np
@@ -20,7 +20,6 @@ from qt_widgets import (
     NDarray_to_QPixmap, 
     FileSaveLabeledEditButton
 )
-import numpy as np
 
 class BackgroundWidget(QWidget):
 

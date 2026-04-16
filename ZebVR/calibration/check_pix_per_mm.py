@@ -1,12 +1,11 @@
 from vispy import gloo, app
 from typing import Tuple, List
 import sys
-from multiprocessing import Process, RawArray
+from multiprocessing import Process, RawArray, Event
 import numpy as np
 import json
 import cv2
 from numpy.typing import NDArray
-import time
 
 VERT_SHADER_CALIBRATION = """
 attribute vec2 a_position;
@@ -50,6 +49,7 @@ class Projector(app.Canvas, Process):
             self.window_position = window_position
             self.window_decoration = window_decoration
             self.image = RawArray('f', int(np.prod(window_size)))
+            self.finished = Event()
 
     def initialize(self):
         # this needs to happen in the process where the window is displayed
@@ -94,6 +94,12 @@ class Projector(app.Canvas, Process):
         self.initialize()
         if sys.flags.interactive != 1:
             app.run()
+
+    def on_key_press(self, event):
+        # TODO use arrows to move reticle around?
+        if event.key.name in ['Escape', 'Q']:
+            self.finished.set()
+            self.close()
 
 def disk(point, center, radius):
     return (point[0]-center[0])**2 + (point[1]-center[1])**2 <= radius**2
@@ -141,7 +147,7 @@ def check_pix_per_mm(
 
     # project point        
     proj.draw_image(mask_proj)
-    
-    time.sleep(10)
+    print('press escape or q to stop')
+    proj.finished.wait()
     proj.terminate()
 

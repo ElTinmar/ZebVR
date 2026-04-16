@@ -8,10 +8,11 @@ from numpy.typing import NDArray
 import json
 from image_tools import im2single, enhance, im2rgb, im2uint8, im2gray, bwareafilter_centroids
 import cv2
-from geometry import homogeneous_coord_2d, AffineTransform2D
+from geometry import homogeneous_coord_2d
 from enum import IntEnum
 from functools import partial
 from camera_tools import Camera
+from qt_widgets import imshow, waitKey, destroyAllWindows
 
 RESIZED_HEIGHT = 512 # make sure that display fits on various screens
 
@@ -179,11 +180,13 @@ def bar_intensity_profile(
         (height, width) = image.shape[:2]
         resized_width = int(RESIZED_HEIGHT * width/height)
         disp = cv2.resize(image,(resized_width, RESIZED_HEIGHT))
-        cv2.imshow('calibration', disp)
-        cv2.waitKey(1)
+        disp *= 255
+        disp = disp.astype(np.uint8)
+        imshow('calibration', disp)
+        waitKey(1)
     
     camera.stop_acquisition()
-    cv2.destroyAllWindows()
+    destroyAllWindows()
 
     vbar = np.argwhere(intensity_profile >= np.max(intensity_profile)/2)
     x_start, x_stop = coord[vbar[0]], coord[vbar[-1]]
@@ -244,11 +247,11 @@ def dots_position(
         (height, width) = image.shape[:2]
         resized_width = int(RESIZED_HEIGHT * width/height)
         disp = cv2.resize(image,(resized_width, RESIZED_HEIGHT))
-        cv2.imshow('calibration', disp)
-        cv2.waitKey(1)
+        imshow('calibration', disp)
+        waitKey(1)
 
     camera.stop_acquisition()
-    cv2.destroyAllWindows()
+    destroyAllWindows()
 
     return pts_proj, pts_cam
     
@@ -303,8 +306,6 @@ def registration(
         blur_size_px=blur_size_px,
         medfilt_size_px=None
     )
-
-    cv2.namedWindow('calibration')
 
     # make sure that everything is initialized
     time.sleep(2)     

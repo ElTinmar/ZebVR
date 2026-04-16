@@ -38,7 +38,8 @@ class Phototaxis(VisualProtocolItem):
             'stim_select': self.STIM_SELECT,
             'phototaxis_polarity': self.phototaxis_polarity,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color
+            'background_color': self.background_color,
+            'coordinate_system': self.coordinate_system
         }
         return command
     
@@ -116,9 +117,12 @@ class PhototaxisWidget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
+        coordinate_system = self.cb_coordinate_system.currentIndex()
+
         protocol = Phototaxis(
             foreground_color = foreground_color,
             background_color = background_color,
+            coordinate_system = coordinate_system,
             phototaxis_polarity = -1+2*self.chb_phototaxis_polarity.isChecked(),
             stop_condition = self.stop_widget.to_stop_condition()
         )

@@ -12,12 +12,18 @@ output/logs/*
 !output/video/README.md
 !output/logs/README.md
 
+ZebVR/default/*
+
 tracking.json
 protocol.json
 registration.json
 
 *.vr
+!behavioral_screen_v4_december_2025.vr
+!prey_capture_size.vr
+!prey_capture_phase.vr
 *.csv
+!doc/BOM/bom.csv
 *.pkl
 
 # thorlabs firmware

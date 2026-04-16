@@ -46,7 +46,8 @@ class OMR(VisualProtocolItem):
             'omr_angle_deg': self.omr_angle_deg,
             'omr_speed_mm_per_sec': self.omr_speed_mm_per_sec,
             'foreground_color': self.foreground_color,
-            'background_color': self.background_color
+            'background_color': self.background_color,
+            'coordinate_system': self.coordinate_system
         }
         return command
     
@@ -162,9 +163,12 @@ class OMR_Widget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
+        coordinate_system = self.cb_coordinate_system.currentIndex()
+        
         protocol = OMR(
             foreground_color = foreground_color,
             background_color = background_color,
+            coordinate_system = coordinate_system,
             omr_spatial_period_mm = self.sb_omr_spatial_freq.value(),
             omr_angle_deg = self.sb_omr_angle.value(),
             omr_speed_mm_per_sec = self.sb_omr_speed.value(),

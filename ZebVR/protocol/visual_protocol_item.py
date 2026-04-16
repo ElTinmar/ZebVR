@@ -1,15 +1,16 @@
 from .protocol_item import VisualProtocolItem, ProtocolItem, ProtocolItemWidget
 from .default import DEFAULT
 from typing import Tuple, Dict
-from qt_widgets import LabeledDoubleSpinBox
+from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import (
     QLabel,
-    QHBoxLayout,
+    QHBoxLayout
 )
 from ..utils import set_from_dict
+from .stim import CoordinateSystem
 
-# TODO: calibration, display power for each channel
+# TODO: calibration, display power for each channe
 
 class VisualProtocolItemWidget(ProtocolItemWidget):
     
@@ -19,12 +20,14 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
             self,
             foreground_color: Tuple = DEFAULT['foreground_color'],
             background_color: Tuple = DEFAULT['background_color'],
+            coordinate_system: CoordinateSystem = DEFAULT['coordinate_system'],
             *args,
             **kwargs
         ) -> None:
 
         self.foreground_color = foreground_color
         self.background_color = background_color
+        self.coordinate_system = coordinate_system
 
         super().__init__(*args, **kwargs)
 
@@ -92,6 +95,13 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
         self.sb_background_color_A.setValue(self.background_color[3])
         self.sb_background_color_A.valueChanged.connect(self.state_changed)
 
+        self.cb_coordinate_system = LabeledComboBox()
+        self.cb_coordinate_system.setText('Coordinate System')
+        for coordinate_system in CoordinateSystem:
+            self.cb_coordinate_system.addItem(str(coordinate_system))
+        self.cb_coordinate_system.setCurrentIndex(self.coordinate_system)
+        self.cb_coordinate_system.currentIndexChanged.connect(self.state_changed)
+
     def layout_components(self) -> None:
 
         super().layout_components()
@@ -112,6 +122,7 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
         background_color_layout.addWidget(self.sb_background_color_A)
         background_color_layout.addStretch()
 
+        self.main_layout.addWidget(self.cb_coordinate_system)
         self.main_layout.addLayout(foreground_color_layout)
         self.main_layout.addLayout(background_color_layout)
 
@@ -119,6 +130,7 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
 
         state = super().get_state()
 
+        state['coordinate_system'] = self.cb_coordinate_system.currentIndex()
         state['foreground_color'] = (
             self.sb_foreground_color_R.value(),
             self.sb_foreground_color_G.value(),
@@ -137,6 +149,12 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
 
         super().set_state(state)
         
+        set_from_dict(
+            dictionary = state,
+            key = 'coordinate_system',
+            setter = self.cb_coordinate_system.setCurrentIndex,
+            default = self.coordinate_system
+        )
         set_from_dict(
             dictionary = state,
             key = 'foreground_color',
@@ -200,6 +218,8 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
         super().from_protocol_item(protocol_item)
 
         if isinstance(protocol_item, VisualProtocolItem):
+            self.cb_coordinate_system.setCurrentIndex(protocol_item.coordinate_system)
+
             self.sb_foreground_color_R.setValue(protocol_item.foreground_color[0])
             self.sb_foreground_color_G.setValue(protocol_item.foreground_color[1])
             self.sb_foreground_color_B.setValue(protocol_item.foreground_color[2])

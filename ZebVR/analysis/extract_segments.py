@@ -12,11 +12,11 @@ class Stim(IntEnum):
     PHOTOTAXIS = 2
     OMR = 3
     OKR = 4
-    FOLLOWING_LOOMING = 5
+    LINEAR_RADIUS_LOOMING = 5
     PREY_CAPTURE = 6
-    LOOMING = 7
+    LINEAR_RADIUS_LOOMING = 7
     CONCENTRIC_GRATING = 8
-    FOLLOWING_DOT = 9
+    DOT = 9
     DOT = 10
     IMAGE = 11
     RAMP = 12
@@ -64,7 +64,7 @@ for i, ev in enumerate(events):
         suffix = str(ev['omr_angle_deg'])
     elif stim == Stim.OKR:
         suffix = str(ev['okr_speed_deg_per_sec'])
-    elif stim == Stim.FOLLOWING_LOOMING:
+    elif stim == Stim.LINEAR_RADIUS_LOOMING:
         suffix = str(ev['looming_center_mm'][0])
 
 

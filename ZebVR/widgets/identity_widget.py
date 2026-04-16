@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QLabel,
+    QPushButton,
     QGroupBox
 )
 from PyQt5.QtCore import pyqtSignal
@@ -13,13 +14,13 @@ import numpy as np
 import cv2
 from pathlib import Path
 from geometry import SimilarityTransform2D
+from ZebVR.utils import FindCircularArenasDialog
 
 from qt_widgets import (
     LabeledSpinBox, 
     LabeledDoubleSpinBox,
     NDarray_to_QPixmap
 )
-import numpy as np
 
 class IdentityWidget(QWidget):
 
@@ -35,7 +36,7 @@ class IdentityWidget(QWidget):
     axis_y_color = (0, 255, 255) 
     axis_x_color = (0, 0, 255)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, pix_per_mm: float = 30, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
 
@@ -44,6 +45,7 @@ class IdentityWidget(QWidget):
         else:
             self.image = np.zeros((512,512), dtype=np.uint8)
         self.ROIs = []
+        self.pix_per_mm = pix_per_mm
         self.open_loop_visible = False
         self.axes = [[1.0, 0.0], [0.0, 1.0]] 
 
@@ -51,6 +53,9 @@ class IdentityWidget(QWidget):
         self.layout_components()
 
     def declare_components(self) -> None:
+
+        self.auto_btn = QPushButton("Auto find circular wells")
+        self.auto_btn.clicked.connect(self.on_auto)
 
         self.row = LabeledSpinBox()
         self.row.setText('row')
@@ -172,6 +177,7 @@ class IdentityWidget(QWidget):
         self.open_loop_group.setLayout(open_loop_layout)
         
         main_layout = QVBoxLayout(self)
+        main_layout.addWidget(self.auto_btn)
         main_layout.addLayout(grid_layout)
         main_layout.addLayout(size_layout)
         main_layout.addLayout(offset_layout)
@@ -181,6 +187,24 @@ class IdentityWidget(QWidget):
         main_layout.addStretch()
         main_layout.addLayout(image_layout)
         main_layout.addStretch()
+
+    def on_auto(self):
+        modal = FindCircularArenasDialog(
+            image = self.image,
+            pix_per_mm = self.pix_per_mm
+        )
+        modal.data.connect(self.handle_auto)
+        modal.exec_()
+
+    def handle_auto(self, circles, rois, annotated_image):
+        self.ROIs.clear()
+        self.ROIs.extend(rois.tolist())
+
+        h, w = annotated_image.shape[:2]
+        preview_width = int(w * self.PREVIEW_HEIGHT/h)
+        image_resized = cv2.resize(annotated_image, (preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
+        self.image_label.setPixmap(NDarray_to_QPixmap(image_resized))
+        self.state_changed.emit()
 
     def block_all_signals(self, block: bool):
         for child in self.findChildren(QWidget): 
@@ -277,6 +301,9 @@ class IdentityWidget(QWidget):
 
         self.state_changed.emit()
 
+    def set_pix_per_mm(self, pix_per_mm: float) -> None:
+        self.pix_per_mm = pix_per_mm
+        
     def set_open_loop_visible(self, visible: bool) -> None:
         self.open_loop_group.setVisible(visible)
         self.open_loop_visible = visible

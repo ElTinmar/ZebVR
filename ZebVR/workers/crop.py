@@ -41,3 +41,51 @@ class CropWorker(WorkerNode):
 
     def process_metadata(self, metadata) -> Any:
         pass
+
+# EXPERIMENTAL: pre-allocate. Need to pass num channels
+class CropWorker2(WorkerNode):
+
+    def __init__(
+            self, 
+            ROI_identities: List[Tuple[int,int,int,int]],
+            n_channels: int,
+            *args, 
+            **kwargs
+        ):
+        
+        super().__init__(*args, **kwargs)
+        self.ROI_identities = ROI_identities
+
+        self.buffers = []
+        for x, y, w, h in ROI_identities:
+            dtype = np.dtype([
+                ('index', int),
+                ('timestamp', np.int64),
+                ('image', np.uint8, (h, w, n_channels)), 
+                ('origin', np.int32, (2,)),
+                ('shape', np.int32, (2,)),
+                ('identity', np.int32)
+            ])
+            # Pre-allocate memory once
+            self.buffers.append(np.zeros((), dtype=dtype))
+
+    def process_data(self, data):
+        
+        if data is None:
+            return
+        
+        res = {}
+        for n, (roi, buf) in enumerate(zip(self.ROI_identities, self.buffers)):
+            x,y,w,h = roi
+            buf['index'] = data['index']
+            buf['timestamp'] = data['timestamp']
+            buf['image'][:] = data['image'][y:y+h, x:x+w]
+            buf['origin'] = (x, y)
+            buf['shape'] = (h, w)
+            buf['identity'] = n
+            res[f'cropper_output_{n}'] = buf          
+        
+        return res
+
+    def process_metadata(self, metadata) -> Any:
+        pass

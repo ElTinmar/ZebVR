@@ -1,0 +1,61 @@
+from pathlib import Path
+from multiprocessing import Pool
+from functools import partial
+
+from .load import (
+    Directories, 
+    BehaviorFiles,
+    find_files, 
+    load_data
+)
+from .process import (
+    extract_metrics, 
+    get_well_coords_mm,
+    superimpose_video_trials
+)
+from .plot import (
+    plot_tracking_metrics, 
+    plot_trajectories
+)
+
+# TODO eye tracking OKR
+# TODO eye tracking + tail tracking and classification J-turn PREY_CAPTURE
+# TODO bout segmentation and distribution of heading change per bout
+# TODO bout classification for every behavior + ethogram? 
+
+# TODO auto detect edges/center coordinates on video/picture
+# TODO filter bouts on edges (bout that starts and ends on the edge)?
+
+# TODO separate analysis and plotting. Use multiprocessing for analysis here
+
+# TODO linear mixed effects analysis to get within and between individual variability
+
+# TODO filter dark/bright events to remove transition/rest periods
+
+def extract_videos(behavior_file: BehaviorFiles, directories: Directories):
+    behavior_data = load_data(behavior_file)
+    superimpose_video_trials(directories, behavior_data, behavior_file, 30)
+
+def run(behavior_file: BehaviorFiles):
+    behavior_data = load_data(behavior_file)
+    well_coords_mm = get_well_coords_mm(behavior_data)
+    metrics = extract_metrics(behavior_data, well_coords_mm)
+
+    for identity, data in metrics.items():
+        plot_tracking_metrics(data)
+        plot_trajectories(data)
+    
+if __name__ == '__main__':
+
+    base_dir = Path('/media/martin/MARTIN_8TB_0/Work/Baier/DATA/Behavioral_screen/output')
+    #base_dir = Path('/media/martin/DATA/Behavioral_screen/output')
+    directories = Directories(base_dir)
+    behavior_files = find_files(directories)
+
+    _extract_videos = partial(extract_videos, directories = directories)
+    # NOTE all behavior data loaded in RAM can be heavy
+    with Pool(processes=16) as pool:
+        pool.map(_extract_videos, behavior_files)
+
+    for behavior_file in behavior_files:
+        run(behavior_file)

@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Sequence
+from typing import List, Tuple, Dict
 from .visual_stim import VisualStim
 from vispy import gloo, app
 from multiprocessing import RawValue, RawArray
@@ -11,6 +11,7 @@ from ZebVR.protocol import DEFAULT, Stim, VISUAL_STIMS
 import cv2
 from ZebVR.utils import SharedString, get_time_ns
 import queue
+from ctypes import c_double, c_ulong
 
 @dataclass
 class SharedFishState:
@@ -31,36 +32,52 @@ class SharedStimParameters:
 
     def __init__(self):
         
-        self.stim_change_counter = RawValue('d', 0) 
-        self.start_time_sec = RawValue('d', 0) 
-        self.stim_select = RawValue('d', Stim.DARK) 
-        self.foreground_color = RawArray('d', DEFAULT['foreground_color'])
-        self.background_color = RawArray('d', DEFAULT['background_color'])
-        self.phototaxis_polarity = RawValue('d', DEFAULT['phototaxis_polarity']) 
-        self.omr_spatial_period_mm = RawValue('d', DEFAULT['omr_spatial_period_mm'])
-        self.omr_angle_deg = RawValue('d', DEFAULT['omr_angle_deg'])
-        self.omr_speed_mm_per_sec = RawValue('d', DEFAULT['omr_speed_mm_per_sec'])
-        self.concentric_spatial_period_mm = RawValue('d', DEFAULT['concentric_spatial_period_mm'])
-        self.concentric_speed_mm_per_sec = RawValue('d', DEFAULT['concentric_speed_mm_per_sec'])
-        self.okr_spatial_frequency_deg = RawValue('d', DEFAULT['okr_spatial_frequency_deg'])
-        self.okr_speed_deg_per_sec = RawValue('d', DEFAULT['okr_speed_deg_per_sec'])
-        self.looming_center_mm = RawArray('d', DEFAULT['looming_center_mm'])
-        self.looming_period_sec = RawValue('d', DEFAULT['looming_period_sec'])
-        self.looming_expansion_time_sec = RawValue('d', DEFAULT['looming_expansion_time_sec'])
-        self.looming_expansion_speed_mm_per_sec = RawValue('d', DEFAULT['looming_expansion_speed_mm_per_sec'])
-        self.dot_center_mm = RawArray('d', DEFAULT['dot_center_mm'])
-        self.dot_radius_mm = RawValue('d', DEFAULT['dot_radius_mm'])
-        self.n_preys = RawValue('L', DEFAULT['n_preys'])
-        self.prey_speed_mm_s = RawValue('d', DEFAULT['prey_speed_mm_s'])
-        self.prey_speed_deg_s = RawValue('d', DEFAULT['prey_speed_deg_s'])
-        self.prey_radius_mm = RawValue('d', DEFAULT['prey_radius_mm'])
-        self.prey_trajectory_radius_mm = RawValue('d', DEFAULT['prey_trajectory_radius_mm'])
+        self.stim_change_counter = RawValue(c_double, 0) 
+        self.start_time_sec = RawValue(c_double, 0) 
+        self.stim_select = RawValue(c_double, Stim.DARK) 
+        self.foreground_color = RawArray(c_double, DEFAULT['foreground_color'])
+        self.background_color = RawArray(c_double, DEFAULT['background_color'])
+        self.coordinate_system = RawValue(c_ulong, DEFAULT['coordinate_system'])
+        self.phototaxis_polarity = RawValue(c_double, DEFAULT['phototaxis_polarity']) 
+        self.omr_spatial_period_mm = RawValue(c_double, DEFAULT['omr_spatial_period_mm'])
+        self.omr_angle_deg = RawValue(c_double, DEFAULT['omr_angle_deg'])
+        self.omr_speed_mm_per_sec = RawValue(c_double, DEFAULT['omr_speed_mm_per_sec'])
+        self.turing_spatial_period_mm = RawValue(c_double, DEFAULT['turing_spatial_period_mm'])
+        self.turing_angle_deg = RawValue(c_double, DEFAULT['turing_angle_deg'])
+        self.turing_speed_mm_per_sec = RawValue(c_double, DEFAULT['turing_speed_mm_per_sec'])
+        self.turing_n_waves = RawValue(c_ulong, DEFAULT['turing_n_waves'])
+        self.concentric_spatial_period_mm = RawValue(c_double, DEFAULT['concentric_spatial_period_mm'])
+        self.concentric_speed_mm_per_sec = RawValue(c_double, DEFAULT['concentric_speed_mm_per_sec'])
+        self.okr_spatial_frequency_deg = RawValue(c_double, DEFAULT['okr_spatial_frequency_deg'])
+        self.okr_speed_deg_per_sec = RawValue(c_double, DEFAULT['okr_speed_deg_per_sec'])
+        self.looming_type = RawValue(c_double, DEFAULT['looming_type'])
+        self.looming_center_mm = RawArray(c_double, DEFAULT['looming_center_mm'])
+        self.looming_period_sec = RawValue(c_double, DEFAULT['looming_period_sec'])
+        self.looming_expansion_time_sec = RawValue(c_double, DEFAULT['looming_expansion_time_sec'])
+        self.looming_expansion_speed_mm_per_sec = RawValue(c_double, DEFAULT['looming_expansion_speed_mm_per_sec'])
+        self.looming_expansion_speed_deg_per_sec = RawValue(c_double, DEFAULT['looming_expansion_speed_deg_per_sec'])
+        self.looming_angle_start_deg = RawValue(c_double, DEFAULT['looming_angle_start_deg'])
+        self.looming_angle_stop_deg = RawValue(c_double, DEFAULT['looming_angle_stop_deg'])
+        self.looming_size_to_speed_ratio_ms = RawValue(c_double, DEFAULT['looming_size_to_speed_ratio_ms'])
+        self.looming_distance_to_screen_mm = RawValue(c_double, DEFAULT['looming_distance_to_screen_mm'])
+        self.dot_center_mm = RawArray(c_double, DEFAULT['dot_center_mm'])
+        self.dot_radius_mm = RawValue(c_double, DEFAULT['dot_radius_mm'])
+        self.prey_capture_type = RawValue(c_double, DEFAULT['prey_capture_type'])
+        self.prey_periodic_function = RawValue(c_double, DEFAULT['prey_periodic_function'])
+        self.n_preys = RawValue(c_ulong, DEFAULT['n_preys'])
+        self.prey_speed_mm_s = RawValue(c_double, DEFAULT['prey_speed_mm_s'])
+        self.prey_speed_deg_s = RawValue(c_double, DEFAULT['prey_speed_deg_s'])
+        self.prey_radius_mm = RawValue(c_double, DEFAULT['prey_radius_mm'])
+        self.prey_trajectory_radius_mm = RawValue(c_double, DEFAULT['prey_trajectory_radius_mm'])
+        self.prey_arc_start_deg = RawValue(c_double, DEFAULT['prey_arc_start_deg'])
+        self.prey_arc_stop_deg = RawValue(c_double, DEFAULT['prey_arc_stop_deg'])
+        self.prey_arc_phase_deg = RawValue(c_double, DEFAULT['prey_arc_phase_deg'])
         self.image_path = SharedString(initializer = DEFAULT['image_path'])
-        self.image_res_px_per_mm = RawValue('d', DEFAULT['image_res_px_per_mm'])
-        self.image_offset_mm = RawArray('d', DEFAULT['image_offset_mm'])
-        self.ramp_duration_sec = RawValue('d', DEFAULT['ramp_duration_sec'])
-        self.ramp_powerlaw_exponent = RawValue('d', DEFAULT['ramp_powerlaw_exponent'])
-        self.ramp_type = RawValue('d', DEFAULT['ramp_type'])
+        self.image_res_px_per_mm = RawValue(c_double, DEFAULT['image_res_px_per_mm'])
+        self.image_offset_mm = RawArray(c_double, DEFAULT['image_offset_mm'])
+        self.ramp_duration_sec = RawValue(c_double, DEFAULT['ramp_duration_sec'])
+        self.ramp_powerlaw_exponent = RawValue(c_double, DEFAULT['ramp_powerlaw_exponent'])
+        self.ramp_type = RawValue(c_double, DEFAULT['ramp_type'])
 
     def from_dict(self, d: Dict) -> None:
         
@@ -69,25 +86,41 @@ class SharedStimParameters:
         self.stim_select.value = d.get('stim_select', Stim.DARK)
         self.foreground_color[:] = d.get('foreground_color', DEFAULT['foreground_color'])
         self.background_color[:] = d.get('background_color', DEFAULT['background_color'])
+        self.coordinate_system.value = d.get('coordinate_system', DEFAULT['coordinate_system'])
         self.phototaxis_polarity.value = d.get('phototaxis_polarity', DEFAULT['phototaxis_polarity'])
         self.omr_spatial_period_mm.value = d.get('omr_spatial_period_mm', DEFAULT['omr_spatial_period_mm'])
         self.omr_angle_deg.value = d.get('omr_angle_deg', DEFAULT['omr_angle_deg'])
         self.omr_speed_mm_per_sec.value = d.get('omr_speed_mm_per_sec', DEFAULT['omr_speed_mm_per_sec'])
+        self.turing_spatial_period_mm.value = d.get('turing_spatial_period_mm', DEFAULT['turing_spatial_period_mm'])
+        self.turing_angle_deg.value = d.get('turing_angle_deg', DEFAULT['turing_angle_deg'])
+        self.turing_speed_mm_per_sec.value = d.get('turing_speed_mm_per_sec', DEFAULT['turing_speed_mm_per_sec'])
+        self.turing_n_waves.value = d.get('turing_n_waves', DEFAULT['turing_n_waves'])
         self.concentric_spatial_period_mm.value = d.get('concentric_spatial_period_mm', DEFAULT['concentric_spatial_period_mm'])
         self.concentric_speed_mm_per_sec.value = d.get('concentric_speed_mm_per_sec', DEFAULT['concentric_speed_mm_per_sec'])
         self.okr_spatial_frequency_deg.value = d.get('okr_spatial_frequency_deg', DEFAULT['okr_spatial_frequency_deg'])
         self.okr_speed_deg_per_sec.value = d.get('okr_speed_deg_per_sec', DEFAULT['okr_speed_deg_per_sec'])
+        self.looming_type.value = d.get('looming_type', DEFAULT['looming_type'])
         self.looming_center_mm[:] = d.get('looming_center_mm', DEFAULT['looming_center_mm'])
         self.looming_period_sec.value = d.get('looming_period_sec', DEFAULT['looming_period_sec'])
         self.looming_expansion_time_sec.value = d.get('looming_expansion_time_sec', DEFAULT['looming_expansion_time_sec'])
         self.looming_expansion_speed_mm_per_sec.value = d.get('looming_expansion_speed_mm_per_sec', DEFAULT['looming_expansion_speed_mm_per_sec'])
+        self.looming_expansion_speed_deg_per_sec.value = d.get('looming_expansion_speed_deg_per_sec', DEFAULT['looming_expansion_speed_deg_per_sec'])
+        self.looming_angle_start_deg.value = d.get('looming_angle_start_deg', DEFAULT['looming_angle_start_deg'])
+        self.looming_angle_stop_deg.value = d.get('looming_angle_stop_deg', DEFAULT['looming_angle_stop_deg'])
+        self.looming_size_to_speed_ratio_ms.value = d.get('looming_size_to_speed_ratio_ms', DEFAULT['looming_size_to_speed_ratio_ms'])
+        self.looming_distance_to_screen_mm.value = d.get('looming_distance_to_screen_mm', DEFAULT['looming_distance_to_screen_mm'])
         self.dot_center_mm[:] = d.get('dot_center_mm', DEFAULT['dot_center_mm'])
         self.dot_radius_mm.value = d.get('dot_radius_mm', DEFAULT['dot_radius_mm'])
+        self.prey_capture_type.value = d.get('prey_capture_type', DEFAULT['prey_capture_type'])
+        self.prey_periodic_function.value = d.get('prey_periodic_function', DEFAULT['prey_periodic_function'])
         self.n_preys.value = int(d.get('n_preys', DEFAULT['n_preys']))
         self.prey_speed_mm_s.value = d.get('prey_speed_mm_s', DEFAULT['prey_speed_mm_s'])
         self.prey_speed_deg_s.value = d.get('prey_speed_deg_s', DEFAULT['prey_speed_deg_s'])
         self.prey_radius_mm.value = d.get('prey_radius_mm', DEFAULT['prey_radius_mm'])
         self.prey_trajectory_radius_mm.value = d.get('prey_trajectory_radius_mm', DEFAULT['prey_trajectory_radius_mm'])
+        self.prey_arc_start_deg.value = d.get('prey_arc_start_deg', DEFAULT['prey_arc_start_deg'])
+        self.prey_arc_stop_deg.value = d.get('prey_arc_stop_deg', DEFAULT['prey_arc_stop_deg'])
+        self.prey_arc_phase_deg.value = d.get('prey_arc_phase_deg', DEFAULT['prey_arc_phase_deg'])
         self.image_path.value = d.get('image_path', DEFAULT['image_path'])
         self.image_res_px_per_mm.value = d.get('image_res_px_per_mm', DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm[:] = d.get('image_offset_mm', DEFAULT['image_offset_mm'])
@@ -103,6 +136,7 @@ class SharedStimParameters:
             'start_time_sec': self.start_time_sec.value,
             'foreground_color': list(self.foreground_color),
             'background_color': list(self.background_color),
+            'coordinate_system': self.coordinate_system.value
         }
 
         if self.stim_select.value == Stim.PHOTOTAXIS:
@@ -117,6 +151,14 @@ class SharedStimParameters:
                 'omr_speed_mm_per_sec': self.omr_speed_mm_per_sec.value,
             })
 
+        if self.stim_select.value == Stim.TURING:
+            res.update({
+                'turing_spatial_period_mm': self.turing_spatial_period_mm.value,
+                'turing_angle_deg': self.turing_angle_deg.value,
+                'turing_speed_mm_per_sec': self.turing_speed_mm_per_sec.value,
+                'turing_n_waves': self.turing_n_waves.value,
+            })
+
         if self.stim_select.value == Stim.CONCENTRIC_GRATING:
             res.update({
                 'concentric_spatial_period_mm': self.concentric_spatial_period_mm.value,
@@ -129,15 +171,21 @@ class SharedStimParameters:
                 'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec.value,
             })
 
-        if self.stim_select.value in [Stim.LOOMING, Stim.FOLLOWING_LOOMING]:
+        if self.stim_select.value == Stim.LOOMING:
             res.update({
+                'looming_type': self.looming_type.value,
                 'looming_center_mm': list(self.looming_center_mm),
                 'looming_period_sec': self.looming_period_sec.value,
                 'looming_expansion_time_sec': self.looming_expansion_time_sec.value,
                 'looming_expansion_speed_mm_per_sec': self.looming_expansion_speed_mm_per_sec.value,
+                'looming_expansion_speed_deg_per_sec': self.looming_expansion_speed_deg_per_sec.value,
+                'looming_angle_start_deg': self.looming_angle_start_deg.value,
+                'looming_angle_stop_deg': self.looming_angle_stop_deg.value,
+                'looming_size_to_speed_ratio_ms': self.looming_size_to_speed_ratio_ms.value,
+                'looming_distance_to_screen_mm': self.looming_distance_to_screen_mm.value,
             })
 
-        if self.stim_select.value in [Stim.DOT, Stim.FOLLOWING_DOT]:
+        if self.stim_select.value == Stim.DOT:
             res.update({
                 'dot_center_mm': list(self.dot_center_mm),
                 'dot_radius_mm': self.dot_radius_mm.value,
@@ -145,17 +193,16 @@ class SharedStimParameters:
 
         if self.stim_select.value == Stim.PREY_CAPTURE:
             res.update({
+                'prey_capture_type': self.prey_capture_type.value,
+                'prey_periodic_function': self.prey_periodic_function.value,
                 'n_preys': self.n_preys.value,
                 'prey_speed_mm_s': self.prey_speed_mm_s.value,
-                'prey_radius_mm': self.prey_radius_mm.value,
-            })
-
-        if self.stim_select.value == Stim.FOLLOWING_PREY_CAPTURE:
-            res.update({
-                'n_preys': self.n_preys.value,
                 'prey_speed_deg_s': self.prey_speed_deg_s.value,
                 'prey_radius_mm': self.prey_radius_mm.value,
                 'prey_trajectory_radius_mm': self.prey_trajectory_radius_mm.value,
+                'prey_arc_start_deg': self.prey_arc_start_deg.value,
+                'prey_arc_stop_deg': self.prey_arc_stop_deg.value,
+                'prey_arc_phase_deg': self.prey_arc_phase_deg.value,
             })
 
         if self.stim_select.value == Stim.IMAGE:
@@ -220,7 +267,7 @@ class GeneralStim(VisualStim):
         uniform mat3 u_cam_to_proj;
         uniform mat3 u_proj_to_cam;
 
-        // tracking
+        // tracking : fish coordinates are already transformed in projector space
         uniform int u_n_animals;
         uniform vec2 u_fish_centroid[{self.n_animals}];
         uniform vec2 u_fish_caudorostral_axis[{self.n_animals}];
@@ -236,28 +283,44 @@ class GeneralStim(VisualStim):
         // stim parameters
         uniform vec4 u_foreground_color;
         uniform vec4 u_background_color;
+        uniform int u_coordinate_system;
         uniform float u_stim_select;
         uniform float u_phototaxis_polarity;
         uniform float u_omr_spatial_period_mm;
         uniform float u_omr_angle_deg;
         uniform float u_omr_speed_mm_per_sec;
+        uniform float u_turing_spatial_period_mm;
+        uniform float u_turing_angle_deg;
+        uniform float u_turing_speed_mm_per_sec;
+        uniform float u_turing_n_waves;
         uniform float u_concentric_spatial_period_mm;
         uniform float u_concentric_speed_mm_per_sec;
         uniform float u_okr_spatial_frequency_deg;
         uniform float u_okr_speed_deg_per_sec;
+        uniform int u_looming_type;
         uniform vec2 u_looming_center_mm;
         uniform float u_looming_period_sec;
         uniform float u_looming_expansion_time_sec;
         uniform float u_looming_expansion_speed_mm_per_sec;
+        uniform float u_looming_expansion_speed_deg_per_sec;
+        uniform float u_looming_angle_start_deg;
+        uniform float u_looming_angle_stop_deg;
+        uniform float u_looming_size_to_speed_ratio_ms;
+        uniform float u_looming_distance_to_screen_mm;
         uniform vec2 u_dot_center_mm;
         uniform float u_dot_radius_mm;
+        uniform int u_prey_capture_type;
+        uniform int u_prey_periodic_function;
         uniform float u_n_preys;
         uniform float u_prey_radius_mm;
         uniform float u_prey_trajectory_radius_mm;
         uniform float u_prey_speed_mm_s;
         uniform float u_prey_speed_deg_s;
-        uniform vec2 u_prey_position[{MAX_PREY}];
-        uniform vec2 u_prey_direction[{MAX_PREY}];
+        uniform float u_prey_arc_start_deg;
+        uniform float u_prey_arc_stop_deg;
+        uniform float u_prey_arc_phase_deg;
+        uniform vec2 u_prey_position[{MAX_PREY}]; // in projector space
+        uniform float u_prey_trajectory_angle[{MAX_PREY}];  
         uniform sampler2D u_image_texture;
         uniform vec2 u_image_size;
         uniform float u_image_res_px_per_mm;
@@ -265,39 +328,58 @@ class GeneralStim(VisualStim):
         uniform float u_ramp_duration_sec;
         uniform float u_ramp_powerlaw_exponent;
         uniform int u_ramp_type;
-
+        
         // constants 
         const int LINEAR = 0;
         const int POWER_LAW = 1;
+
+        // looming type
+        const int LINEAR_RADIUS = 0;
+        const int LINEAR_ANGLE = 1;
+        const int CONSTANT_VELOCITY = 2;
+
+        // prey capture type
+        const int RING = 0;
+        const int RANDOM_CLOUD = 1;
+        const int ARC = 2;
+
+        //coordinate system
+        const int BOUNDING_BOX_CENTER = 0;
+        const int FISH_CENTERED = 1;
+        const int FISH_EGOCENTRIC = 2; 
+
+        //periodic function
+        const int COSINE = 0;
+        const int MODULO = 1;
+        const int TRIANGLE = 2;
+        const int SQUARE = 3;
         
+        // stimuli
         const int DARK = 0;
         const int BRIGHT = 1;
         const int PHOTOTAXIS = 2;
         const int OMR = 3;
         const int OKR = 4;
-        const int FOLLOWING_LOOMING = 5;
+        const int LOOMING = 5;
         const int PREY_CAPTURE = 6;
-        const int LOOMING = 7;
-        const int CONCENTRIC_GRATING = 8;
-        const int FOLLOWING_DOT = 9;
-        const int DOT = 10;
-        const int IMAGE = 11;
-        const int RAMP = 12;
-        const int FOLLOWING_PREY_CAPTURE = 13;
+        const int CONCENTRIC_GRATING = 7;
+        const int DOT = 8;
+        const int IMAGE = 9;
+        const int RAMP = 10;
+        const int TURING = 11;
 
         const float PI = radians(180.0);
-        const float EPS = 1e-6;
-
         """ + """
 
-        // helper functions
+        // HELPER FUNCTIONS -------------------------------------------------------------------------
+
         bool is_point_in_bbox(vec2 point, vec2 minBounds, vec2 maxBounds) {
             return all(greaterThanEqual(point, minBounds)) && all(lessThanEqual(point, maxBounds));
         }
 
-        mat2 rotate2d(float angle_rad){
-            return mat2(cos(angle_rad),-sin(angle_rad),
-                        sin(angle_rad),cos(angle_rad));
+        // pseudo-random hash
+        float hash(float x){
+            return fract(sin(x)*43758.5453123);
         }
 
         vec3 linear_to_srgb(vec3 linear)
@@ -311,12 +393,226 @@ class GeneralStim(VisualStim):
             return vec4(linear_to_srgb(linear.rgb), linear.a);
         }
 
+        // STIMULI ----------------------------------------------------------------------------------
+
+        vec4 dark_stimulus() {
+            return u_background_color;
+        }
+
+        vec4 bright_stimulus() {
+            return u_foreground_color;
+        }
+
+        vec4 phototaxis_stimulus(vec2 coords_mm) {
+            if ( u_phototaxis_polarity * coords_mm.x > 0.0 ) {
+                return u_foreground_color;
+            }
+            return u_background_color;
+        }
+
+        vec4 omr_stimulus(vec2 coords_mm) {
+            float angle_rad = radians(u_omr_angle_deg);
+            vec2 orientation_vector = vec2(-sin(angle_rad), cos(angle_rad)); // angle with y+ axis
+            float position_on_orientation_vector = dot(coords_mm, orientation_vector);
+            float spatial_freq = 1/u_omr_spatial_period_mm;
+            float temporal_freq = u_omr_speed_mm_per_sec/u_omr_spatial_period_mm;
+            float angle = spatial_freq * position_on_orientation_vector;
+            float phase = temporal_freq * u_time_s;
+
+            // positive phase shift moves the grating backwards
+            if ( sin(2*PI*(angle-phase)) > 0.0 ) { 
+                return u_foreground_color;
+            }
+            return u_background_color;
+        }
+
+        vec4 turing_stimulus(vec2 coords_mm) {
+            float angle_rad = radians(u_turing_angle_deg);
+            vec2 velocity = u_turing_speed_mm_per_sec * vec2(-sin(angle_rad), cos(angle_rad)); // angle with y+ axis
+            vec2 pos = coords_mm - velocity * u_time_s; 
+            float k0 = 4*PI / u_turing_spatial_period_mm; // each pocket should be half period 
+
+            float wave_sum = 0.0;
+            for(int i = 0; i < u_turing_n_waves; i++) {
+                float angle = (float(i) + hash(float(i))) / float(u_turing_n_waves) * 2.0 * PI;
+                float phase = hash(float(i)*12.34) * 2.0 * PI;
+                vec2 dir = vec2(cos(angle), sin(angle));
+                float wave = sin(k0 * dot(pos, dir) + phase);
+                wave_sum += wave;
+            }
+
+            if (wave_sum > 0) {
+                return u_foreground_color;
+            }
+            return u_background_color;
+        }
+
+        vec4 okr_stimulus(vec2 coords_mm) {
+            float angular_spatial_freq = radians(u_okr_spatial_frequency_deg);
+            float angular_temporal_freq = radians(u_okr_speed_deg_per_sec);   
+            float angle = atan(coords_mm.y, coords_mm.x);
+            float phase = angular_temporal_freq * u_time_s;
+
+            // positive angle = counter-clockwise (trigonometric) rotation
+            if ( mod(angle-phase, angular_spatial_freq) > angular_spatial_freq/2 ) {
+                return u_foreground_color;
+            } 
+            return u_background_color;
+        }
+
+        vec4 dot_stimulus(vec2 coords_mm) {
+            if ( distance(coords_mm, u_dot_center_mm) <= u_dot_radius_mm) {
+                return u_foreground_color;
+            }
+            return u_background_color;
+        }
+
+        vec4 looming_linear_radius_stimulus(vec2 coords_mm) {
+            float relative_time = mod(u_time_s - u_start_time_s, u_looming_period_sec); 
+            float looming_on = float(relative_time <= u_looming_expansion_time_sec);
+            float looming_radius = u_looming_expansion_speed_mm_per_sec * relative_time * looming_on;
+            
+            if ( distance(coords_mm, u_looming_center_mm) <= looming_radius ) {
+                return u_foreground_color;
+            }
+            return u_background_color;
+        }
+
+        vec4 looming_linear_angle_stimulus(vec2 coords_mm) {
+            // We compute the visual angle only using vertical distance from fish to screen.
+            // This breaks as the looming is offset in XY
+
+            float relative_time = mod(u_time_s - u_start_time_s, u_looming_period_sec); 
+            float looming_on = float(relative_time <= u_looming_expansion_time_sec);
+            float visual_angle = radians(u_looming_expansion_speed_deg_per_sec) * relative_time * looming_on;
+            
+            // simplifying hypothesis: for small xy offsets compared to distance to screen, this is an ok approximation
+            float looming_radius = u_looming_distance_to_screen_mm * tan(visual_angle/2);
+
+            if ( distance(coords_mm, u_looming_center_mm) <= looming_radius ) {
+                return u_foreground_color;
+            }
+            return u_background_color;
+        }
+
+        vec4 looming_constant_velocity_stimulus(vec2 coords_mm) {
+            // We compute the visual angle only using vertical distance from fish to screen.
+            // This breaks as the looming is offset in XY
+
+            float angle_start_rad = radians(u_looming_angle_start_deg);
+            float angle_stop_rad = radians(u_looming_angle_stop_deg);
+            float t_0 = u_looming_size_to_speed_ratio_ms / tan(angle_start_rad/2);
+            float t_f = u_looming_size_to_speed_ratio_ms / tan(angle_stop_rad/2);
+            float period_ms = t_0 - t_f;
+            float relative_time_ms = mod(1000*(u_time_s - u_start_time_s), period_ms); 
+            
+            // simplifying hypothesis: for small xy offsets compared to distance to screen, this is an ok approximation
+            float looming_radius = u_looming_distance_to_screen_mm * u_looming_size_to_speed_ratio_ms / (t_0 - relative_time_ms);
+
+            if ( distance(coords_mm, u_looming_center_mm) <= looming_radius ) {
+                return u_foreground_color;
+            }
+            return u_background_color;
+        }
+
+        vec4 concentric_grating_stimulus(vec2 coords_mm) {
+            float spatial_freq = 1 / u_concentric_spatial_period_mm;
+            float temporal_freq = u_concentric_speed_mm_per_sec / u_concentric_spatial_period_mm;
+            float distance_to_center_mm = length(coords_mm);
+            float angle = spatial_freq * distance_to_center_mm;
+            float phase = temporal_freq * u_time_s;
+
+            if ( sin(2*PI*(angle+phase)) > 0.0 ) {
+                return u_foreground_color;
+            }
+            return u_background_color;
+        }
+
+        vec4 prey_capture_ring_stimulus(vec2 coords_mm) {
+            float phase = radians(u_prey_speed_deg_s) * u_time_s;
+
+            for (int i = 0; i < u_n_preys; i++) {
+                float angle = i * 2*PI/u_n_preys;      
+                vec2 prey_offset = u_prey_trajectory_radius_mm * vec2(cos(angle+phase), sin(angle+phase));
+
+                if ( distance(coords_mm, prey_offset) <= u_prey_radius_mm) {
+                    return u_foreground_color;
+                }
+            }
+            return u_background_color;
+        }
+
+        vec4 prey_capture_arc_stimulus(vec2 coords_mm) {
+            float relative_time_s = u_time_s - u_start_time_s;
+            float arc_start_rad = radians(u_prey_arc_start_deg);
+            float arc_stop_rad = radians(u_prey_arc_stop_deg);
+            float arc_phase_rad = radians(u_prey_arc_phase_deg);
+            float angle_range_rad = arc_stop_rad - arc_start_rad;
+            
+            
+            float angle_rad = arc_start_rad;
+            if (u_prey_periodic_function == COSINE) {
+                float freq = radians(u_prey_speed_deg_s) / (2*abs(angle_range_rad));
+                angle_rad += angle_range_rad * ((1-cos(2*PI*freq*relative_time_s + arc_phase_rad))/2);
+            }
+            if (u_prey_periodic_function == MODULO) {
+                float period = abs(angle_range_rad) / radians(u_prey_speed_deg_s);
+                angle_rad += angle_range_rad * mod(relative_time_s, period)/period;
+            }
+
+            vec2 prey_pos = vec2(-u_prey_trajectory_radius_mm * sin(angle_rad), u_prey_trajectory_radius_mm*cos(angle_rad));
+            if ( distance(coords_mm, prey_pos) <= u_prey_radius_mm) {
+                return u_foreground_color;
+            }
+            return u_background_color;
+        }
+
+        vec4 prey_capture_random_cloud_stimulus(vec2 coords_mm, vec4 bbox_mm) {
+            for (int i = 0; i < u_n_preys; i++) {
+                vec2 current_prey_pos_mm = u_prey_position[i] / u_pix_per_mm_proj;
+                vec2 current_prey_dir = vec2(cos(u_prey_trajectory_angle[i]), sin(u_prey_trajectory_angle[i]));
+                vec2 pos = mod(current_prey_pos_mm + u_time_s * u_prey_speed_mm_s * current_prey_dir, bbox_mm.zw) - bbox_mm.zw / 2.0;
+                if ( distance(pos, coords_mm) <= u_prey_radius_mm ) {
+                    return u_foreground_color;
+                }
+            }
+            return u_background_color;  
+        }  
+
+        vec4 image_stimulus(vec2 coords_mm) {
+            vec2 image_size_mm = u_image_size / u_image_res_px_per_mm;
+            vec2 coords = 0.5 + (coords_mm - u_image_offset_mm) / image_size_mm;
+            if (coords.x >= 0.0 && coords.x <= 1.0 &&
+                coords.y >= 0.0 && coords.y <= 1.0) {
+                return texture2D(u_image_texture, coords);
+            }
+            return u_background_color;
+        }
+
+        vec4 ramp_stimulus() {
+            float relative_time = mod(u_time_s - u_start_time_s, u_ramp_duration_sec);
+            float frac = clamp(relative_time / u_ramp_duration_sec, 0.0, 1.0);
+            float ramp_value = 0.0;
+
+            if (u_ramp_type == LINEAR) {
+                ramp_value = frac;
+            }
+
+            if (u_ramp_type == POWER_LAW) {
+                // Stevens' law: S = kI**a 
+                float exponent = u_ramp_powerlaw_exponent;
+                ramp_value = pow(frac, 1/exponent);
+            }
+
+            return mix(u_background_color, u_foreground_color, ramp_value);
+        }        
+
+        // MAIN ------------------------------------------------------------------------------------
+
         void main()
         {
             vec2 coordinates_centered_px;
             mat2 change_of_basis;
-            vec2 fish_ego_coords_px;
-            vec2 fish_ego_coords_mm;
             vec4 camera_bbox_px;
             vec4 camera_bbox_mm;
 
@@ -325,161 +621,69 @@ class GeneralStim(VisualStim):
             vec3 camera_coordinates_px = u_proj_to_cam * vec3(coordinates_px, 1.0);
             vec2 camera_coordinates_mm = camera_coordinates_px.xy / u_pix_per_mm;
 
-            gl_FragColor = vec4(0,0,0,1);
+            gl_FragColor = vec4(0,0,0,1); // black outside of fish ROI
 
             for (int animal = 0; animal < u_n_animals; animal++) {
 
+                // STEP 1: COMPUTE THE DIFFERENT COORDINATES SYSTEMS ----------------------------------------------------------------
+
+                // different coordinate systems
+                vec2 coordinates_centered_mm; // projector x,y coordinates. Origin: bounding box center, y axis: , x axis:  
+                vec2 fish_ego_coords_mm; // fish egocentric coordinates: Origin: fish centroid, y axis: fish major axis, x axis: right
+                vec2 fish_centered_coords_mm; // fish-centric coordinates: Origin: fish centroid, y axis: proj up , x axis: proj right 
+
+                // get current bounding box center in projector space  
                 camera_bbox_px = u_bounding_box[animal];
                 if ( !is_point_in_bbox(camera_coordinates_px.xy, camera_bbox_px.xy, camera_bbox_px.xy+camera_bbox_px.zw) ) {
                     continue;
                 }
-
-                gl_FragColor = u_background_color; 
-
                 vec3 proj_bbox_origin = u_cam_to_proj * vec3(camera_bbox_px.xy, 1.0);
                 vec3 proj_bbox_size = u_cam_to_proj * vec3(camera_bbox_px.zw, 0.0);
                 vec4 proj_bbox_px = vec4(proj_bbox_origin.xy, proj_bbox_size.xy);
                 vec4 proj_bbox_mm = vec4(proj_bbox_origin.xy / u_pix_per_mm_proj, proj_bbox_size.xy/ u_pix_per_mm_proj);
-                
-                // compute pixel coordinates in fish egocentric coordinates (mm)
+                vec2 proj_bbox_center_mm = proj_bbox_mm.xy + proj_bbox_mm.zw/2.0;
+                coordinates_centered_mm = coordinates_mm - proj_bbox_center_mm; 
+
+                // compute fish-centric coordinates 
                 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
                 change_of_basis = mat2(
                     u_fish_mediolateral_axis[animal]/length(u_fish_mediolateral_axis[animal]), 
                     u_fish_caudorostral_axis[animal]/length(u_fish_caudorostral_axis[animal])
                 );
-                fish_ego_coords_px = transpose(change_of_basis) * coordinates_centered_px;
+                vec2 fish_ego_coords_px = transpose(change_of_basis) * coordinates_centered_px;
                 fish_ego_coords_mm = fish_ego_coords_px / u_pix_per_mm_proj;
-                
-                // implement the different stimuli
-                if (u_stim_select == DARK) {
-                    gl_FragColor = u_background_color;
-                }
+                fish_centered_coords_mm = coordinates_centered_px / u_pix_per_mm_proj;
 
-                if (u_stim_select == BRIGHT) {
-                    gl_FragColor = u_foreground_color;
-                }
+                // STEP 2: COMPUTE STIMULI ------------------------------------------------------------------------------------------
 
-                if (u_stim_select == PHOTOTAXIS) {
-                    if ( u_phototaxis_polarity * fish_ego_coords_mm.x > 0.0 ) {
-                        gl_FragColor = u_foreground_color;
-                    } 
-                }
+                // choose which coordinate system to use
+                vec2 local_coordinates_mm = coordinates_centered_mm;
+                if (u_coordinate_system == BOUNDING_BOX_CENTER) {local_coordinates_mm = coordinates_centered_mm;}
+                if (u_coordinate_system == FISH_CENTERED) {local_coordinates_mm = fish_centered_coords_mm;}
+                if (u_coordinate_system == FISH_EGOCENTRIC) {local_coordinates_mm = fish_ego_coords_mm;}
 
-                if (u_stim_select == OMR) {
-                    vec2 orientation_vector = rotate2d(radians(u_omr_angle_deg)) * vec2(0,1);
-                    float position_on_orientation_vector = dot(fish_ego_coords_mm, orientation_vector)/length(orientation_vector);
-                    float spatial_freq = 1/u_omr_spatial_period_mm;
-                    float temporal_freq = u_omr_speed_mm_per_sec/u_omr_spatial_period_mm;
-                    float angle = spatial_freq * position_on_orientation_vector;
-                    float phase = temporal_freq * u_time_s;
+                // choose which stimulus to show
+                gl_FragColor = u_background_color; 
 
-                    if ( sin(2*PI*(angle+phase)) > 0.0 ) {
-                        gl_FragColor = u_foreground_color;
-                    } 
-                }
-
-                if (u_stim_select == OKR) {
-                    float angular_spatial_freq = radians(u_okr_spatial_frequency_deg);
-                    float angular_temporal_freq = radians(u_okr_speed_deg_per_sec);
-                    
-                    float angle = atan(fish_ego_coords_mm.y, fish_ego_coords_mm.x);
-                    float phase = angular_temporal_freq * u_time_s;
-                    if ( mod(angle+phase, angular_spatial_freq) > angular_spatial_freq/2 ) {
-                        gl_FragColor = u_foreground_color;
-                    } 
-                }
-
-                if (u_stim_select == DOT) {
-                    if ( distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.zw/2.0 + u_dot_center_mm) <= u_dot_radius_mm)
-                    {
-                        gl_FragColor = u_foreground_color;
-                    }
-                } 
-
-                if (u_stim_select == FOLLOWING_DOT) {
-                    if ( distance(fish_ego_coords_mm, u_dot_center_mm) <= u_dot_radius_mm)
-                    {
-                        gl_FragColor = u_foreground_color;
-                    }
-                } 
-
+                if (u_stim_select == DARK) {gl_FragColor = dark_stimulus();}
+                if (u_stim_select == BRIGHT) {gl_FragColor = bright_stimulus();}
+                if (u_stim_select == RAMP) {gl_FragColor = ramp_stimulus();}
+                if (u_stim_select == PHOTOTAXIS) {gl_FragColor = phototaxis_stimulus(local_coordinates_mm);}
+                if (u_stim_select == OMR) {gl_FragColor = omr_stimulus(local_coordinates_mm);}
+                if (u_stim_select == TURING) {gl_FragColor = turing_stimulus(local_coordinates_mm);}
+                if (u_stim_select == OKR) {gl_FragColor = okr_stimulus(local_coordinates_mm);}
+                if (u_stim_select == DOT) {gl_FragColor = dot_stimulus(local_coordinates_mm);}
                 if (u_stim_select == LOOMING) {
-                    float rel_time = mod(u_time_s-u_start_time_s, u_looming_period_sec); 
-                    float looming_on = float(rel_time<=u_looming_expansion_time_sec);
-                    if ( distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.zw/2.0 + u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
-                    {
-                        gl_FragColor = u_foreground_color;
-                    }
+                    if (u_looming_type == LINEAR_RADIUS) {gl_FragColor = looming_linear_radius_stimulus(local_coordinates_mm);}
+                    if (u_looming_type == LINEAR_ANGLE) {gl_FragColor = looming_linear_angle_stimulus(local_coordinates_mm);}
+                    if (u_looming_type == CONSTANT_VELOCITY) {gl_FragColor = looming_constant_velocity_stimulus(local_coordinates_mm);}
                 }
-
-                if (u_stim_select == FOLLOWING_LOOMING) {
-                    float rel_time = mod(u_time_s-u_start_time_s, u_looming_period_sec); 
-                    float looming_on = float(rel_time<=u_looming_expansion_time_sec);
-                    if ( distance(fish_ego_coords_mm, u_looming_center_mm) <= u_looming_expansion_speed_mm_per_sec*rel_time*looming_on )
-                    {
-                        gl_FragColor = u_foreground_color;
-                    }
-                } 
-
-                if (u_stim_select == CONCENTRIC_GRATING) {
-                    float distance_to_center_mm = distance(coordinates_mm, proj_bbox_mm.xy + proj_bbox_mm.zw/2.0);
-                    float spatial_freq = 1/u_concentric_spatial_period_mm;
-                    float temporal_freq = u_concentric_speed_mm_per_sec/u_concentric_spatial_period_mm;
-                    float angle = spatial_freq * distance_to_center_mm;
-                    float phase = temporal_freq * u_time_s;
-                    if ( sin(2*PI*(angle+phase)) > 0.0 ) 
-                    {
-                        gl_FragColor = u_foreground_color;
-                    }
-                }
-
+                if (u_stim_select == CONCENTRIC_GRATING) {gl_FragColor = concentric_grating_stimulus(local_coordinates_mm);}
+                if (u_stim_select == IMAGE)  {gl_FragColor = image_stimulus(local_coordinates_mm);}
                 if (u_stim_select == PREY_CAPTURE) {
-                    for (int i = 0; i < u_n_preys; i++) {
-                        vec2 pos_camera_px =  camera_bbox_px.xy + mod(u_prey_position[i] + u_time_s * u_prey_speed_mm_s * u_pix_per_mm * u_prey_direction[i], camera_bbox_px.zw);
-                        vec3 pos_proj_px = u_cam_to_proj * vec3(pos_camera_px, 1.0);
-                        if ( distance(pos_proj_px.xy/u_pix_per_mm_proj, coordinates_mm) <= u_prey_radius_mm ) {
-                            gl_FragColor = u_foreground_color;
-                        }
-                    }
-                }
-
-                if (u_stim_select == FOLLOWING_PREY_CAPTURE) {
-                    float phase = radians(u_prey_speed_deg_s) * u_time_s;
-                    for (int i = 0; i < u_n_preys; i++) {
-                        float angle = i * 2*PI/u_n_preys;      
-                        vec2 prey_offset = u_prey_trajectory_radius_mm * vec2(cos(angle+phase), sin(angle+phase));
-                        if ( distance(fish_ego_coords_mm, prey_offset) <= u_prey_radius_mm) {
-                            gl_FragColor = u_foreground_color;
-                        }
-                    }
-                }
-
-                if (u_stim_select == IMAGE) {
-                    vec2 image_size_mm = u_image_size / u_image_res_px_per_mm;
-                    vec2 coords = (coordinates_mm - u_image_offset_mm - proj_bbox_mm.xy) / image_size_mm;
-                    if (coords.x >= 0.0 && coords.x <= 1.0 &&
-                        coords.y >= 0.0 && coords.y <= 1.0) {
-                        gl_FragColor = texture2D(u_image_texture, coords);
-                    }
-                }
-
-                if (u_stim_select == RAMP) {
-                    float t = mod(u_time_s-u_start_time_s, u_ramp_duration_sec);
-                    float frac = clamp(t / u_ramp_duration_sec, 0.0, 1.0);
-                    float ramp_value = 0.0;
-
-                    if (u_ramp_type == LINEAR) {
-                        ramp_value = frac;
-                    }
-
-                    if (u_ramp_type == POWER_LAW) {
-                        // Stevens' law: S = kI**a 
-                        float exponent = u_ramp_powerlaw_exponent;
-                        ramp_value = pow(frac, 1/exponent);
-                    }
-
-                    vec4 color = mix(u_background_color, u_foreground_color, ramp_value);
-                    gl_FragColor = color;
+                    if (u_prey_capture_type == RING) {gl_FragColor = prey_capture_ring_stimulus(local_coordinates_mm);}
+                    if (u_prey_capture_type == RANDOM_CLOUD) {gl_FragColor = prey_capture_random_cloud_stimulus(local_coordinates_mm, proj_bbox_mm);}
+                    if (u_prey_capture_type == ARC) {gl_FragColor = prey_capture_arc_stimulus(local_coordinates_mm);}
                 }
             }
 
@@ -541,25 +745,41 @@ class GeneralStim(VisualStim):
         self.program['u_start_time_s'] = self.shared_stim_parameters.start_time_sec.value
         self.program['u_foreground_color'] = self.shared_stim_parameters.foreground_color[:]
         self.program['u_background_color'] = self.shared_stim_parameters.background_color[:]
+        self.program['u_coordinate_system'] = self.shared_stim_parameters.coordinate_system.value
         self.program['u_stim_select'] = self.shared_stim_parameters.stim_select.value
         self.program['u_phototaxis_polarity'] = self.shared_stim_parameters.phototaxis_polarity.value
         self.program['u_omr_spatial_period_mm'] = self.shared_stim_parameters.omr_spatial_period_mm.value
         self.program['u_omr_angle_deg'] = self.shared_stim_parameters.omr_angle_deg.value
         self.program['u_omr_speed_mm_per_sec'] = self.shared_stim_parameters.omr_speed_mm_per_sec.value
+        self.program['u_turing_spatial_period_mm'] = self.shared_stim_parameters.turing_spatial_period_mm.value
+        self.program['u_turing_angle_deg'] = self.shared_stim_parameters.turing_angle_deg.value
+        self.program['u_turing_speed_mm_per_sec'] = self.shared_stim_parameters.turing_speed_mm_per_sec.value
+        self.program['u_turing_n_waves'] = self.shared_stim_parameters.turing_n_waves.value
         self.program['u_concentric_spatial_period_mm'] = self.shared_stim_parameters.concentric_spatial_period_mm.value
         self.program['u_concentric_speed_mm_per_sec'] = self.shared_stim_parameters.concentric_speed_mm_per_sec.value
         self.program['u_okr_spatial_frequency_deg'] = self.shared_stim_parameters.okr_spatial_frequency_deg.value
         self.program['u_okr_speed_deg_per_sec'] = self.shared_stim_parameters.okr_speed_deg_per_sec.value
+        self.program['u_looming_type'] = self.shared_stim_parameters.looming_type
         self.program['u_looming_center_mm'] = self.shared_stim_parameters.looming_center_mm[:]
         self.program['u_looming_period_sec'] = self.shared_stim_parameters.looming_period_sec.value
         self.program['u_looming_expansion_time_sec'] = self.shared_stim_parameters.looming_expansion_time_sec.value
         self.program['u_looming_expansion_speed_mm_per_sec'] = self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value
+        self.program['u_looming_expansion_speed_deg_per_sec'] = self.shared_stim_parameters.looming_expansion_speed_deg_per_sec.value
+        self.program['u_looming_angle_start_deg'] = self.shared_stim_parameters.looming_angle_start_deg.value
+        self.program['u_looming_angle_stop_deg'] = self.shared_stim_parameters.looming_angle_stop_deg.value
+        self.program['u_looming_size_to_speed_ratio_ms'] = self.shared_stim_parameters.looming_size_to_speed_ratio_ms.value
+        self.program['u_looming_distance_to_screen_mm'] = self.shared_stim_parameters.looming_distance_to_screen_mm.value
         self.program['u_dot_center_mm'] = self.shared_stim_parameters.dot_center_mm[:]
         self.program['u_dot_radius_mm'] = self.shared_stim_parameters.dot_radius_mm.value
         self.program['u_prey_speed_mm_s'] = self.shared_stim_parameters.prey_speed_mm_s.value
         self.program['u_prey_speed_deg_s'] = self.shared_stim_parameters.prey_speed_deg_s.value
         self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
         self.program['u_prey_trajectory_radius_mm'] = self.shared_stim_parameters.prey_trajectory_radius_mm.value
+        self.program['u_prey_arc_start_deg'] = self.shared_stim_parameters.prey_arc_start_deg.value
+        self.program['u_prey_arc_stop_deg'] = self.shared_stim_parameters.prey_arc_stop_deg.value
+        self.program['u_prey_arc_phase_deg'] = self.shared_stim_parameters.prey_arc_phase_deg.value
+        self.program['u_prey_capture_type'] = self.shared_stim_parameters.prey_capture_type
+        self.program['u_prey_periodic_function'] = self.shared_stim_parameters.prey_periodic_function
         self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
         self.program['u_ramp_duration_sec'] = self.shared_stim_parameters.ramp_duration_sec.value
         self.program['u_ramp_powerlaw_exponent'] = self.shared_stim_parameters.ramp_powerlaw_exponent.value
@@ -585,11 +805,10 @@ class GeneralStim(VisualStim):
         np.random.seed(0)
         x = np.random.randint(0, self.camera_resolution[0], MAX_PREY)
         y = np.random.randint(0, self.camera_resolution[1], MAX_PREY)
-        theta = np.random.uniform(0, 2*np.pi, MAX_PREY)
+        theta = np.random.uniform(0, 2*np.pi, (MAX_PREY,1))
         self.program['u_n_animals'] = self.n_animals
-        self.program['u_prey_position'] = np.column_stack((x, y)).astype(np.float32)
-        self.program['u_prey_direction'] = np.column_stack((np.cos(theta), np.sin(theta))).astype(np.float32)
-        self.update_shader_variables(0)
+        self.program['u_prey_position'] = self.transformation_matrix.transform_points(np.column_stack((x, y)).astype(np.float32)).squeeze()
+        self.program['u_prey_trajectory_angle'] = theta.astype(np.float32)
 
         self.show()
         self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
@@ -640,8 +859,8 @@ class GeneralStim(VisualStim):
             if 'body' in fields and data['tracking']['body']['success']:
                 self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body']['centroid_global']).squeeze()
                 body_axes = data['tracking']['body']['body_axes_global']                
-                self.shared_fish_state[ID].fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
-                self.shared_fish_state[ID].fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
+                self.shared_fish_state[ID].fish_caudorostral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze() # TODO: CHECK WHY -1 ? maybe OpenCV vs OpenGL y axis direction?
+                self.shared_fish_state[ID].fish_mediolateral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
             else:
                 self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroids_global']).squeeze()
 

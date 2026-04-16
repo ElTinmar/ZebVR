@@ -43,13 +43,6 @@ def inpaint_background(
     mask = window.flatten()
     background = cv2.inpaint(image, im2uint8(mask), radius, algo)
 
-    print('Background done, press key to save...')
-    resized_width = int(RESIZED_HEIGHT * cam_width/cam_height)    
-    background_resized = cv2.resize(background,(resized_width,RESIZED_HEIGHT))
-    cv2.imshow('background', background_resized)
-    cv2.waitKey(10_000) 
-    cv2.destroyAllWindows() 
-
     print(f'Saving image to {background_file}')
     with open(background_file, 'wb') as f:
         np.save(f, background)

@@ -54,7 +54,7 @@ class StimType(IntEnum):
     PHOTOTAXIS = 2
     OMR = 3
     OKR = 4
-    LOOMING = 5
+    LINEAR_RADIUS_LOOMING = 5
 
 COLORS = ('#FF6900', '#002BFF')
 
@@ -436,7 +436,7 @@ def analyse_okr(data, fish_id, dpf):
     return res
 
 def analyse_looming(data, fish_id, dpf):
-    looming = data[data['stim_id'] == StimType.LOOMING]
+    looming = data[data['stim_id'] == StimType.LINEAR_RADIUS_LOOMING]
     rel_time =  looming['t_local'] % looming['looming_period_sec']
     looming_on = rel_time <= looming['looming_expansion_time_sec']
     angle, angle_unwrapped = get_heading_angle(looming)

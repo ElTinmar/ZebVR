@@ -57,11 +57,20 @@ class CameraWorker(WorkerNode):
         self.cam = self.camera_constructor()
         self.cam.set_width(self.width)
         self.cam.set_height(self.height)
+        self.cam.set_framerate(self.framerate)
         self.cam.set_offsetX(self.offsetx)
         self.cam.set_offsetY(self.offsety)
         self.cam.set_exposure(self.exposure)
         self.cam.set_gain(self.gain)
-        self.cam.set_framerate(self.framerate)
+        print({
+            'width': self.cam.get_width(),
+            'height': self.cam.get_height(),
+            'framerate': self.cam.get_framerate(),
+            'offsetX': self.cam.get_offsetX(),
+            'offsetY': self.cam.get_offsetY(),
+            'exposure': self.cam.get_exposure(),
+            'gain': self.cam.get_gain(),
+        })
         self.cam.start_acquisition()
 
     def cleanup(self) -> None:

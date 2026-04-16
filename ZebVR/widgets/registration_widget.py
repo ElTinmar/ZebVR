@@ -7,8 +7,7 @@ from PyQt5.QtWidgets import (
     QHeaderView, 
     QTableWidget, 
     QTableWidgetItem,
-    QLabel,
-    QFileDialog
+    QLabel
 )
 from PyQt5.QtCore import pyqtSignal, Qt
 from typing import Dict
