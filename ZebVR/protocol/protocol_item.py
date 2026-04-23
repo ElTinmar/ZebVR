@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
     QWidget, 
     QVBoxLayout
 )
+from qt_widgets import LabeledEditLine
 from ..utils import set_from_dict
 from daq_tools import BoardType
 from .default import DEFAULT
@@ -15,11 +16,18 @@ class ProtocolItem(ABC):
 
     STIM_SELECT: Optional[int] = None
 
-    def __init__(self, stop_condition: StopCondition = Pause()):
+    def __init__(
+            self, 
+            stop_condition: StopCondition = Pause(),
+            name: str = DEFAULT['name']
+        ):
         self.stop_condition = stop_condition
+        self.name = name
 
-    def start(self) -> Optional[Dict]:
+    def start(self) -> Dict:
         self.stop_condition.start()
+        command = {'name': self.name}
+        return command
 
     def done(self, metadata: Optional[Any]) -> bool:
         return self.stop_condition.done(metadata)
@@ -52,6 +60,15 @@ class DAQ_ProtocolItem(ProtocolItem):
         self.board_id = board_id
         self.channels = channels
 
+    def start(self) -> Dict:
+        command = super().start()
+        command.update({
+            'board_type': self.board_type,
+            'board_id': self.board_id,
+            'channels': self.channels,
+        })
+        return command
+    
 class AudioProtocolItem(ProtocolItem):
 
     def __init__(
@@ -64,6 +81,11 @@ class AudioProtocolItem(ProtocolItem):
         super().__init__(*args, **kwargs)
         self.amplitude_dB = amplitude_dB
 
+    def start(self) -> Dict:
+        command = super().start()
+        command.update({'amplitude_dB': self.amplitude_dB})
+        return command
+    
 class VisualProtocolItem(ProtocolItem):
     
     def __init__(
@@ -80,6 +102,15 @@ class VisualProtocolItem(ProtocolItem):
         self.background_color = background_color
         self.coordinate_system = coordinate_system
 
+    def start(self) -> Dict:
+        command = super().start()
+        command.update({
+            'foreground_color': self.foreground_color,
+            'background_color': self.background_color,
+            'coordinate_system': self.coordinate_system
+        })
+        return command
+
 class ProtocolItemWidget(QWidget):
     
     state_changed = pyqtSignal()
@@ -93,14 +124,18 @@ class ProtocolItemWidget(QWidget):
         self.layout_components() 
 
     def declare_components(self) -> None:
-        ...
+        self.stim_name = LabeledEditLine()
+        self.stim_name.setLabel('Name:')
+        self.stim_name.setText(DEFAULT['name'])
 
     def layout_components(self) -> None:
         self.main_layout = QVBoxLayout(self)
+        self.main_layout.addWidget(self.stim_name)
 
     def get_state(self) -> Dict:
         state = {}
         state['stop_condition'] = self.stop_widget.get_state()
+        state['name'] = self.stim_name.text()
         return state
 
     def set_state(self, state: Dict) -> None:
@@ -110,10 +145,16 @@ class ProtocolItemWidget(QWidget):
             setter = self.stop_widget.set_state,
             default = {}
         )
+        set_from_dict(
+            dictionary = state,
+            key = 'name',
+            setter = self.stim_name.setText,
+            default = ''
+        )
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
         self.stop_widget.from_stop_condition(protocol_item.stop_condition)
-        
+        self.stim_name.setText(protocol_item.name)
 
     def to_protocol_item(self) -> ProtocolItem:
         ...

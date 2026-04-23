@@ -34,16 +34,12 @@ class Dot(VisualProtocolItem):
 
     def start(self) -> Dict:
 
-        super().start()
-        
-        command = {
+        command = super().start()
+        command.update({
             'stim_select': self.STIM_SELECT,
             'dot_center_mm': self.dot_center_mm,
-            'dot_radius_mm': self.dot_radius_mm,
-            'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'coordinate_system': self.coordinate_system
-        }
+            'dot_radius_mm': self.dot_radius_mm
+        })
         return command 
 
 class DotWidget(VisualProtocolItemWidget):
@@ -164,6 +160,7 @@ class DotWidget(VisualProtocolItemWidget):
         coordinate_system = self.cb_coordinate_system.currentIndex()
 
         protocol = Dot(
+            name = self.stim_name.text(),
             foreground_color = foreground_color,
             background_color = background_color,
             coordinate_system = coordinate_system,

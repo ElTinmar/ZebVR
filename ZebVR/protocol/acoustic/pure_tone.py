@@ -33,13 +33,11 @@ class PureTone(AudioProtocolItem):
 
     def start(self) -> Dict:
 
-        super().start()
-        
-        command = {
+        command = super().start()
+        command.update({
             'stim_select': self.STIM_SELECT,
             'frequency_Hz': self.frequency_Hz,
-            'amplitude_dB': self.amplitude_dB
-        }
+        })
         return command
 
 class PureToneWidget(AudioProtocolItemWidget):
@@ -107,6 +105,7 @@ class PureToneWidget(AudioProtocolItemWidget):
     def to_protocol_item(self) -> PureTone:
         
         return PureTone(
+            name = self.stim_name.text(),
             frequency_Hz = self.sb_frequency_Hz.value(),
             amplitude_dB = self.sb_amplitude_dB.value(),
             stop_condition = self.stop_widget.to_stop_condition()

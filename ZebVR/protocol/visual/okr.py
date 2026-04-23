@@ -34,16 +34,12 @@ class OKR(VisualProtocolItem):
 
     def start(self) -> Dict:
 
-        super().start()
-
-        command = {
+        command = super().start()
+        command.update({
             'stim_select': self.STIM_SELECT,
             'okr_spatial_frequency_deg': self.okr_spatial_frequency_deg,
-            'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec,
-            'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'coordinate_system': self.coordinate_system
-        }
+            'okr_speed_deg_per_sec': self.okr_speed_deg_per_sec
+        })
         return command
     
 class OKR_Widget(VisualProtocolItemWidget):
@@ -143,6 +139,7 @@ class OKR_Widget(VisualProtocolItemWidget):
         coordinate_system = self.cb_coordinate_system.currentIndex()
 
         protocol = OKR(
+            name = self.stim_name.text(),
             foreground_color = foreground_color,
             background_color = background_color,
             coordinate_system = coordinate_system,

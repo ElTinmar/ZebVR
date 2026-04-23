@@ -51,9 +51,8 @@ class Looming(VisualProtocolItem):
 
     def start(self) -> Dict:
 
-        super().start()
-        
-        command = {
+        command = super().start()
+        command.update({
             'stim_select': self.STIM_SELECT,
             'looming_type': self.looming_type,
             'looming_center_mm': self.looming_center_mm,
@@ -64,11 +63,8 @@ class Looming(VisualProtocolItem):
             'looming_angle_start_deg': self.looming_angle_start_deg,
             'looming_angle_stop_deg': self.looming_angle_stop_deg,
             'looming_size_to_speed_ratio_ms': self.looming_size_to_speed_ratio_ms, 
-            'looming_distance_to_screen_mm': self.looming_distance_to_screen_mm, 
-            'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'coordinate_system': self.coordinate_system
-        }
+            'looming_distance_to_screen_mm': self.looming_distance_to_screen_mm,
+        })
         return command 
 
 class LoomingWidget(VisualProtocolItemWidget):
@@ -370,6 +366,7 @@ class LoomingWidget(VisualProtocolItemWidget):
         coordinate_system = self.cb_coordinate_system.currentIndex()
 
         protocol = Looming(
+            name = self.stim_name.text(),
             foreground_color = foreground_color,
             background_color = background_color,
             coordinate_system = coordinate_system,

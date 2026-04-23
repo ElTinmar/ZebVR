@@ -37,17 +37,13 @@ class Ramp(VisualProtocolItem):
 
     def start(self) -> Dict:
 
-        super().start()
-        
-        command = {
+        command = super().start()
+        command.update({
             'stim_select': self.STIM_SELECT,
             'ramp_duration_sec': self.ramp_duration_sec,
             'ramp_powerlaw_exponent': self.ramp_powerlaw_exponent,
-            'ramp_type': self.ramp_type,
-            'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'coordinate_system': self.coordinate_system
-        }
+            'ramp_type': self.ramp_type
+        })
         return command
     
 class RampWidget(VisualProtocolItemWidget):
@@ -182,6 +178,7 @@ class RampWidget(VisualProtocolItemWidget):
         coordinate_system = self.cb_coordinate_system.currentIndex()
 
         protocol = Ramp(
+            name = self.stim_name.text(),
             foreground_color = foreground_color,
             background_color = background_color,
             coordinate_system = coordinate_system,

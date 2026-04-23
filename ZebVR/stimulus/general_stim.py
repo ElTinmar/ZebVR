@@ -31,7 +31,8 @@ class SharedStimParameters:
     # TODO add index of fish to follow?
 
     def __init__(self):
-        
+
+        self.name = SharedString(initializer = DEFAULT['name'])
         self.stim_change_counter = RawValue(c_double, 0) 
         self.start_time_sec = RawValue(c_double, 0) 
         self.stim_select = RawValue(c_double, Stim.DARK) 
@@ -82,6 +83,7 @@ class SharedStimParameters:
     def from_dict(self, d: Dict) -> None:
         
         self.stim_change_counter.value += 1 # TODO filter on VISUAL STIM only 
+        self.name.value = d.get('name', DEFAULT['name'])
         self.start_time_sec.value = d.get('time_sec', 0)
         self.stim_select.value = d.get('stim_select', Stim.DARK)
         self.foreground_color[:] = d.get('foreground_color', DEFAULT['foreground_color'])
@@ -132,6 +134,7 @@ class SharedStimParameters:
 
         res = {
             'stim_select': self.stim_select.value,
+            'name': self.name.value,
             'timestamp': get_time_ns(),
             'start_time_sec': self.start_time_sec.value,
             'foreground_color': list(self.foreground_color),

@@ -25,15 +25,8 @@ class Dark(VisualProtocolItem):
         super().__init__(*args, **kwargs)
 
     def start(self) -> Dict:
-
-        super().start()
-        
-        command = {
-            'stim_select': self.STIM_SELECT,
-            'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'coordinate_system': self.coordinate_system
-        }
+        command = super().start()
+        command.update({'stim_select': self.STIM_SELECT})
         return command
     
 class DarkWidget(VisualProtocolItemWidget):
@@ -81,6 +74,7 @@ class DarkWidget(VisualProtocolItemWidget):
         )
         coordinate_system = self.cb_coordinate_system.currentIndex()
         protocol = Dark(
+            name = self.stim_name.text(),
             foreground_color = foreground_color,
             background_color = background_color,
             coordinate_system = coordinate_system,

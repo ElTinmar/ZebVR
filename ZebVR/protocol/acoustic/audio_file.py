@@ -6,8 +6,8 @@ from ...protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Tuple, Dict
-from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton
+from typing import Dict
+from qt_widgets import FileOpenLabeledEditButton
 from PyQt5.QtWidgets import (
     QGroupBox, 
     QVBoxLayout,
@@ -31,14 +31,12 @@ class AudioFile(AudioProtocolItem):
         self.audio_file_path = audio_file_path
 
     def start(self) -> Dict:
-
-        super().start()
-
-        command = {
+        
+        command = super().start()
+        command.update({
             'stim_select': self.STIM_SELECT,
             'audio_file_path': self.audio_file_path,
-            'amplitude_dB': self.amplitude_dB,
-        }
+        })
         return command
     
 class AudioFileWidget(AudioProtocolItemWidget):
@@ -104,6 +102,7 @@ class AudioFileWidget(AudioProtocolItemWidget):
     def to_protocol_item(self) -> AudioFile:
         
         protocol = AudioFile(
+            name = self.stim_name.text(),
             audio_file_path = self.fs_audio_file_path.text(),
             amplitude_dB = self.sb_amplitude_dB.value(),
             stop_condition = self.stop_widget.to_stop_condition()

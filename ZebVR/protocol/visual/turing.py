@@ -38,18 +38,14 @@ class Turing(VisualProtocolItem):
     
     def start(self) -> Dict:
 
-        super().start()
-
-        command = {
+        command = super().start()
+        command.update({
             'stim_select': self.STIM_SELECT,
             'turing_spatial_period_mm': self.turing_spatial_period_mm,
             'turing_angle_deg': self.turing_angle_deg,
             'turing_speed_mm_per_sec': self.turing_speed_mm_per_sec,
-            'turing_n_waves': self.turing_n_waves,
-            'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'coordinate_system': self.coordinate_system
-        }
+            'turing_n_waves': self.turing_n_waves
+        })
         return command
     
 class TuringWidget(VisualProtocolItemWidget):
@@ -185,6 +181,7 @@ class TuringWidget(VisualProtocolItemWidget):
         coordinate_system = self.cb_coordinate_system.currentIndex()
         
         protocol = Turing(
+            name = self.stim_name.text(),
             foreground_color = foreground_color,
             background_color = background_color,
             coordinate_system = coordinate_system,

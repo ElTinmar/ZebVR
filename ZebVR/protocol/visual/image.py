@@ -35,17 +35,13 @@ class Image(VisualProtocolItem):
 
     def start(self) -> Dict:
 
-        super().start()
-
-        command = {
+        command = super().start()
+        command.update({
             'stim_select': self.STIM_SELECT,
             'image_path': self.image_path,
             'image_res_px_per_mm': self.image_res_px_per_mm,
-            'image_offset_mm': self.image_offset_mm,
-            'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'coordinate_system': self.coordinate_system
-        }
+            'image_offset_mm': self.image_offset_mm
+        })
         return command
     
 class ImageWidget(VisualProtocolItemWidget):
@@ -180,6 +176,7 @@ class ImageWidget(VisualProtocolItemWidget):
         coordinate_system = self.cb_coordinate_system.currentIndex()
 
         protocol = Image(
+            name = self.stim_name.text(),
             foreground_color = foreground_color,
             background_color = background_color,
             coordinate_system = coordinate_system,

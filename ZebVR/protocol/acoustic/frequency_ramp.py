@@ -42,17 +42,15 @@ class FrequencyRamp(AudioProtocolItem):
 
     def start(self) -> Dict:
 
-        super().start()
-        
-        command = {
+        command = super().start()
+        command.update({
             'stim_select': self.STIM_SELECT,
             'ramp_start_Hz': self.ramp_start_Hz,
             'ramp_stop_Hz': self.ramp_stop_Hz,
-            'amplitude_dB': self.amplitude_dB,
             'ramp_powerlaw_exponent': self.ramp_powerlaw_exponent,
             'ramp_duration_sec': self.ramp_duration_sec,
             'ramp_type': self.ramp_type
-        }
+        })
         return command
     
 class FrequencyRampWidget(AudioProtocolItemWidget):
@@ -208,6 +206,7 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
     def to_protocol_item(self) -> FrequencyRamp:
 
         protocol = FrequencyRamp(
+            name = self.stim_name.text(),
             ramp_start_Hz = self.sb_ramp_start_Hz.value(),
             ramp_stop_Hz = self.sb_ramp_stop_Hz.value(),
             ramp_duration_sec = self.sb_ramp_duration_sec.value(),

@@ -38,17 +38,13 @@ class OMR(VisualProtocolItem):
     
     def start(self) -> Dict:
 
-        super().start()
-
-        command = {
+        command = super().start()
+        command.update({
             'stim_select': self.STIM_SELECT,
             'omr_spatial_period_mm': self.omr_spatial_period_mm,
             'omr_angle_deg': self.omr_angle_deg,
-            'omr_speed_mm_per_sec': self.omr_speed_mm_per_sec,
-            'foreground_color': self.foreground_color,
-            'background_color': self.background_color,
-            'coordinate_system': self.coordinate_system
-        }
+            'omr_speed_mm_per_sec': self.omr_speed_mm_per_sec
+        })
         return command
     
 class OMR_Widget(VisualProtocolItemWidget):
@@ -166,6 +162,7 @@ class OMR_Widget(VisualProtocolItemWidget):
         coordinate_system = self.cb_coordinate_system.currentIndex()
         
         protocol = OMR(
+            name = self.stim_name.text(),
             foreground_color = foreground_color,
             background_color = background_color,
             coordinate_system = coordinate_system,

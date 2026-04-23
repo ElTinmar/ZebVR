@@ -45,15 +45,13 @@ class ClickTrain(AudioProtocolItem):
 
     def start(self) -> Dict:
 
-        super().start()
-        
-        command = {
+        command = super().start()
+        command.update({
             'stim_select': self.STIM_SELECT,
             'click_rate': self.click_rate,
             'click_duration': self.click_duration,
             'click_polarity': self.click_polarity,
-            'amplitude_dB': self.amplitude_dB,
-        }
+        })
         return command
     
 class ClickTrainWidget(AudioProtocolItemWidget):
@@ -157,6 +155,7 @@ class ClickTrainWidget(AudioProtocolItemWidget):
     def to_protocol_item(self) -> ClickTrain:
 
         protocol = ClickTrain(
+            name = self.stim_name.text(),
             click_rate = self.sb_click_rate.value(),
             amplitude_dB = self.sb_amplitude_dB.value(),
             click_duration = self.sb_click_duration.value(),

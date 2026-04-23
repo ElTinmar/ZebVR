@@ -1,15 +1,11 @@
-from ZebVR.protocol import Stim, ProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer
-from typing import Tuple, Dict
-from qt_widgets import LabeledDoubleSpinBox
+from ZebVR.protocol import Stim, AudioProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer
+from typing import Dict
 from PyQt5.QtWidgets import (
-    QGroupBox, 
-    QVBoxLayout,
     QApplication, 
 )
 from ..default import DEFAULT
-from ...utils import set_from_dict
 
-class WhiteNoise(ProtocolItem):
+class WhiteNoise(AudioProtocolItem):
 
     STIM_SELECT = Stim.WHITE_NOISE
 
@@ -26,15 +22,12 @@ class WhiteNoise(ProtocolItem):
 
     def start(self) -> Dict:
 
-        super().start()
-        
-        command = {
-            'stim_select': self.STIM_SELECT,
-            'amplitude_dB': self.amplitude_dB
-        }
+        command = super().start()
+        command.update({'stim_select': self.STIM_SELECT})
         return command
 
-class PinkNoise(ProtocolItem):
+
+class PinkNoise(AudioProtocolItem):
 
     STIM_SELECT = Stim.PINK_NOISE
     
@@ -51,15 +44,11 @@ class PinkNoise(ProtocolItem):
 
     def start(self) -> Dict:
 
-        super().start()
-        
-        command = {
-            'stim_select': self.STIM_SELECT,
-            'amplitude_dB': self.amplitude_dB
-        }
+        command = super().start()
+        command.update({'stim_select': self.STIM_SELECT})
         return command
 
-class BrownNoise(ProtocolItem):
+class BrownNoise(AudioProtocolItem):
 
     STIM_SELECT = Stim.BROWN_NOISE
 
@@ -75,13 +64,9 @@ class BrownNoise(ProtocolItem):
         self.amplitude_dB = amplitude_dB
 
     def start(self) -> Dict:
-
-        super().start()
         
-        command = {
-            'stim_select': self.STIM_SELECT,
-            'amplitude_dB': self.amplitude_dB
-        }
+        command = super().start()
+        command.update({'stim_select': self.STIM_SELECT})
         return command
 
 class WhiteNoiseWidget(AudioProtocolItemWidget):
@@ -94,7 +79,8 @@ class WhiteNoiseWidget(AudioProtocolItemWidget):
     def to_protocol_item(self) -> WhiteNoise:
 
         return WhiteNoise(
-            amplitude_dB_SPL = self.sb_amplitude_dB.value(),
+            name = self.stim_name.text(),
+            amplitude_dB = self.sb_amplitude_dB.value(),
             stop_condition = self.stop_widget.to_stop_condition()
         )
 
@@ -108,6 +94,7 @@ class PinkNoiseWidget(AudioProtocolItemWidget):
     def to_protocol_item(self) -> PinkNoise:
 
         return PinkNoise(
+            name = self.stim_name.text(),
             amplitude_dB = self.sb_amplitude_dB.value(),
             stop_condition = self.stop_widget.to_stop_condition()
         )
@@ -122,6 +109,7 @@ class BrownNoiseWidget(AudioProtocolItemWidget):
     def to_protocol_item(self) -> BrownNoise:
 
         return BrownNoise(
+            name = self.stim_name.text(),
             amplitude_dB = self.sb_amplitude_dB.value(),
             stop_condition = self.stop_widget.to_stop_condition()
         )

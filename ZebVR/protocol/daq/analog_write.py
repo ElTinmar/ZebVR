@@ -31,16 +31,11 @@ class AnalogWrite(DAQ_ProtocolItem):
         self.analog_value = analog_value
     
     def start(self) -> Dict:
-
-        super().start() 
-        
-        command = {
+        command = super().start()
+        command.update({
             'stim_select': self.STIM_SELECT,
-            'board_type': self.board_type,
-            'board_id': self.board_id,
-            'channels': self.channels,
             'analog_value': self.analog_value,
-        }
+        })
         return command
     
 class AnalogWriteWidget(DAQ_ProtocolItemWidget):
@@ -122,6 +117,7 @@ class AnalogWriteWidget(DAQ_ProtocolItemWidget):
         channels = [int(widget.text()) for widget in channel_list_widget]
     
         return AnalogWrite(
+            name = self.stim_name.text(),
             board_type = self.current_board_type,
             board_id = self.current_board.id,
             channels = channels,

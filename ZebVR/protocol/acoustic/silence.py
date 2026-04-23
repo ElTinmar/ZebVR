@@ -1,20 +1,17 @@
-from ZebVR.protocol import Stim, ProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer
-from typing import Tuple, Dict
+from ZebVR.protocol import Stim, AudioProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer
+from typing import Dict
 from PyQt5.QtWidgets import (
     QApplication, 
 )
 
-class Silence(ProtocolItem):
+class Silence(AudioProtocolItem):
 
     STIM_SELECT = Stim.SILENCE
     
     def start(self) -> Dict:
 
-        super().start() 
-        
-        command = {
-            'stim_select': self.STIM_SELECT,
-        }
+        command = super().start()
+        command.update({'stim_select': self.STIM_SELECT})
         return command
     
 class SilenceWidget(AudioProtocolItemWidget):
@@ -26,6 +23,7 @@ class SilenceWidget(AudioProtocolItemWidget):
 
     def to_protocol_item(self) -> Silence:
         return Silence(
+            name = self.stim_name.text(),
             stop_condition = self.stop_widget.to_stop_condition()
         )
 
