@@ -71,6 +71,7 @@ class DAQ_Worker(WorkerNode):
                 if stim not in DAQ_STIMS:
                     return
                 
+                name = control.get('name', '')
                 board_type = control.get('board_type')
                 if board_type is None:
                     return
@@ -88,6 +89,7 @@ class DAQ_Worker(WorkerNode):
 
                 result = {
                     'stim_select': stim,
+                    'name': name,
                     'timestamp': get_time_ns(),
                     'board_type': board_type,
                     'board_id': board_id,
