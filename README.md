@@ -166,6 +166,13 @@ The`stop` button will stop any running experiment.
 
 A full manual is not written yet but will be added once all features are stable. 
 
+## Missing features
+
+- Audio calibration
+- Specify visual stimuli with irradiance units (provide a choice between floating points vs calibrated irradiance units)
+- Head-embedded VR
+- 3D environments
+
 ## Troubleshooting
 
 ### PCIe Camera No LED 
