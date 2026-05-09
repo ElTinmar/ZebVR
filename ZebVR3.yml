@@ -13,6 +13,18 @@ dependencies:
 - av
 - pyserial
 - pyqtgraph
+
+# aravis camera
+- gobject-introspection
+- pygobject
+- meson
+- ninja
+- libxml2-devel
+- glib 
+- zlib
+- libusb
+- pkg-config
+
 - pip:
   - screeninfo
   - sounddevice

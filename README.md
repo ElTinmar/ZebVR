@@ -59,6 +59,8 @@ A full list of dependencies with version number can be found in requirements.txt
 
 ### Install camera SDK and python bindings into environment
 
+#### XIMEA
+
 The SDK and python binding URLs are hardcoded in the script and will break
 if the camera manufacturers decide to change their website layout. The SDK 
 can be manually downloaded from the manufacturer website, and the python module placed
@@ -86,7 +88,7 @@ python scripts/setup_spinnaker.py --only-python
 Please note that every time a new kernel is installed during a system update,
 the SDK needs to be reinstalled.
 
-### Automated XIMEA Driver Maintenance
+##### Automated XIMEA Driver Maintenance
 
 After the drivers have been installed once (see steps above), to prevent the XIMEA camera driver from breaking during Ubuntu kernel updates, 
 install the automated maintenance service:
@@ -94,6 +96,18 @@ install the automated maintenance service:
 ```bash
 sudo chmod +x install_ximea_systemd_service.sh
 sudo ./install_ximea_systemd_service.sh
+```
+
+#### Aravis
+
+```bash
+conda activate ZebVR3
+git clone https://github.com/AravisProject/aravis.git
+cd aravis 
+meson setup build --prefix=$CONDA_PREFIX -Dintrospection=enabled -Dviewer=disabled -Dtests=true --libdir=lib
+ninja -C build install
+cd ..
+rm -rf aravis
 ```
 
 ### Thorlabs hardware 
