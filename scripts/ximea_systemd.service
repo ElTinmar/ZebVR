@@ -1,0 +1,11 @@
+[Unit]
+Description=Ensure XIMEA Driver is loaded
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/ximea-fix-driver.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

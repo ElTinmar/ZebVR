@@ -86,6 +86,16 @@ python scripts/setup_spinnaker.py --only-python
 Please note that every time a new kernel is installed during a system update,
 the SDK needs to be reinstalled.
 
+### Automated XIMEA Driver Maintenance
+
+To prevent the XIMEA camera driver from breaking during Ubuntu kernel updates, 
+install the automated maintenance service:
+
+```bash
+sudo chmod +x install_ximea_systemd_service.sh
+sudo ./install_ximea_systemd_service.sh
+```
+
 ### Thorlabs hardware 
 
 This is needed to communicate with Thorlabs spectrophotometer and power measurement unit 
