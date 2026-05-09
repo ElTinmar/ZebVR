@@ -88,7 +88,7 @@ the SDK needs to be reinstalled.
 
 ### Automated XIMEA Driver Maintenance
 
-To prevent the XIMEA camera driver from breaking during Ubuntu kernel updates, 
+After the drivers have been installed once (see steps above), to prevent the XIMEA camera driver from breaking during Ubuntu kernel updates, 
 install the automated maintenance service:
 
 ```bash
