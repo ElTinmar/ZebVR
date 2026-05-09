@@ -43,7 +43,8 @@ from camera_tools import (
     OpenCV_Webcam_InitEveryFrame, 
     MovieFileCam, 
     MovieFileCamGray,
-    ZeroCam
+    ZeroCam,
+    AravisCamera
 )
 try:
     from camera_tools import XimeaCamera_Transport
@@ -66,6 +67,7 @@ class CameraModel(IntEnum):
     SPINNAKER = 6
     MOVIE = 7
     MOVIE_GRAY = 8
+    ARAVIS = 9
 
 WEBCAMS = [CameraModel.WEBCAM, CameraModel.WEBCAM_GRAY, CameraModel.WEBCAM_REGISTRATION]
 MOVIES = [CameraModel.MOVIE, CameraModel.MOVIE_GRAY]
@@ -699,6 +701,9 @@ class CameraController(QObject):
         
         elif camera_model==CameraModel.SPINNAKER and SPINNAKER_ENABLED:
             self.camera_constructor = partial(SpinnakerCamera, dev_id=camera_index)
+
+        elif camera_model==CameraModel.ARAVIS:
+            self.camera_constructor = partial(AravisCamera, dev_id=None)
 
         elif camera_model==CameraModel.MOVIE:
             if not filename.is_file():
