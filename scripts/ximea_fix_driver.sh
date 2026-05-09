@@ -18,7 +18,6 @@ fi
 echo "Rebuilding for $(uname -r)..."
 cd "$DRIVER_SRC"
 
-# Note: We don't use 'set -e' for the make block so we can handle the error manually
 if make clean && make KERNEL=$(uname -r) && make KERNEL=$(uname -r) install; then
     depmod -a
     modprobe ximea_cam_pcie
