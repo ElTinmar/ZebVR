@@ -6,7 +6,7 @@ fi
 
 REPO_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Copy files to system locations
+mkdir -p /usr/local/bin
 cp "$REPO_DIR/scripts/ximea_fix_driver.sh" /usr/local/bin/ximea_fix_driver.sh
 chmod +x /usr/local/bin/ximea_fix_driver.sh
 cp "$REPO_DIR/scripts/ximea_systemd.service" /etc/systemd/system/ximea-startup.service
@@ -14,4 +14,10 @@ cp "$REPO_DIR/scripts/ximea_systemd.service" /etc/systemd/system/ximea-startup.s
 # Activate service
 systemctl daemon-reload
 systemctl enable ximea-startup.service
-echo "XIMEA Auto-Maintenance Service Installed."
+systemctl start ximea-startup.service
+
+echo "-------------------------------------------------------"
+echo "XIMEA Auto-Maintenance Service Installed successfully."
+echo "The driver will be verified and rebuilt automatically at boot."
+echo "Check status with: systemctl status ximea-startup.service"
+echo "-------------------------------------------------------"
