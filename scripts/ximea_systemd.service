@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/ximea-fix-driver.sh
+ExecStart=/usr/local/bin/ximea_fix_driver.sh
 RemainAfterExit=yes
 
 [Install]
