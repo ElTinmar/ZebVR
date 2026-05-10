@@ -19,7 +19,7 @@ dependencies:
 - pygobject
 - meson
 - ninja
-- libxml2
+- libxml2-devel
 - glib 
 - zlib
 - libusb
