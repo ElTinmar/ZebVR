@@ -507,7 +507,37 @@ class CameraHandler(QObject):
             self.acquisition_started = False
 
         self.timer.start(self.timer_update_ms)
-        
+
+    def setup_camera_defaults(self):
+        if not self.camera:
+            return
+
+        if self.camera.offsetX_available():
+            self.camera.set_offsetX(0)
+
+        if self.camera.offsetY_available():
+            self.camera.set_offsetY(0)
+
+        if self.camera.width_available():
+            _, w_max = self.camera.get_width_range()
+            self.camera.set_width(w_max)
+            
+        if self.camera.height_available():
+            _, h_max = self.camera.get_height_range()
+            self.camera.set_height(h_max)
+
+        if self.camera.exposure_available():
+            exp_min, exp_max = self.camera.get_exposure_range()
+            self.camera.set_framerate(exp_min + (exp_max-exp_min)/2)
+
+        if self.camera.gain_available():
+            gain_min, _ = self.camera.get_gain_range()
+            self.camera.set_gain(gain_min)
+
+        if self.camera.framerate_available():
+            _, fps_max = self.camera.get_framerate_range()
+            self.camera.set_framerate(fps_max)
+            
     def set_constructor(self, camera_constructor: Callable[[], Camera], camera_model: CameraModel):
         self.timer.stop()
         if self.camera is not None:
@@ -521,10 +551,11 @@ class CameraHandler(QObject):
         if camera_model in WEBCAMS:
             self.webcam_modes.emit(self.camera.supported_configs)
         else:
+            self.setup_camera_defaults()
             self.finalize_setup()
 
     def finalize_setup(self):
-        self.apply_state()
+        self.validate_state()
         if self.acquisition_started:
             self.camera.start_acquisition()
         self.timer.start(self.timer_update_ms)
