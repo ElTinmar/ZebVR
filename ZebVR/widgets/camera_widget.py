@@ -43,7 +43,8 @@ from camera_tools import (
     MovieFileCam, 
     MovieFileCamGray,
     ZeroCam,
-    AravisCamera
+    AravisCamera,
+    ROIGraphicalSelector
 )
 try:
     from camera_tools import XimeaCamera_Transport
@@ -86,22 +87,14 @@ class CameraWidget(QWidget):
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
-        
-        self.controls = [
-            'width',
-            'height',
-            'offsetX', 
-            'offsetY', 
-            'framerate', 
-            'exposure', 
-            'gain'
-        ]
 
         self.image = np.zeros((self.PREVIEW_HEIGHT,self.PREVIEW_HEIGHT), dtype=np.uint8)
         self.current_preview_width = self.PREVIEW_HEIGHT
         self.current_width = self.PREVIEW_HEIGHT
         self.current_height = self.PREVIEW_HEIGHT
         self.webcam_modes = {}
+        self.sensor_w = 0
+        self.sensor_h = 0
 
         self.declare_components()
         self.layout_components()
@@ -125,26 +118,30 @@ class CameraWidget(QWidget):
         self.movie_load = QPushButton('Load file')
         self.movie_load.setEnabled(False)
         self.movie_load.clicked.connect(self.load_file)
-    
         self.filename = QLabel('')
 
-        # controls 
-        for control in self.controls:
-            if control in ['framerate','gain', 'exposure']:
-                constructor = LabeledDoubleSpinBox
-            elif control in ['offsetX', 'offsetY', 'height', 'width']:
-                constructor = LabeledSpinBox
-            else:
-                continue
+        self.width_spinbox = LabeledSpinBox()
+        self.height_spinbox = LabeledSpinBox()
+        self.offsetX_spinbox = LabeledSpinBox()
+        self.offsetY_spinbox = LabeledSpinBox()
+        self.framerate_spinbox = LabeledDoubleSpinBox()
+        self.exposure_spinbox = LabeledDoubleSpinBox()
+        self.gain_spinbox = LabeledDoubleSpinBox()
 
-            setattr(self, control + '_spinbox', constructor())
-            spinbox = getattr(self, control + '_spinbox')
-            spinbox.setText(control)
-            spinbox.setRange(0,0)
-            spinbox.setSingleStep(0)
-            spinbox.setValue(0)
-            spinbox.setEnabled(False)
-            spinbox.valueChanged.connect(self.state_changed)
+        self.spinbox_map = {
+            'width': self.width_spinbox,
+            'height': self.height_spinbox,
+            'offsetX': self.offsetX_spinbox,
+            'offsetY': self.offsetY_spinbox,
+            'framerate': self.framerate_spinbox,
+            'exposure': self.exposure_spinbox,
+            'gain': self.gain_spinbox
+        }
+        for name, sb in self.spinbox_map.items():
+            sb.setText(name)
+            sb.setRange(0, 0)
+            sb.setEnabled(False)
+            sb.valueChanged.connect(self.state_changed)
 
         self.webcam_format = LabeledComboBox()
         self.webcam_format.setText('Format:')
@@ -166,6 +163,10 @@ class CameraWidget(QWidget):
         self.num_channels_label.setText('Num channels:')
         self.num_channels = QLabel()
         self.num_channels.setText('0')
+
+        self.roi_selector = ROIGraphicalSelector()
+        self.roi_selector.roi_changed.connect(self.on_roi_selector_changed)
+        self.roi_selector.setFixedSize(150, 150)
 
         # image
         self.preview_start = QPushButton('start preview')
@@ -309,6 +310,27 @@ class CameraWidget(QWidget):
             self.image_view.centerOn(self.image_item)
             self.scene.setSceneRect(self.image_item.boundingRect())
 
+    def on_roi_selector_changed(self, x, y, w, h):
+
+        self.block_signals(True)
+        self.offsetX_spinbox.setValue(x)
+        self.offsetY_spinbox.setValue(y)
+        self.width_spinbox.setValue(w)
+        self.height_spinbox.setValue(h)
+        self.block_signals(False)
+        
+        self.state_changed.emit()
+
+    def update_roi_visual_map(self):
+        self.roi_selector.update_roi_map(
+            self.sensor_w, 
+            self.sensor_h, 
+            self.width_spinbox.value(), 
+            self.height_spinbox.value(), 
+            self.offsetX_spinbox.value(), 
+            self.offsetY_spinbox.value()
+        )
+
     def layout_components(self) -> None:
 
         layout_buttons = QHBoxLayout()
@@ -334,9 +356,20 @@ class CameraWidget(QWidget):
         layout_controls.addWidget(self.webcam_resolution)
         layout_controls.addWidget(self.webcam_framerate)
 
-        for control in self.controls:
-            spinbox = getattr(self, control + '_spinbox')
-            layout_controls.addWidget(spinbox)
+        roi_layout = QHBoxLayout()
+        roi_sb_layout = QVBoxLayout()
+        roi_sb_layout.addStretch()
+        roi_sb_layout.addWidget(self.height_spinbox)
+        roi_sb_layout.addWidget(self.width_spinbox)
+        roi_sb_layout.addWidget(self.offsetX_spinbox)
+        roi_sb_layout.addWidget(self.offsetY_spinbox)
+        roi_sb_layout.addStretch()
+        roi_layout.addLayout(roi_sb_layout)
+        roi_layout.addWidget(self.roi_selector)
+        layout_controls.addLayout(roi_layout)
+        layout_controls.addWidget(self.exposure_spinbox)
+        layout_controls.addWidget(self.framerate_spinbox)
+        layout_controls.addWidget(self.gain_spinbox)
 
         layout_image = QHBoxLayout()
         layout_image.addStretch()
@@ -350,33 +383,50 @@ class CameraWidget(QWidget):
         layout_controls.addStretch()
 
     def on_source_change(self):
-        # TODO show different widgets for webcam (format/res/fps), movie, ...
-
         model = self.camera_model.currentIndex()
         id = self.camera_id.value() 
         filename = self.filename.text()
 
-        if model in MOVIES:
+        is_movie = model in MOVIES
+        is_webcam = model in WEBCAMS
+
+        if is_movie:
             self.camera_id.setEnabled(False)
             self.movie_load.setEnabled(True)
+            
+            self.webcam_format.hide()
+            self.webcam_resolution.hide()
+            self.webcam_framerate.hide()
+            
+            self.roi_selector.hide()
+            self.width_spinbox.show() 
+            self.height_spinbox.show()
+
+        elif is_webcam:
+            self.camera_id.setEnabled(True)
+            self.movie_load.setEnabled(False)
+            
+            self.webcam_format.show()
+            self.webcam_resolution.show()
+            self.webcam_framerate.show()
+            
+            self.roi_selector.hide()
+            self.width_spinbox.hide()
+            self.height_spinbox.hide()
+            self.framerate_spinbox.hide()
+
         else:
             self.camera_id.setEnabled(True)
             self.movie_load.setEnabled(False)
-
-        if model in WEBCAMS:
-            self.webcam_format.setVisible(True)
-            self.webcam_resolution.setVisible(True)
-            self.webcam_framerate.setVisible(True)
-            self.width_spinbox.setVisible(False)
-            self.height_spinbox.setVisible(False)
-            self.framerate_spinbox.setVisible(False)
-        else:
-            self.webcam_format.setVisible(False)
-            self.webcam_resolution.setVisible(False)
-            self.webcam_framerate.setVisible(False)
-            self.width_spinbox.setVisible(True)
-            self.height_spinbox.setVisible(True)
-            self.framerate_spinbox.setVisible(True)
+            
+            self.webcam_format.hide()
+            self.webcam_resolution.hide()
+            self.webcam_framerate.hide()
+            
+            self.roi_selector.show()
+            self.width_spinbox.show()
+            self.height_spinbox.show()
+            self.framerate_spinbox.show()
 
         self.source_changed.emit(model, id, filename)
 
@@ -385,54 +435,43 @@ class CameraWidget(QWidget):
             widget.blockSignals(block)
 
     def get_state(self) -> Dict:
-
-        state = {}
-        state['camera_model'] = self.camera_model.currentIndex()
-        state['camera_index'] = self.camera_id.value()
-        state['movie_file'] = self.filename.text()
-        for control in self.controls:
-            spinbox = getattr(self, control + '_spinbox')
-            state[control + '_enabled'] = spinbox.isEnabled()
-            state[control + '_min'] = spinbox.minimum()
-            state[control + '_max'] = spinbox.maximum()
-            state[control + '_step'] = spinbox.singleStep()
-            state[control + '_value'] = spinbox.value()
-        state['num_channels'] = int(self.num_channels.text())
-        return state
-    
-    def update_state(self, state: Dict) -> None:
-
-        self.block_signals(True)
-
-        setters = {
-            'camera_index': self.camera_id.setValue,
-            'movie_file': lambda x: self.filename.setText(str(x)),
-            'camera_model': self.camera_model.setCurrentIndex,
-            'num_channels': lambda x: self.num_channels.setText(str(x)),
-        }
-
-        for control in self.controls:
-            attr = control + '_spinbox'
-            spinbox = getattr(self, attr)
-
-            setter = {
-                control + '_enabled': spinbox.setEnabled,
-                control + '_min': spinbox.setMinimum,
-                control + '_max': spinbox.setMaximum,
-                control + '_step': spinbox.setSingleStep,
-                control + '_value': spinbox.setValue
+            state = {
+                'camera_model': self.camera_model.currentIndex(),
+                'camera_index': self.camera_id.value(),
+                'movie_file': self.filename.text(),
+                'num_channels': int(self.num_channels.text())
             }
             
-            setters.update(setter)
-        
-        for key, setter in setters.items():
-            if key in state:
-                setter(state[key])
-
-        self.block_signals(False)
-
-        self.update_done.emit()
+            # Clean iteration using the map
+            for name, sb in self.spinbox_map.items():
+                state[f'{name}_enabled'] = sb.isEnabled()
+                state[f'{name}_min'] = sb.minimum()
+                state[f'{name}_max'] = sb.maximum()
+                state[f'{name}_step'] = sb.singleStep()
+                state[f'{name}_value'] = sb.value()
+            return state
     
+    def update_state(self, state: Dict) -> None:
+            self.block_signals(True)
+
+            if 'camera_index' in state: self.camera_id.setValue(state['camera_index'])
+            if 'movie_file' in state: self.filename.setText(str(state['movie_file']))
+            if 'camera_model' in state: self.camera_model.setCurrentIndex(state['camera_model'])
+            if 'num_channels' in state: self.num_channels.setText(str(state['num_channels']))
+            self.sensor_w = state.get("sensor_w",0)
+            self.sensor_h = state.get("sensor_h",0)
+
+            for name, sb in self.spinbox_map.items():
+                if f'{name}_enabled' in state: sb.setEnabled(state[f'{name}_enabled'])
+                if f'{name}_min' in state: sb.setMinimum(state[f'{name}_min'])
+                if f'{name}_max' in state: sb.setMaximum(state[f'{name}_max'])
+                if f'{name}_step' in state: sb.setSingleStep(state[f'{name}_step'])
+                if f'{name}_value' in state: sb.setValue(state[f'{name}_value'])
+
+            self.block_signals(False)
+            self.update_roi_visual_map()
+            self.update_done.emit()
+        
     def set_state(self, state: Dict) -> None:
         self.update_state(state)
         self.on_source_change()
@@ -458,6 +497,8 @@ class CameraHandler(QObject):
         self.acquisition_started = False
         self.timer_update_ms = timer_update_ms
         self.debouncer_update_ms = debouncer_update_ms
+        self.sensor_w = 0
+        self.sensor_h = 0
 
         self.timer = None
         self.debounce_timer = None
@@ -520,10 +561,12 @@ class CameraHandler(QObject):
         if self.camera.width_available():
             _, w_max = self.camera.get_width_range()
             self.camera.set_width(w_max)
+            self.sensor_w = w_max
             
         if self.camera.height_available():
             _, h_max = self.camera.get_height_range()
             self.camera.set_height(h_max)
+            self.sensor_h = h_max
 
         if self.camera.exposure_available():
             exp_min, exp_max = self.camera.get_exposure_range()
@@ -614,6 +657,8 @@ class CameraHandler(QObject):
         state['offsetY_value'] = self.camera.get_offsetY() if offsetY_enabled else 0
 
         state['num_channels'] = self.camera.get_num_channels()
+        state['sensor_w'] = self.sensor_w
+        state['sensor_h'] = self.sensor_h 
 
         self.last_camera_state = state
 
