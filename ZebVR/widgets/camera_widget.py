@@ -21,8 +21,7 @@ from PyQt5.QtCore import (
     QObject, 
     QTimer, 
     Qt, 
-    QThread,
-    QEventLoop
+    QThread
 )
 from PyQt5.QtGui import QImage
 from numpy.typing import NDArray
