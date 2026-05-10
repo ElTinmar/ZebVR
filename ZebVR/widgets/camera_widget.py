@@ -447,7 +447,7 @@ class CameraHandler(QObject):
     validated_state = pyqtSignal(dict)
     webcam_modes = pyqtSignal(dict)
 
-    def __init__(self, view: CameraWidget, timer_update_ms: int = 1, debouncer_update_ms: int = 300):
+    def __init__(self, view: CameraWidget, timer_update_ms: int = 1, debouncer_update_ms: int = 150):
 
         super().__init__()
         
