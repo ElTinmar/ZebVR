@@ -32,9 +32,7 @@ dependencies:
   - psutil
   - git+https://github.com/ElTinmar/video_tools.git@main
   - git+https://github.com/ElTinmar/tracker.git@main
-  - git+https://github.com/ElTinmar/Lightcrafter.git@main  
   - git+https://github.com/ElTinmar/ViewSonicProjectorRS232.git@main
-  - git+https://github.com/ElTinmar/email.git@main
   - git+https://github.com/ElTinmar/multiprocessing_logger.git@main
   - git+https://github.com/ElTinmar/image_tools.git@main
   - git+https://github.com/ElTinmar/qt_widgets.git@main
