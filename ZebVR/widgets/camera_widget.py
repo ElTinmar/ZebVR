@@ -44,7 +44,7 @@ from camera_tools import (
     MovieFileCamGray,
     ZeroCam,
     AravisCamera,
-    ROIGraphicalSelector
+    CameraSensorROI
 )
 try:
     from camera_tools import XimeaCamera_Transport
@@ -164,9 +164,9 @@ class CameraWidget(QWidget):
         self.num_channels = QLabel()
         self.num_channels.setText('0')
 
-        self.roi_selector = ROIGraphicalSelector()
-        self.roi_selector.roi_changed.connect(self.on_roi_selector_changed)
-        self.roi_selector.setFixedSize(150, 150)
+        self.sensor_roi = CameraSensorROI()
+        self.sensor_roi.roi_changed.connect(self.on_sensor_roi_changed)
+        #self.sensor_roi.setFixedSize(150, 150)
 
         # image
         self.preview_start = QPushButton('start preview')
@@ -310,7 +310,7 @@ class CameraWidget(QWidget):
             self.image_view.centerOn(self.image_item)
             self.scene.setSceneRect(self.image_item.boundingRect())
 
-    def on_roi_selector_changed(self, x, y, w, h):
+    def on_sensor_roi_changed(self, x, y, w, h):
 
         self.block_signals(True)
         self.offsetX_spinbox.setValue(x)
@@ -322,7 +322,7 @@ class CameraWidget(QWidget):
         self.state_changed.emit()
 
     def update_roi_visual_map(self):
-        self.roi_selector.update_roi_map(
+        self.sensor_roi.update_roi_map(
             self.sensor_w, 
             self.sensor_h, 
             self.width_spinbox.value(), 
@@ -365,7 +365,7 @@ class CameraWidget(QWidget):
         roi_sb_layout.addWidget(self.offsetY_spinbox)
         roi_sb_layout.addStretch()
         roi_layout.addLayout(roi_sb_layout)
-        roi_layout.addWidget(self.roi_selector)
+        roi_layout.addWidget(self.sensor_roi)
         layout_controls.addLayout(roi_layout)
         layout_controls.addWidget(self.exposure_spinbox)
         layout_controls.addWidget(self.framerate_spinbox)
@@ -398,7 +398,7 @@ class CameraWidget(QWidget):
             self.webcam_resolution.hide()
             self.webcam_framerate.hide()
             
-            self.roi_selector.hide()
+            self.sensor_roi.hide()
             self.width_spinbox.show() 
             self.height_spinbox.show()
 
@@ -410,7 +410,7 @@ class CameraWidget(QWidget):
             self.webcam_resolution.show()
             self.webcam_framerate.show()
             
-            self.roi_selector.hide()
+            self.sensor_roi.hide()
             self.width_spinbox.hide()
             self.height_spinbox.hide()
             self.framerate_spinbox.hide()
@@ -423,7 +423,7 @@ class CameraWidget(QWidget):
             self.webcam_resolution.hide()
             self.webcam_framerate.hide()
             
-            self.roi_selector.show()
+            self.sensor_roi.show()
             self.width_spinbox.show()
             self.height_spinbox.show()
             self.framerate_spinbox.show()
