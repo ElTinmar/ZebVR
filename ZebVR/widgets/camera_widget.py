@@ -447,7 +447,7 @@ class CameraHandler(QObject):
     validated_state = pyqtSignal(dict)
     webcam_modes = pyqtSignal(dict)
 
-    def __init__(self, view: CameraWidget, timer_update_ms: int = 1):
+    def __init__(self, view: CameraWidget, timer_update_ms: int = 1, debouncer_update_ms: int = 300):
 
         super().__init__()
         
@@ -458,14 +458,25 @@ class CameraHandler(QObject):
         self.last_camera_state = None
         self.acquisition_started = False
         self.timer_update_ms = timer_update_ms
+        self.debouncer_update_ms = debouncer_update_ms
+
+        self.timer = None
+        self.debounce_timer = None
 
     def start_handler(self):
         self.timer = QTimer()
         self.timer.timeout.connect(self.get_frame)
         self.timer.start(self.timer_update_ms)  
 
+        self.debounce_timer = QTimer()
+        self.debounce_timer.setSingleShot(True)
+        self.debounce_timer.timeout.connect(self.apply_state)
+
     def stop_handler(self):
-        self.timer.stop()
+        if self.timer:
+            self.timer.stop()
+        if self.debounce_timer:
+            self.debounce_timer.stop()
         if self.camera is not None:
             self.camera.stop_acquisition()
             del(self.camera)
@@ -498,9 +509,7 @@ class CameraHandler(QObject):
         self.timer.start(self.timer_update_ms)
         
     def set_constructor(self, camera_constructor: Callable[[], Camera], camera_model: CameraModel):
-        
         self.timer.stop()
-
         if self.camera is not None:
             self.camera.stop_acquisition()
             del(self.camera)
@@ -510,24 +519,19 @@ class CameraHandler(QObject):
         self.last_camera_state = None
 
         if camera_model in WEBCAMS:
-            # wait until changes propagate in the GUI
-            loop = QEventLoop()
-            self.view.webcam_modes_set.connect(loop.quit)
             self.webcam_modes.emit(self.camera.supported_configs)
-            loop.exec_()
-            self.view.webcam_modes_set.disconnect(loop.quit)
+        else:
+            self.finalize_setup()
 
+    def finalize_setup(self):
         self.apply_state()
-
         if self.acquisition_started:
             self.camera.start_acquisition()
-
-        self.timer.start(self.timer_update_ms)  
+        self.timer.start(self.timer_update_ms)
 
     def state_changed(self):
-        self.timer.stop()
-        self.apply_state()
-        self.timer.start(self.timer_update_ms)
+        self.debounce_timer.stop()
+        self.debounce_timer.start(self.debouncer_update_ms)
 
     def validate_state(self):
 
@@ -600,28 +604,33 @@ class CameraHandler(QObject):
 
         if self.camera is None:
             return
-
-        state = self.view.get_state()
-
-        if self.requires_acquisition_restart(state):
-
-            if self.acquisition_started:
-                self.camera.stop_acquisition()
-
-            self.camera.set_width(state['width_value'])
-            self.camera.set_height(state['height_value'])
-            self.camera.set_offsetX(state['offsetX_value'])
-            self.camera.set_offsetY(state['offsetY_value'])
-
-            if self.acquisition_started:
-                self.camera.start_acquisition()
         
-        self.camera.set_framerate(state['framerate_value'])
-        self.camera.set_exposure(state['exposure_value'])
-        self.camera.set_gain(state['gain_value'])
+        self.timer.stop()
 
-        # validate state
-        self.validate_state()
+        try:
+            state = self.view.get_state()
+
+            if self.requires_acquisition_restart(state):
+
+                if self.acquisition_started:
+                    self.camera.stop_acquisition()
+
+                self.camera.set_width(state['width_value'])
+                self.camera.set_height(state['height_value'])
+                self.camera.set_offsetX(state['offsetX_value'])
+                self.camera.set_offsetY(state['offsetY_value'])
+
+                if self.acquisition_started:
+                    self.camera.start_acquisition()
+            
+            self.camera.set_framerate(state['framerate_value'])
+            self.camera.set_exposure(state['exposure_value'])
+            self.camera.set_gain(state['gain_value'])
+
+            self.validate_state()
+        
+        finally:
+            self.timer.start(self.timer_update_ms)
     
     def get_frame(self):
 
@@ -657,19 +666,19 @@ class CameraController(QObject):
         # wire up signals and slots
         self.camera_handler.validated_state.connect(self.view.update_state)
         self.camera_handler.webcam_modes.connect(self.view.set_webcam_modes)
-        self.camera_thread.started.connect(self.camera_handler.start_handler)
-
+        self.camera_thread.started.connect(self.camera_handler.start_handler, Qt.QueuedConnection)
         self.view.source_changed.connect(self.on_source_changed)
-        self.view.state_changed.connect(self.camera_handler.state_changed)
         self.view.state_changed.connect(self.state_changed)
         self.view.update_done.connect(self.state_changed)
         self.view.webcam_modes_set.connect(self.state_changed)
-        self.view.preview.connect(self.camera_handler.frame_acquisition)
-        self.view.stop_signal.connect(self.camera_handler.stop_handler)
+        self.view.state_changed.connect(self.camera_handler.state_changed, Qt.QueuedConnection)
+        self.view.preview.connect(self.camera_handler.frame_acquisition, Qt.QueuedConnection)
+        self.view.stop_signal.connect(self.camera_handler.stop_handler, Qt.QueuedConnection)
         self.view.stop_signal.connect(self.stop)
+        self.view.webcam_modes_set.connect(self.camera_handler.finalize_setup, Qt.QueuedConnection)
 
-        self.preview.connect(self.camera_handler.frame_acquisition)
-        self.constructor_changed.connect(self.camera_handler.set_constructor)
+        self.preview.connect(self.camera_handler.frame_acquisition, Qt.QueuedConnection)
+        self.constructor_changed.connect(self.camera_handler.set_constructor, Qt.QueuedConnection)
         
         self.camera_thread.start()
 
