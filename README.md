@@ -98,6 +98,8 @@ sudo chmod +x install_ximea_systemd_service.sh
 sudo ./install_ximea_systemd_service.sh
 ```
 
+Secure boot might need to be disabled.
+
 #### Aravis
 
 ```bash
