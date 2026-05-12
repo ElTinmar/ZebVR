@@ -25,7 +25,7 @@ projector,UV mod,JLCPCB,power adapter board,PicoSpoxAdapter_v2,1,https://github.
 projector,UV mod,Molex,connector 10pin,87438-1043,10,https://www.mouser.de/ProductDetail/Molex/87438-1043?qs=yoOJgkCG%2FJuVV3eNIak6LQ%3D%3D,0.851,8.51
 projector,UV mod,Molex,connector 8pin,87438-0843,10,https://www.mouser.de/ProductDetail/Molex/87438-0843?qs=JAINH4q0Y0FNXejwT7VIEw%3D%3D,0.765,7.65
 projector,cable,StarTech,HDMI 2.0,HDMI2-CABLE-4K60-2M,1,https://de.rs-online.com/web/p/hdmi-kabel/0473429,14.27,14.27
-projector,cable,Conrad,RS-232 female to USB male,4043619662814,1,https://www.conrad.de/de/p/delock-usb-2-0-adapter-1x-usb-2-0-stecker-a-1x-seriell-9pol-66281-1-8-m-3381462.html,25.99,25.99
+projector,cable,StarTech,RS-232 female to USB male (crossover / null-modem),ICUSB232FTN,1,https://www.startech.com/de-de/karten-adapter/icusb232ftn,47.55,47.55
 camera,lens,EdmundOptics,C-mount adapter,#54-341,1,https://www.edmundoptics.com/p/c-mount-nikon-f-mount-camera-lens-adapter/11135/,85,85
 camera,lens,Venus,60mm macro lens,Laowa 60mm f/2.8 2X Ultra-Macro (Nikon F-mount version),1,https://www.venuslens.net/product/laowa-60mm-f2/,400,400
 camera,lens,Hoya,IR filter,HOYA INFRARED R72 (62mm),1,https://hoya-filter.eu/de/effektfilter/577-hoya-infrared-r72-infrarotfilter-62mm-0024066015464.html,50.99,50.99
