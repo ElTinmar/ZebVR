@@ -6,8 +6,6 @@ dependencies:
 - ipython
 - qtpy
 - pyqt > 6.0 
-# wayland WARNING: Cannot find EGLConfig, returning null config
-# Xorg WARNING: Could not initialize GLX
 - numpy
 - vispy
 - pip
