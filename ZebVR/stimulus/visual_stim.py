@@ -102,7 +102,7 @@ class VisualStimWorker(WorkerNode):
         self.stim.set_log_queue(self.log_queue)
 
     def run(self) -> None:
-        use(gl='gl2')
+        use(gl='gl2') # Use OpenGL 2.0
         self.stim.initialize()
         # TODO set flag here
         while not self.stop_event.is_set():
