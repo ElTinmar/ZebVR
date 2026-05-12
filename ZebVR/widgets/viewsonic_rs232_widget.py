@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication, 
     QWidget, 
     QVBoxLayout, 
@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QGroupBox,
 )
-from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer
+from qtpy.QtCore import  Signal, QObject, QThread, QTimer
 from typing import Dict, List
 from viewsonic_serial import ViewSonicProjector, SourceInput, Bool, Gamma, ColorMode
 from qt_widgets import LabeledSliderSpinBox, LabeledComboBox
@@ -17,18 +17,18 @@ import time
 
 class ViewSonicProjectorWidget(QWidget):
 
-    state_changed = pyqtSignal()
-    close_signal = pyqtSignal()
-    serial_port_changed = pyqtSignal(str)
-    power_on_signal = pyqtSignal()
-    power_off_signal = pyqtSignal()
-    video_source_changed = pyqtSignal(str)
-    gamma_changed = pyqtSignal(str)
-    color_mode_changed = pyqtSignal(str)
-    fast_input_mode_changed = pyqtSignal(bool)
-    red_gain_changed = pyqtSignal(int)
-    green_gain_changed = pyqtSignal(int)
-    blue_gain_changed = pyqtSignal(int)
+    state_changed =  Signal()
+    close_signal =  Signal()
+    serial_port_changed =  Signal(str)
+    power_on_signal =  Signal()
+    power_off_signal =  Signal()
+    video_source_changed =  Signal(str)
+    gamma_changed =  Signal(str)
+    color_mode_changed =  Signal(str)
+    fast_input_mode_changed =  Signal(bool)
+    red_gain_changed =  Signal(int)
+    green_gain_changed =  Signal(int)
+    blue_gain_changed =  Signal(int)
 
     def __init__(self,*args,**kwargs):
 
@@ -216,7 +216,7 @@ class ViewSonicProjectorWidget(QWidget):
 
 class ViewSonicProjectorController(QObject):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
     REFRESH_RATE: float = 1.0
 
     def __init__(self, view: ViewSonicProjectorWidget, *args, **kwargs):

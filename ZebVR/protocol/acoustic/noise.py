@@ -1,6 +1,6 @@
 from ZebVR.protocol import Stim, AudioProtocolItem, AudioProtocolItemWidget, StopWidget, Debouncer
 from typing import Dict
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication, 
 )
 from ..default import DEFAULT

@@ -1,10 +1,10 @@
 import sys
 import queue
 import numpy as np
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication, QWidget, QLabel, QTextEdit, QVBoxLayout, QHBoxLayout
 )
-from PyQt5.QtCore import QTimer
+from qtpy.QtCore import QTimer
 import pyqtgraph as pg
 from dagline import WorkerNode
 from typing import Dict, Optional

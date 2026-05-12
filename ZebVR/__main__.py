@@ -2,12 +2,15 @@ import time
 from multiprocessing import set_start_method, Process
 import os
 os.environ["OMP_NUM_THREADS"] = "1" # this may not be necessary when setting affinity
-from PyQt5.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication
 import pickle
 import sys
 import pprint
 from pathlib import Path
 from .gui import MainGui
+
+import vispy
+vispy.use(gl='gl2')
 
 def set_realtime_priority(priority):
     
@@ -84,7 +87,7 @@ def main():
         app = QApplication(sys.argv)
         main_window = MainGui()
         main_window.show()
-        app.exec_()
+        app.exec()
 
 if __name__ == "__main__":
     main()

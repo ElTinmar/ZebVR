@@ -8,7 +8,7 @@ from ZebVR.protocol import (
     RampType
 )
 from typing import Dict
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication, 
     QVBoxLayout,
     QGroupBox,

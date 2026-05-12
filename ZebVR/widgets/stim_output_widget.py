@@ -1,18 +1,18 @@
 
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QApplication,
     QVBoxLayout,
     QGroupBox,
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import  Signal
 from typing import Dict
 from pathlib import Path
 from qt_widgets import LabeledEditLine
 
 class StimOutputWidget(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
     FOLDER: Path = Path('output/data')
 
     def __init__(self, *args, **kwargs):

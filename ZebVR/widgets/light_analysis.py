@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication, 
     QWidget, 
     QVBoxLayout, 
@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QButtonGroup
 )
-from PyQt5.QtCore import pyqtSignal, QObject, Qt
+from qtpy.QtCore import  Signal, QObject, Qt
 from qt_widgets import LabeledComboBox, LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEditButton
 from typing import Dict, TypedDict, Tuple, List, Callable, Optional
 import pyqtgraph as pg
@@ -47,9 +47,9 @@ class SpectrometerState(TypedDict, total=False):
 class SpectrometerWidget(QWidget):
 
     # signals
-    spectrometer_changed = pyqtSignal(int)
-    integration_time_changed = pyqtSignal(float)
-    scan_spectrum = pyqtSignal()
+    spectrometer_changed =  Signal(int)
+    integration_time_changed =  Signal(float)
+    scan_spectrum =  Signal()
 
     # constants
     LINE_COL = (50,50,50,255)
@@ -279,7 +279,7 @@ class SpectrometerWidget(QWidget):
 
 class SpectrometerController(QObject):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
     
     def __init__(self, spectrometer_widget: SpectrometerWidget, *args, **kwargs):
 
@@ -400,18 +400,18 @@ class PowermeterState(TypedDict, total=False):
     
 class PowermeterWidget(QWidget):
 
-    state_changed = pyqtSignal()
-    powermeter_changed = pyqtSignal(int)
-    bandwidth_changed = pyqtSignal(bool)
-    attenuation_changed = pyqtSignal(float)
-    range_changed = pyqtSignal(int)
-    beam_diameter_changed = pyqtSignal(float)
-    calibrate_red_power = pyqtSignal()
-    calibrate_green_power = pyqtSignal()
-    calibrate_blue_power = pyqtSignal()
-    power_calibration = pyqtSignal()
-    line_frequency_changed = pyqtSignal(thorlabs_pmd.LineFrequency)
-    average_count_changed = pyqtSignal(int)
+    state_changed =  Signal()
+    powermeter_changed =  Signal(int)
+    bandwidth_changed =  Signal(bool)
+    attenuation_changed =  Signal(float)
+    range_changed =  Signal(int)
+    beam_diameter_changed =  Signal(float)
+    calibrate_red_power =  Signal()
+    calibrate_green_power =  Signal()
+    calibrate_blue_power =  Signal()
+    power_calibration =  Signal()
+    line_frequency_changed =  Signal(thorlabs_pmd.LineFrequency)
+    average_count_changed =  Signal(int)
 
     LINE_WIDTH = 2
     HEIGHT = 400
@@ -742,8 +742,8 @@ class PowermeterWidget(QWidget):
 
 class PowermeterController(QObject):
 
-    state_changed = pyqtSignal()
-    power_calibration = pyqtSignal()
+    state_changed =  Signal()
+    power_calibration =  Signal()
 
     def __init__(self, powermeter_widget: PowermeterWidget, *args, **kwargs):
 
@@ -909,8 +909,8 @@ class PowermeterController(QObject):
 
 class LightAnalysisWidget(QWidget):
 
-    state_changed = pyqtSignal()
-    power_calibration = pyqtSignal()
+    state_changed =  Signal()
+    power_calibration =  Signal()
 
     def __init__(self,*args,**kwargs):
 

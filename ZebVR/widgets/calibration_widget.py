@@ -1,12 +1,12 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout, 
     QHBoxLayout, 
     QPushButton, 
     QLabel
 )
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QPixmap
+from qtpy.QtCore import  Signal, Qt
+from qtpy.QtGui import QPixmap
 from typing import Dict, List
 from pathlib import Path
 import json
@@ -19,9 +19,9 @@ from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEdit
 
 class CalibrationWidget(QWidget):
 
-    calibration_signal = pyqtSignal()
-    check_calibration_signal = pyqtSignal()
-    state_changed = pyqtSignal()
+    calibration_signal =  Signal()
+    check_calibration_signal =  Signal()
+    state_changed =  Signal()
 
     CHECKERBOARD_TOOLTIP: str = "Printed checkerboard target size (internal corners)"
     CALIBRATION_CHECK_DIAMETER_MM: List[float]  = [15, 30, 45, 60] 
@@ -204,7 +204,7 @@ class CalibrationWidget(QWidget):
 
 if __name__ == "__main__":
 
-    from PyQt5.QtWidgets import QApplication, QMainWindow
+    from qtpy.QtWidgets import QApplication, QMainWindow
 
     class Window(QMainWindow):
 

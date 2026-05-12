@@ -1,7 +1,8 @@
 
 from typing import Dict, Union, List
-from PyQt5.QtCore import pyqtSignal, QSignalBlocker
-from PyQt5.QtWidgets import (
+from qtpy.QtCore import QSignalBlocker
+from qtpy.QtCore import Signal
+from qtpy.QtWidgets import (
     QListWidget,
 )
 from functools import partial
@@ -26,7 +27,7 @@ def select_items_by_text(list_widget: QListWidget, texts: List[str]):
 
 class DAQ_ProtocolItemWidget(ProtocolItemWidget):
     
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
 
     def __init__(
             self,

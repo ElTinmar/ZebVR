@@ -1,16 +1,16 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout,
     QGroupBox,
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import  Signal
 from typing import Dict
 
 from qt_widgets import LabeledEditLine
 
 class LogOutputWidget(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
 
     def __init__(self, *args, **kwargs):
 
@@ -63,7 +63,7 @@ class LogOutputWidget(QWidget):
 
 if __name__ == "__main__":
 
-    from PyQt5.QtWidgets import QApplication, QMainWindow
+    from qtpy.QtWidgets import QApplication, QMainWindow
 
     class Window(QMainWindow):
 

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication,
     QWidget, 
     QVBoxLayout,
@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QPushButton
 )
-from PyQt5.QtCore import QRunnable, QThreadPool, QTimer, pyqtSignal
+from qtpy.QtCore import QRunnable, QThreadPool, QTimer,  Signal
 import pyqtgraph as pg
 from collections import deque
 from pathlib import Path
@@ -22,7 +22,7 @@ pg.setConfigOption('antialias', True)
 
 class TemperatureWidget(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
 
     N_TIME_POINTS = 600
     REFRESH_RATE_TEMPERATURE = 1  

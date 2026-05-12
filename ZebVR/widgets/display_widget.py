@@ -3,8 +3,8 @@ import cv2
 from typing import Dict
 
 #import pyqtgraph as pg
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import (
     QWidget, 
     QPushButton,
     QButtonGroup,
@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
     QGraphicsPixmapItem,
     QLabel
 )
-from PyQt5.QtGui import QImage
+from qtpy.QtGui import QImage
 from qt_widgets import NDarray_to_QPixmap, LabeledSpinBox, ZoomableGraphicsView
 
 class TrackerType(IntEnum):

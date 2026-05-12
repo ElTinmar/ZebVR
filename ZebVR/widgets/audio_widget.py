@@ -1,10 +1,10 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication, 
     QWidget, 
     QVBoxLayout, 
     QCheckBox,
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import  Signal
 from qt_widgets import LabeledComboBox, LabeledDoubleSpinBox, LabeledSpinBox
 
 from typing import Dict
@@ -12,7 +12,7 @@ import sounddevice as sd
 
 class AudioWidget(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
 
     def __init__(self,*args,**kwargs):
 

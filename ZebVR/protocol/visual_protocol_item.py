@@ -2,8 +2,8 @@ from .protocol_item import VisualProtocolItem, ProtocolItem, ProtocolItemWidget
 from .default import DEFAULT
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import (
+from qtpy.QtCore import  Signal
+from qtpy.QtWidgets import (
     QLabel,
     QHBoxLayout
 )
@@ -14,7 +14,7 @@ from .stim import CoordinateSystem
 
 class VisualProtocolItemWidget(ProtocolItemWidget):
     
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
 
     def __init__(
             self,

@@ -1,5 +1,5 @@
 
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout,
     QGroupBox,
@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QLabel,
     QApplication
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import  Signal
 from typing import Dict
 import os
 
@@ -15,8 +15,8 @@ from qt_widgets import LabeledSpinBox, LabeledEditLine
 
 class ExperimentDataWidget(QWidget):
 
-    state_changed = pyqtSignal()
-    prefix_changed = pyqtSignal(str)
+    state_changed =  Signal()
+    prefix_changed =  Signal(str)
 
     def __init__(self, *args, **kwargs):
 

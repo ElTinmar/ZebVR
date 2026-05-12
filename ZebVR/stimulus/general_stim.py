@@ -224,7 +224,8 @@ class SharedStimParameters:
 
         return res
 
-VERT_SHADER = """
+VERT_SHADER = """#version 120
+
 attribute vec2 a_position;
 
 void main()
@@ -260,7 +261,8 @@ class GeneralStim(VisualStim):
         self.rollover_time_sec = rollover_time_sec
         self._last_image_path: str = ''
 
-        FRAG_SHADER = f"""
+        FRAG_SHADER = f"""#version 120
+
         // Some DMD projectors with diamond pixel layouts (e.g. Lightcrafters) do not have uniform pixel spacing.
         uniform vec2 u_pixel_scaling; 
         uniform float u_pix_per_mm; 
@@ -295,7 +297,7 @@ class GeneralStim(VisualStim):
         uniform float u_turing_spatial_period_mm;
         uniform float u_turing_angle_deg;
         uniform float u_turing_speed_mm_per_sec;
-        uniform float u_turing_n_waves;
+        uniform int u_turing_n_waves;
         uniform float u_concentric_spatial_period_mm;
         uniform float u_concentric_speed_mm_per_sec;
         uniform float u_okr_spatial_frequency_deg;
@@ -314,7 +316,7 @@ class GeneralStim(VisualStim):
         uniform float u_dot_radius_mm;
         uniform int u_prey_capture_type;
         uniform int u_prey_periodic_function;
-        uniform float u_n_preys;
+        uniform int u_n_preys;
         uniform float u_prey_radius_mm;
         uniform float u_prey_trajectory_radius_mm;
         uniform float u_prey_speed_mm_s;
@@ -417,13 +419,13 @@ class GeneralStim(VisualStim):
             float angle_rad = radians(u_omr_angle_deg);
             vec2 orientation_vector = vec2(-sin(angle_rad), cos(angle_rad)); // angle with y+ axis
             float position_on_orientation_vector = dot(coords_mm, orientation_vector);
-            float spatial_freq = 1/u_omr_spatial_period_mm;
+            float spatial_freq = 1.0/u_omr_spatial_period_mm;
             float temporal_freq = u_omr_speed_mm_per_sec/u_omr_spatial_period_mm;
             float angle = spatial_freq * position_on_orientation_vector;
             float phase = temporal_freq * u_time_s;
 
             // positive phase shift moves the grating backwards
-            if ( sin(2*PI*(angle-phase)) > 0.0 ) { 
+            if ( sin(2.0*PI*(angle-phase)) > 0.0 ) { 
                 return u_foreground_color;
             }
             return u_background_color;
@@ -433,7 +435,7 @@ class GeneralStim(VisualStim):
             float angle_rad = radians(u_turing_angle_deg);
             vec2 velocity = u_turing_speed_mm_per_sec * vec2(-sin(angle_rad), cos(angle_rad)); // angle with y+ axis
             vec2 pos = coords_mm - velocity * u_time_s; 
-            float k0 = 4*PI / u_turing_spatial_period_mm; // each pocket should be half period 
+            float k0 = 4.0*PI / u_turing_spatial_period_mm; // each pocket should be half period 
 
             float wave_sum = 0.0;
             for(int i = 0; i < u_turing_n_waves; i++) {
@@ -444,7 +446,7 @@ class GeneralStim(VisualStim):
                 wave_sum += wave;
             }
 
-            if (wave_sum > 0) {
+            if (wave_sum > 0.0) {
                 return u_foreground_color;
             }
             return u_background_color;
@@ -457,7 +459,7 @@ class GeneralStim(VisualStim):
             float phase = angular_temporal_freq * u_time_s;
 
             // positive angle = counter-clockwise (trigonometric) rotation
-            if ( mod(angle-phase, angular_spatial_freq) > angular_spatial_freq/2 ) {
+            if ( mod(angle-phase, angular_spatial_freq) > angular_spatial_freq/2.0 ) {
                 return u_foreground_color;
             } 
             return u_background_color;
@@ -490,7 +492,7 @@ class GeneralStim(VisualStim):
             float visual_angle = radians(u_looming_expansion_speed_deg_per_sec) * relative_time * looming_on;
             
             // simplifying hypothesis: for small xy offsets compared to distance to screen, this is an ok approximation
-            float looming_radius = u_looming_distance_to_screen_mm * tan(visual_angle/2);
+            float looming_radius = u_looming_distance_to_screen_mm * tan(visual_angle/2.0);
 
             if ( distance(coords_mm, u_looming_center_mm) <= looming_radius ) {
                 return u_foreground_color;
@@ -504,10 +506,10 @@ class GeneralStim(VisualStim):
 
             float angle_start_rad = radians(u_looming_angle_start_deg);
             float angle_stop_rad = radians(u_looming_angle_stop_deg);
-            float t_0 = u_looming_size_to_speed_ratio_ms / tan(angle_start_rad/2);
-            float t_f = u_looming_size_to_speed_ratio_ms / tan(angle_stop_rad/2);
+            float t_0 = u_looming_size_to_speed_ratio_ms / tan(angle_start_rad/2.0);
+            float t_f = u_looming_size_to_speed_ratio_ms / tan(angle_stop_rad/2.0);
             float period_ms = t_0 - t_f;
-            float relative_time_ms = mod(1000*(u_time_s - u_start_time_s), period_ms); 
+            float relative_time_ms = mod(1000.0*(u_time_s - u_start_time_s), period_ms); 
             
             // simplifying hypothesis: for small xy offsets compared to distance to screen, this is an ok approximation
             float looming_radius = u_looming_distance_to_screen_mm * u_looming_size_to_speed_ratio_ms / (t_0 - relative_time_ms);
@@ -519,13 +521,13 @@ class GeneralStim(VisualStim):
         }
 
         vec4 concentric_grating_stimulus(vec2 coords_mm) {
-            float spatial_freq = 1 / u_concentric_spatial_period_mm;
+            float spatial_freq = 1.0 / u_concentric_spatial_period_mm;
             float temporal_freq = u_concentric_speed_mm_per_sec / u_concentric_spatial_period_mm;
             float distance_to_center_mm = length(coords_mm);
             float angle = spatial_freq * distance_to_center_mm;
             float phase = temporal_freq * u_time_s;
 
-            if ( sin(2*PI*(angle+phase)) > 0.0 ) {
+            if ( sin(2.0*PI*(angle+phase)) > 0.0 ) {
                 return u_foreground_color;
             }
             return u_background_color;
@@ -535,7 +537,7 @@ class GeneralStim(VisualStim):
             float phase = radians(u_prey_speed_deg_s) * u_time_s;
 
             for (int i = 0; i < u_n_preys; i++) {
-                float angle = i * 2*PI/u_n_preys;      
+                float angle = float(i) * 2.0*PI/float(u_n_preys);      
                 vec2 prey_offset = u_prey_trajectory_radius_mm * vec2(cos(angle+phase), sin(angle+phase));
 
                 if ( distance(coords_mm, prey_offset) <= u_prey_radius_mm) {
@@ -555,8 +557,8 @@ class GeneralStim(VisualStim):
             
             float angle_rad = arc_start_rad;
             if (u_prey_periodic_function == COSINE) {
-                float freq = radians(u_prey_speed_deg_s) / (2*abs(angle_range_rad));
-                angle_rad += angle_range_rad * ((1-cos(2*PI*freq*relative_time_s + arc_phase_rad))/2);
+                float freq = radians(u_prey_speed_deg_s) / (2.0*abs(angle_range_rad));
+                angle_rad += angle_range_rad * ((1.0-cos(2.0*PI*freq*relative_time_s + arc_phase_rad))/2.0);
             }
             if (u_prey_periodic_function == MODULO) {
                 float period = abs(angle_range_rad) / radians(u_prey_speed_deg_s);
@@ -604,7 +606,7 @@ class GeneralStim(VisualStim):
             if (u_ramp_type == POWER_LAW) {
                 // Stevens' law: S = kI**a 
                 float exponent = u_ramp_powerlaw_exponent;
-                ramp_value = pow(frac, 1/exponent);
+                ramp_value = pow(frac, 1.0/exponent);
             }
 
             return mix(u_background_color, u_foreground_color, ramp_value);

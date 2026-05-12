@@ -1,9 +1,9 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout,
     QScrollArea,
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import  Signal
 from typing import Dict
 from pathlib import Path 
 from .tracking_widget import TrackingWidget
@@ -13,8 +13,8 @@ from .stim_output_widget import StimOutputWidget
 
 class SettingsWidget(QWidget):
 
-    state_changed = pyqtSignal()
-    prefix_changed = pyqtSignal(str)
+    state_changed =  Signal()
+    prefix_changed =  Signal(str)
     OUTPUT_FOLDER: Path = Path('output/data')
 
     def __init__(self, *args, **kwargs):

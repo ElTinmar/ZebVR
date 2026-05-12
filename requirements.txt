@@ -216,7 +216,7 @@ pyopengl=3.1.10=pypi_0
 pyopengl-accelerate=3.1.10=pypi_0
 pyparsing=3.3.2=pypi_0
 pyqt=5.15.11=py313h938ae94_2
-pyqt5-sip=12.17.0=py313h7033f15_2
+qtpy-sip=12.17.0=py313h7033f15_2
 pyqtgraph=0.14.0=pyhd8ed1ab_0
 pyserial=3.5=pyhcf101f3_2
 pytest=9.0.3=pypi_0

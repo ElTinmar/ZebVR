@@ -4,7 +4,10 @@ channels:
 dependencies:
 - python >= 3.8, <3.14
 - ipython
-- pyqt 
+- qtpy
+- pyqt > 6.0 
+# wayland WARNING: Cannot find EGLConfig, returning null config
+# Xorg WARNING: Could not initialize GLX
 - numpy
 - vispy
 - pip
@@ -42,5 +45,3 @@ dependencies:
   - git+https://github.com/ElTinmar/ViewSonicProjectorRS232.git@v0.1.10
   - git+https://github.com/ElTinmar/multiprocessing_logger.git@v0.3.12
   - git+https://github.com/ElTinmar/TemperatureSensor.git@v0.0.6    
-  - PyOpenGL 
-  - PyOpenGL_accelerate

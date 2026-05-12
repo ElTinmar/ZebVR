@@ -8,7 +8,7 @@ from ...protocol import (
 )
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QGroupBox, 
     QVBoxLayout,
     QApplication, 

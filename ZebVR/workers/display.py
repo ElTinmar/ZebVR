@@ -2,7 +2,7 @@ from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional
 import time
-from PyQt5.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication
 from ..widgets import DisplayWidget
 
 class Display(WorkerNode):

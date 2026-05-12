@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout,
     QPushButton,
@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QLayout,
     QApplication
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import  Signal
 from typing import Dict, List
 from daq_tools import (
     Arduino_SoftTiming, 
@@ -19,7 +19,7 @@ from daq_tools import (
 
 class DaqWidget(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
 
     def __init__(self, *args, **kwargs):
 
@@ -129,6 +129,6 @@ if __name__ == "__main__":
     app = QApplication([])
     widget = DaqWidget()
     widget.show()
-    app.exec_()
+    app.exec()
 
     print(widget.get_state())

@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
 from typing import Tuple, Optional
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import (
+from qtpy.QtCore import  Signal
+from qtpy.QtWidgets import (
     QApplication, 
     QDialog, 
     QVBoxLayout, 
@@ -127,7 +127,7 @@ def find_circular_arenas(
 
 class FindCircularArenasDialog(QDialog):
 
-    data = pyqtSignal(np.ndarray, np.ndarray, np.ndarray)
+    data =  Signal(np.ndarray, np.ndarray, np.ndarray)
     RESIZED_HEIGHT = 512
 
     def __init__(

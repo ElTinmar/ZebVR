@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication, 
     QWidget, 
     QVBoxLayout, 
@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     QScrollArea,
 )
-from PyQt5.QtCore import pyqtSignal, QObject, QThread, QTimer
+from qtpy.QtCore import  Signal, QObject, QThread, QTimer
 from typing import Dict, List
 from viewsonic_serial import (
     ViewSonicProjector, 
@@ -41,20 +41,20 @@ class ProjectorWidget(QWidget):
     scale_tooltip = "Used for non-rectangular micromirror arrays (e.g. Lightcrafters)"
     REFRESH_RATE = 5
 
-    state_changed = pyqtSignal()
-    close_signal = pyqtSignal()
-    power_calibration = pyqtSignal()
+    state_changed =  Signal()
+    close_signal =  Signal()
+    power_calibration =  Signal()
 
-    serial_port_changed = pyqtSignal(str)
-    power_on_signal = pyqtSignal()
-    power_off_signal = pyqtSignal()
-    video_source_changed = pyqtSignal(str)
-    gamma_changed = pyqtSignal(str)
-    color_mode_changed = pyqtSignal(str)
-    fast_input_mode_changed = pyqtSignal(bool)
-    red_offset_changed = pyqtSignal(int)
-    green_offset_changed = pyqtSignal(int)
-    blue_offset_changed = pyqtSignal(int)
+    serial_port_changed =  Signal(str)
+    power_on_signal =  Signal()
+    power_off_signal =  Signal()
+    video_source_changed =  Signal(str)
+    gamma_changed =  Signal(str)
+    color_mode_changed =  Signal(str)
+    fast_input_mode_changed =  Signal(bool)
+    red_offset_changed =  Signal(int)
+    green_offset_changed =  Signal(int)
+    blue_offset_changed =  Signal(int)
 
     def __init__(self,*args,**kwargs):
 
@@ -404,8 +404,8 @@ class ProjectorWidget(QWidget):
 
 class ProjectorController(QObject):
 
-    state_changed = pyqtSignal()
-    power_calibration = pyqtSignal()
+    state_changed =  Signal()
+    power_calibration =  Signal()
     REFRESH_RATE: float = 1.0
 
     def __init__(self, view: ProjectorWidget, *args, **kwargs):

@@ -4,7 +4,7 @@ from collections import deque
 
 import numpy as np
 from numpy.typing import NDArray
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication, 
     QWidget, 
     QVBoxLayout, 
@@ -16,8 +16,8 @@ from PyQt5.QtWidgets import (
     QStyle,
     QStyleOptionViewItem
 )
-from PyQt5.QtCore import Qt, pyqtSignal, QRect
-from PyQt5.QtGui import QColor, QBrush, QPen, QPainter
+from qtpy.QtCore import Qt,  Signal, QRect
+from qtpy.QtGui import QColor, QBrush, QPen, QPainter
 from qt_widgets import LabeledSpinBox
 from .protocol_widget import StimWidget
 from ..protocol import ProtocolItem, Debouncer
@@ -77,7 +77,7 @@ class LoopWidget(LabeledSpinBox):
 
 class SequencerWidget(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
     DEFAULT_DEBOUNCER_LENGTH = 5
     DEFAULT_BACKGROUND_FILE: Path = Path('ZebVR/default/background.npy')
 
@@ -452,7 +452,7 @@ if __name__ == "__main__":
     app = QApplication([])
     window = SequencerWidget()
     window.show()
-    app.exec_()
+    app.exec()
 
     tree = window.save_tree()
     print(tree)

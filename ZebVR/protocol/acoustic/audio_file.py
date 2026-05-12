@@ -8,7 +8,7 @@ from ...protocol import (
 )
 from typing import Dict
 from qt_widgets import FileOpenLabeledEditButton
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QGroupBox, 
     QVBoxLayout,
     QApplication, 

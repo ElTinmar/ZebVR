@@ -10,7 +10,7 @@ from ZebVR.protocol import (
 )
 from typing import Dict
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledComboBox
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QGroupBox, 
     QVBoxLayout,
     QApplication, 

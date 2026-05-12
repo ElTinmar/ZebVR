@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QApplication,
     QVBoxLayout,
@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QGroupBox
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import  Signal
 from typing import Dict
 from numpy.typing import NDArray
 import numpy as np
@@ -24,7 +24,7 @@ from qt_widgets import (
 
 class IdentityWidget(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
     PREVIEW_HEIGHT: int = 512
     DEFAULT_FILE: Path = Path('ZebVR/default/background.npy')
 

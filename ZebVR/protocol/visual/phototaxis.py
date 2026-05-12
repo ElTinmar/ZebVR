@@ -7,7 +7,7 @@ from ...protocol import (
     Debouncer
 )
 from typing import Tuple, Dict
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QGroupBox, 
     QVBoxLayout,
     QApplication, 

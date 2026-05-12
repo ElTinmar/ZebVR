@@ -10,8 +10,8 @@ from image_tools import DrawPolyMaskDialog, im2uint8, ImageViewerCoord
 import cv2
 from pathlib import Path
 
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import (
+from qtpy.QtCore import  Signal
+from qtpy.QtWidgets import (
     QWidget, 
     QStackedWidget, 
     QGroupBox, 
@@ -226,8 +226,8 @@ class ImageCoordDialog(QDialog):
     
 class StopWidget(QWidget):
 
-    state_changed = pyqtSignal()
-    size_changed = pyqtSignal()
+    state_changed =  Signal()
+    size_changed =  Signal()
     MASK_PREVIEW_HEIGHT = 64
     
     def __init__(

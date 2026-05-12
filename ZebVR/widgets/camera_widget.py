@@ -4,7 +4,7 @@ from typing import Dict, Callable, Union
 from enum import IntEnum
 import time
 
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout, 
     QHBoxLayout, 
@@ -16,14 +16,14 @@ from PyQt5.QtWidgets import (
     QGraphicsPixmapItem,
     QApplication
 )
-from PyQt5.QtCore import (
-    pyqtSignal, 
+from qtpy.QtCore import (
+     Signal, 
     QObject, 
     QTimer, 
     Qt, 
     QThread
 )
-from PyQt5.QtGui import QImage
+from qtpy.QtGui import QImage
 from numpy.typing import NDArray
 import numpy as np
 
@@ -78,12 +78,12 @@ MOVIES = [CameraModel.MOVIE, CameraModel.MOVIE_GRAY]
 
 class CameraWidget(QWidget):
 
-    source_changed = pyqtSignal(int, int, str)
-    state_changed = pyqtSignal()
-    preview = pyqtSignal(bool)
-    stop_signal = pyqtSignal()
-    webcam_modes_set = pyqtSignal()
-    update_done = pyqtSignal()
+    source_changed =  Signal(int, int, str)
+    state_changed =  Signal()
+    preview =  Signal(bool)
+    stop_signal =  Signal()
+    webcam_modes_set =  Signal()
+    update_done =  Signal()
 
     PREVIEW_HEIGHT: int = 480
     REFRESH_RATE = 60
@@ -486,8 +486,8 @@ class CameraWidget(QWidget):
 
 class CameraHandler(QObject):
 
-    validated_state = pyqtSignal(dict)
-    webcam_modes = pyqtSignal(dict)
+    validated_state =  Signal(dict)
+    webcam_modes =  Signal(dict)
 
     def __init__(self, view: CameraWidget, timer_update_ms: int = 1, debouncer_update_ms: int = 150):
 
@@ -728,9 +728,9 @@ class CameraHandler(QObject):
 
 class CameraController(QObject):
 
-    state_changed = pyqtSignal()
-    preview = pyqtSignal(bool)
-    constructor_changed = pyqtSignal(object, object)
+    state_changed =  Signal()
+    preview =  Signal(bool)
+    constructor_changed =  Signal(object, object)
 
     def __init__(self, view: CameraWidget, *args, **kwargs):
         super().__init__(*args, **kwargs)

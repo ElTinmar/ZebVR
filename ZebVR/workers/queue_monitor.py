@@ -1,7 +1,7 @@
 from dagline import WorkerNode
 from ipc_tools import QueueLike
 from typing import Dict, Optional
-from PyQt5.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication
 from ..widgets import QueueWidget, QueueMonitorWidget
 import time
 

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout, 
     QHBoxLayout, 
@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QStackedWidget,
     QApplication
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import  Signal
 from typing import Dict
 from numpy.typing import NDArray
 import numpy as np
@@ -23,8 +23,8 @@ from qt_widgets import (
 
 class BackgroundWidget(QWidget):
 
-    background_signal = pyqtSignal()
-    state_changed = pyqtSignal()
+    background_signal =  Signal()
+    state_changed =  Signal()
     
     PREVIEW_HEIGHT: int = 512
     DEFAULT_FILE: Path  = Path('ZebVR/default/background.npy')

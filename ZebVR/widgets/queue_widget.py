@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QGridLayout,
     QHBoxLayout,
@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QLabel
 )
-from PyQt5.QtCore import Qt
+from qtpy.QtCore import Qt
 from typing import Optional
 
 #TODO add dropped frames and fps
