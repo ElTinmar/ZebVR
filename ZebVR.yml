@@ -30,7 +30,7 @@ dependencies:
   - sounddevice
   - statsmodels  
   - psutil
-  - git+https://github.com/ElTinmar/tracker.git@v0.12.7
+  - git+https://github.com/ElTinmar/tracker.git@v0.13.0
   - git+https://github.com/ElTinmar/camera_tools.git@v0.8.0
   - git+https://github.com/ElTinmar/video_tools.git@v0.6.6
   - git+https://github.com/ElTinmar/image_tools.git@v0.9.3
