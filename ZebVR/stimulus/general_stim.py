@@ -225,6 +225,7 @@ class SharedStimParameters:
         return res
 
 VERT_SHADER = """
+#version 120
 
 attribute vec2 a_position;
 
@@ -262,6 +263,7 @@ class GeneralStim(VisualStim):
         self._last_image_path: str = ''
 
         FRAG_SHADER = f"""
+        #version 120
 
         // Some DMD projectors with diamond pixel layouts (e.g. Lightcrafters) do not have uniform pixel spacing.
         uniform vec2 u_pixel_scaling; 
