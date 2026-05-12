@@ -224,7 +224,7 @@ class SharedStimParameters:
 
         return res
 
-VERT_SHADER = """#version 120
+VERT_SHADER = """
 
 attribute vec2 a_position;
 
@@ -261,7 +261,7 @@ class GeneralStim(VisualStim):
         self.rollover_time_sec = rollover_time_sec
         self._last_image_path: str = ''
 
-        FRAG_SHADER = f"""#version 120
+        FRAG_SHADER = f"""
 
         // Some DMD projectors with diamond pixel layouts (e.g. Lightcrafters) do not have uniform pixel spacing.
         uniform vec2 u_pixel_scaling; 
@@ -289,7 +289,7 @@ class GeneralStim(VisualStim):
         uniform vec4 u_foreground_color;
         uniform vec4 u_background_color;
         uniform int u_coordinate_system;
-        uniform float u_stim_select;
+        uniform int u_stim_select;
         uniform float u_phototaxis_polarity;
         uniform float u_omr_spatial_period_mm;
         uniform float u_omr_angle_deg;
@@ -396,6 +396,13 @@ class GeneralStim(VisualStim):
         vec4 linear_to_srgb(vec4 linear)
         {
             return vec4(linear_to_srgb(linear.rgb), linear.a);
+        }
+
+        mat2 transpose_mat2(mat2 m) {
+            return mat2(
+                m[0][0], m[1][0],
+                m[0][1], m[1][1]
+            );
         }
 
         // STIMULI ----------------------------------------------------------------------------------
@@ -655,7 +662,7 @@ class GeneralStim(VisualStim):
                     u_fish_mediolateral_axis[animal]/length(u_fish_mediolateral_axis[animal]), 
                     u_fish_caudorostral_axis[animal]/length(u_fish_caudorostral_axis[animal])
                 );
-                vec2 fish_ego_coords_px = transpose(change_of_basis) * coordinates_centered_px;
+                vec2 fish_ego_coords_px = transpose_mat2(change_of_basis) * coordinates_centered_px;
                 fish_ego_coords_mm = fish_ego_coords_px / u_pix_per_mm_proj;
                 fish_centered_coords_mm = coordinates_centered_px / u_pix_per_mm_proj;
 

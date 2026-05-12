@@ -8,7 +8,7 @@ Add screenshots of the GUI
 
 ## System requirements
 
-This program has been tested on Ubuntu 24.04 with X11 (no Wayland support yet).
+This program has been tested on Ubuntu 24.04.
 It should also run on Windows 10/11 but hasn't been extensively tested, and full
 installation instructions on Windows are not listed here.
 We recommend using a modern multicore machine with at least 32GB of RAM.
@@ -147,7 +147,7 @@ sudo usermod -a -G plugdev,dialout "$USER"
 
 ```bash
 conda activate ZebVR3
-python -m ZebVR
+QT_QPA_PLATFORM=xcb python -m ZebVR
 ```
 
 ## Demo

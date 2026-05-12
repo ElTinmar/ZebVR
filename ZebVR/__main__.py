@@ -9,9 +9,6 @@ import pprint
 from pathlib import Path
 from .gui import MainGui
 
-import vispy
-vispy.use(gl='gl2')
-
 def set_realtime_priority(priority):
     
     try:

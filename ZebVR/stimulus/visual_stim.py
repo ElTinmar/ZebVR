@@ -1,4 +1,4 @@
-from vispy import app, gloo
+from vispy import app, gloo, use
 from typing import Tuple, Any
 from dagline import WorkerNode
 from multiprocessing import Process
@@ -102,6 +102,7 @@ class VisualStimWorker(WorkerNode):
         self.stim.set_log_queue(self.log_queue)
 
     def run(self) -> None:
+        use(gl='gl2')
         self.stim.initialize()
         # TODO set flag here
         while not self.stop_event.is_set():
