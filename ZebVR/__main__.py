@@ -1,9 +1,9 @@
-import time
 from multiprocessing import set_start_method, Process
 import os
-os.environ["OMP_NUM_THREADS"] = "1" # this may not be necessary when setting affinity
-os.environ['QT_QPA_PLATFORM'] = 'xcb'
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ['QT_QPA_PLATFORM'] = 'xcb' # necessary on Wayland
 
+import time
 import pickle
 import sys
 import pprint
