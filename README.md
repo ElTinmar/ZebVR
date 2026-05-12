@@ -146,8 +146,8 @@ sudo usermod -a -G plugdev,dialout "$USER"
 ## Running the software 
 
 ```bash
-conda activate ZebVR3
-QT_QPA_PLATFORM=xcb python -m ZebVR
+conda activate ZebVR
+python -m ZebVR
 ```
 
 ## Demo
