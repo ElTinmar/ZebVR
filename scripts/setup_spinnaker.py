@@ -6,7 +6,7 @@ import shutil
 import sys
 import argparse
 
-EXPECTED_ENV_NAME = "ZebVR3"
+EXPECTED_ENV_NAME = "ZebVR"
 
 SDK_URL = "https://flir.netx.net/file/asset/68771/original/attachment"
 SDK_TARBALL = "spinnaker-4.2.0.46-amd64-22.04-pkg.tar.gz"

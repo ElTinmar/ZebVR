@@ -51,8 +51,8 @@ Solving the environment might take a few minutes.
 ```bash
 git clone https://github.com/ElTinmar/ZebVR.git
 cd ZebVR
-conda env create -f ZebVR3.yml
-conda activate ZebVR3
+conda env create -f ZebVR.yml
+conda activate ZebVR
 ```
 
 A full list of dependencies with version number can be found in requirements.txt
@@ -64,10 +64,10 @@ A full list of dependencies with version number can be found in requirements.txt
 The SDK and python binding URLs are hardcoded in the script and will break
 if the camera manufacturers decide to change their website layout. The SDK 
 can be manually downloaded from the manufacturer website, and the python module placed
-in the conda environment site-packages folder (e.g. /home/user/miniconda3/envs/ZebVR3/lib/python3.13/site-packages/ximea)
+in the conda environment site-packages folder (e.g. /home/user/miniconda3/envs/ZebVR/lib/python3.13/site-packages/ximea)
 
 ```bash
-conda activate ZebVR3
+conda activate ZebVR
 python scripts/setup_ximea.py
 python scripts/setup_spinnaker.py
 ```
@@ -80,7 +80,7 @@ python scripts/setup_spinnaker.py --only-sdk
 ```
 
 ```bash
-conda activate ZebVR3
+conda activate ZebVR
 python scripts/setup_ximea.py --only-python
 python scripts/setup_spinnaker.py --only-python
 ```
@@ -103,7 +103,7 @@ Secure boot might need to be disabled.
 #### Aravis
 
 ```bash
-conda activate ZebVR3
+conda activate ZebVR
 git clone https://github.com/AravisProject/aravis.git
 cd aravis 
 meson setup build --prefix=$CONDA_PREFIX -Dintrospection=enabled -Dviewer=disabled -Dtests=true --libdir=lib
@@ -238,5 +238,5 @@ Disable secure boot in the BIOS
 Try refreshing the environment
 
 ```
-conda env update -f ZebVR3.yml
+conda env update -f ZebVR.yml
 ```

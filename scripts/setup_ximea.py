@@ -6,7 +6,7 @@ import tarfile
 import urllib.request
 import argparse
 
-EXPECTED_ENV_NAME = "ZebVR3"
+EXPECTED_ENV_NAME = "ZebVR"
 SDK_URL = "https://updates.ximea.com/public/ximea_linux_sp.tgz"
 SDK_ARCHIVE = "ximea_linux_sp.tgz"
 SDK_FOLDER = "package"
