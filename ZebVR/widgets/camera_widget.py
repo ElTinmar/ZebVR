@@ -43,7 +43,6 @@ from camera_tools import (
     MovieFileCam, 
     MovieFileCamGray,
     ZeroCam,
-    AravisCamera,
     CameraSensorROI
 )
 try:
@@ -56,6 +55,11 @@ try:
     SPINNAKER_ENABLED = True
 except ImportError:
     SPINNAKER_ENABLED = False
+try:
+    from camera_tools import AravisCamera
+    ARAVIS_ENABLED = True
+except ImportError:
+    ARAVIS_ENABLED = False
 
 class CameraModel(IntEnum):
     ZERO_GRAY = 0
@@ -786,7 +790,7 @@ class CameraController(QObject):
         elif camera_model==CameraModel.SPINNAKER and SPINNAKER_ENABLED:
             self.camera_constructor = partial(SpinnakerCamera, dev_id=camera_index)
 
-        elif camera_model==CameraModel.ARAVIS:
+        elif camera_model==CameraModel.ARAVIS and ARAVIS_ENABLED:
             self.camera_constructor = partial(AravisCamera, dev_id=None)
 
         elif camera_model==CameraModel.MOVIE:
