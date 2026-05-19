@@ -79,7 +79,7 @@ MOVIES = [CameraModel.MOVIE, CameraModel.MOVIE_GRAY]
 
 class CameraWidget(QWidget):
 
-    source_changed =  Signal(int, int, str)
+    source_changed =  Signal(int, int, str, dict)
     state_changed =  Signal()
     preview =  Signal(bool)
     stop_signal =  Signal()
@@ -398,7 +398,7 @@ class CameraWidget(QWidget):
         window_layout = QVBoxLayout(self)
         window_layout.addWidget(scroll_area)
 
-    def on_source_change(self):
+    def on_source_change(self, *args, parameters: Dict = {}):
         model = self.camera_model.currentIndex()
         id = self.camera_id.value() 
         filename = self.filename.text()
@@ -444,7 +444,7 @@ class CameraWidget(QWidget):
             self.height_spinbox.show()
             self.framerate_spinbox.show()
 
-        self.source_changed.emit(model, id, filename)
+        self.source_changed.emit(model, id, filename, parameters)
 
     def block_signals(self, block):
         for widget in self.findChildren(QWidget):
@@ -490,7 +490,7 @@ class CameraWidget(QWidget):
         
     def set_state(self, state: Dict) -> None:
         self.update_state(state)
-        self.on_source_change()
+        self.on_source_change(parameters=state)
 
     def closeEvent(self, event):
         self.stop_signal.emit()
@@ -567,39 +567,45 @@ class CameraHandler(QObject):
 
         self.timer.start(self.timer_update_ms)
 
-    def setup_camera_defaults(self):
+    def setup_camera_parameters(self, parameters: Dict):
+
         if not self.camera:
             return
 
         if self.camera.offsetX_available():
-            self.camera.set_offsetX(0)
+            self.camera.set_offsetX(parameters.get('offsetX_value', 0))
 
         if self.camera.offsetY_available():
-            self.camera.set_offsetY(0)
+            self.camera.set_offsetY(parameters.get('offsetY_value', 0))
 
         if self.camera.width_available():
             _, w_max = self.camera.get_width_range()
-            self.camera.set_width(w_max)
+            self.camera.set_width(parameters.get('width_value', w_max))
             self.sensor_w = w_max
             
         if self.camera.height_available():
             _, h_max = self.camera.get_height_range()
-            self.camera.set_height(h_max)
+            self.camera.set_height(parameters.get('height_value', h_max))
             self.sensor_h = h_max
 
         if self.camera.exposure_available():
             exp_min, exp_max = self.camera.get_exposure_range()
-            self.camera.set_framerate(exp_min + (exp_max-exp_min)/2)
+            self.camera.set_exposure(parameters.get('exposure_value', exp_min))
 
         if self.camera.gain_available():
             gain_min, _ = self.camera.get_gain_range()
-            self.camera.set_gain(gain_min)
+            self.camera.set_gain(parameters.get('gain_value', gain_min))
 
         if self.camera.framerate_available():
             _, fps_max = self.camera.get_framerate_range()
-            self.camera.set_framerate(fps_max)
+            self.camera.set_framerate(parameters.get('framerate_value', fps_max))
             
-    def set_constructor(self, camera_constructor: Callable[[], Camera], camera_model: CameraModel):
+    def set_constructor(
+            self, 
+            camera_constructor: Callable[[], Camera], 
+            camera_model: CameraModel,
+            parameters: Dict = {}
+        ):
         self.timer.stop()
         if self.camera is not None:
             self.camera.stop_acquisition()
@@ -612,7 +618,7 @@ class CameraHandler(QObject):
         if camera_model in WEBCAMS:
             self.webcam_modes.emit(self.camera.supported_configs)
         else:
-            self.setup_camera_defaults()
+            self.setup_camera_parameters(parameters)
             self.finalize_setup()
 
     def finalize_setup(self):
@@ -745,7 +751,7 @@ class CameraController(QObject):
 
     state_changed =  Signal()
     preview =  Signal(bool)
-    constructor_changed =  Signal(object, object)
+    constructor_changed =  Signal(object, object, dict)
 
     def __init__(self, view: CameraWidget, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -780,7 +786,8 @@ class CameraController(QObject):
             self, 
             camera_model: int, 
             camera_index: int, 
-            filename: Union[Path, str]
+            filename: Union[Path, str],
+            parameters: Dict = {}
         ):
 
         filename = Path(filename)
@@ -822,7 +829,7 @@ class CameraController(QObject):
             self.camera_constructor = partial(XimeaCamera_Transport, dev_id=camera_index)
 
         if self.camera_constructor is not None:
-            self.constructor_changed.emit(self.camera_constructor, camera_model)
+            self.constructor_changed.emit(self.camera_constructor, camera_model, parameters)
             self.state_changed.emit()
 
     def set_preview(self, enable: bool):
