@@ -465,6 +465,7 @@ class CameraWidget(QWidget):
                 state[f'{name}_max'] = sb.maximum()
                 state[f'{name}_step'] = sb.singleStep()
                 state[f'{name}_value'] = sb.value()
+
             return state
     
     def update_state(self, state: Dict) -> None:
@@ -571,22 +572,25 @@ class CameraHandler(QObject):
 
         if not self.camera:
             return
+        
+        offsetX = parameters.get('offsetX_value', 0)
+        offsetY = parameters.get('offsetY_value', 0)
 
         if self.camera.offsetX_available():
-            self.camera.set_offsetX(parameters.get('offsetX_value', 0))
+            self.camera.set_offsetX(offsetX)
 
         if self.camera.offsetY_available():
-            self.camera.set_offsetY(parameters.get('offsetY_value', 0))
+            self.camera.set_offsetY(offsetY)
 
         if self.camera.width_available():
             _, w_max = self.camera.get_width_range()
             self.camera.set_width(parameters.get('width_value', w_max))
-            self.sensor_w = w_max
+            self.sensor_w = w_max + offsetX
             
         if self.camera.height_available():
             _, h_max = self.camera.get_height_range()
             self.camera.set_height(parameters.get('height_value', h_max))
-            self.sensor_h = h_max
+            self.sensor_h = h_max + offsetY
 
         if self.camera.exposure_available():
             exp_min, exp_max = self.camera.get_exposure_range()
@@ -745,7 +749,7 @@ class CameraHandler(QObject):
             if frame['image'] is not None:
                 self.view.set_image(frame['image'])
         except Exception as e:
-            print(f'Caught exception: {e}')               
+            print(f'CameraHandler.get_frame caught exception: {e}')               
 
 class CameraController(QObject):
 
