@@ -14,7 +14,8 @@ from qtpy.QtWidgets import (
     QFileDialog,
     QGraphicsScene, 
     QGraphicsPixmapItem,
-    QApplication
+    QApplication,
+    QScrollArea
 )
 from qtpy.QtCore import (
      Signal, 
@@ -353,12 +354,12 @@ class CameraWidget(QWidget):
         layout_channels.addWidget(self.num_channels_label)
         layout_channels.addWidget(self.num_channels)
 
-        layout_controls = QVBoxLayout(self)
-        layout_controls.addWidget(self.camera_model)
-        layout_controls.addLayout(layout_cam)
-        layout_controls.addWidget(self.webcam_format)
-        layout_controls.addWidget(self.webcam_resolution)
-        layout_controls.addWidget(self.webcam_framerate)
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self.camera_model)
+        main_layout.addLayout(layout_cam)
+        main_layout.addWidget(self.webcam_format)
+        main_layout.addWidget(self.webcam_resolution)
+        main_layout.addWidget(self.webcam_framerate)
 
         roi_layout = QHBoxLayout()
         roi_sb_layout = QVBoxLayout()
@@ -370,21 +371,32 @@ class CameraWidget(QWidget):
         roi_sb_layout.addStretch()
         roi_layout.addLayout(roi_sb_layout)
         roi_layout.addWidget(self.sensor_roi)
-        layout_controls.addLayout(roi_layout)
-        layout_controls.addWidget(self.exposure_spinbox)
-        layout_controls.addWidget(self.framerate_spinbox)
-        layout_controls.addWidget(self.gain_spinbox)
+        main_layout.addLayout(roi_layout)
+        main_layout.addWidget(self.exposure_spinbox)
+        main_layout.addWidget(self.framerate_spinbox)
+        main_layout.addWidget(self.gain_spinbox)
 
         layout_image = QHBoxLayout()
         layout_image.addStretch()
         layout_image.addWidget(self.image_view)
         layout_image.addStretch()
 
-        layout_controls.addLayout(layout_channels)
-        layout_controls.addLayout(layout_buttons)
-        layout_controls.addStretch()
-        layout_controls.addLayout(layout_image)
-        layout_controls.addStretch()
+        main_layout.addLayout(layout_channels)
+        main_layout.addLayout(layout_buttons)
+        main_layout.addStretch()
+        main_layout.addLayout(layout_image)
+        main_layout.addStretch()
+
+        container = QWidget()
+        container.setLayout(main_layout)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(container)
+        scroll_area.verticalScrollBar().setSingleStep(2)
+
+        window_layout = QVBoxLayout(self)
+        window_layout.addWidget(scroll_area)
 
     def on_source_change(self):
         model = self.camera_model.currentIndex()
