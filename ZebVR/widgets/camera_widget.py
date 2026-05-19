@@ -746,7 +746,7 @@ class CameraHandler(QObject):
 
         try:                
             frame = self.camera.get_frame()
-            if frame['image'] is not None:
+            if frame is not None:
                 self.view.set_image(frame['image'])
         except Exception as e:
             print(f'CameraHandler.get_frame caught exception: {e}')               
