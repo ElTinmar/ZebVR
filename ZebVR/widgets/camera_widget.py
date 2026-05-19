@@ -500,6 +500,7 @@ class CameraHandler(QObject):
 
     validated_state =  Signal(dict)
     webcam_modes =  Signal(dict)
+    handler_ready = Signal()
 
     def __init__(self, view: CameraWidget, timer_update_ms: int = 1, debouncer_update_ms: int = 150):
 
@@ -527,6 +528,8 @@ class CameraHandler(QObject):
         self.debounce_timer = QTimer()
         self.debounce_timer.setSingleShot(True)
         self.debounce_timer.timeout.connect(self.apply_state)
+
+        self.handler_ready.emit()
 
     def stop_handler(self):
         if self.timer:
@@ -757,23 +760,21 @@ class CameraController(QObject):
         # wire up signals and slots
         self.camera_handler.validated_state.connect(self.view.update_state)
         self.camera_handler.webcam_modes.connect(self.view.set_webcam_modes)
-        self.camera_thread.started.connect(self.camera_handler.start_handler, Qt.QueuedConnection)
+        self.camera_handler.handler_ready.connect(self.view.on_source_change)
         self.view.source_changed.connect(self.on_source_changed)
         self.view.state_changed.connect(self.state_changed)
         self.view.update_done.connect(self.state_changed)
         self.view.webcam_modes_set.connect(self.state_changed)
-        self.view.state_changed.connect(self.camera_handler.state_changed, Qt.QueuedConnection)
-        self.view.preview.connect(self.camera_handler.frame_acquisition, Qt.QueuedConnection)
-        self.view.stop_signal.connect(self.camera_handler.stop_handler, Qt.QueuedConnection)
+        self.view.state_changed.connect(self.camera_handler.state_changed)
+        self.view.preview.connect(self.camera_handler.frame_acquisition)
+        self.view.stop_signal.connect(self.camera_handler.stop_handler)
         self.view.stop_signal.connect(self.stop)
-        self.view.webcam_modes_set.connect(self.camera_handler.finalize_setup, Qt.QueuedConnection)
-
-        self.preview.connect(self.camera_handler.frame_acquisition, Qt.QueuedConnection)
-        self.constructor_changed.connect(self.camera_handler.set_constructor, Qt.QueuedConnection)
+        self.view.webcam_modes_set.connect(self.camera_handler.finalize_setup)
+        self.preview.connect(self.camera_handler.frame_acquisition)
+        self.constructor_changed.connect(self.camera_handler.set_constructor)
         
+        self.camera_thread.started.connect(self.camera_handler.start_handler)
         self.camera_thread.start()
-
-        self.view.on_source_change()
 
     def on_source_changed(
             self, 
