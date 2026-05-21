@@ -61,8 +61,13 @@
     <h2>LED Hotspot Visualizer</h2>
     
     <div class="control-group">
+        <label>Number of LEDs: <span id="count-val">9</span></label>
+        <input type="range" id="ledCount" min="1" max="31" step="2" value="9">
+    </div>
+
+    <div class="control-group">
         <label>LED Spacing: <span id="spacing-val">30</span>mm</label>
-        <input type="range" id="spacing" min="5" max="100" step="5" value="30">
+        <input type="range" id="spacing" min="5" max="100" step="0.5" value="30">
     </div>
 
     <div class="control-group">
@@ -83,49 +88,37 @@
 const canvas = document.getElementById('simCanvas');
 const ctx = canvas.getContext('2d');
 
+const elCount = document.getElementById('ledCount');
 const elSpacing = document.getElementById('spacing');
 const elDepth = document.getElementById('depth');
 const elAngle = document.getElementById('angle');
 const statusBox = document.getElementById('status');
 
-// New helper function to draw physically accurate Lambertian light cones
 function drawLambertianCone(ctx, x, y, maxDepth, beamAngleDeg) {
     const halfAngleRad = (beamAngleDeg / 2) * (Math.PI / 180);
-    const steps = 45; // Number of angular slices for smooth rendering
+    const steps = 45; 
     
-    // We render from the outer edge on the left to the outer edge on the right
     for (let i = -steps; i <= steps; i++) {
-        const progress = i / steps; // Go from -1.0 to 1.0
+        const progress = i / steps; 
         const currentAngleRad = progress * halfAngleRad;
-        
-        // --- Lambertian Intensity Math ---
-        // Intensity scales perfectly with the cosine of the angle away from center
         const lambertFactor = Math.cos(currentAngleRad);
         
-        // Calculate the angular slice geometry
         const nextProgress = (i + 1) / steps;
         const nextAngleRad = nextProgress * halfAngleRad;
+        const coneLength = maxDepth * 2.2; 
         
-        const coneLength = maxDepth * 2.2; // Visual length of the cone
-        
-        // Coordinate mapping for current slice
         const x1 = x + coneLength * Math.sin(currentAngleRad);
         const y1 = y - coneLength * Math.cos(currentAngleRad);
-        
-        // Coordinate mapping for next slice to form a polygon wedge
         const x2 = x + coneLength * Math.sin(nextAngleRad);
         const y2 = y - coneLength * Math.cos(nextAngleRad);
         
-        // Build a linear gradient along the path of the slice for the Inverse Square/distance fade
         let sliceGrad = ctx.createLinearGradient(x, y, (x1 + x2) / 2, (y1 + y2) / 2);
-        
-        // Blend our Lambertian (angle) factor with the distance fade
         const baseAlpha = 0.35 * lambertFactor; 
+        
         sliceGrad.addColorStop(0, `rgba(56, 189, 248, ${baseAlpha})`);
         sliceGrad.addColorStop(0.4, `rgba(56, 189, 248, ${baseAlpha * 0.3})`);
         sliceGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
         
-        // Draw the slice
         ctx.fillStyle = sliceGrad;
         ctx.beginPath();
         ctx.moveTo(x, y);
@@ -137,10 +130,12 @@ function drawLambertianCone(ctx, x, y, maxDepth, beamAngleDeg) {
 }
 
 function drawSimulation() {
-    const spacing = parseInt(elSpacing.value);
+    const count = parseInt(elCount.value);
+    const spacing = parseFloat(elSpacing.value);
     const depth = parseInt(elDepth.value);
     const angle = parseInt(elAngle.value);
 
+    document.getElementById('count-val').textContent = count;
     document.getElementById('spacing-val').textContent = spacing;
     document.getElementById('depth-val').textContent = depth;
     document.getElementById('angle-val').textContent = angle;
@@ -152,8 +147,8 @@ function drawSimulation() {
     const diffuserY = groundY - (depth * scale);
     const centerX = canvas.width / 2;
 
+    // Calculate centering based on custom slider count
     const leds = [];
-    const count = 9; 
     const startX = centerX - (Math.floor(count / 2) * spacing * scale);
     for(let i = 0; i < count; i++) {
         leds.push(startX + (i * spacing * scale));
@@ -191,14 +186,23 @@ function drawSimulation() {
             peakPhysicalLight = currentPixelLight;
         }
 
-        if (px >= centerX - (spacing * scale) && px <= centerX + (spacing * scale)) {
-            if (currentPixelLight < minIntensity) minIntensity = currentPixelLight;
-            if (currentPixelLight > maxIntensity) maxIntensity = currentPixelLight;
+        // Variance window calculation evaluates between the center emitters
+        if (count > 1) {
+            if (px >= centerX - (spacing * scale) && px <= centerX + (spacing * scale)) {
+                if (currentPixelLight < minIntensity) minIntensity = currentPixelLight;
+                if (currentPixelLight > maxIntensity) maxIntensity = currentPixelLight;
+            }
+        } else {
+            // Fallback rule for a single solitary LED to avoid infinity metrics
+            minIntensity = peakPhysicalLight * 0.5;
+            maxIntensity = peakPhysicalLight;
         }
     }
 
     const variance = (maxIntensity - minIntensity) / maxIntensity;
-    const isUniform = variance < 0.12 && minIntensity > 0;
+    
+    // A single LED can never provide uniform illumination across an extended panel
+    const isUniform = count > 1 ? (variance < 0.12 && minIntensity > 0) : false;
 
     // 3. Pass Two: Render Diffuser Glow Panel Using Relative Normalization
     for (let px = 0; px < canvas.width; px++) {
@@ -235,11 +239,13 @@ function drawSimulation() {
         statusBox.innerHTML = "Uniform Glow Achieved! 🎉 <br><small>The normalized exposure bar shows a flawlessly solid, continuous strip of light.</small>";
     } else {
         statusBox.className = "status-box warning";
-        statusBox.innerHTML = "Visible Hotspots Detected! ⚠️ <br><small>Relative light drops significantly between emitters. Narrow the spacing or increase depth.</small>";
+        statusBox.innerHTML = count === 1 
+            ? "Single Emitter Mode! ⚠️ <br><small>Illumination naturally falls off matching the inverse square drop towards the edges.</small>"
+            : "Visible Hotspots Detected! ⚠️ <br><small>Relative light drops significantly between emitters. Narrow the spacing or increase depth.</small>";
     }
 }
 
-[elSpacing, elDepth, elAngle].forEach(input => {
+[elCount, elSpacing, elDepth, elAngle].forEach(input => {
     input.addEventListener('input', drawSimulation);
 });
 
