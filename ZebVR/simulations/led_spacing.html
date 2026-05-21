@@ -88,6 +88,54 @@ const elDepth = document.getElementById('depth');
 const elAngle = document.getElementById('angle');
 const statusBox = document.getElementById('status');
 
+// New helper function to draw physically accurate Lambertian light cones
+function drawLambertianCone(ctx, x, y, maxDepth, beamAngleDeg) {
+    const halfAngleRad = (beamAngleDeg / 2) * (Math.PI / 180);
+    const steps = 45; // Number of angular slices for smooth rendering
+    
+    // We render from the outer edge on the left to the outer edge on the right
+    for (let i = -steps; i <= steps; i++) {
+        const progress = i / steps; // Go from -1.0 to 1.0
+        const currentAngleRad = progress * halfAngleRad;
+        
+        // --- Lambertian Intensity Math ---
+        // Intensity scales perfectly with the cosine of the angle away from center
+        const lambertFactor = Math.cos(currentAngleRad);
+        
+        // Calculate the angular slice geometry
+        const nextProgress = (i + 1) / steps;
+        const nextAngleRad = nextProgress * halfAngleRad;
+        
+        const coneLength = maxDepth * 2.2; // Visual length of the cone
+        
+        // Coordinate mapping for current slice
+        const x1 = x + coneLength * Math.sin(currentAngleRad);
+        const y1 = y - coneLength * Math.cos(currentAngleRad);
+        
+        // Coordinate mapping for next slice to form a polygon wedge
+        const x2 = x + coneLength * Math.sin(nextAngleRad);
+        const y2 = y - coneLength * Math.cos(nextAngleRad);
+        
+        // Build a linear gradient along the path of the slice for the Inverse Square/distance fade
+        let sliceGrad = ctx.createLinearGradient(x, y, (x1 + x2) / 2, (y1 + y2) / 2);
+        
+        // Blend our Lambertian (angle) factor with the distance fade
+        const baseAlpha = 0.35 * lambertFactor; 
+        sliceGrad.addColorStop(0, `rgba(56, 189, 248, ${baseAlpha})`);
+        sliceGrad.addColorStop(0.4, `rgba(56, 189, 248, ${baseAlpha * 0.3})`);
+        sliceGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+        
+        // Draw the slice
+        ctx.fillStyle = sliceGrad;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.closePath();
+        ctx.fill();
+    }
+}
+
 function drawSimulation() {
     const spacing = parseInt(elSpacing.value);
     const depth = parseInt(elDepth.value);
@@ -114,23 +162,9 @@ function drawSimulation() {
     const halfAngleRad = (angle / 2) * (Math.PI / 180);
     const maxRadius = depth * Math.tan(halfAngleRad);
 
-    // 1. Draw Light Cones
-    const coneHeight = (depth + 30) * scale; 
-    const coneSpread = coneHeight * Math.tan(halfAngleRad);
-
+    // 1. Draw Lambertian Light Cones
     leds.forEach(x => {
-        let gradient = ctx.createRadialGradient(x, groundY, 0, x, groundY - coneHeight, coneHeight);
-        gradient.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
-        gradient.addColorStop(0.3, 'rgba(56, 189, 248, 0.08)');
-        gradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
-
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.moveTo(x, groundY);
-        ctx.lineTo(x - coneSpread, groundY - coneHeight);
-        ctx.lineTo(x + coneSpread, groundY - coneHeight);
-        ctx.closePath();
-        ctx.fill();
+        drawLambertianCone(ctx, x, groundY, depth * scale, angle);
     });
 
     // 2. Pass One: Scan Diffuser to Find the Peak Intensity (For Tone Mapping)
@@ -138,7 +172,6 @@ function drawSimulation() {
     let minIntensity = Infinity;
     let maxIntensity = -Infinity;
 
-    // We track physical light outputs across the whole panel
     const physicalLightArray = new Array(canvas.width).fill(0);
 
     for (let px = 0; px < canvas.width; px++) {
@@ -148,37 +181,29 @@ function drawSimulation() {
             if (distanceMM <= maxRadius) {
                 const theta = Math.atan2(distanceMM, depth);
                 const hypMM = Math.sqrt((distanceMM * distanceMM) + (depth * depth));
-                // Lambertian Cosine Falloff + Inverse Square Law
                 currentPixelLight += Math.cos(theta) / (hypMM * hypMM);
             }
         });
         
         physicalLightArray[px] = currentPixelLight;
 
-        // Track absolute maximum value across the sheet
         if (currentPixelLight > peakPhysicalLight) {
             peakPhysicalLight = currentPixelLight;
         }
 
-        // Keep core evaluation logic bounded to center region to measure variance fairly
         if (px >= centerX - (spacing * scale) && px <= centerX + (spacing * scale)) {
             if (currentPixelLight < minIntensity) minIntensity = currentPixelLight;
             if (currentPixelLight > maxIntensity) maxIntensity = currentPixelLight;
         }
     }
 
-    // Determine uniformity metric based on core values
     const variance = (maxIntensity - minIntensity) / maxIntensity;
     const isUniform = variance < 0.12 && minIntensity > 0;
 
     // 3. Pass Two: Render Diffuser Glow Panel Using Relative Normalization
     for (let px = 0; px < canvas.width; px++) {
         const totalLight = physicalLightArray[px];
-        
-        // Map the current pixel value as a percentage of the peak value (0.0 to 1.0)
         const relativeIntensity = peakPhysicalLight > 0 ? (totalLight / peakPhysicalLight) : 0;
-
-        // Apply clean normalized exposure clipping
         const maxTargetExposure = 0.95;
         const alpha = relativeIntensity * maxTargetExposure;
 
