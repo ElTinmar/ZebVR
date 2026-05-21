@@ -81,15 +81,15 @@
     <div class="control-grid">
         <div class="control-group">
             <label>Air Gap Width: <span id="gap-val">4.0</span> mm</label>
-            <input type="range" id="gap" min="0" max="15" step="0.5" value="4.0">
+            <input type="range" id="gap" min="0" max="15" step="0.1" value="4.0">
         </div>
         <div class="control-group">
             <label>Glass Index (n glass): <span id="n-glass-val">1.52</span></label>
             <input type="range" id="n-glass" min="1.00" max="1.90" step="0.01" value="1.52">
         </div>
         <div class="control-group">
-            <label>Fish Depth (Water Column): <span id="depth-val">8.0</span> mm</label>
-            <input type="range" id="depth" min="2" max="25" step="0.5" value="8.0">
+            <label>Fish Depth (Water Column): <span id="depth-val">4.0</span> mm</label>
+            <input type="range" id="depth" min="0.5" max="10" step="0.1" value="4.0">
         </div>
         <div class="control-group">
             <label>Number of Ray Traces: <span id="ray-count-val">9</span></label>
@@ -270,7 +270,7 @@ function drawSimulation() {
 
     for (let y = 0; y < vH; y++) {
         for (let x = 0; x < vW; x++) {
-            const pIdx = (y * vW + x) * 4;
+            const pIdx = (y * vW + x) * 4; //RGBA
 
             const dx = x - vCX;
             const dy = y - vCY;
