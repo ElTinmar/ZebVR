@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LED Hotspot Visualizer (Normalized Physics)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #121214;
+            color: #e4e4e7;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background-color: #1c1c1f;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h2 { margin-top: 0; color: #ffffff; }
+        .control-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #a1a1aa;
+        }
+        label span { font-weight: bold; color: #38bdf8; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: #38bdf8;
+        }
+        canvas {
+            background-color: #09090b;
+            border-radius: 8px;
+            display: block;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .status-box {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-align: center;
+        }
+        .success { background-color: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .warning { background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>LED Hotspot Visualizer</h2>
+    
+    <div class="control-group">
+        <label>LED Spacing: <span id="spacing-val">30</span>mm</label>
+        <input type="range" id="spacing" min="5" max="100" step="5" value="30">
+    </div>
+
+    <div class="control-group">
+        <label>Diffuser Depth: <span id="depth-val">30</span>mm</label>
+        <input type="range" id="depth" min="5" max="100" step="5" value="30">
+    </div>
+
+    <div class="control-group">
+        <label>Beam Angle: <span id="angle-val">120</span>°</label>
+        <input type="range" id="angle" min="30" max="140" step="5" value="120">
+    </div>
+
+    <canvas id="simCanvas" width="650" height="350"></canvas>
+    <div id="status" class="status-box"></div>
+</div>
+
+<script>
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+
+const elSpacing = document.getElementById('spacing');
+const elDepth = document.getElementById('depth');
+const elAngle = document.getElementById('angle');
+const statusBox = document.getElementById('status');
+
+function drawSimulation() {
+    const spacing = parseInt(elSpacing.value);
+    const depth = parseInt(elDepth.value);
+    const angle = parseInt(elAngle.value);
+
+    document.getElementById('spacing-val').textContent = spacing;
+    document.getElementById('depth-val').textContent = depth;
+    document.getElementById('angle-val').textContent = angle;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const scale = 2.5; 
+    const groundY = canvas.height - 40;
+    const diffuserY = groundY - (depth * scale);
+    const centerX = canvas.width / 2;
+
+    const leds = [];
+    const count = 9; 
+    const startX = centerX - (Math.floor(count / 2) * spacing * scale);
+    for(let i = 0; i < count; i++) {
+        leds.push(startX + (i * spacing * scale));
+    }
+
+    const halfAngleRad = (angle / 2) * (Math.PI / 180);
+    const maxRadius = depth * Math.tan(halfAngleRad);
+
+    // 1. Draw Light Cones
+    const coneHeight = (depth + 30) * scale; 
+    const coneSpread = coneHeight * Math.tan(halfAngleRad);
+
+    leds.forEach(x => {
+        let gradient = ctx.createRadialGradient(x, groundY, 0, x, groundY - coneHeight, coneHeight);
+        gradient.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
+        gradient.addColorStop(0.3, 'rgba(56, 189, 248, 0.08)');
+        gradient.addColorStop(1, 'rgba(56, 189, 248, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.moveTo(x, groundY);
+        ctx.lineTo(x - coneSpread, groundY - coneHeight);
+        ctx.lineTo(x + coneSpread, groundY - coneHeight);
+        ctx.closePath();
+        ctx.fill();
+    });
+
+    // 2. Pass One: Scan Diffuser to Find the Peak Intensity (For Tone Mapping)
+    let peakPhysicalLight = 0;
+    let minIntensity = Infinity;
+    let maxIntensity = -Infinity;
+
+    // We track physical light outputs across the whole panel
+    const physicalLightArray = new Array(canvas.width).fill(0);
+
+    for (let px = 0; px < canvas.width; px++) {
+        let currentPixelLight = 0;
+        leds.forEach(lx => {
+            const distanceMM = Math.abs(px - lx) / scale;
+            if (distanceMM <= maxRadius) {
+                const theta = Math.atan2(distanceMM, depth);
+                const hypMM = Math.sqrt((distanceMM * distanceMM) + (depth * depth));
+                // Lambertian Cosine Falloff + Inverse Square Law
+                currentPixelLight += Math.cos(theta) / (hypMM * hypMM);
+            }
+        });
+        
+        physicalLightArray[px] = currentPixelLight;
+
+        // Track absolute maximum value across the sheet
+        if (currentPixelLight > peakPhysicalLight) {
+            peakPhysicalLight = currentPixelLight;
+        }
+
+        // Keep core evaluation logic bounded to center region to measure variance fairly
+        if (px >= centerX - (spacing * scale) && px <= centerX + (spacing * scale)) {
+            if (currentPixelLight < minIntensity) minIntensity = currentPixelLight;
+            if (currentPixelLight > maxIntensity) maxIntensity = currentPixelLight;
+        }
+    }
+
+    // Determine uniformity metric based on core values
+    const variance = (maxIntensity - minIntensity) / maxIntensity;
+    const isUniform = variance < 0.12 && minIntensity > 0;
+
+    // 3. Pass Two: Render Diffuser Glow Panel Using Relative Normalization
+    for (let px = 0; px < canvas.width; px++) {
+        const totalLight = physicalLightArray[px];
+        
+        // Map the current pixel value as a percentage of the peak value (0.0 to 1.0)
+        const relativeIntensity = peakPhysicalLight > 0 ? (totalLight / peakPhysicalLight) : 0;
+
+        // Apply clean normalized exposure clipping
+        const maxTargetExposure = 0.95;
+        const alpha = relativeIntensity * maxTargetExposure;
+
+        ctx.fillStyle = `rgba(14, 165, 233, ${alpha})`;
+        ctx.fillRect(px, diffuserY - 6, 1, 12);
+    }
+
+    // Structural reference line overlay
+    ctx.strokeStyle = 'rgba(228, 228, 231, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, diffuserY);
+    ctx.lineTo(canvas.width, diffuserY);
+    ctx.stroke();
+
+    ctx.fillStyle = '#a1a1aa';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('Diffuser Glow Profile', 15, diffuserY - 14);
+
+    // 4. Draw LED chips
+    leds.forEach(x => {
+        ctx.fillStyle = '#f59e0b'; 
+        ctx.fillRect(x - 5, groundY - 2, 10, 4);
+    });
+
+    // 5. Render status messages
+    if (isUniform) {
+        statusBox.className = "status-box success";
+        statusBox.innerHTML = "Uniform Glow Achieved! 🎉 <br><small>The normalized exposure bar shows a flawlessly solid, continuous strip of light.</small>";
+    } else {
+        statusBox.className = "status-box warning";
+        statusBox.innerHTML = "Visible Hotspots Detected! ⚠️ <br><small>Relative light drops significantly between emitters. Narrow the spacing or increase depth.</small>";
+    }
+}
+
+[elSpacing, elDepth, elAngle].forEach(input => {
+    input.addEventListener('input', drawSimulation);
+});
+
+drawSimulation();
+</script>
+
+</body>
+</html>
