@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fish-Eye Stimulus Refraction & TIR Simulator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #121214;
+            color: #e4e4e7;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: #1c1c1f;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h2 { margin-top: 0; color: #ffffff; }
+        p { color: #a1a1aa; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            background-color: #161619;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #27272a;
+        }
+        label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #a1a1aa;
+        }
+        label span { font-weight: bold; color: #38bdf8; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: #38bdf8;
+        }
+        .canvas-container {
+            display: flex;
+            gap: 16px;
+            margin-top: 20px;
+        }
+        canvas {
+            background-color: #09090b;
+            border-radius: 8px;
+            width: 50%;
+            height: auto;
+        }
+        .status-box {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-align: center;
+            font-size: 14px;
+        }
+        .warning { background-color: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .success { background-color: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Diffuser Substrate Layer Refraction & True Retinal Simulator</h2>
+    <p>
+        Analyze the exact visual perspective of the aquatic observer. The canvas right panel maps pixels directly to uniform angular degrees of a hemisphere view ($180^\circ$ horizontal visual field). Notice how Snell's Window size remains constant on the retina, while the external world dynamically shrinks or expands depending on depth.
+    </p>
+    
+    <div class="control-grid">
+        <div class="control-group">
+            <label>Air Gap Width: <span id="gap-val">4.0</span> mm</label>
+            <input type="range" id="gap" min="0" max="15" step="0.5" value="4.0">
+        </div>
+        <div class="control-group">
+            <label>Glass Index (n glass): <span id="n-glass-val">1.52</span></label>
+            <input type="range" id="n-glass" min="1.00" max="1.90" step="0.01" value="1.52">
+        </div>
+        <div class="control-group">
+            <label>Fish Depth (Water Column): <span id="depth-val">8.0</span> mm</label>
+            <input type="range" id="depth" min="2" max="25" step="0.5" value="8.0">
+        </div>
+        <div class="control-group">
+            <label>Number of Ray Traces: <span id="ray-count-val">9</span></label>
+            <input type="range" id="ray-count" min="3" max="31" step="2" value="9">
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="rayCanvas" width="420" height="420"></canvas>
+        <canvas id="viewCanvas" width="420" height="420"></canvas>
+    </div>
+    <div id="status" class="status-box"></div>
+</div>
+
+<script>
+const rayCanvas = document.getElementById('rayCanvas');
+const viewCanvas = document.getElementById('viewCanvas');
+const rayCtx = rayCanvas.getContext('2d');
+const viewCtx = viewCanvas.getContext('2d');
+
+const elGap = document.getElementById('gap');
+const elNGlass = document.getElementById('n-glass');
+const elDepth = document.getElementById('depth');
+const elRayCount = document.getElementById('ray-count');
+const statusBox = document.getElementById('status');
+
+const N_AIR = 1.00;
+const N_WATER = 1.33;
+const FIXED_GLASS_THICKNESS = 6.0;
+
+function drawSimulation() {
+    const thick = FIXED_GLASS_THICKNESS;
+    const gap = parseFloat(elGap.value);
+    const nGlass = parseFloat(elNGlass.value);
+    const depth = parseFloat(elDepth.value);
+    const rayCount = parseInt(elRayCount.value);
+
+    document.getElementById('gap-val').textContent = gap.toFixed(1);
+    document.getElementById('n-glass-val').textContent = nGlass.toFixed(2);
+    document.getElementById('depth-val').textContent = depth.toFixed(1);
+    document.getElementById('ray-count-val').textContent = rayCount;
+
+    rayCtx.clearRect(0, 0, rayCanvas.width, rayCanvas.height);
+    viewCtx.clearRect(0, 0, viewCanvas.width, viewCanvas.height);
+
+    // ==========================================
+    // SIDE-VIEW RAY GEOMETRY FRAMEWORK
+    // ==========================================
+    const waterY = 260; 
+    const mmToPx = 12;  
+    const fishY = waterY + (depth * mmToPx);
+    const bottomGlassY = waterY - (gap * mmToPx);
+    const stimulusY = bottomGlassY - (thick * mmToPx);
+    const centerX = rayCanvas.width / 2;
+
+    let boundaryCriticalAngle = null;
+    let tirActive = false;
+    let limitRatio = 1.0;
+
+    if (gap > 0) {
+        limitRatio = N_AIR / N_WATER;
+        boundaryCriticalAngle = Math.asin(limitRatio);
+        tirActive = true;
+    } else {
+        if (nGlass < N_WATER) {
+            limitRatio = nGlass / N_WATER;
+            boundaryCriticalAngle = Math.asin(limitRatio);
+            tirActive = true;
+        }
+    }
+
+    // Render Environmental Volumes
+    rayCtx.fillStyle = 'rgba(156, 163, 175, 0.15)';
+    rayCtx.fillRect(0, stimulusY, rayCanvas.width, thick * mmToPx);
+    
+    if (gap > 0) {
+        rayCtx.fillStyle = '#18181b';
+        rayCtx.fillRect(0, bottomGlassY, rayCanvas.width, gap * mmToPx);
+    }
+    
+    rayCtx.fillStyle = '#0c1a30';
+    rayCtx.fillRect(0, waterY, rayCanvas.width, rayCanvas.height - waterY);
+
+    // Stimulus Surface (Cyan Target)
+    rayCtx.strokeStyle = '#38bdf8';
+    rayCtx.lineWidth = 3;
+    rayCtx.beginPath();
+    rayCtx.moveTo(10, stimulusY);
+    rayCtx.lineTo(rayCanvas.width - 10, stimulusY);
+    rayCtx.stroke();
+
+    // Boundary Lines
+    rayCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+    rayCtx.lineWidth = 1;
+    rayCtx.beginPath();
+    rayCtx.moveTo(0, bottomGlassY); rayCtx.lineTo(rayCanvas.width, bottomGlassY);
+    rayCtx.moveTo(0, waterY);       rayCtx.lineTo(rayCanvas.width, waterY);
+    rayCtx.stroke();
+
+    // Fish Node
+    rayCtx.fillStyle = '#f43f5e';
+    rayCtx.beginPath(); rayCtx.arc(centerX, fishY, 5, 0, Math.PI * 2); rayCtx.fill();
+
+    const sampleAngles = [];
+    const maxAngleSpread = 1.3; 
+    if (rayCount === 1) { sampleAngles.push(0); } 
+    else {
+        for (let i = 0; i < rayCount; i++) {
+            sampleAngles.push(-maxAngleSpread + (i / (rayCount - 1) * maxAngleSpread * 2));
+        }
+    }
+    
+    sampleAngles.forEach(angleWater => {
+        const distWaterY = fishY - waterY;
+        const deltaWaterX = distWaterY * Math.tan(angleWater);
+        const intersectWaterX = centerX + deltaWaterX;
+        rayCtx.lineWidth = 1.5;
+        
+        if (tirActive && Math.abs(angleWater) >= boundaryCriticalAngle) {
+            rayCtx.strokeStyle = '#f87171'; 
+            rayCtx.beginPath();
+            rayCtx.moveTo(centerX, fishY);
+            rayCtx.lineTo(intersectWaterX, waterY);
+            const bounceYDist = rayCanvas.height - waterY;
+            rayCtx.lineTo(intersectWaterX + bounceYDist * Math.tan(angleWater), rayCanvas.height);
+            rayCtx.stroke();
+            return;
+        }
+
+        rayCtx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+        rayCtx.beginPath(); rayCtx.moveTo(centerX, fishY); rayCtx.lineTo(intersectWaterX, waterY); rayCtx.stroke();
+
+        let currentX = intersectWaterX;
+        let currentY = waterY;
+        let intermediateIndex = gap > 0 ? N_AIR : nGlass;
+
+        const sinNext = N_WATER * Math.sin(angleWater) / intermediateIndex;
+        if (Math.abs(sinNext) <= 1) {
+            const angleNext = Math.asin(sinNext);
+            const nextYTarget = gap > 0 ? bottomGlassY : stimulusY;
+            const endX = currentX - (nextYTarget - currentY) * Math.tan(angleNext); 
+
+            rayCtx.strokeStyle = gap > 0 ? 'rgba(251, 146, 60, 0.7)' : 'rgba(161, 161, 170, 0.7)';
+            rayCtx.beginPath(); rayCtx.moveTo(currentX, currentY); rayCtx.lineTo(endX, nextYTarget); rayCtx.stroke();
+
+            if (gap > 0) {
+                const sinGlass = intermediateIndex * Math.sin(angleNext) / nGlass;
+                if (Math.abs(sinGlass) <= 1) {
+                    const angleGlass = Math.asin(sinGlass);
+                    rayCtx.strokeStyle = 'rgba(161, 161, 170, 0.7)';
+                    rayCtx.beginPath();
+                    rayCtx.moveTo(endX, bottomGlassY);
+                    rayCtx.lineTo(endX - (stimulusY - bottomGlassY) * Math.tan(angleGlass), stimulusY);
+                    rayCtx.stroke();
+                }
+            }
+        }
+    });
+
+    rayCtx.fillStyle = '#ffffff';
+    rayCtx.font = 'bold 12px sans-serif';
+    rayCtx.fillText("Multi-Layer Ray Refraction Trace", 15, 25);
+
+    // ==========================================
+    // PANEL 2: TRUE ANGLAR RETINAL VIEW RENDERER
+    // ==========================================
+    const vW = viewCanvas.width;
+    const vH = viewCanvas.height;
+    const viewImg = viewCtx.createImageData(vW, vH);
+    const pixels = viewImg.data;
+
+    const vCX = vW / 2;
+    const vCY = vH / 2;
+    const maxRadius = vW / 2; // Outer frame bounds match a full 90 degree tilt from look vector
+
+    // Define a FIXED physical size for the checkerboard world pattern (e.g., 8mm squares)
+    const worldCheckerSizeMm = 8.0; 
+
+    for (let y = 0; y < vH; y++) {
+        for (let x = 0; x < vW; x++) {
+            const pIdx = (y * vW + x) * 4;
+
+            const dx = x - vCX;
+            const dy = y - vCY;
+            const r = Math.sqrt(dx*dx + dy*dy);
+
+            // Out-of-bounds frame clipping for circular retina display
+            if (r > maxRadius) {
+                pixels[pIdx]     = 20;  
+                pixels[pIdx + 1] = 20;
+                pixels[pIdx + 2] = 23;
+                pixels[pIdx + 3] = 255;
+                continue;
+            }
+
+            const phi = Math.atan2(dy, dx);
+            
+            // ANGULAR MAPPING: The pixel radius linearly dictates the angle of light inside the water
+            // r = 0 is straight up (0 rad), r = maxRadius is completely flat out to the side (pi/2 rad)
+            const angleWater = (r / maxRadius) * (Math.PI / 2);
+
+            // If angle exceeds critical point, show total reflection of the deep tank background
+            if (tirActive && angleWater >= boundaryCriticalAngle) {
+                pixels[pIdx]     = 12;  
+                pixels[pIdx + 1] = 22;
+                pixels[pIdx + 2] = 38;
+                pixels[pIdx + 3] = 255;
+                continue;
+            }
+
+            // Ray Tracing Outward to calculate where the physical point lands on stimulus space
+            let horizontalDisplacementMm = depth * Math.tan(angleWater);
+            let intermediateIndex = gap > 0 ? N_AIR : nGlass;
+
+            const sinNext = N_WATER * Math.sin(angleWater) / intermediateIndex;
+            if (Math.abs(sinNext) <= 1) {
+                const angleNext = Math.asin(sinNext);
+                const layer1Width = gap > 0 ? gap : thick;
+                horizontalDisplacementMm += layer1Width * Math.tan(angleNext);
+
+                if (gap > 0) {
+                    const sinGlass = intermediateIndex * Math.sin(angleNext) / nGlass;
+                    if (Math.abs(sinGlass) <= 1) {
+                        const angleGlass = Math.asin(sinGlass);
+                        horizontalDisplacementMm += thick * Math.tan(angleGlass);
+                    }
+                }
+            }
+
+            // Convert raw radial displacement out into standard 2D cartesian coordinates
+            const targetXMm = horizontalDisplacementMm * Math.cos(phi);
+            const targetYMm = horizontalDisplacementMm * Math.sin(phi);
+
+            // Sample fixed world pattern
+            const chkX = Math.floor(targetXMm / worldCheckerSizeMm);
+            const chkY = Math.floor(targetYMm / worldCheckerSizeMm);
+            const intensity = ((chkX + chkY) % 2 === 0) ? 235 : 35;
+
+            pixels[pIdx]     = intensity;
+            pixels[pIdx + 1] = intensity;
+            pixels[pIdx + 2] = intensity;
+            pixels[pIdx + 3] = 255;
+        }
+    }
+
+    viewCtx.putImageData(viewImg, 0, 0);
+
+    // Render Retinal Overlay Ring for Snell's Window Boundary
+    if (tirActive) {
+        // Find what visual angle the critical threshold maps to on the eye surface
+        const windowRetinalRadiusPx = (boundaryCriticalAngle / (Math.PI / 2)) * maxRadius;
+
+        viewCtx.strokeStyle = '#f87171';
+        viewCtx.lineWidth = 2;
+        viewCtx.beginPath();
+        viewCtx.arc(vCX, vCY, windowRetinalRadiusPx, 0, Math.PI * 2);
+        viewCtx.stroke();
+    }
+
+    // Outer peripheral eye mask boundary circle
+    viewCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+    viewCtx.lineWidth = 1;
+    viewCtx.beginPath(); viewCtx.arc(vCX, vCY, maxRadius, 0, Math.PI * 2); viewCtx.stroke();
+
+    viewCtx.fillStyle = '#ffffff';
+    viewCtx.font = 'bold 12px sans-serif';
+    viewCtx.fillText("True Fish-Eye Angular Retina View (180° Field)", 15, 25);
+
+    // ==========================================
+    // DYNAMIC METRIC INSIGHT RECALCULATIONS
+    // ==========================================
+    if (tirActive) {
+        const critAngleDeg = (boundaryCriticalAngle * (180 / Math.PI)).toFixed(1);
+        statusBox.className = "status-box warning";
+        statusBox.innerHTML = `Total Internal Reflection Active (Critical Angle: ${critAngleDeg}°)<br><small>Snell's window locks at a stable size of ${(critAngleDeg * 2).toFixed(1)}° across the fish's retinal field. Changing depth expands/compresses the size of world squares within it, but the window frame cannot move.</small>`;
+    } else {
+        statusBox.className = "status-box success";
+        statusBox.innerHTML = `No Total Internal Reflection at Fluid Interface.<br><small>Light path flows smoothly without an index drop boundary.</small>`;
+    }
+}
+
+[elGap, elNGlass, elDepth, elRayCount].forEach(input => {
+    input.addEventListener('input', drawSimulation);
+});
+
+drawSimulation();
+</script>
+
+</body>
+</html>
