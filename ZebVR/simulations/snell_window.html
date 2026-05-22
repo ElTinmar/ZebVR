@@ -75,7 +75,7 @@
 <div class="container">
     <h2>Diffuser Substrate Layer Refraction & True Retinal Simulator</h2>
     <p>
-        Analyze the exact visual perspective of the aquatic observer. The canvas right panel maps pixels directly to uniform angular degrees of a hemisphere view ($180^\circ$ horizontal visual field). Notice how Snell's Window size remains constant on the retina, while the external world dynamically shrinks or expands depending on depth.
+        Analyze the exact visual perspective of the aquatic observer. The canvas right panel maps pixels directly to uniform angular degrees of a hemisphere view (180° horizontal visual field). Notice how Snell's Window size remains constant on the retina, while the external world dynamically shrinks or expands depending on depth.
     </p>
     
     <div class="control-grid">
@@ -249,6 +249,29 @@ function drawSimulation() {
         }
     });
 
+    // ==========================================
+    // LAYER TEXT LABELS & REFRACTION INDEXES
+    // ==========================================
+    rayCtx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+    rayCtx.font = '11px sans-serif';
+
+    // 1. Glass Slab Layer
+    const glassMidY = stimulusY + ((thick * mmToPx) / 2) + 4;
+    rayCtx.fillText(`Glass (n = ${nGlass.toFixed(2)})`, 15, glassMidY);
+
+    // 2. Intermediate Air Gap Layer
+    if (gap > 0) {
+        const gapMidY = bottomGlassY + ((gap * mmToPx) / 2) + 4;
+        rayCtx.fillStyle = '#fb923c';
+        rayCtx.fillText(`Air Gap (n = ${N_AIR.toFixed(2)})`, 15, gapMidY);
+    }
+
+    // 3. Water Column Layer
+    rayCtx.fillStyle = '#38bdf8';
+    const waterMidY = waterY + ((rayCanvas.height - waterY) / 2);
+    rayCtx.fillText(`Water (n = ${N_WATER.toFixed(2)})`, 15, waterMidY);
+
+    // Header Title
     rayCtx.fillStyle = '#ffffff';
     rayCtx.font = 'bold 12px sans-serif';
     rayCtx.fillText("Multi-Layer Ray Refraction Trace", 15, 25);
@@ -263,20 +286,18 @@ function drawSimulation() {
 
     const vCX = vW / 2;
     const vCY = vH / 2;
-    const maxRadius = vW / 2; // Outer frame bounds match a full 90 degree tilt from look vector
+    const maxRadius = vW / 2; 
 
-    // Define a FIXED physical size for the checkerboard world pattern (e.g., 8mm squares)
     const worldCheckerSizeMm = 4.0; 
 
     for (let y = 0; y < vH; y++) {
         for (let x = 0; x < vW; x++) {
-            const pIdx = (y * vW + x) * 4; //RGBA
+            const pIdx = (y * vW + x) * 4; 
 
             const dx = x - vCX;
             const dy = y - vCY;
             const r = Math.sqrt(dx*dx + dy*dy);
 
-            // Out-of-bounds frame clipping for circular retina display
             if (r > maxRadius) {
                 pixels[pIdx]     = 20;  
                 pixels[pIdx + 1] = 20;
@@ -286,12 +307,8 @@ function drawSimulation() {
             }
 
             const phi = Math.atan2(dy, dx);
-            
-            // ANGULAR MAPPING: The pixel radius linearly dictates the angle of light inside the water
-            // r = 0 is straight up (0 rad), r = maxRadius is completely flat out to the side (pi/2 rad)
             const angleWater = (r / maxRadius) * (Math.PI / 2);
 
-            // If angle exceeds critical point, show total reflection of the deep tank background
             if (tirActive && angleWater >= boundaryCriticalAngle) {
                 pixels[pIdx]     = 12;  
                 pixels[pIdx + 1] = 22;
@@ -300,7 +317,6 @@ function drawSimulation() {
                 continue;
             }
 
-            // Ray Tracing Outward to calculate where the physical point lands on stimulus space
             let horizontalDisplacementMm = depth * Math.tan(angleWater);
             let intermediateIndex = gap > 0 ? N_AIR : nGlass;
 
@@ -319,11 +335,9 @@ function drawSimulation() {
                 }
             }
 
-            // Convert raw radial displacement out into standard 2D cartesian coordinates
             const targetXMm = horizontalDisplacementMm * Math.cos(phi);
             const targetYMm = horizontalDisplacementMm * Math.sin(phi);
 
-            // Sample fixed world pattern
             const chkX = Math.floor(targetXMm / worldCheckerSizeMm);
             const chkY = Math.floor(targetYMm / worldCheckerSizeMm);
             const intensity = ((chkX + chkY) % 2 === 0) ? 235 : 35;
@@ -337,9 +351,7 @@ function drawSimulation() {
 
     viewCtx.putImageData(viewImg, 0, 0);
 
-    // Render Retinal Overlay Ring for Snell's Window Boundary
     if (tirActive) {
-        // Find what visual angle the critical threshold maps to on the eye surface
         const windowRetinalRadiusPx = (boundaryCriticalAngle / (Math.PI / 2)) * maxRadius;
 
         viewCtx.strokeStyle = '#f87171';
@@ -349,14 +361,13 @@ function drawSimulation() {
         viewCtx.stroke();
     }
 
-    // Outer peripheral eye mask boundary circle
     viewCtx.strokeStyle = 'rgba(255,255,255,0.2)';
     viewCtx.lineWidth = 1;
     viewCtx.beginPath(); viewCtx.arc(vCX, vCY, maxRadius, 0, Math.PI * 2); viewCtx.stroke();
 
     viewCtx.fillStyle = '#ffffff';
     viewCtx.font = 'bold 12px sans-serif';
-    viewCtx.fillText("True Fish-Eye Angular Retina View (180° Field)", 15, 25);
+    viewCtx.fillText("Fish-Eye Angular View (180° Field)", 15, 25);
 
     // ==========================================
     // DYNAMIC METRIC INSIGHT RECALCULATIONS
