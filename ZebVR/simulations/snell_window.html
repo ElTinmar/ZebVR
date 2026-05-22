@@ -15,7 +15,7 @@
         }
         .container {
             width: 100%;
-            max-width: 900px;
+            max-width: 1400px;
             background-color: #1c1c1f;
             border-radius: 12px;
             padding: 24px;
@@ -255,23 +255,19 @@ function drawSimulation() {
     rayCtx.fillStyle = 'rgba(255, 255, 255, 0.65)';
     rayCtx.font = '11px sans-serif';
 
-    // 1. Glass Slab Layer
     const glassMidY = stimulusY + ((thick * mmToPx) / 2) + 4;
     rayCtx.fillText(`Glass (n = ${nGlass.toFixed(2)})`, 15, glassMidY);
 
-    // 2. Intermediate Air Gap Layer
     if (gap > 0) {
         const gapMidY = bottomGlassY + ((gap * mmToPx) / 2) + 4;
         rayCtx.fillStyle = '#fb923c';
         rayCtx.fillText(`Air Gap (n = ${N_AIR.toFixed(2)})`, 15, gapMidY);
     }
 
-    // 3. Water Column Layer
     rayCtx.fillStyle = '#38bdf8';
     const waterMidY = waterY + ((rayCanvas.height - waterY) / 2);
     rayCtx.fillText(`Water (n = ${N_WATER.toFixed(2)})`, 15, waterMidY);
 
-    // Header Title
     rayCtx.fillStyle = '#ffffff';
     rayCtx.font = 'bold 12px sans-serif';
     rayCtx.fillText("Multi-Layer Ray Refraction Trace", 15, 25);
@@ -351,6 +347,50 @@ function drawSimulation() {
 
     viewCtx.putImageData(viewImg, 0, 0);
 
+    // ==========================================
+    // OVERLAY: ANGULAR DEGREE AXES & GRIDS
+    // ==========================================
+    viewCtx.save();
+    
+    // Draw reference degree grid rings (30° and 60°)
+    viewCtx.lineWidth = 1;
+    viewCtx.setLineDash([4, 4]);
+    viewCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+    viewCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    viewCtx.font = '10px sans-serif';
+    viewCtx.textBaseline = 'middle';
+    viewCtx.textAlign = 'center';
+
+    const gridDegrees = [30, 60];
+    gridDegrees.forEach(deg => {
+        const rad = (deg * Math.PI) / 180;
+        const radiusPx = (rad / (Math.PI / 2)) * maxRadius;
+        
+        // Ring shape
+        viewCtx.beginPath();
+        viewCtx.arc(vCX, vCY, radiusPx, 0, Math.PI * 2);
+        viewCtx.stroke();
+
+        // Degree numerical identifiers placed on the axes layout
+        viewCtx.fillText(`${deg}°`, vCX + radiusPx, vCY - 8);
+        viewCtx.fillText(`${deg}°`, vCX - radiusPx, vCY - 8);
+    });
+
+    // Draw Crosshair Linear Axes Lines (Horizontal & Vertical alignment)
+    viewCtx.beginPath();
+    viewCtx.moveTo(vCX - maxRadius, vCY); viewCtx.lineTo(vCX + maxRadius, vCY);
+    viewCtx.moveTo(vCX, vCY - maxRadius); viewCtx.lineTo(vCX, vCY + maxRadius);
+    viewCtx.stroke();
+
+    // Peripheral Boundary Labels (Outer Edge at 90° Nadir/Horizon perspective)
+    viewCtx.setLineDash([]); 
+    viewCtx.fillText('90°', vCX + maxRadius - 14, vCY - 10);
+    viewCtx.fillText('-90°', vCX - maxRadius + 16, vCY - 10);
+    viewCtx.fillText('0° (Center)', vCX, vCY + 14);
+
+    viewCtx.restore();
+
+    // Render Retinal Overlay Ring for Snell's Window Boundary
     if (tirActive) {
         const windowRetinalRadiusPx = (boundaryCriticalAngle / (Math.PI / 2)) * maxRadius;
 
