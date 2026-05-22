@@ -52,10 +52,16 @@
             gap: 16px;
             margin-top: 20px;
         }
-        canvas {
+        #rayCanvas {
             background-color: #09090b;
             border-radius: 8px;
-            width: 50%;
+            width: 65%;
+            height: auto;
+        }
+        #viewCanvas {
+            background-color: #09090b;
+            border-radius: 8px;
+            width: 35%;
             height: auto;
         }
         .status-box {
@@ -95,10 +101,15 @@
             <label>Number of Ray Traces: <span id="ray-count-val">31</span></label>
             <input type="range" id="ray-count" min="3" max="31" step="2" value="31">
         </div>
+        <!-- NEW CONTROL GROUP FOR THE ANGULAR SPREAD SLIDER -->
+        <div class="control-group" style="grid-column: span 2;">
+            <label>Max Angular Spread: <span id="spread-val">1.33 rad (76.2°)</span></label>
+            <input type="range" id="spread" min="0.10" max="1.55" step="0.01" value="1.33">
+        </div>
     </div>
 
     <div class="canvas-container">
-        <canvas id="rayCanvas" width="420" height="420"></canvas>
+        <canvas id="rayCanvas" width="800" height="420"></canvas>
         <canvas id="viewCanvas" width="420" height="420"></canvas>
     </div>
     <div id="status" class="status-box"></div>
@@ -114,6 +125,7 @@ const elGap = document.getElementById('gap');
 const elNGlass = document.getElementById('n-glass');
 const elDepth = document.getElementById('depth');
 const elRayCount = document.getElementById('ray-count');
+const elSpread = document.getElementById('spread'); // Connected the new DOM element
 const statusBox = document.getElementById('status');
 
 const N_AIR = 1.00;
@@ -126,11 +138,16 @@ function drawSimulation() {
     const nGlass = parseFloat(elNGlass.value);
     const depth = parseFloat(elDepth.value);
     const rayCount = parseInt(elRayCount.value);
+    const maxAngleSpread = parseFloat(elSpread.value); // Dynamically parsing slider value
 
     document.getElementById('gap-val').textContent = gap.toFixed(1);
     document.getElementById('n-glass-val').textContent = nGlass.toFixed(2);
     document.getElementById('depth-val').textContent = depth.toFixed(1);
     document.getElementById('ray-count-val').textContent = rayCount;
+    
+    // Update interface value string with neat Radian-to-Degree conversion format
+    const spreadDeg = (maxAngleSpread * (180 / Math.PI)).toFixed(1);
+    document.getElementById('spread-val').textContent = `${maxAngleSpread.toFixed(2)} rad (${spreadDeg}°)`;
 
     rayCtx.clearRect(0, 0, rayCanvas.width, rayCanvas.height);
     viewCtx.clearRect(0, 0, viewCanvas.width, viewCanvas.height);
@@ -194,7 +211,6 @@ function drawSimulation() {
     rayCtx.beginPath(); rayCtx.arc(centerX, fishY, 5, 0, Math.PI * 2); rayCtx.fill();
 
     const sampleAngles = [];
-    const maxAngleSpread = 1.3; 
     if (rayCount === 1) { sampleAngles.push(0); } 
     else {
         for (let i = 0; i < rayCount; i++) {
@@ -270,7 +286,7 @@ function drawSimulation() {
 
     rayCtx.fillStyle = '#ffffff';
     rayCtx.font = 'bold 12px sans-serif';
-    rayCtx.fillText("Multi-Layer Ray Refraction Trace", 15, 25);
+    rayCtx.fillText("Multi-Layer Ray Refraction Trace (Wide View)", 15, 25);
 
     // ==========================================
     // PANEL 2: TRUE ANGLAR RETINAL VIEW RENDERER
@@ -352,7 +368,6 @@ function drawSimulation() {
     // ==========================================
     viewCtx.save();
     
-    // Draw reference degree grid rings (30° and 60°)
     viewCtx.lineWidth = 1;
     viewCtx.setLineDash([4, 4]);
     viewCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
@@ -366,23 +381,19 @@ function drawSimulation() {
         const rad = (deg * Math.PI) / 180;
         const radiusPx = (rad / (Math.PI / 2)) * maxRadius;
         
-        // Ring shape
         viewCtx.beginPath();
         viewCtx.arc(vCX, vCY, radiusPx, 0, Math.PI * 2);
         viewCtx.stroke();
 
-        // Degree numerical identifiers placed on the axes layout
         viewCtx.fillText(`${deg}°`, vCX + radiusPx, vCY - 8);
         viewCtx.fillText(`${deg}°`, vCX - radiusPx, vCY - 8);
     });
 
-    // Draw Crosshair Linear Axes Lines (Horizontal & Vertical alignment)
     viewCtx.beginPath();
     viewCtx.moveTo(vCX - maxRadius, vCY); viewCtx.lineTo(vCX + maxRadius, vCY);
     viewCtx.moveTo(vCX, vCY - maxRadius); viewCtx.lineTo(vCX, vCY + maxRadius);
     viewCtx.stroke();
 
-    // Peripheral Boundary Labels (Outer Edge at 90° Nadir/Horizon perspective)
     viewCtx.setLineDash([]); 
     viewCtx.fillText('90°', vCX + maxRadius - 14, vCY - 10);
     viewCtx.fillText('-90°', vCX - maxRadius + 16, vCY - 10);
@@ -390,7 +401,6 @@ function drawSimulation() {
 
     viewCtx.restore();
 
-    // Render Retinal Overlay Ring for Snell's Window Boundary
     if (tirActive) {
         const windowRetinalRadiusPx = (boundaryCriticalAngle / (Math.PI / 2)) * maxRadius;
 
@@ -422,7 +432,8 @@ function drawSimulation() {
     }
 }
 
-[elGap, elNGlass, elDepth, elRayCount].forEach(input => {
+// Added the new slider to the array tracking user adjustments
+[elGap, elNGlass, elDepth, elRayCount, elSpread].forEach(input => {
     input.addEventListener('input', drawSimulation);
 });
 
