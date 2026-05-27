@@ -6,7 +6,7 @@ Virtual reality for zebrafish.
 Add screenshots of the GUI
 -->
 
-![Screenshot of the main user interface](doc/CAD/setup_vr_omr.pnggui.png)
+![3D render](doc/CAD/setup_vr_omr.png)
 
 
 ## System requirements
