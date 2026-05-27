@@ -6,6 +6,9 @@ Virtual reality for zebrafish.
 Add screenshots of the GUI
 -->
 
+![Screenshot of the main user interface](doc/CAD/setup_vr_omr.pnggui.png)
+
+
 ## System requirements
 
 This program has been tested on Ubuntu 24.04.
