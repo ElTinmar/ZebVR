@@ -1,7 +1,7 @@
 from image_tools import DrawPolyMask, im2uint8, im2gray
 import numpy as np
 import cv2
-from PyQt5.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication
 from typing import Callable
 
 RESIZED_HEIGHT = 512 # make sure that display fits on various screens

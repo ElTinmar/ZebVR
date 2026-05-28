@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebGL Aquatic Refraction Simulator</title>
+
+<style>
+    body {
+        margin: 0;
+        background: #0f0f12;
+        color: #e4e4e7;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        overflow: hidden;
+    }
+
+    #ui {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 320px;
+        background: rgba(20,20,24,0.92);
+        border: 1px solid #2a2a32;
+        border-radius: 12px;
+        padding: 16px;
+        z-index: 10;
+        backdrop-filter: blur(10px);
+    }
+
+    h2 {
+        margin: 0 0 12px 0;
+        font-size: 18px;
+    }
+
+    p {
+        color: #a1a1aa;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .control {
+        margin-bottom: 16px;
+    }
+
+    .control label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .control span {
+        color: #38bdf8;
+        font-weight: bold;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        accent-color: #38bdf8;
+    }
+
+    canvas {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+    }
+
+    #status {
+        margin-top: 12px;
+        font-size: 12px;
+        line-height: 1.4;
+        color: #cbd5e1;
+    }
+</style>
+</head>
+
+<body>
+
+<div id="ui">
+
+    <h2>WebGL Fish-Eye Refraction Simulator</h2>
+
+    <p>
+        GPU-based retinal aquatic optics simulation with:
+        multilayer Snell refraction,
+        Fresnel reflection,
+        total internal reflection,
+        equidistant retinal projection,
+        and procedural world sampling.
+    </p>
+
+    <div class="control">
+        <label>
+            Fish Depth
+            <span id="depthLabel">8.0 mm</span>
+        </label>
+        <input id="depth" type="range" min="1" max="30" step="0.1" value="8">
+    </div>
+
+    <div class="control">
+        <label>
+            Air Gap
+            <span id="gapLabel">4.0 mm</span>
+        </label>
+        <input id="gap" type="range" min="0" max="20" step="0.1" value="4">
+    </div>
+
+    <div class="control">
+        <label>
+            Glass Thickness
+            <span id="glassThicknessLabel">6.0 mm</span>
+        </label>
+        <input id="glassThickness" type="range" min="1" max="20" step="0.1" value="6">
+    </div>
+
+    <div class="control">
+        <label>
+            Glass Index
+            <span id="glassIndexLabel">1.52</span>
+        </label>
+        <input id="glassIndex" type="range" min="1.0" max="2.0" step="0.01" value="1.52">
+    </div>
+
+    <div class="control">
+        <label>
+            Checker Scale
+            <span id="checkerScaleLabel">8.0 mm</span>
+        </label>
+        <input id="checkerScale" type="range" min="1" max="40" step="0.1" value="8">
+    </div>
+
+    <div class="control">
+        <label>
+            Fresnel Strength
+            <span id="fresnelLabel">1.0</span>
+        </label>
+        <input id="fresnel" type="range" min="0" max="2" step="0.01" value="1">
+    </div>
+
+    <div id="status"></div>
+
+</div>
+
+<canvas id="glcanvas"></canvas>
+
+<script>
+
+// ======================================================
+// CANVAS + GL
+// ======================================================
+
+const canvas = document.getElementById("glcanvas");
+const gl = canvas.getContext("webgl2");
+
+if (!gl) {
+    alert("WebGL2 not supported.");
+    throw new Error("WebGL2 unavailable");
+}
+
+// ======================================================
+// UI
+// ======================================================
+
+const ui = {
+    depth: document.getElementById("depth"),
+    gap: document.getElementById("gap"),
+    glassThickness: document.getElementById("glassThickness"),
+    glassIndex: document.getElementById("glassIndex"),
+    checkerScale: document.getElementById("checkerScale"),
+    fresnel: document.getElementById("fresnel"),
+};
+
+const labels = {
+    depth: document.getElementById("depthLabel"),
+    gap: document.getElementById("gapLabel"),
+    glassThickness: document.getElementById("glassThicknessLabel"),
+    glassIndex: document.getElementById("glassIndexLabel"),
+    checkerScale: document.getElementById("checkerScaleLabel"),
+    fresnel: document.getElementById("fresnelLabel"),
+};
+
+const status = document.getElementById("status");
+
+// ======================================================
+// SHADERS
+// ======================================================
+
+const vertexShaderSource = `#version 300 es
+
+in vec2 aPosition;
+out vec2 vUV;
+
+void main() {
+
+    vUV = 0.5 * (aPosition + 1.0);
+
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+`;
+
+const fragmentShaderSource = `#version 300 es
+
+precision highp float;
+
+in vec2 vUV;
+out vec4 outColor;
+
+uniform vec2 uResolution;
+
+uniform float uDepth;
+uniform float uGap;
+uniform float uGlassThickness;
+
+uniform float uNWater;
+uniform float uNAir;
+uniform float uNGlass;
+
+uniform float uCheckerScale;
+uniform float uFresnelStrength;
+
+const float PI = 3.14159265359;
+const float HALF_PI = 1.57079632679;
+
+// ======================================================
+// SCHLICK FRESNEL
+// ======================================================
+
+float fresnelSchlick(float cosTheta, float n1, float n2) {
+
+    float r0 = (n1 - n2) / (n1 + n2);
+    r0 *= r0;
+
+    return r0 + (1.0 - r0) * pow(1.0 - cosTheta, 5.0);
+}
+
+// ======================================================
+// CHECKERBOARD
+// ======================================================
+
+vec3 checkerboard(vec2 p) {
+
+    vec2 grid = floor(p / uCheckerScale);
+
+    float checker = mod(grid.x + grid.y, 2.0);
+
+    return mix(
+        vec3(0.12),
+        vec3(0.92),
+        checker
+    );
+}
+
+// ======================================================
+// MAIN
+// ======================================================
+
+void main() {
+
+    // --------------------------------------------------
+    // Retina coordinates
+    // --------------------------------------------------
+
+    vec2 centered =
+        (gl_FragCoord.xy - 0.5 * uResolution)
+        / min(uResolution.x, uResolution.y);
+
+    float r = length(centered) * 2.0;
+
+    // Circular retina clip
+
+    if (r > 1.0) {
+
+        outColor = vec4(0.04, 0.04, 0.05, 1.0);
+        return;
+    }
+
+    // --------------------------------------------------
+    // Equidistant fish-eye projection
+    // --------------------------------------------------
+
+    float thetaWater = r * HALF_PI;
+
+    float phi = atan(centered.y, centered.x);
+
+    // --------------------------------------------------
+    // Critical angle
+    // --------------------------------------------------
+
+    float nIntermediate =
+        (uGap > 0.001)
+        ? uNAir
+        : uNGlass;
+
+    bool tirActive = (uNWater > nIntermediate);
+
+    float criticalAngle = 999.0;
+
+    if (tirActive) {
+        criticalAngle = asin(nIntermediate / uNWater);
+    }
+
+    // --------------------------------------------------
+    // TOTAL INTERNAL REFLECTION
+    // --------------------------------------------------
+
+    if (tirActive && thetaWater >= criticalAngle) {
+
+        // reflected underwater environment
+
+        float fade =
+            smoothstep(
+                criticalAngle,
+                criticalAngle + 0.1,
+                thetaWater
+            );
+
+        vec3 reflected =
+            vec3(0.02, 0.08, 0.16)
+            + 0.1 * vec3(
+                sin(phi * 8.0),
+                sin(phi * 5.0),
+                cos(phi * 11.0)
+            );
+
+        outColor = vec4(reflected + fade * 0.2, 1.0);
+        return;
+    }
+
+    // --------------------------------------------------
+    // MULTILAYER REFRACTION
+    // --------------------------------------------------
+
+    float displacement = 0.0;
+
+    // Water layer
+
+    displacement += uDepth * tan(thetaWater);
+
+    // Water -> air/glass
+
+    float sinIntermediate =
+        uNWater * sin(thetaWater) / nIntermediate;
+
+    float thetaIntermediate = asin(sinIntermediate);
+
+    displacement +=
+        (uGap > 0.001 ? uGap : uGlassThickness)
+        * tan(thetaIntermediate);
+
+    // Air -> glass
+
+    float thetaGlass = 0.0;
+
+    if (uGap > 0.001) {
+
+        float sinGlass =
+            nIntermediate
+            * sin(thetaIntermediate)
+            / uNGlass;
+
+        thetaGlass = asin(sinGlass);
+
+        displacement +=
+            uGlassThickness
+            * tan(thetaGlass);
+    }
+
+    // --------------------------------------------------
+    // WORLD POSITION
+    // --------------------------------------------------
+
+    vec2 worldPos =
+        displacement
+        * vec2(cos(phi), sin(phi));
+
+    // --------------------------------------------------
+    // PROCEDURAL WORLD
+    // --------------------------------------------------
+
+    vec3 sceneColor = checkerboard(worldPos);
+
+    // --------------------------------------------------
+    // FRESNEL REFLECTION
+    // --------------------------------------------------
+
+    float fresnel =
+        fresnelSchlick(
+            cos(thetaWater),
+            uNWater,
+            nIntermediate
+        );
+
+    fresnel *= uFresnelStrength;
+
+    vec3 reflectedColor =
+        vec3(0.02, 0.06, 0.12);
+
+    vec3 color =
+        mix(
+            sceneColor,
+            reflectedColor,
+            fresnel * 0.4
+        );
+
+    // --------------------------------------------------
+    // CRITICAL BOUNDARY HIGHLIGHT
+    // --------------------------------------------------
+
+    if (tirActive) {
+
+        float edge =
+            abs(thetaWater - criticalAngle);
+
+        float glow =
+            exp(-edge * 80.0);
+
+        color += vec3(1.0, 0.2, 0.2) * glow;
+    }
+
+    // --------------------------------------------------
+    // RADIAL VIGNETTE
+    // --------------------------------------------------
+
+    float vignette =
+        smoothstep(1.1, 0.2, r);
+
+    color *= vignette;
+
+    // --------------------------------------------------
+    // OUTPUT
+    // --------------------------------------------------
+
+    outColor = vec4(color, 1.0);
+}
+`;
+
+// ======================================================
+// SHADER UTILITIES
+// ======================================================
+
+function createShader(type, source) {
+
+    const shader = gl.createShader(type);
+
+    gl.shaderSource(shader, source);
+
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+
+        console.error(gl.getShaderInfoLog(shader));
+
+        throw new Error("Shader compile failure");
+    }
+
+    return shader;
+}
+
+const vs = createShader(gl.VERTEX_SHADER, vertexShaderSource);
+const fs = createShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+const program = gl.createProgram();
+
+gl.attachShader(program, vs);
+gl.attachShader(program, fs);
+
+gl.linkProgram(program);
+
+if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+
+    console.error(gl.getProgramInfoLog(program));
+
+    throw new Error("Program link failure");
+}
+
+gl.useProgram(program);
+
+// ======================================================
+// FULLSCREEN QUAD
+// ======================================================
+
+const quad = new Float32Array([
+    -1, -1,
+     1, -1,
+    -1,  1,
+     1,  1
+]);
+
+const vao = gl.createVertexArray();
+gl.bindVertexArray(vao);
+
+const vbo = gl.createBuffer();
+
+gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+gl.bufferData(gl.ARRAY_BUFFER, quad, gl.STATIC_DRAW);
+
+const posLoc = gl.getAttribLocation(program, "aPosition");
+
+gl.enableVertexAttribArray(posLoc);
+
+gl.vertexAttribPointer(
+    posLoc,
+    2,
+    gl.FLOAT,
+    false,
+    0,
+    0
+);
+
+// ======================================================
+// UNIFORMS
+// ======================================================
+
+const uniforms = {
+
+    resolution:
+        gl.getUniformLocation(program, "uResolution"),
+
+    depth:
+        gl.getUniformLocation(program, "uDepth"),
+
+    gap:
+        gl.getUniformLocation(program, "uGap"),
+
+    glassThickness:
+        gl.getUniformLocation(program, "uGlassThickness"),
+
+    nWater:
+        gl.getUniformLocation(program, "uNWater"),
+
+    nAir:
+        gl.getUniformLocation(program, "uNAir"),
+
+    nGlass:
+        gl.getUniformLocation(program, "uNGlass"),
+
+    checkerScale:
+        gl.getUniformLocation(program, "uCheckerScale"),
+
+    fresnel:
+        gl.getUniformLocation(program, "uFresnelStrength"),
+};
+
+// ======================================================
+// RESIZE
+// ======================================================
+
+function resize() {
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    gl.viewport(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+}
+
+window.addEventListener("resize", resize);
+
+resize();
+
+// ======================================================
+// UI UPDATE
+// ======================================================
+
+function updateLabels() {
+
+    labels.depth.textContent =
+        parseFloat(ui.depth.value).toFixed(1) + " mm";
+
+    labels.gap.textContent =
+        parseFloat(ui.gap.value).toFixed(1) + " mm";
+
+    labels.glassThickness.textContent =
+        parseFloat(ui.glassThickness.value).toFixed(1) + " mm";
+
+    labels.glassIndex.textContent =
+        parseFloat(ui.glassIndex.value).toFixed(2);
+
+    labels.checkerScale.textContent =
+        parseFloat(ui.checkerScale.value).toFixed(1) + " mm";
+
+    labels.fresnel.textContent =
+        parseFloat(ui.fresnel.value).toFixed(2);
+}
+
+Object.values(ui).forEach(el => {
+    el.addEventListener("input", updateLabels);
+});
+
+updateLabels();
+
+// ======================================================
+// STATUS TEXT
+// ======================================================
+
+function updateStatus() {
+
+    const nWater = 1.33;
+
+    const gap = parseFloat(ui.gap.value);
+
+    const nIntermediate =
+        gap > 0
+        ? 1.0
+        : parseFloat(ui.glassIndex.value);
+
+    if (nWater > nIntermediate) {
+
+        const critical =
+            Math.asin(nIntermediate / nWater)
+            * 180 / Math.PI;
+
+        status.innerHTML =
+            "TIR active<br>" +
+            "Critical angle: "
+            + critical.toFixed(1)
+            + "°<br>" +
+            "Snell window diameter: "
+            + (critical * 2).toFixed(1)
+            + "°";
+
+    } else {
+
+        status.innerHTML =
+            "No total internal reflection";
+    }
+}
+
+// ======================================================
+// RENDER LOOP
+// ======================================================
+
+function render() {
+
+    updateStatus();
+
+    gl.useProgram(program);
+
+    gl.uniform2f(
+        uniforms.resolution,
+        canvas.width,
+        canvas.height
+    );
+
+    gl.uniform1f(
+        uniforms.depth,
+        parseFloat(ui.depth.value)
+    );
+
+    gl.uniform1f(
+        uniforms.gap,
+        parseFloat(ui.gap.value)
+    );
+
+    gl.uniform1f(
+        uniforms.glassThickness,
+        parseFloat(ui.glassThickness.value)
+    );
+
+    gl.uniform1f(
+        uniforms.nWater,
+        1.33
+    );
+
+    gl.uniform1f(
+        uniforms.nAir,
+        1.0
+    );
+
+    gl.uniform1f(
+        uniforms.nGlass,
+        parseFloat(ui.glassIndex.value)
+    );
+
+    gl.uniform1f(
+        uniforms.checkerScale,
+        parseFloat(ui.checkerScale.value)
+    );
+
+    gl.uniform1f(
+        uniforms.fresnel,
+        parseFloat(ui.fresnel.value)
+    );
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    requestAnimationFrame(render);
+}
+
+render();
+
+</script>
+
+</body>
+</html>

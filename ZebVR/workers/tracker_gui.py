@@ -2,7 +2,7 @@ import time
 from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional
-from PyQt5.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication
 from ..widgets import TrackerWidget
 from pathlib import Path
 from typing import Union, Tuple

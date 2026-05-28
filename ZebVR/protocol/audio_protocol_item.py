@@ -2,8 +2,8 @@ from .protocol_item import AudioProtocolItem, ProtocolItem, ProtocolItemWidget
 from .default import DEFAULT
 from typing import Tuple, Dict
 from qt_widgets import LabeledDoubleSpinBox
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import (
+from qtpy.QtCore import Signal
+from qtpy.QtWidgets import (
     QLabel,
     QHBoxLayout,
 )
@@ -11,7 +11,7 @@ from ..utils import set_from_dict
 
 class AudioProtocolItemWidget(ProtocolItemWidget):
     
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
 
     def __init__(
             self,

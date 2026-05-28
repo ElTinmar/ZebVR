@@ -1,12 +1,14 @@
-import time
 from multiprocessing import set_start_method, Process
 import os
-os.environ["OMP_NUM_THREADS"] = "1" # this may not be necessary when setting affinity
-from PyQt5.QtWidgets import QApplication
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ['QT_QPA_PLATFORM'] = 'xcb' # necessary on Wayland
+
+import time
 import pickle
 import sys
 import pprint
 from pathlib import Path
+from qtpy.QtWidgets import QApplication
 from .gui import MainGui
 
 def set_realtime_priority(priority):
@@ -84,7 +86,7 @@ def main():
         app = QApplication(sys.argv)
         main_window = MainGui()
         main_window.show()
-        app.exec_()
+        app.exec()
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout,
     QHBoxLayout,
@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QGroupBox,
     QStackedWidget
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import  Signal
 from typing import Dict
 from pathlib import Path
 
@@ -17,7 +17,7 @@ from qt_widgets import LabeledSpinBox, LabeledDoubleSpinBox, LabeledComboBox, Fi
 
 class VideoOutputWidget(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
     DEFAULT_VIDEOFILE: str = 'video.mp4'
     VIDEO_FOLDER: Path = Path('output/video')
 
@@ -325,7 +325,7 @@ class VideoOutputWidget(QWidget):
 
 if __name__ == "__main__":
 
-    from PyQt5.QtWidgets import QApplication, QMainWindow
+    from qtpy.QtWidgets import QApplication, QMainWindow
 
     class Window(QMainWindow):
 

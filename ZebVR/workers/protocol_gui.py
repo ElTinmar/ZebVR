@@ -4,7 +4,7 @@ from typing import Dict, Optional, List
 import time
 from ..widgets import StimWidget
 from ..protocol import Debouncer
-from PyQt5.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication
 from daq_tools import (
     BoardInfo,
     BoardType

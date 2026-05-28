@@ -3,7 +3,7 @@ from numpy.typing import NDArray
 from typing import Dict, Optional
 import time
 #import pyqtgraph as pg
-from PyQt5.QtWidgets import QApplication
+from qtpy.QtWidgets import QApplication
 from tracker import SingleFishOverlay
 from image_tools import im2uint8
 from geometry import SimilarityTransform2D

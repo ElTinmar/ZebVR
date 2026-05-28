@@ -9,7 +9,7 @@ from array import array
 
 import cv2
 import numpy as np
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout, 
     QHBoxLayout, 
@@ -21,8 +21,8 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QSizePolicy
 )
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QTimer, Qt
+from qtpy.QtGui import QIcon
+from qtpy.QtCore import QTimer, Qt
 
 from qt_widgets import LabeledDoubleSpinBox, BusyOverlay, WorkerThread
 from .calibration import (

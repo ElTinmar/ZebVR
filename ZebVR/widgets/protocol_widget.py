@@ -1,7 +1,7 @@
 from typing import Dict, Optional, List
 from numpy.typing import NDArray
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import (
+from qtpy.QtCore import  Signal
+from qtpy.QtWidgets import (
     QWidget, 
     QStackedWidget, 
     QVBoxLayout, 
@@ -23,8 +23,8 @@ from daq_tools import (
 
 class StimWidget(QWidget):
 
-    state_changed = pyqtSignal()
-    size_changed = pyqtSignal()
+    state_changed =  Signal()
+    size_changed =  Signal()
 
     def __init__(
             self, 

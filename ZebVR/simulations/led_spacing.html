@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LED Hotspot Visualizer (Normalized Physics)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #121214;
+            color: #e4e4e7;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background-color: #1c1c1f;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h2 { margin-top: 0; color: #ffffff; }
+        .control-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #a1a1aa;
+        }
+        label span { font-weight: bold; color: #38bdf8; }
+        input[type="range"] {
+            width: 100%;
+            accent-color: #38bdf8;
+        }
+        canvas {
+            background-color: #09090b;
+            border-radius: 8px;
+            display: block;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .status-box {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-align: center;
+        }
+        .success { background-color: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .warning { background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>LED Hotspot Visualizer</h2>
+    
+    <div class="control-group">
+        <label>Number of LEDs: <span id="count-val">9</span></label>
+        <input type="range" id="ledCount" min="1" max="31" step="2" value="9">
+    </div>
+
+    <div class="control-group">
+        <label>LED Spacing: <span id="spacing-val">30</span>mm</label>
+        <input type="range" id="spacing" min="5" max="100" step="0.5" value="30">
+    </div>
+
+    <div class="control-group">
+        <label>Diffuser Depth: <span id="depth-val">30</span>mm</label>
+        <input type="range" id="depth" min="5" max="100" step="5" value="30">
+    </div>
+
+    <div class="control-group">
+        <label>Beam Angle: <span id="angle-val">120</span>°</label>
+        <input type="range" id="angle" min="30" max="140" step="5" value="120">
+    </div>
+
+    <canvas id="simCanvas" width="650" height="350"></canvas>
+    <div id="status" class="status-box"></div>
+</div>
+
+<script>
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+
+const elCount = document.getElementById('ledCount');
+const elSpacing = document.getElementById('spacing');
+const elDepth = document.getElementById('depth');
+const elAngle = document.getElementById('angle');
+const statusBox = document.getElementById('status');
+
+function drawLambertianCone(ctx, x, y, maxDepth, beamAngleDeg) {
+    const halfAngleRad = (beamAngleDeg / 2) * (Math.PI / 180);
+    const steps = 45; 
+    
+    for (let i = -steps; i <= steps; i++) {
+        const progress = i / steps; 
+        const currentAngleRad = progress * halfAngleRad;
+        const lambertFactor = Math.cos(currentAngleRad);
+        
+        const nextProgress = (i + 1) / steps;
+        const nextAngleRad = nextProgress * halfAngleRad;
+        const coneLength = maxDepth * 2.2; 
+        
+        const x1 = x + coneLength * Math.sin(currentAngleRad);
+        const y1 = y - coneLength * Math.cos(currentAngleRad);
+        const x2 = x + coneLength * Math.sin(nextAngleRad);
+        const y2 = y - coneLength * Math.cos(nextAngleRad);
+        
+        let sliceGrad = ctx.createLinearGradient(x, y, (x1 + x2) / 2, (y1 + y2) / 2);
+        const baseAlpha = 0.35 * lambertFactor; 
+        
+        sliceGrad.addColorStop(0, `rgba(56, 189, 248, ${baseAlpha})`);
+        sliceGrad.addColorStop(0.4, `rgba(56, 189, 248, ${baseAlpha * 0.3})`);
+        sliceGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+        
+        ctx.fillStyle = sliceGrad;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.closePath();
+        ctx.fill();
+    }
+}
+
+function drawSimulation() {
+    const count = parseInt(elCount.value);
+    const spacing = parseFloat(elSpacing.value);
+    const depth = parseInt(elDepth.value);
+    const angle = parseInt(elAngle.value);
+
+    document.getElementById('count-val').textContent = count;
+    document.getElementById('spacing-val').textContent = spacing;
+    document.getElementById('depth-val').textContent = depth;
+    document.getElementById('angle-val').textContent = angle;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const scale = 2.5; 
+    const groundY = canvas.height - 40;
+    const diffuserY = groundY - (depth * scale);
+    const centerX = canvas.width / 2;
+
+    // Calculate centering based on custom slider count
+    const leds = [];
+    const startX = centerX - (Math.floor(count / 2) * spacing * scale);
+    for(let i = 0; i < count; i++) {
+        leds.push(startX + (i * spacing * scale));
+    }
+
+    const halfAngleRad = (angle / 2) * (Math.PI / 180);
+    const maxRadius = depth * Math.tan(halfAngleRad);
+
+    // 1. Draw Lambertian Light Cones
+    leds.forEach(x => {
+        drawLambertianCone(ctx, x, groundY, depth * scale, angle);
+    });
+
+    // 2. Pass One: Scan Diffuser to Find the Peak Intensity (For Tone Mapping)
+    let peakPhysicalLight = 0;
+    let minIntensity = Infinity;
+    let maxIntensity = -Infinity;
+
+    const physicalLightArray = new Array(canvas.width).fill(0);
+
+    for (let px = 0; px < canvas.width; px++) {
+        let currentPixelLight = 0;
+        leds.forEach(lx => {
+            const distanceMM = Math.abs(px - lx) / scale;
+            if (distanceMM <= maxRadius) {
+                const theta = Math.atan2(distanceMM, depth);
+                const hypMM = Math.sqrt((distanceMM * distanceMM) + (depth * depth));
+                currentPixelLight += Math.cos(theta) / (hypMM * hypMM);
+            }
+        });
+        
+        physicalLightArray[px] = currentPixelLight;
+
+        if (currentPixelLight > peakPhysicalLight) {
+            peakPhysicalLight = currentPixelLight;
+        }
+
+        // Variance window calculation evaluates between the center emitters
+        if (count > 1) {
+            if (px >= centerX - (spacing * scale) && px <= centerX + (spacing * scale)) {
+                if (currentPixelLight < minIntensity) minIntensity = currentPixelLight;
+                if (currentPixelLight > maxIntensity) maxIntensity = currentPixelLight;
+            }
+        } else {
+            // Fallback rule for a single solitary LED to avoid infinity metrics
+            minIntensity = peakPhysicalLight * 0.5;
+            maxIntensity = peakPhysicalLight;
+        }
+    }
+
+    const variance = (maxIntensity - minIntensity) / maxIntensity;
+    
+    // A single LED can never provide uniform illumination across an extended panel
+    const isUniform = count > 1 ? (variance < 0.12 && minIntensity > 0) : false;
+
+    // 3. Pass Two: Render Diffuser Glow Panel Using Relative Normalization
+    for (let px = 0; px < canvas.width; px++) {
+        const totalLight = physicalLightArray[px];
+        const relativeIntensity = peakPhysicalLight > 0 ? (totalLight / peakPhysicalLight) : 0;
+        const maxTargetExposure = 0.95;
+        const alpha = relativeIntensity * maxTargetExposure;
+
+        ctx.fillStyle = `rgba(14, 165, 233, ${alpha})`;
+        ctx.fillRect(px, diffuserY - 6, 1, 12);
+    }
+
+    // Structural reference line overlay
+    ctx.strokeStyle = 'rgba(228, 228, 231, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, diffuserY);
+    ctx.lineTo(canvas.width, diffuserY);
+    ctx.stroke();
+
+    ctx.fillStyle = '#a1a1aa';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('Diffuser Glow Profile', 15, diffuserY - 14);
+
+    // 4. Draw LED chips
+    leds.forEach(x => {
+        ctx.fillStyle = '#f59e0b'; 
+        ctx.fillRect(x - 5, groundY - 2, 10, 4);
+    });
+
+    // 5. Render status messages
+    if (isUniform) {
+        statusBox.className = "status-box success";
+        statusBox.innerHTML = "Uniform Glow Achieved! 🎉 <br><small>The normalized exposure bar shows a flawlessly solid, continuous strip of light.</small>";
+    } else {
+        statusBox.className = "status-box warning";
+        statusBox.innerHTML = count === 1 
+            ? "Single Emitter Mode! ⚠️ <br><small>Illumination naturally falls off matching the inverse square drop towards the edges.</small>"
+            : "Visible Hotspots Detected! ⚠️ <br><small>Relative light drops significantly between emitters. Narrow the spacing or increase depth.</small>";
+    }
+}
+
+[elCount, elSpacing, elDepth, elAngle].forEach(input => {
+    input.addEventListener('input', drawSimulation);
+});
+
+drawSimulation();
+</script>
+
+</body>
+</html>

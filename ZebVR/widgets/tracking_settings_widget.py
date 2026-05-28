@@ -1,5 +1,5 @@
 from typing import Dict, Tuple
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QApplication,
     QVBoxLayout, 
@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QButtonGroup
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import  Signal
 from qt_widgets import (
     LabeledDoubleSpinBox, 
     LabeledSpinBox, 
@@ -22,7 +22,7 @@ from pathlib import Path
 
 class Animal(QWidget):
 
-    state_changed = pyqtSignal() 
+    state_changed =  Signal() 
 
     def __init__(
             self,
@@ -263,7 +263,7 @@ class Animal(QWidget):
 
 class Body(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
 
     def __init__(
             self,
@@ -479,7 +479,7 @@ class Body(QWidget):
 
 class Eyes(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
     
     def __init__(
             self,
@@ -675,7 +675,7 @@ class Eyes(QWidget):
 
 class Tail(QWidget):
     
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
 
     def __init__(
             self,
@@ -882,7 +882,7 @@ class Tail(QWidget):
 
 class TrackerWidget(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
 
     def __init__(
             self,
@@ -1162,4 +1162,4 @@ if __name__ == "__main__":
     app = QApplication([])
     main = TrackerWidget(image_shape=(300,300))
     main.show()
-    app.exec_()
+    app.exec()

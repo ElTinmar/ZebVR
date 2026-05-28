@@ -1,5 +1,4 @@
-
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout,
     QGroupBox,
@@ -7,16 +6,16 @@ from PyQt5.QtWidgets import (
     QLabel,
     QApplication
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtGui import QRegularExpressionValidator
+from qtpy.QtCore import  Signal, QRegularExpression
 from typing import Dict
-import os
 
 from qt_widgets import LabeledSpinBox, LabeledEditLine
 
 class ExperimentDataWidget(QWidget):
 
-    state_changed = pyqtSignal()
-    prefix_changed = pyqtSignal(str)
+    state_changed =  Signal()
+    prefix_changed =  Signal(str)
 
     def __init__(self, *args, **kwargs):
 
@@ -40,11 +39,15 @@ class ExperimentDataWidget(QWidget):
         self.dpf.setValue(7)
         self.dpf.valueChanged.connect(self.experiment_data)
 
+        
         self.line = LabeledEditLine()
         self.line.setLabel('Fish line:')
         self.line.setText('WT')
+        forbidden_chars_regex = QRegularExpression(r"^[A-Za-z0-9\-]+$")
+        validator = QRegularExpressionValidator(forbidden_chars_regex, self.line)
+        self.line.setValidator(validator)
         self.line.textChanged.connect(self.experiment_data)
-
+        
         self.label_comment = QLabel('comments')
         self.comments = QPlainTextEdit()
         self.comments.setPlaceholderText('write a comment here...')

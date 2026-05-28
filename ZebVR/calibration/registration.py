@@ -84,8 +84,8 @@ class Projector(app.Canvas, Process):
             window_position: Tuple[int, int] = (0,0),
             window_decoration: bool = False,
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
-            radius: int = 10,
-            bar_width: int = 10,
+            radius: float = 10,
+            bar_width: float = 10,
             *args,
             **kwargs
         ) -> None:
@@ -161,7 +161,7 @@ def bar_intensity_profile(
     coord: NDArray,
     bar_fun: Callable,
     enhance_fun:Callable
-) -> NDArray:
+) -> Tuple[float, float]:
     '''
     Projects a bar across one dimension of the FOV and computes intensity profile
     '''
@@ -191,20 +191,20 @@ def bar_intensity_profile(
     vbar = np.argwhere(intensity_profile >= np.max(intensity_profile)/2)
     x_start, x_stop = coord[vbar[0]], coord[vbar[-1]]
 
-    return (x_start, x_stop)
+    return (x_start[0], x_stop[0])
 
 def dots_position(
     camera: Camera,
     fps_dots: int,
-    x_start: int,
-    x_stop: int,
-    y_start: int,
-    y_stop: int,
+    x_start: float,
+    x_stop: float,
+    y_start: float,
+    y_stop: float,
     dots_num_steps: int,
     dot_detection_threshold: float,
     dot_fun: Callable,
     enhance_fun:Callable
-) -> NDArray:
+) -> Tuple[NDArray,NDArray]:
     
     # create grid of dots 
     X,Y = np.meshgrid(

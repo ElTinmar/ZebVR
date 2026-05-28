@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout, 
     QHBoxLayout, 
@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem,
     QLabel
 )
-from PyQt5.QtCore import pyqtSignal, Qt
+from qtpy.QtCore import  Signal, Qt
 from typing import Dict
 from pathlib import Path
 import json
@@ -18,9 +18,9 @@ from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEdit
 
 class RegistrationWidget(QWidget):
 
-    registration_signal = pyqtSignal()
-    check_registration_signal = pyqtSignal()
-    state_changed = pyqtSignal()
+    registration_signal =  Signal()
+    check_registration_signal =  Signal()
+    state_changed =  Signal()
 
     DEFAULT_FILE: Path = Path('ZebVR/default/registration.json')
 
@@ -262,7 +262,7 @@ class RegistrationWidget(QWidget):
 
 if __name__ == "__main__":
 
-    from PyQt5.QtWidgets import QApplication, QMainWindow
+    from qtpy.QtWidgets import QApplication, QMainWindow
 
     class Window(QMainWindow):
 

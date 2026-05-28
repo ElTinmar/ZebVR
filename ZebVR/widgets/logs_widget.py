@@ -1,8 +1,8 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import  Signal
 from typing import Dict
 from .log_output_widget import LogOutputWidget
 
@@ -11,7 +11,7 @@ from .log_output_widget import LogOutputWidget
 
 class LogsWidget(QWidget):
 
-    state_changed = pyqtSignal()
+    state_changed =  Signal()
 
     def __init__(self, *args, **kwargs):
 

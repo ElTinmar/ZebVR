@@ -51,7 +51,7 @@ def lookAt(eye, target, up=[0, 1, 0]):
     
     return M
 
-use(gl='gl+')
+#use(gl='gl2')
 
 VERT_SHADER = """
 #version 140

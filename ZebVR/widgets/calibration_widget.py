@@ -1,12 +1,12 @@
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout, 
     QHBoxLayout, 
     QPushButton, 
     QLabel
 )
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QPixmap
+from qtpy.QtCore import  Signal, Qt
+from qtpy.QtGui import QPixmap
 from typing import Dict, List
 from pathlib import Path
 import json
@@ -19,9 +19,9 @@ from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, FileSaveLabeledEdit
 
 class CalibrationWidget(QWidget):
 
-    calibration_signal = pyqtSignal()
-    check_calibration_signal = pyqtSignal()
-    state_changed = pyqtSignal()
+    calibration_signal =  Signal()
+    check_calibration_signal =  Signal()
+    state_changed =  Signal()
 
     CHECKERBOARD_TOOLTIP: str = "Printed checkerboard target size (internal corners)"
     CALIBRATION_CHECK_DIAMETER_MM: List[float]  = [15, 30, 45, 60] 
@@ -37,7 +37,7 @@ class CalibrationWidget(QWidget):
 
     def declare_components(self) -> None:
 
-        self.explanation = QLabel('To calibrate, place the calibration target under the camera. Ensure proper illumination with the IR light.')
+        self.explanation = QLabel('To calibrate, place the calibration target under the camera.\n Ensure proper illumination with the IR light.')
         self.checkerboard = QLabel()
         self.checkerboard.setPixmap(QPixmap('ZebVR/resources/checkerboard.png').scaledToHeight(self.PIXMAP_HEIGHT,Qt.SmoothTransformation))
 
@@ -144,14 +144,25 @@ class CalibrationWidget(QWidget):
         layout_reticle_center.addWidget(self.reticle_center_y)
         layout_reticle_center.setSpacing(50)
 
+        explanation_checkerboard = QVBoxLayout()
+        explanation_checkerboard.addWidget(self.explanation)
+        explanation_checkerboard.addSpacing(10)
+        explanation_checkerboard.addLayout(layout_checkerboard)
+        explanation_checkerboard.addStretch()
+
+        explanation_reticle = QVBoxLayout()
+        explanation_reticle.addWidget(self.explanation_check)
+        explanation_reticle.addSpacing(10)
+        explanation_reticle.addLayout(layout_reticle)
+        explanation_reticle.addStretch()
+
+        explanation_layout = QHBoxLayout()
+        explanation_layout.addLayout(explanation_checkerboard)
+        explanation_reticle.addStretch()
+        explanation_layout.addLayout(explanation_reticle)
+
         main_layout = QVBoxLayout(self)
-        main_layout.addWidget(self.explanation)
-        main_layout.addSpacing(10)
-        main_layout.addLayout(layout_checkerboard)
-        main_layout.addSpacing(20)
-        main_layout.addWidget(self.explanation_check)
-        main_layout.addSpacing(10)
-        main_layout.addLayout(layout_reticle)
+        main_layout.addLayout(explanation_layout)
         main_layout.addSpacing(20)
         main_layout.addWidget(self.checkerboard_square_size_mm)
         main_layout.addLayout(layout_grid_size)
@@ -204,7 +215,7 @@ class CalibrationWidget(QWidget):
 
 if __name__ == "__main__":
 
-    from PyQt5.QtWidgets import QApplication, QMainWindow
+    from qtpy.QtWidgets import QApplication, QMainWindow
 
     class Window(QMainWindow):
 

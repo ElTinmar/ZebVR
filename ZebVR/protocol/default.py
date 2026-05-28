@@ -2,6 +2,7 @@ from .stim import RampType, LoomingType, PreyCaptureType, CoordinateSystem, Peri
 from daq_tools import BoardType
 
 DEFAULT = {
+    'name': '',
     'foreground_color': (0.2, 0.2, 0.2, 1.0),
     'background_color': (0.0, 0.0, 0.0, 1.0),
     'coordinate_system': CoordinateSystem.FISH_EGOCENTRIC,

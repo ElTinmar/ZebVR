@@ -145,6 +145,7 @@ class SharedAudioParameters:
         
         self.stim_change_counter =  RawValue('d', 0)
         self.stim_select = RawValue('d', Stim.SILENCE)
+        self.name = SharedString(initializer = DEFAULT['name'])
         self.frequency_Hz = RawValue('d', DEFAULT['frequency_Hz'])
         self.amplitude_dB = RawValue('d', DEFAULT['amplitude_dB'])
         self.ramp_start_Hz = RawValue('d', DEFAULT['audio_ramp_start_Hz'])
@@ -161,6 +162,7 @@ class SharedAudioParameters:
 
         self.stim_change_counter.value += 1 
         self.stim_select.value = d.get('stim_select', Stim.SILENCE)
+        self.name.value = d.get('name', DEFAULT['name'])
         self.frequency_Hz.value = d.get('frequency_Hz', DEFAULT['frequency_Hz'])
         self.amplitude_dB.value = d.get('amplitude_dB', DEFAULT['amplitude_dB'])
         self.ramp_start_Hz.value = d.get('ramp_start_Hz', DEFAULT['audio_ramp_start_Hz'])
@@ -177,6 +179,7 @@ class SharedAudioParameters:
 
         res = {
             'stim_select': self.stim_select.value,
+            'name': self.name.value,
             'timestamp': get_time_ns(),
             'amplitude_dB': self.amplitude_dB.value,
         }
