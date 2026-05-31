@@ -54,16 +54,16 @@ from .utils import append_timestamp_to_filename, serialize
 from .dags import closed_loop, open_loop, video_recording, tracking
 
 
-def serialize_state(obj, exclude_keys):
+def make_json_safe(obj, exclude_keys):
     if isinstance(obj, dict):
         return {
-            k: serialize_state(v, exclude_keys) 
+            k: make_json_safe(v, exclude_keys) 
             for k, v in obj.items() 
             if k not in exclude_keys and not callable(v)
         }
     
     elif isinstance(obj, (list, tuple)):
-        return [serialize_state(item, exclude_keys) for item in obj]
+        return [make_json_safe(item, exclude_keys) for item in obj]
     
     elif isinstance(obj, Path):
         return obj.as_posix()
@@ -392,7 +392,7 @@ class MainGui(QMainWindow):
             'spectrometers',
             'protocol'
         }
-        clean_state = serialize_state(state, exclude_keys)
+        clean_state = make_json_safe(state, exclude_keys)
         with open(filename_correct_ext, 'w') as fp:
             json.dump(clean_state, fp, indent=2)
 
