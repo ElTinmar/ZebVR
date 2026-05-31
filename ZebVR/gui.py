@@ -342,6 +342,7 @@ class MainGui(QMainWindow):
 
         self.update_main_settings()   
 
+    # TODO use json, pickle is too brittle
     def load_settings(self):
         filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr)')
         try:
@@ -352,6 +353,7 @@ class MainGui(QMainWindow):
         except FileNotFoundError:
             print(f"Error: The file '{filename}' does not exist.")
 
+    # TODO use json, pickle is too brittle
     def save_settings(self):
         state = self.get_state()
         filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', 'VR Settings (*.vr)')
@@ -511,7 +513,7 @@ class MainGui(QMainWindow):
         
         powermeter_settings = self.settings['projector']['light_analysis']['powermeter']
         with open(powermeter_settings['calibration_file'], 'rb') as f:
-            calibration = pickle.load(f)
+            calibration = pickle.load(f) # TODO use json, pickle is too brittle
             state = {}
             state['light_analysis'] = {}
             state['light_analysis']['powermeter'] = {}
