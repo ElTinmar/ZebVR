@@ -390,7 +390,8 @@ class MainGui(QMainWindow):
             'powermeters',
             'spectrometer_constructor',
             'spectrometers',
-            'protocol'
+            'protocol',
+            'daq'
         }
         clean_state = make_json_safe(state, exclude_keys)
         with open(filename_correct_ext, 'w') as fp:
