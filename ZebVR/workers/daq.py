@@ -84,7 +84,7 @@ class DAQ_Worker(WorkerNode):
 
                 analog_value = control.get('analog_value')
                 digital_level = control.get('digital_level')
-                pulse_duration = control.get('pulse_duration_msec')/1000
+                pulse_duration = control.get('pulse_duration_msec', 0.0)/1000.0
                 duty_cycle = control.get('duty_cycle')
 
                 result = {
