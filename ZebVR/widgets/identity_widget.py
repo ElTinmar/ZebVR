@@ -47,7 +47,7 @@ class IdentityWidget(QWidget):
         self.ROIs = []
         self.pix_per_mm = pix_per_mm
         self.open_loop_visible = False
-        self.axes = [[1.0, 0.0], [0.0, 1.0]] 
+        self.axes = np.array([[1.0, 0.0], [0.0, 1.0]]) 
 
         self.declare_components()
         self.layout_components()
@@ -320,11 +320,12 @@ class IdentityWidget(QWidget):
             'offsetY': self.offsetY.value(),
             'marginX': self.marginX.value(),
             'marginY': self.marginY.value(),
+            'rotation': self.rotation.value(),
             'ROIs': self.ROIs.copy(),
             'n_animals': len(self.ROIs),
             'open_loop_x_offset': self.centroid_X.value(),
             'open_loop_y_offset': self.centroid_Y.value(),
-            'open_loop_axes': self.axes
+            'open_loop_axes': self.axes.tolist()
         }
 
         return state
@@ -340,6 +341,7 @@ class IdentityWidget(QWidget):
             'offsetY': self.offsetY.setValue,
             'marginX': self.marginX.setValue,
             'marginY': self.marginY.setValue,
+            'rotation': self.rotation.setValue,
             'open_loop_x_offset':  self.centroid_X.setValue,
             'open_loop_y_offset':  self.centroid_Y.setValue,
         }
@@ -348,7 +350,7 @@ class IdentityWidget(QWidget):
             if key in state:
                 setter(state[key])
 
-        self.axes = state.get('axes', [[1.0, 0.0], [0.0, 1.0]])
+        self.axes = state.get('axes', np.array([[1.0, 0.0], [0.0, 1.0]]))
         
 if __name__ == "__main__":
     
