@@ -321,6 +321,7 @@ class IdentityWidget(QWidget):
             'marginX': self.marginX.value(),
             'marginY': self.marginY.value(),
             'rotation': self.rotation.value(),
+            'open_loop_visible': self.open_loop_visible,
             'ROIs': self.ROIs.copy(),
             'n_animals': len(self.ROIs),
             'open_loop_x_offset': self.centroid_X.value(),
@@ -351,6 +352,7 @@ class IdentityWidget(QWidget):
                 setter(state[key])
 
         self.axes = state.get('axes', np.array([[1.0, 0.0], [0.0, 1.0]]))
+        self.set_open_loop_visible(state.get('open_loop_visible', False))
         
 if __name__ == "__main__":
     
