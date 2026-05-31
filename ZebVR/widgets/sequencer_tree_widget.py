@@ -382,7 +382,7 @@ class SequencerWidget(QWidget):
 
         elif isinstance(widget, StimWidget):
             node['type'] = 'stim'
-            node['protocol'] = widget.to_protocol_item()  
+            node['protocol'] = widget.get_state()  
 
         brush = item.background(0)
         if brush is not None:
@@ -406,9 +406,11 @@ class SequencerWidget(QWidget):
             stim_widget = StimWidget(self.debouncer, self.daq_boards, self.background_image)
             stim_widget.state_changed.connect(self.state_changed)
             stim_widget.size_changed.connect(self.on_size_change)
-            protocol_item = node.get('protocol')
-            if protocol_item:
-                stim_widget.from_protocol_item(protocol_item)
+            
+            state = node.get('protocol')
+            if state:
+                stim_widget.set_state(state)
+            
             self.tree.setItemWidget(item, 0, stim_widget)
         
         color_name = node.get('color')
