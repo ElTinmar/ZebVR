@@ -42,7 +42,7 @@ class SpectrometerState(TypedDict, total=False):
     wavelength_left: float
     wavelength_center: float
     wavelength_right: float
-    spectrum: Tuple[np.ndarray, np.ndarray] 
+    #spectrum: Tuple[np.ndarray, np.ndarray] 
 
 class SpectrometerWidget(QWidget):
 
@@ -235,7 +235,7 @@ class SpectrometerWidget(QWidget):
             'wavelength_left': self.wavelength_left.value(),
             'wavelength_center': self.wavelength_center.value(),
             'wavelength_right': self.wavelength_right.value(),
-            'spectrum': self.spectrum_data.getData(),
+            #'spectrum': self.spectrum_data.getData(),
         }
         return state
 
@@ -251,7 +251,7 @@ class SpectrometerWidget(QWidget):
             'wavelength_left': self.wavelength_left.setValue,
             'wavelength_center': self.wavelength_center.setValue,
             'wavelength_right': self.wavelength_right.setValue,
-            'spectrum': lambda tup: self.spectrum_data.setData(*tup)
+            #'spectrum': lambda tup: self.spectrum_data.setData(*tup)
         }
 
         for key, setter in setters.items():
