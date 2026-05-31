@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict
 from enum import Enum
 from array import array
+from enum import Enum
 
 import cv2
 import numpy as np
@@ -52,7 +53,33 @@ from .widgets import (
 from .utils import append_timestamp_to_filename, serialize
 from .dags import closed_loop, open_loop, video_recording, tracking
 
-from enum import Enum
+
+def serialize_state(obj, exclude_keys):
+    if isinstance(obj, dict):
+        return {
+            k: serialize_state(v, exclude_keys) 
+            for k, v in obj.items() 
+            if k not in exclude_keys and not callable(v)
+        }
+    
+    elif isinstance(obj, (list, tuple)):
+        return [serialize_state(item, exclude_keys) for item in obj]
+    
+    elif isinstance(obj, Path):
+        return obj.as_posix()
+        
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+
+    elif isinstance(obj, (str, int, float, bool, type(None))):
+        return obj
+    
+    else:
+        raise TypeError(
+            f"Unrecognized type '{type(obj).__name__}' in state dictionary. "
+            f"Value: {obj}. Please add handling or add its key to exclude_keys."
+        )
+
 
 class State(Enum):
     IDLE = 0
@@ -346,26 +373,30 @@ class MainGui(QMainWindow):
     def load_settings(self):
         filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr)')
         try:
-            with open(filename, 'rb') as fp:
-                state = pickle.load(fp)
+            with open(filename, 'r') as fp:
+                state = json.load(fp)
             self.set_state(state)
 
         except FileNotFoundError:
             print(f"Error: The file '{filename}' does not exist.")
 
-    # TODO use json, pickle is too brittle
     def save_settings(self):
         state = self.get_state()
         filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', 'VR Settings (*.vr)')
         filename_correct_ext = Path(filename).with_suffix('.vr')
-        with open(filename_correct_ext, 'wb') as fp:
-            pickle.dump(state, fp)
 
-        # TODO dont save 
-        # camera constructor
-        # spectrometer list / constructor
-        # powermeter list / constructor 
-        # sequencer protocol
+        exclude_keys = {
+            'camera_constructor',
+            'powermeter_constructor',
+            'powermeters',
+            'spectrometer_constructor',
+            'spectrometers',
+            'protocol'
+        }
+        clean_state = serialize_state(state, exclude_keys)
+        with open(filename_correct_ext, 'w') as fp:
+            json.dump(clean_state, fp)
+
 
     def set_main_state(self, state: Dict) -> None:
         self.recording_duration.setValue(state['recording_duration'])
