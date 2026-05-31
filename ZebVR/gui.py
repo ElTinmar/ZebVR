@@ -353,13 +353,19 @@ class MainGui(QMainWindow):
         except FileNotFoundError:
             print(f"Error: The file '{filename}' does not exist.")
 
-    # TODO use json, pickle is too brittle. Dont save camera constructor?
+    # TODO use json, pickle is too brittle
     def save_settings(self):
         state = self.get_state()
         filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', 'VR Settings (*.vr)')
         filename_correct_ext = Path(filename).with_suffix('.vr')
         with open(filename_correct_ext, 'wb') as fp:
             pickle.dump(state, fp)
+
+        # TODO dont save 
+        # camera constructor
+        # spectrometer list / constructor
+        # powermeter list / constructor 
+        # sequencer protocol
 
     def set_main_state(self, state: Dict) -> None:
         self.recording_duration.setValue(state['recording_duration'])
