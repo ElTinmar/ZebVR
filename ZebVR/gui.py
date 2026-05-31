@@ -369,7 +369,6 @@ class MainGui(QMainWindow):
 
         self.update_main_settings()   
 
-    # TODO use json, pickle is too brittle
     def load_settings(self):
         filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr)')
         try:
