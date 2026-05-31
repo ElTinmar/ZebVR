@@ -477,19 +477,23 @@ class AudioConsumer(Process):
         sd.default.dtype = None, 'float32'
         sd.default.latency = None, 'low'
 
-        with sd.OutputStream(
-                callback = self.audio_callback,
-                samplerate = self.samplerate,
-                blocksize = self.blocksize,
-                channels = self.channels,
-                dtype = 'float32'
-            ):
+        try:
+            with sd.OutputStream(
+                    callback = self.audio_callback,
+                    samplerate = self.samplerate,
+                    blocksize = self.blocksize,
+                    channels = self.channels,
+                    dtype = 'float32'
+                ):
 
-            self.barrier.wait()
+                self.barrier.wait()
 
-            while not self.audio_stop_event.is_set():
-                time.sleep(0.1)  
+                while not self.audio_stop_event.is_set():
+                    time.sleep(0.1)  
 
+        except sd.PortAudioError as e:
+            print(f"PortAudio failing on device {self.device_index} with channels={self.channels}. Error: {e}")
+            
 class AudioStimWorker(WorkerNode):
 
     def __init__(
