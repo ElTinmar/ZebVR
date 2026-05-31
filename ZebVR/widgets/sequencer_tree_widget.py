@@ -118,6 +118,7 @@ class SequencerWidget(QWidget):
         self.tree.addTopLevelItem(self.root_item)
         self.root_widget = LoopWidget()
         self.tree.setItemWidget(self.root_item, 0, self.root_widget)
+        self.root_widget.valueChanged.connect(self.state_changed)
         
         self.spb_debouncer_length = LabeledSpinBox()
         self.spb_debouncer_length.setText('debouncer length')
@@ -235,7 +236,9 @@ class SequencerWidget(QWidget):
         rgb = next(colors)
         loop_color = QColor(*(int(c * 255) for c in rgb))
         item.setBackground(0, QBrush(loop_color))
-        self.tree.setItemWidget(item, 0, LoopWidget())
+        loop_widget = LoopWidget()
+        self.tree.setItemWidget(item, 0, loop_widget)
+        loop_widget.valueChanged.connect(self.state_changed)
         parent_item.setExpanded(True)
 
         self.state_changed.emit()
@@ -271,6 +274,7 @@ class SequencerWidget(QWidget):
         elif isinstance(old_widget, LoopWidget):
             new_widget = LoopWidget()
             new_widget.setValue(old_widget.value())
+            new_widget.valueChanged.connect(self.state_changed)
             self.tree.setItemWidget(new_item, 0, new_widget)
 
         new_item.setExpanded(item.isExpanded())
