@@ -394,8 +394,7 @@ class MainGui(QMainWindow):
         }
         clean_state = serialize_state(state, exclude_keys)
         with open(filename_correct_ext, 'w') as fp:
-            json.dump(clean_state, fp)
-
+            json.dump(clean_state, fp, indent=2)
 
     def set_main_state(self, state: Dict) -> None:
         self.recording_duration.setValue(state['recording_duration'])
