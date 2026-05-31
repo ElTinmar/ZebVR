@@ -353,7 +353,7 @@ class MainGui(QMainWindow):
         except FileNotFoundError:
             print(f"Error: The file '{filename}' does not exist.")
 
-    # TODO use json, pickle is too brittle
+    # TODO use json, pickle is too brittle. Dont save camera constructor?
     def save_settings(self):
         state = self.get_state()
         filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', 'VR Settings (*.vr)')
@@ -371,7 +371,7 @@ class MainGui(QMainWindow):
     def set_state(self, state: Dict) -> None:
 
         setters = {
-            'camera': self.camera_widget.set_state,
+            'camera': self.camera_controller.set_state, 
             'projector': self.projector_widget.set_state,
             'audio': self.audio_widget.set_state,
             'daq': self.daq_widget.set_state,

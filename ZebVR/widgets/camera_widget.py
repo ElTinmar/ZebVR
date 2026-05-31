@@ -840,11 +840,13 @@ class CameraController(QObject):
         self.preview.emit(enable)
 
     def get_state(self):
-
         state = self.view.get_state()
         state['camera_constructor'] = self.camera_constructor 
         return state
 
+    def set_state(self, state: Dict) -> None:
+        state = self.view.set_state(state)
+    
     def stop(self):
         self.camera_thread.quit()
         self.camera_thread.wait()
