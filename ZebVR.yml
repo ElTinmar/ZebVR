@@ -36,10 +36,10 @@ dependencies:
   - git+https://github.com/ElTinmar/video_tools.git@v0.6.7
   - git+https://github.com/ElTinmar/image_tools.git@v0.9.4
   - git+https://github.com/ElTinmar/qt_widgets.git@v0.5.1
-  - git+https://github.com/ElTinmar/dagline.git@v0.5.15
-  - git+https://github.com/ElTinmar/ipc_tools.git@v0.4.7
+  - git+https://github.com/ElTinmar/dagline.git@v0.5.16
+  - git+https://github.com/ElTinmar/ipc_tools.git@v0.4.8
   - git+https://github.com/ElTinmar/daq_tools.git@v0.1.20
   - git+https://github.com/ElTinmar/ThorPy.git@v0.2.29
   - git+https://github.com/ElTinmar/ViewSonicProjectorRS232.git@v0.1.10
-  - git+https://github.com/ElTinmar/multiprocessing_logger.git@v0.3.12
+  - git+https://github.com/ElTinmar/multiprocessing_logger.git@v0.3.13
   - git+https://github.com/ElTinmar/TemperatureSensor.git@v0.0.6    
