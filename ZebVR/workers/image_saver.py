@@ -88,6 +88,7 @@ class VideoSaverWorker(WorkerNode):
         super().__init__(*args, **kwargs)
         
         video_filename = append_timestamp_to_filename(filename)
+        video_filename.parent.mkdir(parents=True, exist_ok=True)
         self.video_filename = video_filename
         self.timings_filename = video_filename.with_suffix('.csv')         
         self.fps = fps
