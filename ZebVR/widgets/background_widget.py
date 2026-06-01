@@ -32,6 +32,7 @@ class BackgroundWidget(QWidget):
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
+        self.image_array = np.zeros((self.PREVIEW_HEIGHT, self.PREVIEW_HEIGHT), dtype = np.uint8)
         self.declare_components()
         self.layout_components()
 
@@ -128,6 +129,7 @@ class BackgroundWidget(QWidget):
         preview_width = int(w * self.PREVIEW_HEIGHT/h)
         image_resized = cv2.resize(image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
         self.image.setPixmap(NDarray_to_QPixmap(image_resized))
+        self.image_array = image
 
     def get_state(self) -> Dict:
         state = {}
@@ -137,7 +139,7 @@ class BackgroundWidget(QWidget):
         state['inpaint_algo'] = self.inpaint_algo.currentText()
         state['bckgsub_method'] = self.bckgsub_method_combobox.currentText()
         state['background_file'] =  self.background_file.text()
-        state['image'] = self.image
+        state['image'] = self.image_array
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -154,6 +156,11 @@ class BackgroundWidget(QWidget):
         for key, setter in setters.items():
             if key in state:
                 setter(state[key])
+
+        image_data = state.get('image')
+        if image_data is not None:
+            image_array = np.array(image_data, dtype=np.uint8)
+            self.set_image(image_array)
 
 if __name__ == "__main__":
 
