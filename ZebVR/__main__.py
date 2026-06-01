@@ -40,7 +40,8 @@ def run_vr_file(vr_file, *args) -> None:
     pprint.pprint(settings)
     prefix = Path(settings['settings']['prefix'])
     filename = prefix.with_suffix('.metadata')
-    filename = append_timestamp_to_filename(filename)       
+    filename = append_timestamp_to_filename(filename)    
+    filename.parent.mkdir(parents=True, exist_ok=True)
     with open(filename,'w') as fp:
         pprint.pprint(settings, fp) 
 

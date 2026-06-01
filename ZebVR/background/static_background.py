@@ -6,6 +6,7 @@ from image_tools import im2single, im2gray, im2uint8
 import cv2
 from typing import Callable
 from qt_widgets import imshow, waitKey, destroyWindow
+from pathlib import Path
 
 RESIZED_HEIGHT = 512 # make sure that display fits on various screens
 
@@ -20,9 +21,11 @@ def static_background(
     cam_offset_y: int,
     num_images: int,
     time_between_images: float,
-    background_file: str,
+    background_file: str | Path,
 ):
     
+    background_file = Path(background_file)
+
     camera = camera_constructor()
     camera.set_exposure(exposure_microsec)
     camera.set_gain(cam_gain)
@@ -57,6 +60,7 @@ def static_background(
     background = mode(sample_frames)
 
     print(f'Saving image to {background_file}')
+    background_file.parent.mkdir(parents=True, exist_ok=True)
     with open(background_file, 'wb') as f:
         np.save(f, im2uint8(background))
     

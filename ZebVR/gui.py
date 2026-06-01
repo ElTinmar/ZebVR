@@ -797,6 +797,7 @@ class MainGui(QMainWindow):
             Enum: lambda x: x.value,
             array: lambda x: x.tolist(),
         } 
+        filename.parent.mkdir(parents=True, exist_ok=True)
         with open(filename, 'w') as f:
             json.dump(serialize(self.settings, serializers), f)
 

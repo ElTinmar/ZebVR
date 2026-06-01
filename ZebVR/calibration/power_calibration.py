@@ -7,6 +7,7 @@ from thorlabs_pmd import TLPMD, Bandwidth, LineFrequency
 import numpy as np
 import pickle
 from scipy.interpolate import interp1d
+from pathlib import Path
 
 class PowerCalibration(NamedTuple):
     x: np.ndarray
@@ -110,7 +111,7 @@ def power_calibration(
         proj_width: int,
         proj_height: int,
         proj_pos: Tuple[int, int],
-        calibration_file: str,
+        calibration_file: str | Path,
         bandwidth: bool = True,
         attenuation_dB: float = 0,
         range_decade: int = -2,
@@ -122,6 +123,8 @@ def power_calibration(
         num_steps: int = 11, 
         pause: float = 1
     ) -> None:
+
+    calibration_file = Path(calibration_file)
 
     x = np.linspace(0,1,num_steps)
     y_red = np.zeros((num_steps,), dtype=np.float32)
@@ -197,6 +200,7 @@ def power_calibration(
     inv_blue  = interp1d(y_blue, x, kind='linear', bounds_error=False, fill_value=(0, 1))
 
     # save results
+    calibration_file.parent.mkdir(parents=True, exist_ok=True)
     with open(calibration_file, 'wb') as f:
         pickle.dump({
             'calibration_red':  PowerCalibration(x, y_red, y_red_pred, slope[0], icpt[0], r_squared_red, inv_red),
