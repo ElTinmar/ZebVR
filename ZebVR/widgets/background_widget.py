@@ -137,6 +137,7 @@ class BackgroundWidget(QWidget):
         state['inpaint_algo'] = self.inpaint_algo.currentText()
         state['bckgsub_method'] = self.bckgsub_method_combobox.currentText()
         state['background_file'] =  self.background_file.text()
+        state['image'] = self.image
         return state
     
     def set_state(self, state: Dict) -> None:
