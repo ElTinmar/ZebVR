@@ -79,7 +79,7 @@ class SettingsWidget(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
-        state['prefix'] = self.prefix
+        state['prefix'] = str(self.prefix)
         state['experiment_data'] = self.experiment_data_widget.get_state()
         state['tracking'] = self.tracking_widget.get_state()
         state['videorecording'] = self.video_recording_widget.get_state()

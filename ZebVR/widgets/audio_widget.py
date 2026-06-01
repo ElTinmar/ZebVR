@@ -101,7 +101,7 @@ class AudioWidget(QWidget):
         samplerate = dev['default_samplerate']
         self.channels_spinbox.setRange(1, max_channels)
         self.channels_spinbox.setValue(max_channels)
-        self.samplerate_spinbox.setValue(samplerate)
+        self.samplerate_spinbox.setValue(int(samplerate))
 
         sd.check_output_settings(
             device = dev['index'], 

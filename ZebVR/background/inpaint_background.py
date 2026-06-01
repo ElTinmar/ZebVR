@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 from qtpy.QtWidgets import QApplication
 from typing import Callable
+from pathlib import Path
 
 RESIZED_HEIGHT = 512 # make sure that display fits on various screens
 
@@ -15,10 +16,12 @@ def inpaint_background(
         cam_width: int,
         cam_offset_x: int,
         cam_offset_y: int,
-        background_file: str,
+        background_file: str | Path,
         radius = 3, 
         algo = cv2.INPAINT_NS
     ):
+
+    background_file = Path(background_file)
 
     camera = camera_constructor()
     camera.set_exposure(exposure_microsec)
@@ -44,6 +47,7 @@ def inpaint_background(
     background = cv2.inpaint(image, im2uint8(mask), radius, algo)
 
     print(f'Saving image to {background_file}')
+    background_file.parent.mkdir(parents=True, exist_ok=True)
     with open(background_file, 'wb') as f:
         np.save(f, background)
 

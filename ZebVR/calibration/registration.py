@@ -13,6 +13,7 @@ from enum import IntEnum
 from functools import partial
 from camera_tools import Camera
 from qt_widgets import imshow, waitKey, destroyAllWindows
+from pathlib import Path
 
 RESIZED_HEIGHT = 512 # make sure that display fits on various screens
 
@@ -268,7 +269,7 @@ def registration(
     proj_width: int,
     proj_height: int,
     proj_pos: Tuple[int, int],
-    registration_file: str, 
+    registration_file: str | Path, 
     contrast: float,
     brightness: float,
     gamma: float,
@@ -280,7 +281,9 @@ def registration(
     dot_detection_threshold: float,
     pixel_scaling: Tuple[float, float] = (1.0, 1.0), # only for exotic devices such as Lightcrafters in native mode
 ):
-        
+    
+    registration_file = Path(registration_file)
+
     proj = Projector(
         window_size=(proj_width, proj_height), 
         window_position=proj_pos, 
@@ -366,6 +369,7 @@ def registration(
     calibration['cam_to_proj'] = transformation.tolist()
     calibration['proj_to_cam'] = np.linalg.inv(transformation).tolist()
     
+    registration_file.parent.mkdir(parents=True, exist_ok=True)
     with open(registration_file,'w') as f:
         json.dump(calibration, f)
 

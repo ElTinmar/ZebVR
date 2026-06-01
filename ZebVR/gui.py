@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict
 from enum import Enum
 from array import array
+from enum import Enum
 
 import cv2
 import numpy as np
@@ -52,7 +53,33 @@ from .widgets import (
 from .utils import append_timestamp_to_filename, serialize
 from .dags import closed_loop, open_loop, video_recording, tracking
 
-from enum import Enum
+
+def make_json_safe(obj, exclude_keys):
+    if isinstance(obj, dict):
+        return {
+            k: make_json_safe(v, exclude_keys) 
+            for k, v in obj.items() 
+            if k not in exclude_keys and not callable(v)
+        }
+    
+    elif isinstance(obj, (list, tuple)):
+        return [make_json_safe(item, exclude_keys) for item in obj]
+    
+    elif isinstance(obj, Path):
+        return obj.as_posix()
+        
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+
+    elif isinstance(obj, (str, int, float, bool, type(None))):
+        return obj
+    
+    else:
+        raise TypeError(
+            f"Unrecognized type '{type(obj).__name__}' in state dictionary. "
+            f"Value: {obj}. Please add handling or add its key to exclude_keys."
+        )
+
 
 class State(Enum):
     IDLE = 0
@@ -343,10 +370,10 @@ class MainGui(QMainWindow):
         self.update_main_settings()   
 
     def load_settings(self):
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr)')
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr *.metadata)')
         try:
-            with open(filename, 'rb') as fp:
-                state = pickle.load(fp)
+            with open(filename, 'r') as fp:
+                state = json.load(fp)
             self.set_state(state)
 
         except FileNotFoundError:
@@ -356,8 +383,19 @@ class MainGui(QMainWindow):
         state = self.get_state()
         filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', 'VR Settings (*.vr)')
         filename_correct_ext = Path(filename).with_suffix('.vr')
-        with open(filename_correct_ext, 'wb') as fp:
-            pickle.dump(state, fp)
+
+        exclude_keys = {
+            'camera_constructor',
+            'powermeter_constructor',
+            'powermeters',
+            'spectrometer_constructor',
+            'spectrometers',
+            'protocol',
+            'daq'
+        }
+        clean_state = make_json_safe(state, exclude_keys)
+        with open(filename_correct_ext, 'w') as fp:
+            json.dump(clean_state, fp, indent=2)
 
     def set_main_state(self, state: Dict) -> None:
         self.recording_duration.setValue(state['recording_duration'])
@@ -369,7 +407,7 @@ class MainGui(QMainWindow):
     def set_state(self, state: Dict) -> None:
 
         setters = {
-            'camera': self.camera_widget.set_state,
+            'camera': self.camera_controller.set_state, 
             'projector': self.projector_widget.set_state,
             'audio': self.audio_widget.set_state,
             'daq': self.daq_widget.set_state,
@@ -511,7 +549,7 @@ class MainGui(QMainWindow):
         
         powermeter_settings = self.settings['projector']['light_analysis']['powermeter']
         with open(powermeter_settings['calibration_file'], 'rb') as f:
-            calibration = pickle.load(f)
+            calibration = pickle.load(f) # TODO use json, pickle is too brittle
             state = {}
             state['light_analysis'] = {}
             state['light_analysis']['powermeter'] = {}
@@ -759,6 +797,7 @@ class MainGui(QMainWindow):
             Enum: lambda x: x.value,
             array: lambda x: x.tolist(),
         } 
+        filename.parent.mkdir(parents=True, exist_ok=True)
         with open(filename, 'w') as f:
             json.dump(serialize(self.settings, serializers), f)
 

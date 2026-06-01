@@ -573,24 +573,27 @@ class CameraHandler(QObject):
         if not self.camera:
             return
         
-        offsetX = parameters.get('offsetX_value', 0)
-        offsetY = parameters.get('offsetY_value', 0)
-
         if self.camera.offsetX_available():
-            self.camera.set_offsetX(offsetX)
+            self.camera.set_offsetX(0)
 
         if self.camera.offsetY_available():
-            self.camera.set_offsetY(offsetY)
+            self.camera.set_offsetY(0)
 
         if self.camera.width_available():
             _, w_max = self.camera.get_width_range()
             self.camera.set_width(parameters.get('width_value', w_max))
-            self.sensor_w = w_max + offsetX
+            self.sensor_w = w_max 
             
         if self.camera.height_available():
             _, h_max = self.camera.get_height_range()
             self.camera.set_height(parameters.get('height_value', h_max))
-            self.sensor_h = h_max + offsetY
+            self.sensor_h = h_max 
+
+        if self.camera.offsetX_available():
+            self.camera.set_offsetX(parameters.get('offsetX_value', 0))
+
+        if self.camera.offsetY_available():
+            self.camera.set_offsetY(parameters.get('offsetY_value', 0))
 
         if self.camera.exposure_available():
             exp_min, exp_max = self.camera.get_exposure_range()
@@ -840,11 +843,13 @@ class CameraController(QObject):
         self.preview.emit(enable)
 
     def get_state(self):
-
         state = self.view.get_state()
         state['camera_constructor'] = self.camera_constructor 
         return state
 
+    def set_state(self, state: Dict) -> None:
+        state = self.view.set_state(state)
+    
     def stop(self):
         self.camera_thread.quit()
         self.camera_thread.wait()

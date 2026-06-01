@@ -118,6 +118,7 @@ class SequencerWidget(QWidget):
         self.tree.addTopLevelItem(self.root_item)
         self.root_widget = LoopWidget()
         self.tree.setItemWidget(self.root_item, 0, self.root_widget)
+        self.root_widget.valueChanged.connect(self.state_changed)
         
         self.spb_debouncer_length = LabeledSpinBox()
         self.spb_debouncer_length.setText('debouncer length')
@@ -235,7 +236,9 @@ class SequencerWidget(QWidget):
         rgb = next(colors)
         loop_color = QColor(*(int(c * 255) for c in rgb))
         item.setBackground(0, QBrush(loop_color))
-        self.tree.setItemWidget(item, 0, LoopWidget())
+        loop_widget = LoopWidget()
+        self.tree.setItemWidget(item, 0, loop_widget)
+        loop_widget.valueChanged.connect(self.state_changed)
         parent_item.setExpanded(True)
 
         self.state_changed.emit()
@@ -271,6 +274,7 @@ class SequencerWidget(QWidget):
         elif isinstance(old_widget, LoopWidget):
             new_widget = LoopWidget()
             new_widget.setValue(old_widget.value())
+            new_widget.valueChanged.connect(self.state_changed)
             self.tree.setItemWidget(new_item, 0, new_widget)
 
         new_item.setExpanded(item.isExpanded())
@@ -378,7 +382,7 @@ class SequencerWidget(QWidget):
 
         elif isinstance(widget, StimWidget):
             node['type'] = 'stim'
-            node['protocol'] = widget.to_protocol_item()  
+            node['protocol'] = widget.get_state()  
 
         brush = item.background(0)
         if brush is not None:
@@ -402,9 +406,11 @@ class SequencerWidget(QWidget):
             stim_widget = StimWidget(self.debouncer, self.daq_boards, self.background_image)
             stim_widget.state_changed.connect(self.state_changed)
             stim_widget.size_changed.connect(self.on_size_change)
-            protocol_item = node.get('protocol')
-            if protocol_item:
-                stim_widget.from_protocol_item(protocol_item)
+            
+            state = node.get('protocol')
+            if state:
+                stim_widget.set_state(state)
+            
             self.tree.setItemWidget(item, 0, stim_widget)
         
         color_name = node.get('color')

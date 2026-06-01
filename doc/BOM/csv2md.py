@@ -1,7 +1,11 @@
 import csv
 import sys
+from pathlib import Path
 
 def csv_to_markdown(csv_file, md_file):
+    md_file = Path(md_file)
+    md_file.parent.mkdir(parents=True, exist_ok=True)
+    
     with open(csv_file, newline="", encoding="utf-8") as f:
         reader = list(csv.reader(f))
 

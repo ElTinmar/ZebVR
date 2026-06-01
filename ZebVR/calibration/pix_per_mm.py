@@ -2,6 +2,7 @@ import numpy as np
 from camera_tools import get_camera_px_per_mm
 from typing import Callable, Tuple
 import json
+from pathlib import Path
 
 def pix_per_mm(
     camera_constructor: Callable,
@@ -14,8 +15,10 @@ def pix_per_mm(
     cam_offset_y: int,
     checker_grid_size: Tuple[int, int],
     checker_square_size_mm: float,
-    calibration_file: str
+    calibration_file: str | Path
 ):
+
+    calibration_file = Path(calibration_file)
 
     camera = camera_constructor()
     camera.set_exposure(exposure_microsec)
@@ -45,5 +48,6 @@ def pix_per_mm(
     if px_per_mm is None:
         return
 
+    calibration_file.parent.mkdir(parents=True, exist_ok=True)
     with open(calibration_file, 'w') as f:
         json.dump(float(px_per_mm), f)
