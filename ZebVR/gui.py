@@ -370,7 +370,7 @@ class MainGui(QMainWindow):
         self.update_main_settings()   
 
     def load_settings(self):
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr)')
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr *.metadata)')
         try:
             with open(filename, 'r') as fp:
                 state = json.load(fp)
