@@ -18,6 +18,7 @@ fi
 # Capture the native environment values safely
 REAL_USER="$USER"
 USER_HOME="$HOME"
+REPO_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # 2. Install Core System Dependencies via apt
 echo "[+] Installing system dependencies (may prompt for sudo password)..."
