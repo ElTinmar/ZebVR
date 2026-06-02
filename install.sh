@@ -56,71 +56,66 @@ sudo udevadm control --reload-rules
 sudo udevadm trigger
 
 
-# 5. Locate or Install Conda
-echo "[+] Locating Conda installation..."
-CONDA_EXE=""
+# 5. Locate or Install Miniforge (Mamba/Conda)
+echo "[+] Locating Miniforge installation..."
+MAMBA_EXE=""
 
-# Method A: Check the native user's active environment path directly
-if [ -n "$CONDA_EXE" ]; then
-    CONDA_EXE="$CONDA_EXE"
+# Method A: Use 'command -v' to see if mamba is already in the user's path
+USER_WHICH=$(command -v mamba 2>/dev/null || true)
+if [ -n "$USER_WHICH" ] && [ -f "$USER_WHICH" ]; then
+    MAMBA_EXE="$USER_WHICH"
 fi
 
-# Method B: Use 'command -v' to see if conda is already in the user's path
-if [ -z "$CONDA_EXE" ]; then
-    USER_WHICH=$(command -v conda 2>/dev/null || true)
-    if [ -n "$USER_WHICH" ] && [ -f "$USER_WHICH" ]; then
-        CONDA_EXE="$USER_WHICH"
+# Method B: Check standard absolute default user directories for Miniforge
+if [ -z "$MAMBA_EXE" ]; then
+    if [ -f "$USER_HOME/miniforge3/bin/mamba" ]; then
+        MAMBA_EXE="$USER_HOME/miniforge3/bin/mamba"
     fi
 fi
 
-# Method C: Check standard absolute default user directories
-if [ -z "$CONDA_EXE" ]; then
-    if [ -f "$USER_HOME/miniconda3/bin/conda" ]; then
-        CONDA_EXE="$USER_HOME/miniconda3/bin/conda"
-    elif [ -f "$USER_HOME/anaconda3/bin/conda" ]; then
-        CONDA_EXE="$USER_HOME/anaconda3/bin/conda"
-    fi
+# Method C: Fallback to conda inside miniforge if mamba wrapper isn't explicitly targeted
+if [ -z "$MAMBA_EXE" ] && [ -f "$USER_HOME/miniforge3/bin/conda" ]; then
+    MAMBA_EXE="$USER_HOME/miniforge3/bin/conda"
 fi
 
-# Method D: If Conda is completely missing, offer to install Miniconda automatically
-if [ -z "$CONDA_EXE" ] || [ ! -f "$CONDA_EXE" ]; then
-    echo "[-] Conda was not found on this system."
+# Method D: If Miniforge is completely missing, offer to install it automatically
+if [ -z "$MAMBAR_EXE" ] || [ ! -f "$MAMBA_EXE" ]; then
+    echo "[-] Miniforge was not found on this system."
     # Redirecting to /dev/tty guarantees interactive prompting works smoothly
     exec </dev/tty
-    read -p "[?] Would you like to automatically download and install Miniconda3 for $REAL_USER? (y/n): " install_conda
+    read -p "[?] Would you like to automatically download and install Miniforge3 for $REAL_USER? (y/n): " install_miniforge
     
-    if [ "$install_conda" = "y" ] || [ "$install_conda" = "Y" ]; then
-        echo "[+] Downloading Miniconda installer..."
-        MINICONDA_SH="/tmp/Miniconda3-latest-Linux-x86_64.sh"
+    if [ "$install_miniforge" = "y" ] || [ "$install_miniforge" = "Y" ]; then
+        echo "[+] Downloading Miniforge installer..."
+        MINIFORGE_SH="/tmp/Miniforge3-Linux-x86_64.sh"
         
-        curl -L https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o "$MINICONDA_SH"
+        curl -L https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh -o "$MINIFORGE_SH"
         
-        echo "[+] Installing Miniconda to $USER_HOME/miniconda3..."
-        bash "$MINICONDA_SH" -b -p "$USER_HOME/miniconda3"
-        rm -f "$MINICONDA_SH"
+        echo "[+] Installing Miniforge to $USER_HOME/miniforge3..."
+        bash "$MINIFORGE_SH" -b -p "$USER_HOME/miniforge3"
+        rm -f "$MINIFORGE_SH"
         
-        "$USER_HOME/miniconda3/bin/conda" init bash
+        "$USER_HOME/miniforge3/bin/mamba" init bash
         
-        CONDA_EXE="$USER_HOME/miniconda3/bin/conda"
-        echo "[+] Miniconda successfully installed!"
+        MAMBA_EXE="$USER_HOME/miniforge3/bin/mamba"
+        echo "[+] Miniforge successfully installed!"
         echo "[!] NOTE: You may need to run 'source ~/.bashrc' after this script completes."
     else
-        echo "[-] Error: Conda is required to manage ZebVR environments. Aborting installation."
+        echo "[-] Error: Miniforge/Conda is required to manage ZebVR environments. Aborting installation."
         exit 1
     fi
 fi
 
-echo "[+] Using Conda binary: $CONDA_EXE"
+echo "[+] Using Miniforge binary: $MAMBA_EXE"
 
-# 6. Create or Update Conda Environment
-
-# CONDA_NO_PLUGINS=true blocks the commercial anaconda-tos plugin from throwing errors.
-if "$CONDA_EXE" env list | grep -q "ZebVR"; then
+# 6. Create or Update Conda Environment using Mamba
+# Note: We no longer need CONDA_NO_PLUGINS=true as Miniforge does not include commercial plugins.
+if "$MAMBA_EXE" env list | grep -q "ZebVR"; then
     echo "[+] Conda environment 'ZebVR' already exists"
-    CONDA_NO_PLUGINS=true "$CONDA_EXE" update -f ZebVR.yml --prune
+    "$MAMBA_EXE" env update -f ZebVR.yml --prune
 else
     echo "[+] Creating ZebVR Conda environment from ZebVR.yml"
-    CONDA_NO_PLUGINS=true "$CONDA_EXE" create -f ZebVR.yml --yes
+    "$MAMBA_EXE" env create -f ZebVR.yml --yes
 fi
 
 
@@ -134,8 +129,8 @@ exec </dev/tty
 read -p "[?] Do you want to install XIMEA Camera drivers & bindings? (y/n): " install_ximea
 if [ "$install_ximea" = "y" ] || [ "$install_ximea" = "Y" ]; then
     echo "[+] Running XIMEA setup scripts..."
-    CONDA_NO_PLUGINS=true "$CONDA_EXE" run -n ZebVR python scripts/setup_ximea.py
-    CONDA_NO_PLUGINS=true "$CONDA_EXE" run -n ZebVR python scripts/setup_spinnaker.py
+    "$MAMBA_EXE" run -n ZebVR python scripts/setup_ximea.py
+    "$MAMBA_EXE" run -n ZebVR python scripts/setup_spinnaker.py
     
     if [ -f "install_ximea_systemd_service.sh" ]; then
         echo "[+] Configuring automated XIMEA systemd maintenance service..."
@@ -151,7 +146,7 @@ fi
 read -p "[?] Do you want to compile and install Aravis (GigE/USB3 cameras)? (y/n): " install_aravis
 if [ "$install_aravis" = "y" ] || [ "$install_aravis" = "Y" ]; then
     echo "[+] Building Aravis from source..."
-    CONDA_PREFIX_DIR=$(CONDA_NO_PLUGINS=true "$CONDA_EXE" run -n ZebVR python -c "import os; print(os.environ['CONDA_PREFIX'])")
+    CONDA_PREFIX_DIR=$("$MAMBA_EXE" run -n ZebVR python -c "import os; print(os.environ['CONDA_PREFIX'])")
     
     git clone https://github.com/AravisProject/aravis.git
     cd aravis
@@ -166,7 +161,7 @@ fi
 read -p "[?] Do you want to fetch Thorlabs Spectrophotometer firmware? (y/n): " install_thor
 if [ "$install_thor" = "y" ] || [ "$install_thor" = "Y" ]; then
     echo "[+] Downloading Thorlabs firmware..."
-    CONDA_NO_PLUGINS=true "$CONDA_EXE" run -n ZebVR python -m thorlabs_ccs.get_firmware
+    "$MAMBA_EXE" run -n ZebVR python -m thorlabs_ccs.get_firmware
 fi
 
 echo "=========================================================================="
