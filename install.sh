@@ -108,13 +108,18 @@ fi
 
 echo "[+] Using Conda binary: $CONDA_EXE"
 
+echo "[+] Configuring channel priorities..."
+# Ensure conda-forge is recognized globally for the user to prevent channel-mixing errors
+sudo -u "$REAL_USER" "$CONDA_EXE" config --add channels conda-forge
+sudo -u "$REAL_USER" "$CONDA_EXE" config --set channel_priority strict
+
 # 6. Create or Update Conda Environment
 if "$CONDA_EXE" env list | grep -q "ZebVR"; then
     echo "[+] Conda environment 'ZebVR' already exists. Updating it instead..."
     sudo -u "$REAL_USER" "$CONDA_EXE" env update -f ZebVR.yml --prune
 else
     echo "[+] Creating ZebVR Conda environment from ZebVR.yml..."
-    sudo -u "$REAL_USER" "$CONDA_EXE" env create -f ZebVR.yml --yes
+    sudo -u "$REAL_USER" "$CONDA_EXE" env create -f ZebVR.yml --yes --override-channels
 fi
 
 # 7. Optional Hardware Component Installations
