@@ -119,7 +119,7 @@ if "$CONDA_EXE" env list | grep -q "ZebVR"; then
     sudo -u "$REAL_USER" "$CONDA_EXE" env update -f ZebVR.yml --prune
 else
     echo "[+] Creating ZebVR Conda environment from ZebVR.yml..."
-    sudo -u "$REAL_USER" "$CONDA_EXE" env create -f ZebVR.yml --yes --override-channels
+    sudo -u "$REAL_USER" "$CONDA_EXE" env create -f ZebVR.yml --yes
 fi
 
 # 7. Optional Hardware Component Installations
