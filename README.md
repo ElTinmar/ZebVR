@@ -40,7 +40,7 @@ For a full list of hardware used for the VR setup, see doc/BOM/bom.md
 ### deb packages on Ubuntu
 
 ```bash
-sudo apt-get install libportaudio2 build-essential libusb-1.0-0-dev 
+sudo apt-get install libportaudio2 build-essential libusb-1.0-0-dev git
 ```
 
 ### Labjack exodriver
