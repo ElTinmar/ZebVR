@@ -22,7 +22,7 @@ USER_HOME="$HOME"
 # 2. Install Core System Dependencies via apt
 echo "[+] Installing system dependencies (may prompt for sudo password)..."
 sudo apt-get update
-sudo apt-get install -y libportaudio2 build-essential libusb-1.0-0-dev innoextract curl
+sudo apt-get install -y libportaudio2 build-essential libusb-1.0-0-dev innoextract curl python3-yaml
 
 # 3. Labjack Exodriver Setup
 echo "[+] Checking Labjack Exodriver..."
@@ -108,13 +108,33 @@ fi
 
 echo "[+] Using Miniforge binary: $MAMBA_EXE"
 
-# 6. Create or Update Conda Environment using Mamba
-# Note: We no longer need CONDA_NO_PLUGINS=true as Miniforge does not include commercial plugins.
-if "$MAMBA_EXE" env list | grep -q "ZebVR"; then
-    echo "[+] Conda environment 'ZebVR' already exists"
+
+# 6. Parse dynamic Environment Name from ZebVR.yml & Create/Update Environment
+if [ ! -f "ZebVR.yml" ]; then
+    echo "[-] Error: ZebVR.yml file not found in current directory."
+    exit 1
+fi
+
+# Use Python to safely parse the exact name string out of the YAML file
+ENV_NAME=$(python3 -c "import yaml; print(yaml.safe_load(open('ZebVR.yml'))['name'])" 2>/dev/null || true)
+
+# Fallback basic parser if python3-yaml fails for any reason
+if [ -z "$ENV_NAME" ]; then
+    ENV_NAME=$(grep '^name:' ZebVR.yml | awk '{print $2}' | tr -d '\r\n[:space:]')
+fi
+
+if [ -z "$ENV_NAME" ]; then
+    echo "[-] Error: Could not extract environment name from ZebVR.yml."
+    exit 1
+fi
+
+echo "[+] Parsed target environment name: '$ENV_NAME'"
+
+if "$MAMBA_EXE" env list | grep -q -E "^${ENV_NAME}[[:space:]]"; then
+    echo "[+] Conda environment '$ENV_NAME' already exists. Updating..."
     "$MAMBA_EXE" env update -f ZebVR.yml --prune
 else
-    echo "[+] Creating ZebVR Conda environment from ZebVR.yml"
+    echo "[+] Creating Conda environment '$ENV_NAME' from ZebVR.yml..."
     "$MAMBA_EXE" env create -f ZebVR.yml --yes
 fi
 
@@ -129,8 +149,8 @@ exec </dev/tty
 read -p "[?] Do you want to install XIMEA Camera drivers & bindings? (y/n): " install_ximea
 if [ "$install_ximea" = "y" ] || [ "$install_ximea" = "Y" ]; then
     echo "[+] Running XIMEA setup scripts..."
-    "$MAMBA_EXE" run -n ZebVR python scripts/setup_ximea.py
-    "$MAMBA_EXE" run -n ZebVR python scripts/setup_spinnaker.py
+    "$MAMBA_EXE" run -n "$ENV_NAME" python scripts/setup_ximea.py
+    "$MAMBA_EXE" run -n "$ENV_NAME" python scripts/setup_spinnaker.py
     
     if [ -f "install_ximea_systemd_service.sh" ]; then
         echo "[+] Configuring automated XIMEA systemd maintenance service..."
@@ -146,7 +166,7 @@ fi
 read -p "[?] Do you want to compile and install Aravis (GigE/USB3 cameras)? (y/n): " install_aravis
 if [ "$install_aravis" = "y" ] || [ "$install_aravis" = "Y" ]; then
     echo "[+] Building Aravis from source..."
-    CONDA_PREFIX_DIR=$("$MAMBA_EXE" run -n ZebVR python -c "import os; print(os.environ['CONDA_PREFIX'])")
+    CONDA_PREFIX_DIR=$("$MAMBA_EXE" run -n "$ENV_NAME" python -c "import os; print(os.environ['CONDA_PREFIX'])")
     
     git clone https://github.com/AravisProject/aravis.git
     cd aravis
@@ -161,7 +181,7 @@ fi
 read -p "[?] Do you want to fetch Thorlabs Spectrophotometer firmware? (y/n): " install_thor
 if [ "$install_thor" = "y" ] || [ "$install_thor" = "Y" ]; then
     echo "[+] Downloading Thorlabs firmware..."
-    "$MAMBA_EXE" run -n ZebVR python -m thorlabs_ccs.get_firmware
+    "$MAMBA_EXE" run -n "$ENV_NAME" python -m thorlabs_ccs.get_firmware
 fi
 
 echo "=========================================================================="
@@ -172,4 +192,6 @@ echo " 1. You MUST log out and log back in (or reboot) for hardware group"
 echo "    permissions (plugdev/dialout) to take effect."
 echo " 2. If you installed XIMEA drivers, Secure Boot might need to be"
 echo "    disabled in your system BIOS if the kernel module fails to load."
+echo " 3. To activate this specific branch environment, run:"
+echo "    val env: mamba activate $ENV_NAME"
 echo "=========================================================================="
