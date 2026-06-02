@@ -145,12 +145,6 @@ else
     "$MAMBA_EXE" env create -f ZebVR.yml --yes
 fi
 
-# 7. Optional Hardware Component Installations
-echo "-----------------------------------------"
-echo "Optional Hardware Stack Configuration"
-echo "-----------------------------------------"
-
-
 # --- XIMEA Setup ---
 read -p "[?] Do you want to install XIMEA Camera drivers & bindings? (y/n): " install_ximea
 if [ "$install_ximea" = "y" ] || [ "$install_ximea" = "Y" ]; then
