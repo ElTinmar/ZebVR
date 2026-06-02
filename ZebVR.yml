@@ -1,6 +1,7 @@
 name: ZebVR_dev
 channels:
 - conda-forge
+- nodefaults
 dependencies:
 - python >= 3.8, <3.14
 - ipython
