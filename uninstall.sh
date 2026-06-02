@@ -120,25 +120,7 @@ if [ -f "$THORLABS_RULES" ]; then
 fi
 
 # --------------------------------------------------------------------------
-# 6. Uninstall Labjack Exodriver
-# --------------------------------------------------------------------------
-LABJACK_LIB1="/usr/local/lib/liblabjackusb.so"
-LABJACK_LIB2="/usr/lib/liblabjackusb.so"
-
-if [ -f "$LABJACK_LIB1" ] || [ -f "$LABJACK_LIB2" ]; then
-    read -p "[?] Labjack Exodriver detected. Do you want to remove it? (y/n): " remove_labjack
-    if [ "$remove_labjack" = "y" ] || [ "$remove_labjack" = "Y" ]; then
-        echo "[+] Removing Labjack Exodriver binaries and rules..."
-        sudo rm -f "/usr/local/lib/liblabjackusb.*"
-        sudo rm -f "/usr/lib/liblabjackusb.*"
-        sudo rm -f "/lib/udev/rules.d/10-labjack.rules" || true
-        sudo rm -f "/etc/udev/rules.d/10-labjack.rules" || true
-        echo "[+] Labjack Exodriver removed."
-    fi
-fi
-
-# --------------------------------------------------------------------------
-# 7. User Group Cleanup (Optional)
+# 6. User Group Cleanup (Optional)
 # --------------------------------------------------------------------------
 read -p "[?] Do you want to remove '$REAL_USER' from plugdev and dialout groups? (y/n): " remove_groups
 if [ "$remove_groups" = "y" ] || [ "$remove_groups" = "Y" ]; then
