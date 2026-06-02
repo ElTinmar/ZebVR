@@ -9,31 +9,38 @@ echo "========================================="
 
 # 1. Check for Sudo / Root Permissions up front
 if [ "$EUID" -ne 0 ]; then
-  echo "Please run this script with sudo or as root:"
-  echo "sudo ./install.sh"
+  echo "[-] Error: Please run this script with sudo or as root:"
+  echo "    sudo ./install.sh"
   exit 1
 fi
 
-# Store the actual user who invoked sudo
+# Store the actual user who invoked sudo and their home directory
 REAL_USER=${SUDO_USER:-$USER}
 USER_HOME=$(eval echo ~$REAL_USER)
 
-echo "Installing system dependencies..."
+# 2. Install Core System Dependencies via apt
+echo "[+] Installing system dependencies..."
 apt-get update
-apt-get install -y libportaudio2 build-essential libusb-1.0-0-dev innoextract
+apt-get install -y libportaudio2 build-essential libusb-1.0-0-dev innoextract meson ninja-build curl git
 
-# 2. Labjack Exodriver Setup
-echo "Installing Labjack Exodriver..."
-if [ ! -d "exodriver" ]; then
-    git clone https://github.com/labjack/exodriver.git
+# 3. Labjack Exodriver Setup
+echo "[+] Checking Labjack Exodriver..."
+if [ -f "/usr/local/lib/liblabjackusb.so" ] || [ -f "/usr/lib/liblabjackusb.so" ]; then
+    echo "[+] Labjack Exodriver is already installed. Skipping compilation."
+else
+    echo "[+] Labjack Exodriver not found. Installing from source..."
+    if [ ! -d "exodriver" ]; then
+        sudo -u "$REAL_USER" git clone https://github.com/labjack/exodriver.git
+    fi
+    cd exodriver
+    ./install.sh
+    cd ..
+    rm -rf exodriver
+    echo "[+] Labjack Exodriver successfully installed."
 fi
-cd exodriver
-./install.sh
-cd ..
-rm -rf exodriver
 
-# 3. Hardware Permissions & Udev Rules
-echo "Setting up hardware permissions and udev rules..."
+# 4. Hardware Permissions & Udev Rules
+echo "[+] Setting up hardware permissions and udev rules..."
 usermod -a -G plugdev,dialout "$REAL_USER"
 
 cat << 'EOF' > /etc/udev/rules.d/99-thorlabs.rules
@@ -43,47 +50,119 @@ EOF
 udevadm control --reload-rules
 udevadm trigger
 
-# 4. Conda Environment Setup (Run as the actual user, not root)
-echo "Setting up Conda environment for user: $REAL_USER..."
-# Locate conda executable dynamically if possible, or assume default paths
-export -f -n conda # clears functions
-if [ -f "$USER_HOME/miniconda3/bin/conda" ]; then
-    CONDA_PATH="$USER_HOME/miniconda3/bin/conda"
-elif [ -f "$USER_HOME/anaconda3/bin/conda" ]; then
-    CONDA_PATH="$USER_HOME/anaconda3/bin/conda"
+# 5. Locate or Install Conda
+echo "[+] Locating Conda installation..."
+
+# Method A: Try checking the user's environment variable via an interactive login shell
+CONDA_EXE=$(sudo -u "$REAL_USER" -i bash -c 'echo $CONDA_EXE')
+
+# Method B: If empty, try using 'which' in their native login path
+if [ -z "$CONDA_EXE" ]; then
+    USER_WHICH=$(sudo -u "$REAL_USER" -i bash -c 'which conda 2>/dev/null')
+    if [ -n "$USER_WHICH" ] && [ -f "$USER_WHICH" ]; then
+        CONDA_EXE="$USER_WHICH"
+    fi
+fi
+
+# Method C: If still empty, check standard absolute default fallback locations
+if [ -z "$CONDA_EXE" ]; then
+    if [ -f "$USER_HOME/miniconda3/bin/conda" ]; then
+        CONDA_EXE="$USER_HOME/miniconda3/bin/conda"
+    elif [ -f "$USER_HOME/anaconda3/bin/conda" ]; then
+        CONDA_EXE="$USER_HOME/anaconda3/bin/conda"
+    fi
+fi
+
+# Method D: If Conda is completely missing, offer to install Miniconda automatically
+if [ -z "$CONDA_EXE" ] || [ ! -f "$CONDA_EXE" ]; then
+    echo "[-] Conda was not found on this system."
+    read -p "[?] Would you like to automatically download and install Miniconda3 for $REAL_USER? (y/n): " install_conda
+    
+    if [ "$install_conda" = "y" ] || [ "$install_conda" = "Y" ]; then
+        echo "[+] Downloading Miniconda installer..."
+        MINICONDA_SH="/tmp/Miniconda3-latest-Linux-x86_64.sh"
+        
+        # Download as the real user to avoid root file permission restrictions in /tmp
+        sudo -u "$REAL_USER" curl -L https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o "$MINICONDA_SH"
+        
+        echo "[+] Installing Miniconda to $USER_HOME/miniconda3..."
+        # Run installer silently (-b) and accept target path (-p) as the real user
+        sudo -u "$REAL_USER" bash "$MINICONDA_SH" -b -p "$USER_HOME/miniconda3"
+        rm -f "$MINICONDA_SH"
+        
+        # Initialize conda for the user's native bash shell environment
+        sudo -u "$REAL_USER" "$USER_HOME/miniconda3/bin/conda" init bash
+        
+        CONDA_EXE="$USER_HOME/miniconda3/bin/conda"
+        echo "[+] Miniconda successfully installed!"
+    else
+        echo "[-] Error: Conda is required to manage ZebVR environments. Aborting installation."
+        exit 1
+    fi
+fi
+
+echo "[+] Using Conda binary: $CONDA_EXE"
+
+# 6. Create Conda Environment
+if "$CONDA_EXE" env list | grep -q "ZebVR"; then
+    echo "[+] Conda environment 'ZebVR' already exists. Updating it instead..."
+    sudo -u "$REAL_USER" "$CONDA_EXE" env update -f ZebVR.yml --prune
 else
-    read -p "Conda not found in default paths. Please enter the path to your 'conda' executable: " CONDA_PATH
+    echo "[+] Creating ZebVR Conda environment from ZebVR.yml..."
+    sudo -u "$REAL_USER" "$CONDA_EXE" env create -f ZebVR.yml --yes
 fi
 
-# Create env as the real user
-sudo -u "$REAL_USER" "$CONDA_PATH" env create -f ZebVR.yml --yes || true
-
-# 5. Hardware-Specific Prompting (Optional Components)
+# 7. Optional Hardware Component Installations
 echo "-----------------------------------------"
-read -p "Do you want to install XIMEA Camera drivers? (y/n): " install_ximea
+echo "Optional Hardware Stack Configuration"
+echo "-----------------------------------------"
+
+# --- XIMEA Setup ---
+read -p "[?] Do you want to install XIMEA Camera drivers & bindings? (y/n): " install_ximea
 if [ "$install_ximea" = "y" ] || [ "$install_ximea" = "Y" ]; then
-    sudo -u "$REAL_USER" "$CONDA_PATH" run -n ZebVR python scripts/setup_ximea.py
-    # Install automated service
-    chmod +x install_ximea_systemd_service.sh
-    ./install_ximea_systemd_service.sh
+    echo "[+] Running XIMEA setup scripts..."
+    sudo -u "$REAL_USER" "$CONDA_EXE" run -n ZebVR python scripts/setup_ximea.py
+    sudo -u "$REAL_USER" "$CONDA_EXE" run -n ZebVR python scripts/setup_spinnaker.py
+    
+    # Configure automated driver maintenance service
+    if [ -f "install_ximea_systemd_service.sh" ]; then
+        echo "[+] Configuring automated XIMEA systemd maintenance service..."
+        chmod +x install_ximea_systemd_service.sh
+        ./install_ximea_systemd_service.sh
+    else
+        echo "[-] Warning: install_ximea_systemd_service.sh not found. Skipping service setup."
+    fi
 fi
 
-read -p "Do you want to install Aravis (GigE/USB3 cameras)? (y/n): " install_aravis
+# --- Aravis Setup ---
+read -p "[?] Do you want to compile and install Aravis (GigE/USB3 cameras)? (y/n): " install_aravis
 if [ "$install_aravis" = "y" ] || [ "$install_aravis" = "Y" ]; then
-    CONDA_PREFIX_DIR=$(sudo -u "$REAL_USER" "$CONDA_PATH" run -n ZebVR python -c "import os; print(os.environ['CONDA_PREFIX'])")
+    echo "[+] Building Aravis from source..."
+    # Extract the absolute path of the environment's prefix directory safely
+    CONDA_PREFIX_DIR=$(sudo -u "$REAL_USER" "$CONDA_EXE" run -n ZebVR python -c "import os; print(os.environ['CONDA_PREFIX'])")
+    
     sudo -u "$REAL_USER" git clone https://github.com/AravisProject/aravis.git
     cd aravis
     sudo -u "$REAL_USER" meson setup build --prefix="$CONDA_PREFIX_DIR" -Dintrospection=enabled -Dviewer=disabled -Dtests=true --libdir=lib
     sudo -u "$REAL_USER" ninja -C build install
     cd ..
     rm -rf aravis
+    echo "[+] Aravis successfully compiled into active Conda environment."
 fi
 
-read -p "Do you want to fetch Thorlabs firmware? (y/n): " install_thor
+# --- Thorlabs Firmware ---
+read -p "[?] Do you want to fetch Thorlabs Spectrophotometer firmware? (y/n): " install_thor
 if [ "$install_thor" = "y" ] || [ "$install_thor" = "Y" ]; then
-    sudo -u "$REAL_USER" "$CONDA_PATH" run -n ZebVR python -m thorlabs_ccs.get_firmware
+    echo "[+] Downloading Thorlabs firmware..."
+    sudo -u "$REAL_USER" "$CONDA_EXE" run -n ZebVR python -m thorlabs_ccs.get_firmware
 fi
 
-echo "========================================="
-echo "Installation complete! Please REBOOT your machine to apply group permissions."
-echo "========================================="
+echo "=========================================================================="
+echo "[+] SYSTEM INSTALLATION COMPLETE!"
+echo "=========================================================================="
+echo " IMPORTANT NEXT STEPS:"
+echo " 1. You MUST log out and log back in (or reboot) for hardware group"
+echo "    permissions (plugdev/dialout) to take effect."
+echo " 2. If you installed XIMEA drivers, Secure Boot might need to be"
+echo "    disabled in your system BIOS if the kernel module fails to load."
+echo "=========================================================================="
