@@ -113,16 +113,14 @@ fi
 echo "[+] Using Conda binary: $CONDA_EXE"
 
 # 6. Create or Update Conda Environment
-echo "[+] Creating or updating ZebVR Conda environment..."
 
-# Running natively as the user allows libmamba to find its binary hooks naturally.
 # CONDA_NO_PLUGINS=true blocks the commercial anaconda-tos plugin from throwing errors.
 if "$CONDA_EXE" env list | grep -q "ZebVR"; then
     echo "[+] Conda environment 'ZebVR' already exists. Updating it via libmamba..."
-    CONDA_NO_PLUGINS=true "$CONDA_EXE" env update -f ZebVR.yml --prune
+    CONDA_NO_PLUGINS=true "$CONDA_EXE" update -f ZebVR.yml --prune
 else
     echo "[+] Creating ZebVR Conda environment from ZebVR.yml via libmamba..."
-    CONDA_NO_PLUGINS=true "$CONDA_EXE" env create -f ZebVR.yml --yes
+    CONDA_NO_PLUGINS=true "$CONDA_EXE" create -f ZebVR.yml --yes
 fi
 
 
