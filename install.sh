@@ -130,21 +130,28 @@ if [ -z "$ENV_NAME" ]; then
 fi
 
 echo "[+] Parsed target environment name: '$ENV_NAME'"
+exec </dev/tty
 
 if "$MAMBA_EXE" env list --json | grep -q "/$ENV_NAME\""; then
-    echo "[+] Conda environment '$ENV_NAME' already exists. Updating..."
-    "$MAMBA_EXE" env update -f ZebVR.yml --prune
+    echo "[!] Conda environment '$ENV_NAME' already exists."
+    read -p "[?] Would you like to update/repair it using ZebVR.yml? (y/n): " update_env
+    
+    if [ "$update_env" = "y" ] || [ "$update_env" = "Y" ]; then
+        echo "[+] Updating environment '$ENV_NAME'..."
+        "$MAMBA_EXE" env update -f ZebVR.yml --prune
+    else
+        echo "[-] Skipping environment update. Proceeding with existing '$ENV_NAME' environment."
+    fi
 else
     echo "[+] Creating Conda environment '$ENV_NAME' from ZebVR.yml..."
     "$MAMBA_EXE" env create -f ZebVR.yml --yes
 fi
 
-
 # 7. Optional Hardware Component Installations
 echo "-----------------------------------------"
 echo "Optional Hardware Stack Configuration"
 echo "-----------------------------------------"
-exec </dev/tty
+
 
 # --- XIMEA Setup ---
 read -p "[?] Do you want to install XIMEA Camera drivers & bindings? (y/n): " install_ximea
