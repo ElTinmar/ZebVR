@@ -17,6 +17,15 @@ installation instructions on Windows are not listed here.
 We recommend using a modern multicore machine with at least 32GB of RAM.
 Parts of the installation process require sudo rights.
 
+## Simple installation procedure on Ubuntu
+
+```
+sudo apt install git
+git clone https://github.com/ElTinmar/ZebVR.git
+cd ZebVR
+./install.sh
+```
+
 ## Extra Hardware (optional)
 
 - ViewSonic X2-4K projector
