@@ -1,4 +1,4 @@
-name: ZebVR_stable
+name: ZebVR
 channels:
 - conda-forge
 dependencies:
