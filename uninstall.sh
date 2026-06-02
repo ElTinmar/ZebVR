@@ -130,6 +130,12 @@ if [ "$remove_groups" = "y" ] || [ "$remove_groups" = "Y" ]; then
     sudo gpasswd -d "$REAL_USER" dialout || true
 fi
 
+# Clean up desktop shortcut
+if [ -f "$USER_HOME/.local/share/applications/zebvr.desktop" ]; then
+    echo "[+] Removing desktop application entry..."
+    rm -f "$USER_HOME/.local/share/applications/zebvr.desktop"
+fi
+
 echo "=========================================================================="
 echo "[+] UNINSTALLATION PROCESS COMPLETE!"
 echo "=========================================================================="
