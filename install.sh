@@ -150,7 +150,6 @@ read -p "[?] Do you want to install XIMEA Camera drivers & bindings? (y/n): " in
 if [ "$install_ximea" = "y" ] || [ "$install_ximea" = "Y" ]; then
     echo "[+] Running XIMEA setup scripts..."
     "$MAMBA_EXE" run -n "$ENV_NAME" python scripts/setup_ximea.py
-    "$MAMBA_EXE" run -n "$ENV_NAME" python scripts/setup_spinnaker.py
     
     if [ -f "install_ximea_systemd_service.sh" ]; then
         echo "[+] Configuring automated XIMEA systemd maintenance service..."
