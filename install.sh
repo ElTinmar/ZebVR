@@ -116,11 +116,11 @@ echo "[+] Using Conda binary: $CONDA_EXE"
 
 # CONDA_NO_PLUGINS=true blocks the commercial anaconda-tos plugin from throwing errors.
 if "$CONDA_EXE" env list | grep -q "ZebVR"; then
-    echo "[+] Conda environment 'ZebVR' already exists. Updating it via libmamba..."
-    CONDA_NO_PLUGINS=true "$CONDA_EXE" update -f ZebVR.yml --prune --solver=classic
+    echo "[+] Conda environment 'ZebVR' already exists"
+    CONDA_NO_PLUGINS=true "$CONDA_EXE" update -f ZebVR.yml --prune
 else
-    echo "[+] Creating ZebVR Conda environment from ZebVR.yml via libmamba..."
-    CONDA_NO_PLUGINS=true "$CONDA_EXE" create -f ZebVR.yml --yes --solver=classic
+    echo "[+] Creating ZebVR Conda environment from ZebVR.yml"
+    CONDA_NO_PLUGINS=true "$CONDA_EXE" create -f ZebVR.yml --yes
 fi
 
 
