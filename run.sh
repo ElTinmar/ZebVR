@@ -15,15 +15,7 @@ echo "========================================="
 
 # 1. Locate Miniforge/Mamba dynamically
 USER_HOME="$HOME"
-MAMBA_EXE=""
-
-if [ -f "$USER_HOME/miniforge3/bin/mamba" ]; then
-    MAMBA_EXE="$USER_HOME/miniforge3/bin/mamba"
-elif [ -f "$USER_HOME/miniforge3/bin/conda" ]; then
-    MAMBA_EXE="$USER_HOME/miniforge3/bin/conda"
-elif command -v mamba &> /dev/null; then
-    MAMBA_EXE=$(command -v mamba)
-fi
+MAMBA_EXE=$(command -v mamba 2>/dev/null || command -v conda 2>/dev/null || true)
 
 if [ -z "$MAMBA_EXE" ]; then
     echo "[-] Error: Miniforge/Mamba installation not found."
