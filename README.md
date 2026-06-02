@@ -26,6 +26,12 @@ cd ZebVR
 ./install.sh
 ```
 
+
+Run the program with:
+```
+./run.sh
+```
+
 ## Extra Hardware (optional)
 
 - ViewSonic X2-4K projector
