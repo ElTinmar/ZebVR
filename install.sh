@@ -108,14 +108,15 @@ fi
 
 echo "[+] Using Conda binary: $CONDA_EXE"
 
+# We use 'bash -i -c' to force a full interactive login profile load for the real user.
+# This ensures all compiled C++ components for libmamba are successfully mapped in the PATH.
 if "$CONDA_EXE" env list | grep -q "ZebVR"; then
-    echo "[+] Conda environment 'ZebVR' already exists. Updating it..."
-    sudo -u "$REAL_USER" CONDA_NO_PLUGINS=true "$CONDA_EXE" env update -f ZebVR.yml --prune
+    echo "[+] Conda environment 'ZebVR' already exists. Updating it via libmamba..."
+    sudo -u "$REAL_USER" CONDA_NO_PLUGINS=true bash -i -c "conda env update -f ZebVR.yml --prune"
 else
-    echo "[+] Creating ZebVR Conda environment from ZebVR.yml..."
-    sudo -u "$REAL_USER" CONDA_NO_PLUGINS=true "$CONDA_EXE" env create -f ZebVR.yml --yes
+    echo "[+] Creating ZebVR Conda environment from ZebVR.yml via libmamba..."
+    sudo -u "$REAL_USER" CONDA_NO_PLUGINS=true bash -i -c "conda env create -f ZebVR.yml --yes"
 fi
-
 # 7. Optional Hardware Component Installations
 echo "-----------------------------------------"
 echo "Optional Hardware Stack Configuration"
