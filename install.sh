@@ -195,6 +195,7 @@ Type=Application
 Name=ZebVR
 Comment=Launch the ZebVR Virtual Reality System
 Exec=$MAMBA_EXE run -n $ENV_NAME python -m ZebVR
+Path=$REPO_DIR
 Icon=$REPO_DIR/ZebVR/resources/zebvr.png
 Terminal=true
 Categories=Science;Education;Development;
