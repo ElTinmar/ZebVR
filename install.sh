@@ -108,12 +108,16 @@ fi
 
 echo "[+] Using Conda binary: $CONDA_EXE"
 
+# Extract the exact path to your miniconda lib folder dynamically
+CONDA_LIB_PATH="$(dirname "$CONDA_EXE")/../lib"
+
 if "$CONDA_EXE" env list | grep -q "ZebVR"; then
-    echo "[+] Conda environment 'ZebVR' already exists"
-    sudo -u "$REAL_USER" CONDA_NO_PLUGINS=true "$CONDA_EXE" run -n base conda env update -f ZebVR.yml --prune
+    echo "[+] Conda environment 'ZebVR' already exists. Updating it via libmamba..."
+    # Injecting LD_LIBRARY_PATH forces the C++ libmamba backend to link successfully under sudo
+    sudo -u "$REAL_USER" CONDA_NO_PLUGINS=true LD_LIBRARY_PATH="$CONDA_LIB_PATH" "$CONDA_EXE" env update -f ZebVR.yml --prune
 else
-    echo "[+] Creating ZebVR Conda environment from ZebVR.yml"
-    sudo -u "$REAL_USER" CONDA_NO_PLUGINS=true "$CONDA_EXE" run -n base conda env create -f ZebVR.yml --yes
+    echo "[+] Creating ZebVR Conda environment from ZebVR.yml via libmamba..."
+    sudo -u "$REAL_USER" CONDA_NO_PLUGINS=true LD_LIBRARY_PATH="$CONDA_LIB_PATH" "$CONDA_EXE" env create -f ZebVR.yml --yes
 fi
 
 # 7. Optional Hardware Component Installations
