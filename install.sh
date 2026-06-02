@@ -183,6 +183,27 @@ if [ "$install_thor" = "y" ] || [ "$install_thor" = "Y" ]; then
     "$MAMBA_EXE" run -n "$ENV_NAME" python -m thorlabs_ccs.get_firmware
 fi
 
+echo "[+] Creating Linux Desktop Application Entry..."
+
+DESKTOP_ENTRY_DIR="$USER_HOME/.local/share/applications"
+mkdir -p "$DESKTOP_ENTRY_DIR"
+
+cat <<EOF > "$DESKTOP_ENTRY_DIR/zebvr.desktop"
+[Desktop Entry]
+Version=0.1
+Type=Application
+Name=ZebVR
+Comment=Launch the ZebVR Virtual Reality System
+Exec=$MAMBA_EXE run -n $ENV_NAME python -m ZebVR
+Icon=$REPO_DIR/ZebVR/resources/zebvr.png
+Terminal=true
+Categories=Science;Education;Development;
+EOF
+
+# Make the desktop file executable
+chmod +x "$DESKTOP_ENTRY_DIR/zebvr.desktop"
+echo "[+] Desktop entry created! ZebVR will now show up in your system applications menu."
+
 echo "=========================================================================="
 echo "[+] SYSTEM INSTALLATION COMPLETE!"
 echo "=========================================================================="
