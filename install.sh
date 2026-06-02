@@ -130,7 +130,7 @@ fi
 
 echo "[+] Parsed target environment name: '$ENV_NAME'"
 
-if "$MAMBA_EXE" env list --json | grep -q "\"$ENV_NAME\""; then
+if "$MAMBA_EXE" env list --json | grep -q "/$ENV_NAME\""; then
     echo "[+] Conda environment '$ENV_NAME' already exists. Updating..."
     "$MAMBA_EXE" env update -f ZebVR.yml --prune
 else
