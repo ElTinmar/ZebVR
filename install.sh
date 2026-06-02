@@ -21,7 +21,7 @@ USER_HOME=$(eval echo ~$REAL_USER)
 # 2. Install Core System Dependencies via apt
 echo "[+] Installing system dependencies..."
 apt-get update
-apt-get install -y libportaudio2 build-essential libusb-1.0-0-dev innoextract meson ninja-build curl git
+apt-get install -y libportaudio2 build-essential libusb-1.0-0-dev innoextract curl
 
 # 3. Labjack Exodriver Setup
 echo "[+] Checking Labjack Exodriver..."
@@ -40,31 +40,37 @@ else
 fi
 
 # 4. Hardware Permissions & Udev Rules
-echo "[+] Setting up hardware permissions and udev rules..."
+echo "[+] Adding '$REAL_USER' to plugdev and dialout groups..."
 usermod -a -G plugdev,dialout "$REAL_USER"
 
+echo "[+] Writing Thorlabs udev rules..."
 cat << 'EOF' > /etc/udev/rules.d/99-thorlabs.rules
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="1313", GROUP="plugdev", MODE="0666"
 EOF
 
+echo "[+] Reloading udev rules..."
 udevadm control --reload-rules
 udevadm trigger
 
+
 # 5. Locate or Install Conda
 echo "[+] Locating Conda installation..."
+CONDA_EXE=""
 
-# Method A: Try checking the user's environment variable via an interactive login shell
-CONDA_EXE=$(sudo -u "$REAL_USER" -i bash -c 'echo $CONDA_EXE')
-
-# Method B: If empty, try using 'which' in their native login path
+# Method A: Check the user's environment variable via login shell (mute stderr)
 if [ -z "$CONDA_EXE" ]; then
-    USER_WHICH=$(sudo -u "$REAL_USER" -i bash -c 'which conda 2>/dev/null')
+    CONDA_EXE=$(sudo -u "$REAL_USER" -i bash -c 'echo $CONDA_EXE' 2>/dev/null || true)
+fi
+
+# Method B: Use 'command -v' instead of 'which' to prevent set -e crashes
+if [ -z "$CONDA_EXE" ]; then
+    USER_WHICH=$(sudo -u "$REAL_USER" -i bash -c 'command -v conda' 2>/dev/null || true)
     if [ -n "$USER_WHICH" ] && [ -f "$USER_WHICH" ]; then
         CONDA_EXE="$USER_WHICH"
     fi
 fi
 
-# Method C: If still empty, check standard absolute default fallback locations
+# Method C: Check standard absolute default fallback locations
 if [ -z "$CONDA_EXE" ]; then
     if [ -f "$USER_HOME/miniconda3/bin/conda" ]; then
         CONDA_EXE="$USER_HOME/miniconda3/bin/conda"
@@ -76,21 +82,20 @@ fi
 # Method D: If Conda is completely missing, offer to install Miniconda automatically
 if [ -z "$CONDA_EXE" ] || [ ! -f "$CONDA_EXE" ]; then
     echo "[-] Conda was not found on this system."
+    # Redirecting to /dev/tty guarantees the prompt shows up even during weird piping
+    exec </dev/tty
     read -p "[?] Would you like to automatically download and install Miniconda3 for $REAL_USER? (y/n): " install_conda
     
     if [ "$install_conda" = "y" ] || [ "$install_conda" = "Y" ]; then
         echo "[+] Downloading Miniconda installer..."
         MINICONDA_SH="/tmp/Miniconda3-latest-Linux-x86_64.sh"
         
-        # Download as the real user to avoid root file permission restrictions in /tmp
         sudo -u "$REAL_USER" curl -L https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o "$MINICONDA_SH"
         
         echo "[+] Installing Miniconda to $USER_HOME/miniconda3..."
-        # Run installer silently (-b) and accept target path (-p) as the real user
         sudo -u "$REAL_USER" bash "$MINICONDA_SH" -b -p "$USER_HOME/miniconda3"
         rm -f "$MINICONDA_SH"
         
-        # Initialize conda for the user's native bash shell environment
         sudo -u "$REAL_USER" "$USER_HOME/miniconda3/bin/conda" init bash
         
         CONDA_EXE="$USER_HOME/miniconda3/bin/conda"
@@ -103,7 +108,7 @@ fi
 
 echo "[+] Using Conda binary: $CONDA_EXE"
 
-# 6. Create Conda Environment
+# 6. Create or Update Conda Environment
 if "$CONDA_EXE" env list | grep -q "ZebVR"; then
     echo "[+] Conda environment 'ZebVR' already exists. Updating it instead..."
     sudo -u "$REAL_USER" "$CONDA_EXE" env update -f ZebVR.yml --prune
@@ -116,6 +121,7 @@ fi
 echo "-----------------------------------------"
 echo "Optional Hardware Stack Configuration"
 echo "-----------------------------------------"
+exec </dev/tty
 
 # --- XIMEA Setup ---
 read -p "[?] Do you want to install XIMEA Camera drivers & bindings? (y/n): " install_ximea
@@ -124,7 +130,6 @@ if [ "$install_ximea" = "y" ] || [ "$install_ximea" = "Y" ]; then
     sudo -u "$REAL_USER" "$CONDA_EXE" run -n ZebVR python scripts/setup_ximea.py
     sudo -u "$REAL_USER" "$CONDA_EXE" run -n ZebVR python scripts/setup_spinnaker.py
     
-    # Configure automated driver maintenance service
     if [ -f "install_ximea_systemd_service.sh" ]; then
         echo "[+] Configuring automated XIMEA systemd maintenance service..."
         chmod +x install_ximea_systemd_service.sh
@@ -138,7 +143,6 @@ fi
 read -p "[?] Do you want to compile and install Aravis (GigE/USB3 cameras)? (y/n): " install_aravis
 if [ "$install_aravis" = "y" ] || [ "$install_aravis" = "Y" ]; then
     echo "[+] Building Aravis from source..."
-    # Extract the absolute path of the environment's prefix directory safely
     CONDA_PREFIX_DIR=$(sudo -u "$REAL_USER" "$CONDA_EXE" run -n ZebVR python -c "import os; print(os.environ['CONDA_PREFIX'])")
     
     sudo -u "$REAL_USER" git clone https://github.com/AravisProject/aravis.git
