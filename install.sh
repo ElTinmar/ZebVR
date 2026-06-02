@@ -110,12 +110,12 @@ echo "[+] Using Conda binary: $CONDA_EXE"
 
 if "$CONDA_EXE" env list | grep -q "ZebVR"; then
     echo "[+] Conda environment 'ZebVR' already exists. Updating it..."
-    # Inline env variables are isolated to THIS command only; they don't touch global config
-    sudo -u "$REAL_USER" CONDA_CHANNELS="conda-forge" "$CONDA_EXE" env update -f ZebVR.yml --prune
+    # CONDARC=/dev/null forces conda to ignore global configs and ToS blocks entirely
+    sudo -u "$REAL_USER" CONDARC=/dev/null CONDA_CHANNELS="conda-forge" "$CONDA_EXE" env update -f ZebVR.yml --prune
 else
     echo "[+] Creating ZebVR Conda environment from ZebVR.yml..."
-    # This forces this specific execution to see ONLY conda-forge, bypassing global ToS checks
-    sudo -u "$REAL_USER" CONDA_CHANNELS="conda-forge" "$CONDA_EXE" env create -f ZebVR.yml --yes
+    # This completely isolates the creation command from the host's global ~/.condarc
+    sudo -u "$REAL_USER" CONDARC=/dev/null CONDA_CHANNELS="conda-forge" "$CONDA_EXE" env create -f ZebVR.yml --yes
 fi
 
 # 7. Optional Hardware Component Installations
