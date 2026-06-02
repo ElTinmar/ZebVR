@@ -79,7 +79,7 @@ if [ -z "$MAMBA_EXE" ] && [ -f "$USER_HOME/miniforge3/bin/conda" ]; then
 fi
 
 # Method D: If Miniforge is completely missing, offer to install it automatically
-if [ -z "$MAMBAR_EXE" ] || [ ! -f "$MAMBA_EXE" ]; then
+if [ -z "$MAMBA_EXE" ] || [ ! -f "$MAMBA_EXE" ]; then
     echo "[-] Miniforge was not found on this system."
     # Redirecting to /dev/tty guarantees interactive prompting works smoothly
     exec </dev/tty
