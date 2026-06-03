@@ -27,7 +27,7 @@ git clone https://github.com/ElTinmar/ZebVR.git
 cd ZebVR
 ./install.sh
 ```
-
+Then reboot the computer.
 
 Run the program with:
 ```
@@ -51,7 +51,7 @@ However, for demonstration/testing purposes, the program can be run using a vide
 
 
 In the camera tab, select `MOVIE` in the dropdown menu, then click on `Load file`
-An example movie is provided in `example/4_fish.mp4`
+An example movie is provided in `example/4_fish.mp4`.
 
 ## Instructions for use
 
