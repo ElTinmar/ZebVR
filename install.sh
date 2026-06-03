@@ -3,6 +3,41 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# ==========================================================================
+# 0. Configuration Defaults & Argument Parsing
+# ==========================================================================
+INSTALL_SYS_DEPS=true
+INSTALL_XIMEA=false
+INSTALL_ARAVIS=false
+INSTALL_THORLABS=false
+AUTO_YES=false
+
+show_help() {
+    echo "Usage: ./install.sh [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --skip-sys-deps   Skip apt-get system dependency installation"
+    echo "  --with-ximea      Install XIMEA camera drivers & bindings"
+    echo "  --with-aravis     Compile and install Aravis (GigE/USB3 cameras)"
+    echo "  --with-thorlabs   Fetch Thorlabs Spectrophotometer firmware"
+    echo "  -y, --yes         Skip all interactive prompts (assume yes)"
+    echo "  -h, --help        Show this help menu"
+    exit 0
+}
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --skip-sys-deps) INSTALL_SYS_DEPS=false ;;
+        --with-ximea)     INSTALL_XIMEA=true ;;
+        --with-aravis)    INSTALL_ARAVIS=true ;;
+        --with-thorlabs)  INSTALL_THORLABS=true ;;
+        -y|--yes)         AUTO_YES=true ;;
+        -h|--help)        show_help ;;
+        *) echo "[-] Unknown parameter: $1"; show_help; exit 1 ;;
+    esac
+    shift
+done
+
 echo "========================================="
 echo "       ZebVR Installation Script        "
 echo "========================================="
@@ -21,9 +56,13 @@ USER_HOME="$HOME"
 REPO_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # 2. Install Core System Dependencies via apt
-echo "[+] Installing system dependencies (may prompt for sudo password)..."
-sudo apt-get update
-sudo apt-get install -y libportaudio2 build-essential libusb-1.0-0-dev innoextract curl python3-yaml
+if [ "$INSTALL_SYS_DEPS" = "true" ]; then
+    echo "[+] Installing system dependencies (may prompt for sudo password)..."
+    sudo apt-get update
+    sudo apt-get install -y libportaudio2 build-essential libusb-1.0-0-dev innoextract curl python3-yaml
+else
+    echo "[+] Skipping core system dependencies (--skip-sys-deps passed)."
+fi
 
 # 3. Labjack Exodriver Setup
 echo "[+] Checking Labjack Exodriver..."
@@ -68,9 +107,15 @@ fi
 # If conda/mamba is completely missing, offer to install it automatically
 if [ -z "$MAMBA_EXE" ] || [ ! -f "$MAMBA_EXE" ]; then
     echo "[-] conda/mamba was not found on this system."
-    # Redirecting to /dev/tty guarantees interactive prompting works smoothly
-    exec </dev/tty
-    read -p "[?] Would you like to automatically download and install Miniforge3 for $REAL_USER? (y/n): " install_miniforge
+    
+    install_miniforge="n"
+    if [ "$AUTO_YES" = "true" ]; then
+        install_miniforge="y"
+    else
+        # Redirecting to /dev/tty guarantees interactive prompting works smoothly
+        exec </dev/tty
+        read -p "[?] Would you like to automatically download and install Miniforge3 for $REAL_USER? (y/n): " install_miniforge
+    fi
     
     if [ "$install_miniforge" = "y" ] || [ "$install_miniforge" = "Y" ]; then
         echo "[+] Downloading Miniforge installer..."
@@ -115,10 +160,16 @@ if [ -z "$ENV_NAME" ]; then
 fi
 
 echo "[+] Parsed target environment name: '$ENV_NAME'"
-exec </dev/tty
 
 if "$MAMBA_EXE" env list --json | grep -q "/$ENV_NAME\""; then
-    read -p "[?] Conda environment '$ENV_NAME' already exists. Would you like to update/repair it using ZebVR.yml? (y/n): " update_env
+    update_env="n"
+    if [ "$AUTO_YES" = "true" ]; then
+        update_env="y"
+    else
+        exec </dev/tty
+        read -p "[?] Conda environment '$ENV_NAME' already exists. Would you like to update/repair it using ZebVR.yml? (y/n): " update_env
+    fi
+
     if [ "$update_env" = "y" ] || [ "$update_env" = "Y" ]; then
         echo "[+] Updating environment '$ENV_NAME'..."
         "$MAMBA_EXE" env update -f ZebVR.yml --prune
@@ -131,15 +182,19 @@ else
 fi
 
 # --- XIMEA Setup ---
-read -p "[?] Do you want to install XIMEA Camera drivers & bindings? (y/n): " install_ximea
-if [ "$install_ximea" = "y" ] || [ "$install_ximea" = "Y" ]; then
+if [ "$INSTALL_XIMEA" = "false" ] && [ "$AUTO_YES" = "false" ]; then
+    exec </dev/tty
+    read -p "[?] Do you want to install XIMEA Camera drivers & bindings? (y/n): " prompt_ximea
+    if [[ "$prompt_ximea" =~ ^[Yy]$ ]]; then INSTALL_XIMEA=true; fi
+fi
+
+if [ "$INSTALL_XIMEA" = "true" ]; then
     echo "[+] Running XIMEA setup scripts..."
     "$MAMBA_EXE" run -n "$ENV_NAME" python scripts/setup_ximea.py
     
     if [ -f "install_ximea_systemd_service.sh" ]; then
         echo "[+] Configuring automated XIMEA systemd maintenance service..."
         chmod +x install_ximea_systemd_service.sh
-        # Systemd service registration requires root privileges
         sudo ./install_ximea_systemd_service.sh
     else
         echo "[-] Warning: install_ximea_systemd_service.sh not found. Skipping service setup."
@@ -147,8 +202,13 @@ if [ "$install_ximea" = "y" ] || [ "$install_ximea" = "Y" ]; then
 fi
 
 # --- Aravis Setup ---
-read -p "[?] Do you want to compile and install Aravis (GigE/USB3 cameras)? (y/n): " install_aravis
-if [ "$install_aravis" = "y" ] || [ "$install_aravis" = "Y" ]; then
+if [ "$INSTALL_ARAVIS" = "false" ] && [ "$AUTO_YES" = "false" ]; then
+    exec </dev/tty
+    read -p "[?] Do you want to compile and install Aravis (GigE/USB3 cameras)? (y/n): " prompt_aravis
+    if [[ "$prompt_aravis" =~ ^[Yy]$ ]]; then INSTALL_ARAVIS=true; fi
+fi
+
+if [ "$INSTALL_ARAVIS" = "true" ]; then
     echo "[+] Building Aravis from source..."
     CONDA_PREFIX_DIR=$("$MAMBA_EXE" run -n "$ENV_NAME" python -c "import os; print(os.environ['CONDA_PREFIX'])")
     
@@ -162,14 +222,19 @@ if [ "$install_aravis" = "y" ] || [ "$install_aravis" = "Y" ]; then
 fi
 
 # --- Thorlabs Firmware ---
-read -p "[?] Do you want to fetch Thorlabs Spectrophotometer firmware? (y/n): " install_thor
-if [ "$install_thor" = "y" ] || [ "$install_thor" = "Y" ]; then
+if [ "$INSTALL_THORLABS" = "false" ] && [ "$AUTO_YES" = "false" ]; then
+    exec </dev/tty
+    read -p "[?] Do you want to fetch Thorlabs Spectrophotometer firmware? (y/n): " prompt_thor
+    if [[ "$prompt_thor" =~ ^[Yy]$ ]]; then INSTALL_THORLABS=true; fi
+fi
+
+if [ "$INSTALL_THORLABS" = "true" ]; then
     echo "[+] Downloading Thorlabs firmware..."
     "$MAMBA_EXE" run -n "$ENV_NAME" python -m thorlabs_ccs.get_firmware
 fi
 
+# --- Desktop Entry Entry ---
 echo "[+] Creating Linux Desktop Application Entry..."
-
 DESKTOP_ENTRY_DIR="$USER_HOME/.local/share/applications"
 mkdir -p "$DESKTOP_ENTRY_DIR"
 
@@ -186,9 +251,13 @@ Terminal=true
 Categories=Science;Education;Development;
 EOF
 
-# Make the desktop file executable
 chmod +x "$DESKTOP_ENTRY_DIR/zebvr.desktop"
 echo "[+] Desktop entry created! ZebVR will now show up in your system applications menu."
+
+# ==========================================================================
+# Final Status Display
+# ==========================================================================
+MAMBA_BIN_NAME=$(basename "$MAMBA_EXE")
 
 echo "=========================================================================="
 echo "[+] SYSTEM INSTALLATION COMPLETE!"
@@ -199,5 +268,5 @@ echo "    permissions (plugdev/dialout) to take effect."
 echo " 2. If you installed XIMEA drivers, Secure Boot might need to be"
 echo "    disabled in your system BIOS if the kernel module fails to load."
 echo " 3. To activate this specific branch environment, run:"
-echo "    `basename $MAMBA_EXE` activate $ENV_NAME"
+echo "    $MAMBA_BIN_NAME activate $ENV_NAME"
 echo "=========================================================================="
