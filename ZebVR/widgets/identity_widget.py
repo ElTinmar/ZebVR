@@ -212,7 +212,21 @@ class IdentityWidget(QWidget):
 
     def on_change(self) -> None:
         self.set_image(self.image)
-    
+
+    def reset(self) -> None:
+        self.row.setValue(1)
+        self.col.setValue(1)
+        self.height.setValue(self.image.shape[0])
+        self.width.setValue(self.image.shape[1])
+        self.offsetX.setValue(0)
+        self.offsetY.setValue(0)
+        self.marginX.setValue(0)
+        self.marginY.setValue(0)
+        self.centroid_X.setValue(0)
+        self.centroid_Y.setValue(0)
+        self.rotation.setValue(0)
+        self.axes = np.array([[1.0, 0.0], [0.0, 1.0]])
+
     def set_image(self, image: NDArray) -> None:
 
         self.block_all_signals(True)
