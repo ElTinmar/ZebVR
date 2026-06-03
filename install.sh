@@ -199,20 +199,23 @@ fi
 
 if [ "$INSTALL_XIMEA" = "true" ]; then
     echo "[+] Running XIMEA setup scripts..."
-
-    XIMEA_FLAGS=""
-    if [ "$AUTO_YES" = "true" ]; then
-        XIMEA_FLAGS="-y"
-    fi
-
-    "$MAMBA_EXE" run -n "$ENV_NAME" python scripts/setup_ximea.py $XIMEA_FLAGS
     
-    if [ -f "install_ximea_systemd_service.sh" ]; then
-        echo "[+] Configuring automated XIMEA systemd maintenance service..."
-        chmod +x install_ximea_systemd_service.sh
-        sudo ./install_ximea_systemd_service.sh
+    XIMEA_FLAGS=""
+    if [ "$AUTO_YES" = "true" ]; then XIMEA_FLAGS="-y"; fi
+
+    # Using '||' allows us to handle the error instead of crashing
+    if "$MAMBA_EXE" run -n "$ENV_NAME" python scripts/setup_ximea.py $XIMEA_FLAGS; then
+        if [ -f "install_ximea_systemd_service.sh" ]; then
+            echo "[+] Configuring automated XIMEA systemd maintenance service..."
+            chmod +x install_ximea_systemd_service.sh
+            sudo ./install_ximea_systemd_service.sh || echo "[-] Warning: Systemd service setup failed."
+        fi
+        echo "[+] XIMEA setup completed successfully."
     else
-        echo "[-] Warning: install_ximea_systemd_service.sh not found. Skipping service setup."
+        echo "=========================================================================="
+        echo "[-] WARNING: XIMEA driver installation failed!"
+        echo "    ZebVR will still work, but XIMEA cameras won't be available."
+        echo "=========================================================================="
     fi
 fi
 
@@ -221,6 +224,35 @@ if [ "$INSTALL_ARAVIS" = "false" ] && [ "$AUTO_YES" = "false" ]; then
     exec </dev/tty
     read -p "[?] Do you want to compile and install Aravis (GigE/USB3 cameras)? (y/n): " prompt_aravis
     if [[ "$prompt_aravis" =~ ^[Yy]$ ]]; then INSTALL_ARAVIS=true; fi
+fi
+
+if [ "$INSTALL_ARAVIS" = "true" ]; then
+    echo "[+] Building Aravis from source..."
+    CONDA_PREFIX_DIR=$("$MAMBA_EXE" run -n "$ENV_NAME" python -c "import os; print(os.environ['CONDA_PREFIX'])")
+    
+    # Wrap the compilation in a subshell block so meson/ninja errors don't trigger 'set -e'
+    (
+        set -e # Keep strict inside the subshell to stop building if a compilation step fails
+        git clone https://github.com/AravisProject/aravis.git
+        cd aravis
+        "$MAMBA_EXE" run -n "$ENV_NAME" meson setup build --prefix="$CONDA_PREFIX_DIR" -Dintrospection=enabled -Dviewer=disabled -Dtests=true --libdir=lib
+        "$MAMBA_EXE" run -n "$ENV_NAME" ninja -C build install
+        cd ..
+        rm -rf aravis
+    )
+
+    # Check the exit status of the subshell block we just ran
+    if [ $? -eq 0 ]; then
+        echo "[+] Aravis successfully compiled into active Conda environment."
+    else
+        echo "=========================================================================="
+        echo "[-] WARNING: Aravis compilation failed!"
+        echo "    GigE/USB3 industrial cameras using Aravis will not be supported."
+        echo "    Make sure you have all build dependencies installed."
+        echo "=========================================================================="
+        # Clean up the directory if it got left behind during a mid-build failure
+        rm -rf aravis 2>/dev/null
+    fi
 fi
 
 if [ "$INSTALL_ARAVIS" = "true" ]; then
@@ -246,7 +278,14 @@ fi
 
 if [ "$INSTALL_THORLABS" = "true" ]; then
     echo "[+] Downloading Thorlabs firmware..."
-    "$MAMBA_EXE" run -n "$ENV_NAME" python -m thorlabs_ccs.get_firmware
+    if "$MAMBA_EXE" run -n "$ENV_NAME" python -m thorlabs_ccs.get_firmware; then
+        echo "[+] Thorlabs firmware successfully downloaded."
+    else
+        echo "=========================================================================="
+        echo "[-] WARNING: Failed to fetch Thorlabs Spectrophotometer firmware!"
+        echo "    Check your internet connection or the 'thorlabs_ccs' package."
+        echo "=========================================================================="
+    fi
 fi
 
 # --- Desktop Entry Entry ---
