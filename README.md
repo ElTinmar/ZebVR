@@ -12,7 +12,7 @@ Add screenshots of the GUI
 ## System requirements
 
 This program has been tested on Ubuntu 22.04/24.04. It should run on debian-based 
-distributions.
+distributions (apt package manager, systemd).
 It should also run on Windows 10/11 but hasn't been extensively tested, and full
 installation instructions on Windows are not listed here.
 We recommend using a modern multicore machine with at least 32GB of RAM.
