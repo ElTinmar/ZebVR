@@ -62,7 +62,7 @@ echo "[+] Locating Miniforge installation..."
 MAMBA_EXE=""
 
 # Method A: Use 'command -v' to see if mamba is already in the user's path
-USER_WHICH=$(command -v mamba 2>/dev/null || true)
+USER_WHICH=$(command -v mamba 2>/dev/null || command -v conda 2>/dev/null || true)
 if [ -n "$USER_WHICH" ] && [ -f "$USER_WHICH" ]; then
     MAMBA_EXE="$USER_WHICH"
 fi
