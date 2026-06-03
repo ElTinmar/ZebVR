@@ -127,7 +127,7 @@ if [ -z "$MAMBA_EXE" ] || [ ! -f "$MAMBA_EXE" ]; then
         bash "$MINIFORGE_SH" -b -p "$USER_HOME/miniforge3"
         rm -f "$MINIFORGE_SH"
         
-        "$USER_HOME/miniforge3/bin/mamba" init bash
+        "$USER_HOME/miniforge3/bin/conda" init bash
         
         MAMBA_EXE="$USER_HOME/miniforge3/bin/mamba"
         echo "[+] Miniforge successfully installed!"
