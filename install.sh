@@ -56,32 +56,18 @@ echo "[+] Reloading udev rules..."
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 
-
-# 5. Locate or Install Miniforge (Mamba/Conda)
-echo "[+] Locating Miniforge installation..."
+# 5. Locate or Install Mamba/Conda
+echo "[+] Locating mamba / conda installation..."
 MAMBA_EXE=""
 
-# Method A: Use 'command -v' to see if mamba is already in the user's path
 USER_WHICH=$(command -v mamba 2>/dev/null || command -v conda 2>/dev/null || true)
 if [ -n "$USER_WHICH" ] && [ -f "$USER_WHICH" ]; then
     MAMBA_EXE="$USER_WHICH"
 fi
 
-# Method B: Check standard absolute default user directories for Miniforge
-if [ -z "$MAMBA_EXE" ]; then
-    if [ -f "$USER_HOME/miniforge3/bin/mamba" ]; then
-        MAMBA_EXE="$USER_HOME/miniforge3/bin/mamba"
-    fi
-fi
-
-# Method C: Fallback to conda inside miniforge if mamba wrapper isn't explicitly targeted
-if [ -z "$MAMBA_EXE" ] && [ -f "$USER_HOME/miniforge3/bin/conda" ]; then
-    MAMBA_EXE="$USER_HOME/miniforge3/bin/conda"
-fi
-
-# Method D: If Miniforge is completely missing, offer to install it automatically
+# If conda/mamba is completely missing, offer to install it automatically
 if [ -z "$MAMBA_EXE" ] || [ ! -f "$MAMBA_EXE" ]; then
-    echo "[-] Miniforge was not found on this system."
+    echo "[-] conda/mamba was not found on this system."
     # Redirecting to /dev/tty guarantees interactive prompting works smoothly
     exec </dev/tty
     read -p "[?] Would you like to automatically download and install Miniforge3 for $REAL_USER? (y/n): " install_miniforge
@@ -107,8 +93,7 @@ if [ -z "$MAMBA_EXE" ] || [ ! -f "$MAMBA_EXE" ]; then
     fi
 fi
 
-echo "[+] Using Miniforge binary: $MAMBA_EXE"
-
+echo "[+] Using conda/mamba binary: $MAMBA_EXE"
 
 # 6. Parse dynamic Environment Name from ZebVR.yml & Create/Update Environment
 if [ ! -f "ZebVR.yml" ]; then
