@@ -7,6 +7,7 @@ from typing import Dict
 from enum import Enum
 from array import array
 from enum import Enum
+from collections import deque
 
 import cv2
 import numpy as np
@@ -53,17 +54,21 @@ from .widgets import (
 from .utils import append_timestamp_to_filename, serialize
 from .dags import closed_loop, open_loop, video_recording, tracking
 
+def make_json_safe(obj, exclude_keys, current_path=""):
 
-def make_json_safe(obj, exclude_keys):
     if isinstance(obj, dict):
-        return {
-            k: make_json_safe(v, exclude_keys) 
-            for k, v in obj.items() 
-            if k not in exclude_keys and not callable(v)
-        }
+        cleaned_dict = {}
+        for k, v in obj.items():
+            next_path = f"{current_path}.{k}" if current_path else k
+            if next_path in exclude_keys or k in exclude_keys:
+                continue
+            if callable(v):
+                continue
+            cleaned_dict[k] = make_json_safe(v, exclude_keys, next_path)
+        return cleaned_dict
     
-    elif isinstance(obj, (list, tuple)):
-        return [make_json_safe(item, exclude_keys) for item in obj]
+    elif isinstance(obj, (list, tuple, deque)):
+        return [make_json_safe(item, exclude_keys, current_path) for item in obj]
     
     elif isinstance(obj, Path):
         return obj.as_posix()
@@ -384,13 +389,14 @@ class MainGui(QMainWindow):
         filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', 'VR Settings (*.vr)')
         filename_correct_ext = Path(filename).with_suffix('.vr')
 
+        # these are non serializable objects
         exclude_keys = {
-            'camera_constructor',
-            'powermeter_constructor',
-            'powermeters',
-            'spectrometer_constructor',
-            'spectrometers',
-            'protocol',
+            'camera.camera_constructor',
+            'projector.light_analysis.powermeter.powermeter_constructor',
+            'projector.light_analysis.powermeter.powermeters',
+            'projector.light_analysis.spectrometer.spectrometer_constructor',
+            'projector.light_analysis.spectrometer.spectrometers',
+            'sequencer.protocol',
             'daq'
         }
         clean_state = make_json_safe(state, exclude_keys)
