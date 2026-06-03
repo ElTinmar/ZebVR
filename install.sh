@@ -11,6 +11,7 @@ INSTALL_XIMEA=false
 INSTALL_ARAVIS=false
 INSTALL_THORLABS=false
 AUTO_YES=false
+INSTALL_ALL=false
 
 show_help() {
     echo "Usage: ./install.sh [OPTIONS]"
@@ -20,6 +21,7 @@ show_help() {
     echo "  --with-ximea      Install XIMEA camera drivers & bindings"
     echo "  --with-aravis     Compile and install Aravis (GigE/USB3 cameras)"
     echo "  --with-thorlabs   Fetch Thorlabs Spectrophotometer firmware"
+    echo "  --all             Install all optional hardware components (XIMEA, Aravis, Thorlabs)"
     echo "  -y, --yes         Skip all interactive prompts (assume yes)"
     echo "  -h, --help        Show this help menu"
     exit 0
@@ -31,12 +33,19 @@ while [[ "$#" -gt 0 ]]; do
         --with-ximea)     INSTALL_XIMEA=true ;;
         --with-aravis)    INSTALL_ARAVIS=true ;;
         --with-thorlabs)  INSTALL_THORLABS=true ;;
+        --all)            INSTALL_ALL=true ;; 
         -y|--yes)         AUTO_YES=true ;;
         -h|--help)        show_help ;;
         *) echo "[-] Unknown parameter: $1"; show_help; exit 1 ;;
     esac
     shift
 done
+
+if [ "$INSTALL_ALL" = "true" ]; then
+    INSTALL_XIMEA=true
+    INSTALL_ARAVIS=true
+    INSTALL_THORLABS=true
+fi
 
 echo "========================================="
 echo "       ZebVR Installation Script        "
