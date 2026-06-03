@@ -1,11 +1,12 @@
 name: ZebVR_stable
 channels:
 - conda-forge
+- nodefaults
 dependencies:
 - python >= 3.8, <3.14
 - ipython
 - qtpy
-- pyqt > 6.0 
+- pyqt6
 - numpy
 - vispy
 - pip

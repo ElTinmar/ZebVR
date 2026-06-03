@@ -20,9 +20,10 @@ def parse_arguments():
     parser.add_argument("--only-sdk", action="store_true", help="Only install SDK (skip Python bindings)")
     parser.add_argument("--only-python", action="store_true", help="Only install Python bindings (skip SDK)")
     parser.add_argument("--no-cleanup", action="store_true", help="Do not delete downloaded/extracted files after install")
+    parser.add_argument("-y", "--yes", action="store_true", help="Skip interactive environment verification prompts")
     return parser.parse_args()
 
-def check_conda_environment():
+def check_conda_environment(auto_yes=False): 
     conda_prefix = os.environ.get("CONDA_PREFIX")
     if not conda_prefix:
         print("Conda environment not active. Please run:")
@@ -32,9 +33,13 @@ def check_conda_environment():
     env_name = os.path.basename(conda_prefix)
     if env_name != EXPECTED_ENV_NAME:
         print(f"Warning: Active conda environment is '{env_name}', expected '{EXPECTED_ENV_NAME}'")
-        proceed = input("Continue anyway? [y/N] ").strip().lower()
-        if proceed != "y":
-            sys.exit(1)
+        
+        if auto_yes:
+            print("[+] Running in automated mode. Bypassing confirmation prompt.")
+        else:
+            proceed = input("Continue anyway? [y/N] ").strip().lower()
+            if proceed != "y":
+                sys.exit(1)
     
     print(f"Conda environment '{env_name}' is active.")
     return conda_prefix
@@ -83,7 +88,7 @@ if __name__ == "__main__":
 
     conda_prefix = None
     if not args.only_sdk:
-        conda_prefix = check_conda_environment()
+        conda_prefix = check_conda_environment(auto_yes=args.yes)
 
     try:
         download_sdk()
