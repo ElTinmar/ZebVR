@@ -199,7 +199,13 @@ fi
 
 if [ "$INSTALL_XIMEA" = "true" ]; then
     echo "[+] Running XIMEA setup scripts..."
-    "$MAMBA_EXE" run -n "$ENV_NAME" python scripts/setup_ximea.py
+
+    XIMEA_FLAGS=""
+    if [ "$AUTO_YES" = "true" ]; then
+        XIMEA_FLAGS="-y"
+    fi
+
+    "$MAMBA_EXE" run -n "$ENV_NAME" python scripts/setup_ximea.py $XIMEA_FLAGS
     
     if [ -f "install_ximea_systemd_service.sh" ]; then
         echo "[+] Configuring automated XIMEA systemd maintenance service..."
@@ -223,8 +229,9 @@ if [ "$INSTALL_ARAVIS" = "true" ]; then
     
     git clone https://github.com/AravisProject/aravis.git
     cd aravis
-    meson setup build --prefix="$CONDA_PREFIX_DIR" -Dintrospection=enabled -Dviewer=disabled -Dtests=true --libdir=lib
-    ninja -C build install
+
+    "$MAMBA_EXE" run -n "$ENV_NAME" meson setup build --prefix="$CONDA_PREFIX_DIR" -Dintrospection=enabled -Dviewer=disabled -Dtests=true --libdir=lib
+    "$MAMBA_EXE" run -n "$ENV_NAME" ninja -C build install
     cd ..
     rm -rf aravis
     echo "[+] Aravis successfully compiled into active Conda environment."
