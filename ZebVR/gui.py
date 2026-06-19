@@ -180,6 +180,17 @@ class MainGui(QMainWindow):
         self.top_buttons.setExclusive(True)
         self.top_buttons.buttonClicked.connect(self.top_button_changed)
 
+        self.headembedded_buttons_container = QWidget()
+        self.freely_swimming_button = QPushButton('Freely swimming')
+        self.freely_swimming_button.setCheckable(True)
+        self.head_embedded_button = QPushButton('Head embedded')
+        self.head_embedded_button.setCheckable(True)
+        self.headembedded_buttons = QButtonGroup()
+        self.headembedded_buttons.addButton(self.freely_swimming_button)
+        self.headembedded_buttons.addButton(self.head_embedded_button)
+        self.headembedded_buttons.setExclusive(True)
+        self.headembedded_buttons.buttonClicked.connect(self.update_main_settings)
+
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.West)
         self.tabs.addTab(self.camera_widget, "Camera")
@@ -233,6 +244,7 @@ class MainGui(QMainWindow):
         file_menu.addAction(save_action)
 
         self.close_loop_button.click()
+        self.freely_swimming_button.click()
 
         self.process_timer = QTimer(self)
 
@@ -247,6 +259,10 @@ class MainGui(QMainWindow):
         top_buttons.addWidget(self.open_loop_button)
         top_buttons.addWidget(self.video_recording_button)
         #top_buttons.addWidget(self.tracking_button)
+
+        headembedded_buttons_layout = QHBoxLayout(self.headembedded_buttons_container)
+        headembedded_buttons_layout.addWidget(self.freely_swimming_button)
+        headembedded_buttons_layout.addWidget(self.head_embedded_button)
         
         controls = QHBoxLayout()
         controls.addWidget(self.start_button)
@@ -258,6 +274,7 @@ class MainGui(QMainWindow):
 
         layout = QVBoxLayout(self.main_widget)
         layout.addLayout(top_buttons)
+        layout.addWidget(self.headembedded_buttons_container)
         layout.addWidget(self.tabs)
         layout.addLayout(controls)
         layout.addLayout(record)
@@ -291,7 +308,7 @@ class MainGui(QMainWindow):
             ]
 
             widgets_to_hide = []
-
+            self.headembedded_buttons_container.setVisible(True)
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
             self.settings_widget.set_tracking_visible(True)
             self.settings_widget.force_videorecording(False)
@@ -314,7 +331,7 @@ class MainGui(QMainWindow):
             ]
 
             widgets_to_hide = []
-
+            self.headembedded_buttons_container.setVisible(False)
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
             self.settings_widget.set_tracking_visible(False)
             self.settings_widget.force_videorecording(False)
@@ -339,6 +356,7 @@ class MainGui(QMainWindow):
                 self.sequencer_widget
             ]
 
+            self.headembedded_buttons_container.setVisible(False)
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
             self.settings_widget.set_tracking_visible(False)
             self.settings_widget.force_videorecording(True)
@@ -363,6 +381,7 @@ class MainGui(QMainWindow):
                 self.sequencer_widget
             ]
 
+            self.headembedded_buttons_container.setVisible(False)
             self.set_tab_visibililty(widgets_to_show, widgets_to_hide)
             self.settings_widget.set_tracking_visible(True)
             self.settings_widget.force_videorecording(False)
@@ -409,6 +428,7 @@ class MainGui(QMainWindow):
         self.close_loop_button.setChecked(state['close_loop'])
         self.video_recording_button.setChecked(state['video_recording'])
         self.tracking_button.setChecked(state['tracking'])
+        #self.head_embedded_button.setChecked(state['head_embedded']) # FIXME?
 
     def set_state(self, state: Dict) -> None:
 
@@ -487,6 +507,7 @@ class MainGui(QMainWindow):
         self.settings['main']['close_loop'] = self.close_loop_button.isChecked()
         self.settings['main']['video_recording'] = self.video_recording_button.isChecked()
         self.settings['main']['tracking'] = self.tracking_button.isChecked()
+        self.settings['main']['head_embedded'] = self.head_embedded_button.isChecked()
 
     def refresh_settings(self):
         self.update_camera_settings()

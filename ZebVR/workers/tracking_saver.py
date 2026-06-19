@@ -76,15 +76,15 @@ class TrackingSaver(WorkerNode):
         try:
             fields = data['tracking'].dtype.names
 
+            if 'animals' in fields:
+                fish_centroid[:] = data['tracking']['animals']['centroids_global']
+
             if 'body' in fields:
                 fish_centroid[:] = data['tracking']['body']['centroid_global']
                 body_axes = data['tracking']['body']['body_axes_global']
                 fish_caudorostral_axis[:] = body_axes[:,0]
                 fish_mediolateral_axis[:] = body_axes[:,1]
-            else:
-                fish_centroid[:] = data['tracking']['animals']['centroids_global']
-
-
+               
             if 'eyes' in fields:
 
                 if data['tracking']['eyes']['left_eye'] is not None:

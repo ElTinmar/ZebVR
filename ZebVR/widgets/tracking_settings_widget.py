@@ -18,7 +18,7 @@ from qt_widgets import (
 )
 import json
 from pathlib import Path
-from numpy import pi
+from numpy import pi, deg2rad, rad2deg
 
 class Animal(QWidget):
 
@@ -1199,49 +1199,49 @@ class HeadEmbeddedTrackerWidget(QWidget):
         self.centroid_x_px.setRange(0,self.image_shape[1])
         self.centroid_x_px.setSingleStep(1)
         self.centroid_x_px.setValue(0)
-        self.centroid_x_px.valueChanged.connect(self.state_changed)
+        self.centroid_x_px.valueChanged.connect(self.on_change)
 
         self.centroid_y_px = LabeledSpinBox()
         self.centroid_y_px.setText('centroid Y (px)')
         self.centroid_y_px.setRange(0,self.image_shape[0])
         self.centroid_y_px.setSingleStep(1)
         self.centroid_y_px.setValue(0)
-        self.centroid_y_px.valueChanged.connect(self.state_changed)
+        self.centroid_y_px.valueChanged.connect(self.on_change)
 
-        self.heading_angle_rad = LabeledDoubleSpinBox()
-        self.heading_angle_rad.setText('heading angle (rad)')
-        self.heading_angle_rad.setRange(0,2*pi)
-        self.heading_angle_rad.setSingleStep(pi/360) # 0.5 deg
-        self.heading_angle_rad.setValue(0)
-        self.heading_angle_rad.valueChanged.connect(self.state_changed)
+        self.heading_angle_deg = LabeledDoubleSpinBox()
+        self.heading_angle_deg.setText('heading angle (deg)')
+        self.heading_angle_deg.setRange(0,360)
+        self.heading_angle_deg.setSingleStep(0.25) 
+        self.heading_angle_deg.setValue(0)
+        self.heading_angle_deg.valueChanged.connect(self.on_change)
 
         self.forward_gain = LabeledDoubleSpinBox()
         self.forward_gain.setText('forward gain ((s/mm)^(1/3))')
         self.forward_gain.setRange(0,1)
         self.forward_gain.setSingleStep(0.001)
         self.forward_gain.setValue(0.08)
-        self.forward_gain.valueChanged.connect(self.state_changed)
+        self.forward_gain.valueChanged.connect(self.on_change)
 
         self.angular_gain = LabeledDoubleSpinBox()
         self.angular_gain.setText('angular gain (rad⋅s/mm^3)')
         self.angular_gain.setRange(0,1)
         self.angular_gain.setSingleStep(0.001)
         self.angular_gain.setValue(0.01)
-        self.angular_gain.valueChanged.connect(self.state_changed)
+        self.angular_gain.valueChanged.connect(self.on_change)
 
         self.time_window_ms = LabeledSpinBox()
         self.time_window_ms.setText('time window (ms)')
         self.time_window_ms.setRange(0,1000)
         self.time_window_ms.setSingleStep(1)
         self.time_window_ms.setValue(30)
-        self.time_window_ms.valueChanged.connect(self.state_changed)
+        self.time_window_ms.valueChanged.connect(self.on_change)
 
         self.smoothing = LabeledDoubleSpinBox()
         self.smoothing.setText('smoothing')
         self.smoothing.setRange(0,1)
         self.smoothing.setSingleStep(0.01)
         self.smoothing.setValue(0)
-        self.smoothing.valueChanged.connect(self.state_changed)
+        self.smoothing.valueChanged.connect(self.on_change)
 
         self.tail = Tail(pix_per_mm=self.pix_per_mm)
         self.tail.state_changed.connect(self.on_change)
@@ -1261,11 +1261,12 @@ class HeadEmbeddedTrackerWidget(QWidget):
         controls = QVBoxLayout()
         controls.addWidget(self.centroid_x_px)
         controls.addWidget(self.centroid_y_px)
-        controls.addWidget(self.heading_angle_rad)
+        controls.addWidget(self.heading_angle_deg)
         controls.addWidget(self.forward_gain)
         controls.addWidget(self.angular_gain)
         controls.addWidget(self.time_window_ms)
         controls.addWidget(self.smoothing)
+        controls.addStretch()
 
         tail = QHBoxLayout()
         tail.addWidget(self.tail)
@@ -1376,9 +1377,9 @@ class HeadEmbeddedTrackerWidget(QWidget):
     def _get_substate(self)-> Dict:
 
         state = {}
-        state['centroid_x_px'] = self.centroid_x_px.value()
-        state['centroid_y_px'] = self.centroid_y_px.value()
-        state['heading_angle_rad'] = self.heading_angle_rad.value()
+        state['centroid_x'] = self.centroid_x_px.value()
+        state['centroid_y'] = self.centroid_y_px.value()
+        state['heading_angle_rad'] = deg2rad(self.heading_angle_deg.value())
         state['forward_gain'] = self.forward_gain.value()
         state['angular_gain'] = self.angular_gain.value()
         state['time_window_ms'] = self.time_window_ms.value()
@@ -1398,9 +1399,9 @@ class HeadEmbeddedTrackerWidget(QWidget):
     def _set_substate(self, id: int, substate: Dict) -> None:
 
         setters = {
-            'centroid_x_px': self.centroid_x_px.setValue,
-            'centroid_y_px': self.centroid_y_px.setValue,
-            'heading_angle_rad': self.heading_angle_rad.setValue,
+            'centroid_x': self.centroid_x_px.setValue,
+            'centroid_y': self.centroid_y_px.setValue,
+            'heading_angle_rad': lambda r: self.heading_angle_deg.setValue(rad2deg(r)),
             'forward_gain': self.forward_gain.setValue,
             'angular_gain': self.angular_gain.setValue,
             'time_window_ms': self.time_window_ms.setValue,

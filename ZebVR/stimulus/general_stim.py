@@ -870,13 +870,14 @@ class GeneralStim(VisualStim):
             fields = data['tracking'].dtype.names
             ID = data['identity']
 
+            if 'animals' in fields:
+                self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroids_global']).squeeze()
+
             if 'body' in fields and data['tracking']['body']['success']:
                 self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body']['centroid_global']).squeeze()
                 body_axes = data['tracking']['body']['body_axes_global']                
                 self.shared_fish_state[ID].fish_caudorostral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze() # TODO: CHECK WHY -1 ? maybe OpenCV vs OpenGL y axis direction?
                 self.shared_fish_state[ID].fish_mediolateral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
-            else:
-                self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroids_global']).squeeze()
 
             # TODO use eyes heading vector if present?
             # eyes
@@ -895,6 +896,25 @@ class GeneralStim(VisualStim):
                 skeleton_interp = self.transformation_matrix.transform_points(data['tracking']['tail']['skeleton_interp_cropped'])
                 self.shared_fish_state[ID].tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
                 self.shared_fish_state[ID].tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
+
+            if 'predicted_x' in fields:
+                centroid = np.array([
+                    data['tracking']['predicted_x'], 
+                    data['tracking']['predicted_y']
+                ])
+                self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(centroid).squeeze()
+                
+                # TODO check this
+                theta = data['tracking']['predicted_theta']
+                body_axes = np.array([
+                    [np.cos(theta), -np.sin(theta)],
+                    [np.sin(theta),  np.cos(theta)]
+                ])
+                self.shared_fish_state[ID].fish_caudorostral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
+                self.shared_fish_state[ID].fish_mediolateral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
+
+                print(centroid, body_axes)
+
 
         except KeyError as err:
             print(f'KeyError: {err}')

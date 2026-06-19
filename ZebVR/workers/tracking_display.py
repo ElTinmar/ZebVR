@@ -76,13 +76,12 @@ class TrackingDisplay(WorkerNode):
                 
                 if state['display_type'] == DisplayType.OVERLAY:
                         
-                    T_downsample = SimilarityTransform2D.scaling(
-                        data['tracking']['animals']['downsample_ratio']
-                    ) 
-
-                    T_offset = SimilarityTransform2D.translation(-data['origin'][0], -data['origin'][1])
-
                     if state['tracker_type'] == TrackerType.MULTI:
+                        T_downsample = SimilarityTransform2D.scaling(
+                            data['tracking']['animals']['downsample_ratio']
+                        ) 
+                        T_offset = SimilarityTransform2D.translation(-data['origin'][0], -data['origin'][1])
+                        
                         image_to_display = self.overlay.overlay_global(
                             data['tracking']['animals']['image_downsampled'], 
                             data['tracking'],
