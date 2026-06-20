@@ -18,14 +18,18 @@ class SharedFishState:
     num_tail_points_interp: int
 
     def __post_init__(self):
-        self.fish_mediolateral_axis = RawArray('f', [0, 0])
-        self.fish_caudorostral_axis = RawArray('f', [0, 0])
+        self.fish_caudorostral_axis = RawArray('f', [0, 1])
+        self.fish_mediolateral_axis = RawArray('f', [1, 0])
         self.fish_centroid = RawArray('f', [0, 0])
         self.left_eye_centroid = RawArray('f', [0, 0])
         self.left_eye_angle = RawValue('f', 0)
         self.right_eye_centroid = RawArray('f', [0, 0])
         self.right_eye_angle = RawValue('f', 0)
         self.tail_points = RawArray('f', 2*self.num_tail_points_interp)
+        self.virtual_centroid = RawArray('f', [0, 0])
+        self.virtual_caudorostral_axis = RawArray('f', [0, 1])
+        self.virtual_mediolateral_axis = RawArray('f', [1, 0])
+        
 
 class SharedStimParameters:
     # TODO add index of fish to follow?
@@ -279,6 +283,9 @@ class GeneralStim(VisualStim):
         uniform vec2 u_fish_centroid[{self.n_animals}];
         uniform vec2 u_fish_caudorostral_axis[{self.n_animals}];
         uniform vec2 u_fish_mediolateral_axis[{self.n_animals}];
+        uniform vec2 u_virtual_centroid[{self.n_animals}];
+        uniform vec2 u_virtual_caudorostral_axis[{self.n_animals}];
+        uniform vec2 u_virtual_mediolateral_axis[{self.n_animals}];
         uniform vec2 u_left_eye_centroid[{self.n_animals}]; 
         uniform float u_left_eye_angle[{self.n_animals}];
         uniform vec2 u_right_eye_centroid[{self.n_animals}];
@@ -627,6 +634,7 @@ class GeneralStim(VisualStim):
         {
             vec2 coordinates_centered_px;
             mat2 change_of_basis;
+            mat2 change_of_basis_virtual;
             vec4 camera_bbox_px;
             vec4 camera_bbox_mm;
 
@@ -659,12 +667,16 @@ class GeneralStim(VisualStim):
                 coordinates_centered_mm = coordinates_mm - proj_bbox_center_mm; 
 
                 // compute fish-centric coordinates 
-                coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
+                coordinates_centered_px = coordinates_px - u_fish_centroid[animal] - u_virtual_centroid[animal];
                 change_of_basis = mat2(
                     u_fish_mediolateral_axis[animal]/length(u_fish_mediolateral_axis[animal]), 
                     u_fish_caudorostral_axis[animal]/length(u_fish_caudorostral_axis[animal])
                 );
-                vec2 fish_ego_coords_px = transpose_mat2(change_of_basis) * coordinates_centered_px;
+                change_of_basis_virtual = mat2(
+                    u_virtual_mediolateral_axis[animal]/length(u_virtual_mediolateral_axis[animal]), 
+                    u_virtual_caudorostral_axis[animal]/length(u_virtual_caudorostral_axis[animal])
+                );
+                vec2 fish_ego_coords_px = transpose_mat2(change_of_basis_virtual) * transpose_mat2(change_of_basis) * coordinates_centered_px;
                 fish_ego_coords_mm = fish_ego_coords_px / u_pix_per_mm_proj;
                 fish_centered_coords_mm = coordinates_centered_px / u_pix_per_mm_proj;
 
@@ -750,6 +762,9 @@ class GeneralStim(VisualStim):
             self.program[f'u_fish_centroid[{i}]'] = self.shared_fish_state[i].fish_centroid[:] 
             self.program[f'u_fish_caudorostral_axis[{i}]'] = self.shared_fish_state[i].fish_caudorostral_axis[:]
             self.program[f'u_fish_mediolateral_axis[{i}]'] = self.shared_fish_state[i].fish_mediolateral_axis[:]
+            self.program[f'u_virtual_centroid[{i}]'] = self.shared_fish_state[i].virtual_centroid[:] 
+            self.program[f'u_virtual_caudorostral_axis[{i}]'] = self.shared_fish_state[i].virtual_caudorostral_axis[:]
+            self.program[f'u_virtual_mediolateral_axis[{i}]'] = self.shared_fish_state[i].virtual_mediolateral_axis[:]
             self.program[f'u_left_eye_centroid[{i}]'] = self.shared_fish_state[i].left_eye_centroid[:]
             self.program[f'u_left_eye_angle[{i}]'] = self.shared_fish_state[i].left_eye_angle.value
             self.program[f'u_right_eye_centroid[{i}]'] = self.shared_fish_state[i].right_eye_centroid[:]
@@ -897,23 +912,34 @@ class GeneralStim(VisualStim):
                 self.shared_fish_state[ID].tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
                 self.shared_fish_state[ID].tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
 
-            if 'predicted_x' in fields:
+            if 'embedded_x' in fields:
                 centroid = np.array([
-                    data['tracking']['predicted_x'], 
-                    data['tracking']['predicted_y']
+                    data['tracking']['embedded_x'], 
+                    data['tracking']['embedded_y']
                 ])
-                self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(centroid).squeeze()
-                
-                # TODO check this
-                theta = data['tracking']['predicted_theta']
+                theta = data['tracking']['embedded_theta'] # TODO check this
                 body_axes = np.array([
                     [np.cos(theta), -np.sin(theta)],
                     [np.sin(theta),  np.cos(theta)]
                 ])
-                self.shared_fish_state[ID].fish_caudorostral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
-                self.shared_fish_state[ID].fish_mediolateral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
+                self.fish_centroid = self.transformation_matrix.transform_points(centroid).squeeze()
+                self.fish_mediolateral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
+                self.fish_caudorostral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
 
-                print(centroid, body_axes)
+                virtual_centroid = np.array([
+                    data['tracking']['virtual_x'], 
+                    data['tracking']['virtual_y']
+                ])
+                theta = data['tracking']['virtual_theta'] # TODO check this
+                virtual_body_axes = np.array([
+                    [np.cos(theta), -np.sin(theta)],
+                    [np.sin(theta),  np.cos(theta)]
+                ])
+                self.shared_fish_state[ID].virtual_centroid[:] = self.transformation_matrix.transform_points(virtual_centroid).squeeze()
+                self.shared_fish_state[ID].virtual_caudorostral_axis[:] = -1*self.transformation_matrix.transform_vectors(virtual_body_axes[:,0]).squeeze()
+                self.shared_fish_state[ID].virtual_mediolateral_axis[:] = -1*self.transformation_matrix.transform_vectors(virtual_body_axes[:,1]).squeeze()
+
+                print(centroid, body_axes, virtual_centroid, virtual_body_axes)
 
 
         except KeyError as err:
