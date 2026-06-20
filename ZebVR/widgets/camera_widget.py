@@ -539,7 +539,7 @@ class CameraHandler(QObject):
             self.debounce_timer.stop()
         if self.camera is not None:
             self.camera.stop_acquisition()
-            del(self.camera)
+            self.camera = None
 
     def frame_acquisition(self, enabled: bool):
         
@@ -561,7 +561,6 @@ class CameraHandler(QObject):
             if self.acquisition_started:
                 self.camera.stop_acquisition()
                 
-            del(self.camera) 
             self.camera = None
             self.last_camera_state = None
             self.acquisition_started = False
@@ -616,7 +615,7 @@ class CameraHandler(QObject):
         self.timer.stop()
         if self.camera is not None:
             self.camera.stop_acquisition()
-            del(self.camera)
+            self.camera = None
 
         self.camera_constructor = camera_constructor
         self.camera = self.camera_constructor()
