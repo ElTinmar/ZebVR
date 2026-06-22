@@ -44,6 +44,7 @@ class SharedStimParameters:
         self.background_color = RawArray(c_double, DEFAULT['background_color'])
         self.coordinate_system = RawValue(c_ulong, DEFAULT['coordinate_system'])
         self.phototaxis_polarity = RawValue(c_double, DEFAULT['phototaxis_polarity']) 
+        self.phototaxis_transition_width_mm = RawValue(c_double, DEFAULT['phototaxis_transition_width_mm']) 
         self.omr_spatial_period_mm = RawValue(c_double, DEFAULT['omr_spatial_period_mm'])
         self.omr_angle_deg = RawValue(c_double, DEFAULT['omr_angle_deg'])
         self.omr_speed_mm_per_sec = RawValue(c_double, DEFAULT['omr_speed_mm_per_sec'])
@@ -94,6 +95,7 @@ class SharedStimParameters:
         self.background_color[:] = d.get('background_color', DEFAULT['background_color'])
         self.coordinate_system.value = d.get('coordinate_system', DEFAULT['coordinate_system'])
         self.phototaxis_polarity.value = d.get('phototaxis_polarity', DEFAULT['phototaxis_polarity'])
+        self.phototaxis_transition_width_mm.value = d.get('phototaxis_transition_width_mm', DEFAULT['phototaxis_transition_width_mm'])
         self.omr_spatial_period_mm.value = d.get('omr_spatial_period_mm', DEFAULT['omr_spatial_period_mm'])
         self.omr_angle_deg.value = d.get('omr_angle_deg', DEFAULT['omr_angle_deg'])
         self.omr_speed_mm_per_sec.value = d.get('omr_speed_mm_per_sec', DEFAULT['omr_speed_mm_per_sec'])
@@ -149,6 +151,7 @@ class SharedStimParameters:
         if self.stim_select.value == Stim.PHOTOTAXIS:
             res.update({
                 'phototaxis_polarity': self.phototaxis_polarity.value,
+                'phototaxis_transition_width_mm': self.phototaxis_transition_width_mm.value,
             })
 
         if self.stim_select.value == Stim.OMR:
@@ -300,6 +303,7 @@ class GeneralStim(VisualStim):
         uniform int u_coordinate_system;
         uniform int u_stim_select;
         uniform float u_phototaxis_polarity;
+        uniform float u_phototaxis_transition_width_mm;
         uniform float u_omr_spatial_period_mm;
         uniform float u_omr_angle_deg;
         uniform float u_omr_speed_mm_per_sec;
@@ -426,10 +430,19 @@ class GeneralStim(VisualStim):
         }
 
         vec4 phototaxis_stimulus(vec2 coords_mm) {
-            if ( u_phototaxis_polarity * coords_mm.x > 0.0 ) {
-                return u_foreground_color;
+            float val = u_phototaxis_polarity * coords_mm.x;
+            
+            if (u_phototaxis_transition_width_mm <= 0.0) {
+                if (val > 0.0) {
+                    return u_foreground_color;
+                } else {
+                    return u_background_color;
+                }
             }
-            return u_background_color;
+            
+            float half_width = u_phototaxis_transition_width_mm * 0.5;
+            float t = smoothstep(-half_width, half_width, val);
+            return mix(u_background_color, u_foreground_color, t);
         }
 
         vec4 omr_stimulus(vec2 coords_mm) {
@@ -784,6 +797,7 @@ class GeneralStim(VisualStim):
         self.program['u_coordinate_system'] = self.shared_stim_parameters.coordinate_system.value
         self.program['u_stim_select'] = self.shared_stim_parameters.stim_select.value
         self.program['u_phototaxis_polarity'] = self.shared_stim_parameters.phototaxis_polarity.value
+        self.program['u_phototaxis_transition_width_mm'] = self.shared_stim_parameters.phototaxis_transition_width_mm.value
         self.program['u_omr_spatial_period_mm'] = self.shared_stim_parameters.omr_spatial_period_mm.value
         self.program['u_omr_angle_deg'] = self.shared_stim_parameters.omr_angle_deg.value
         self.program['u_omr_speed_mm_per_sec'] = self.shared_stim_parameters.omr_speed_mm_per_sec.value

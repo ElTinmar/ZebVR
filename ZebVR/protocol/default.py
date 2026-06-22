@@ -7,6 +7,7 @@ DEFAULT = {
     'background_color': (0.0, 0.0, 0.0, 1.0),
     'coordinate_system': CoordinateSystem.FISH_EGOCENTRIC,
     'phototaxis_polarity': 1,
+    'phototaxis_transition_width_mm': 0,
     'omr_spatial_period_mm': 10,
     'omr_angle_deg': 0,
     'omr_speed_mm_per_sec': 10,
