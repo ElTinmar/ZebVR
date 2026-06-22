@@ -634,6 +634,7 @@ class GeneralStim(VisualStim):
         void main()
         {
             vec2 coordinates_centered_px;
+            vec2 virtual_coordinates_centered_px;
             mat2 change_of_basis;
             mat2 change_of_basis_virtual;
             vec4 camera_bbox_px;
