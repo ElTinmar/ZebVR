@@ -255,20 +255,6 @@ if [ "$INSTALL_ARAVIS" = "true" ]; then
     fi
 fi
 
-if [ "$INSTALL_ARAVIS" = "true" ]; then
-    echo "[+] Building Aravis from source..."
-    CONDA_PREFIX_DIR=$("$MAMBA_EXE" run -n "$ENV_NAME" python -c "import os; print(os.environ['CONDA_PREFIX'])")
-    
-    git clone https://github.com/AravisProject/aravis.git
-    cd aravis
-
-    "$MAMBA_EXE" run -n "$ENV_NAME" meson setup build --prefix="$CONDA_PREFIX_DIR" -Dintrospection=enabled -Dviewer=disabled -Dtests=true --libdir=lib
-    "$MAMBA_EXE" run -n "$ENV_NAME" ninja -C build install
-    cd ..
-    rm -rf aravis
-    echo "[+] Aravis successfully compiled into active Conda environment."
-fi
-
 # --- Thorlabs Firmware ---
 if [ "$INSTALL_THORLABS" = "false" ] && [ "$AUTO_YES" = "false" ]; then
     exec </dev/tty
