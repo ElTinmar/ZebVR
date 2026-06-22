@@ -101,8 +101,14 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="1313", GROUP="plugdev", MODE="0666"
 EOF
 
 echo "[+] Reloading udev rules..."
-sudo udevadm control --reload-rules
-sudo udevadm trigger
+if sudo udevadm control --ping &>/dev/null; then
+    echo "[+] Reloading udev rules..."
+    sudo udevadm control --reload-rules
+    sudo udevadm trigger
+else
+    echo "[!] udev daemon is not running or accessible. Skipping rule reload."
+    echo "    (This is normal in WSL, Docker containers, or minimal environments)."
+fi
 
 # 5. Locate or Install Mamba/Conda
 echo "[+] Locating mamba / conda installation..."
