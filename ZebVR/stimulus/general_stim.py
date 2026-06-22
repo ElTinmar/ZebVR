@@ -360,7 +360,8 @@ class GeneralStim(VisualStim):
         //coordinate system
         const int BOUNDING_BOX_CENTER = 0;
         const int FISH_CENTERED = 1;
-        const int FISH_EGOCENTRIC = 2; 
+        const int FISH_EGOCENTRIC = 2;
+        const int VIRTUAL_FISH_EGOCENTRIC = 3; 
 
         //periodic function
         const int COSINE = 0;
@@ -652,7 +653,8 @@ class GeneralStim(VisualStim):
                 // different coordinate systems
                 vec2 coordinates_centered_mm; // projector x,y coordinates. Origin: bounding box center, y axis: , x axis:  
                 vec2 fish_ego_coords_mm; // fish egocentric coordinates: Origin: fish centroid, y axis: fish major axis, x axis: right
-                vec2 fish_centered_coords_mm; // fish-centric coordinates: Origin: fish centroid, y axis: proj up , x axis: proj right 
+                vec2 fish_centered_coords_mm; // fish-centric coordinates: Origin: fish centroid, y axis: proj up , x axis: proj right
+                vec2 virtual_fish_ego_coords_mm; // fish egocentric coordinates: Origin: fish centroid, y axis: fish major axis, x axis: right 
 
                 // get current bounding box center in projector space  
                 camera_bbox_px = u_bounding_box[animal];
@@ -667,7 +669,8 @@ class GeneralStim(VisualStim):
                 coordinates_centered_mm = coordinates_mm - proj_bbox_center_mm; 
 
                 // compute fish-centric coordinates 
-                coordinates_centered_px = coordinates_px - u_fish_centroid[animal] - u_virtual_centroid[animal];
+                coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
+                virtual_coordinates_centered_px = coordinates_px - u_virtual_centroid[animal];
                 change_of_basis = mat2(
                     u_fish_mediolateral_axis[animal]/length(u_fish_mediolateral_axis[animal]), 
                     u_fish_caudorostral_axis[animal]/length(u_fish_caudorostral_axis[animal])
@@ -676,8 +679,10 @@ class GeneralStim(VisualStim):
                     u_virtual_mediolateral_axis[animal]/length(u_virtual_mediolateral_axis[animal]), 
                     u_virtual_caudorostral_axis[animal]/length(u_virtual_caudorostral_axis[animal])
                 );
-                vec2 fish_ego_coords_px = transpose_mat2(change_of_basis_virtual) * transpose_mat2(change_of_basis) * coordinates_centered_px;
+                vec2 fish_ego_coords_px = transpose_mat2(change_of_basis) * coordinates_centered_px;
+                vec2 virtual_fish_ego_coords_px = transpose_mat2(change_of_basis_virtual) * virtual_coordinates_centered_px;
                 fish_ego_coords_mm = fish_ego_coords_px / u_pix_per_mm_proj;
+                virtual_fish_ego_coords_mm = virtual_fish_ego_coords_px / u_pix_per_mm_proj;
                 fish_centered_coords_mm = coordinates_centered_px / u_pix_per_mm_proj;
 
                 // STEP 2: COMPUTE STIMULI ------------------------------------------------------------------------------------------
@@ -687,6 +692,7 @@ class GeneralStim(VisualStim):
                 if (u_coordinate_system == BOUNDING_BOX_CENTER) {local_coordinates_mm = coordinates_centered_mm;}
                 if (u_coordinate_system == FISH_CENTERED) {local_coordinates_mm = fish_centered_coords_mm;}
                 if (u_coordinate_system == FISH_EGOCENTRIC) {local_coordinates_mm = fish_ego_coords_mm;}
+                if (u_coordinate_system == VIRTUAL_FISH_EGOCENTRIC) {local_coordinates_mm = virtual_fish_ego_coords_mm;}
 
                 // choose which stimulus to show
                 gl_FragColor = u_background_color; 
