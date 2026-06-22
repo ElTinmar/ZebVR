@@ -760,6 +760,9 @@ class GeneralStim(VisualStim):
             fish_state.fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,0]).squeeze()
             fish_state.fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,1]).squeeze()
             fish_state.fish_centroid[:] = self.transformation_matrix.transform_points(centroid).squeeze()
+            fish_state.virtual_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,0]).squeeze()
+            fish_state.virtual_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,1]).squeeze()
+            fish_state.virtual_centroid[:] = self.transformation_matrix.transform_points(centroid).squeeze()
 
         self.shared_stim_parameters = SharedStimParameters()
         self.stim_change_counter = 0
