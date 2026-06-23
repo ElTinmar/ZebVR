@@ -823,13 +823,13 @@ class CameraController(QObject):
             if not filename.is_file():
                 return
             
-            self.camera_constructor = partial(MovieFileCam, filename=str(filename))
+            self.camera_constructor = partial(MovieFileCam, filename=str(filename), loop=True)
 
         elif camera_model==CameraModel.MOVIE_GRAY:
             if not filename.is_file():
                 return
             
-            self.camera_constructor = partial(MovieFileCamGray, filename=str(filename))
+            self.camera_constructor = partial(MovieFileCamGray, filename=str(filename), loop=True)
 
         elif camera_model==CameraModel.XIMEA and XIMEA_ENABLED:
             self.camera_constructor = partial(XimeaCamera_Transport, dev_id=camera_index)
