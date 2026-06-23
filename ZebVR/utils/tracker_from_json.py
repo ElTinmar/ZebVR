@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Union, Callable, Optional
+from typing import Union, Optional
 from tracker import (
     Tracker,
     AnimalTracker_CPU, AnimalTrackerParamTracking,
@@ -13,7 +13,7 @@ from tracker import (
 
 def head_embedded_tracker(settings: dict, cam_fps: float, cam_pix_per_mm: Optional[float] = None) -> HeadEmbeddedTracker_CPU:
     
-    tail_tracking_params = settings.get('tail_tracking', None)
+    tail_tracking_params = settings.get('tail_tracking', {})
     tail = TailTracker_CPU(
         tracking_param=TailTrackerParamTracking(**tail_tracking_params),
     )
@@ -84,15 +84,11 @@ def single_fish_tracker(settings: dict, cam_fps: float, cam_pix_per_mm: Optional
 
     return tracker
 
-tracker_map: dict[str, Callable] = {
-    'SingleFish': single_fish_tracker,
-    'HeadEmbedded': head_embedded_tracker
-}
-
 def tracker_from_json(
         filename: Union[Path, str], 
         cam_fps: float,
-        cam_pix_per_mm: float
+        cam_pix_per_mm: float,
+        head_embedded: bool = False
     ) -> Tracker:
     
     filename = Path(filename)
@@ -100,12 +96,15 @@ def tracker_from_json(
         with open(filename) as fp:
             settings = json.load(fp)
     else:
-        print('file not found, using default tracker')
+        tracker_type = 'head embedded' if head_embedded else 'single fish'
+        print(f'{filename} not found, using default {tracker_type} tracker settings')
         settings = {}
 
-    tracker = tracker_map[settings.get('tracker', 'SingleFish')]
     id = settings.get('animal_identity', 0)
     substate = settings.get('substate', {})
     controls = substate.get(str(id), {})
 
-    return tracker(controls, cam_fps, cam_pix_per_mm)
+    if head_embedded:
+        return head_embedded_tracker(controls, cam_fps, cam_pix_per_mm)
+    
+    return single_fish_tracker(controls, cam_fps, cam_pix_per_mm)
