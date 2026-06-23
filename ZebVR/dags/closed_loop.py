@@ -260,7 +260,8 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     tracker = tracker_from_json(
         filename = settings['settings']['tracking']['tracker_settings_file'],
         cam_fps = settings['camera']['framerate_value'],
-        cam_pix_per_mm = settings['calibration']['pix_per_mm']
+        cam_pix_per_mm = settings['calibration']['pix_per_mm'],
+        head_embedded = settings['main']['head_embedded']
     )
 
     tracker_worker_list = []
