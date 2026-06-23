@@ -49,26 +49,29 @@ def single_fish_tracker(settings: dict, cam_fps: float, cam_pix_per_mm: Optional
         'crop_dimension_mm': (7.5, 7.5)}
     )
     body_tracking_params = settings.get('body_tracking', None)
+    body_tracking_enabled = settings.get('body_tracking_enabled', False)
     eyes_tracking_params = settings.get('eyes_tracking', None)
+    eyes_tracking_enabled = settings.get('eyes_tracking_enabled', False)
     tail_tracking_params = settings.get('tail_tracking', None)
+    tail_tracking_enabled = settings.get('tail_tracking_enabled', False)
 
     animal = AnimalTracker_CPU(
         tracking_param=AnimalTrackerParamTracking(**animal_tracking_params),
     )
     body = eyes = tail = None
     
-    if body_tracking_params is not None:
+    if body_tracking_enabled and body_tracking_params is not None:
         body = BodyTracker_CPU(
             tracking_param=BodyTrackerParamTracking(**body_tracking_params), 
             fps = cam_fps
         )
 
-    if eyes_tracking_params is not None:
+    if eyes_tracking_enabled and eyes_tracking_params is not None:
         eyes = EyesTracker_CPU(
             tracking_param=EyesTrackerParamTracking(**eyes_tracking_params),
         )
 
-    if tail_tracking_params is not None:
+    if tail_tracking_enabled and tail_tracking_params is not None:
         tail = TailTracker_CPU(
             tracking_param=TailTrackerParamTracking(**tail_tracking_params),
         )
