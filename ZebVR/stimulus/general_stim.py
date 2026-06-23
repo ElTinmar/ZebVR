@@ -941,23 +941,24 @@ class GeneralStim(VisualStim):
                     data['tracking']['embedded_x'], 
                     data['tracking']['embedded_y']
                 ])
-                theta = data['tracking']['embedded_theta']-np.pi/2 # TODO check this
+                theta = data['tracking']['embedded_theta']-np.pi/2
                 body_axes = np.array([
-                    [np.cos(theta), np.sin(theta)],
-                    [np.sin(theta), -np.cos(theta)]
+                    [np.cos(theta), -np.sin(theta)],
+                    [np.sin(theta), np.cos(theta)]
                 ])
                 self.fish_centroid = self.transformation_matrix.transform_points(centroid).squeeze()
                 self.fish_caudorostral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
                 self.fish_mediolateral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
                 
+                # TODO check that
                 virtual_centroid = np.array([
                     data['tracking']['virtual_x'], 
                     data['tracking']['virtual_y']
                 ])
-                theta = data['tracking']['virtual_theta']-np.pi/2 # TODO check this
+                virtual_theta = data['tracking']['virtual_theta']
                 virtual_body_axes = np.array([
-                    [np.cos(theta), np.sin(theta)],
-                    [np.sin(theta), -np.cos(theta)]
+                    [np.cos(virtual_theta), -np.sin(virtual_theta)],
+                    [np.sin(virtual_theta), np.cos(virtual_theta)]
                 ])
                 self.shared_fish_state[ID].virtual_centroid[:] = self.transformation_matrix.transform_points(virtual_centroid).squeeze()
                 self.shared_fish_state[ID].virtual_caudorostral_axis[:] = -1*self.transformation_matrix.transform_vectors(virtual_body_axes[:,0]).squeeze()
