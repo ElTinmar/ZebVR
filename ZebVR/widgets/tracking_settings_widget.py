@@ -1210,7 +1210,7 @@ class HeadEmbeddedTrackerWidget(QWidget):
 
         self.heading_angle_deg = LabeledDoubleSpinBox()
         self.heading_angle_deg.setText('heading angle (deg)')
-        self.heading_angle_deg.setRange(0,360)
+        self.heading_angle_deg.setRange(-360,360)
         self.heading_angle_deg.setSingleStep(0.25) 
         self.heading_angle_deg.setValue(0)
         self.heading_angle_deg.valueChanged.connect(self.on_change)
@@ -1218,14 +1218,14 @@ class HeadEmbeddedTrackerWidget(QWidget):
         self.forward_gain = LabeledDoubleSpinBox()
         self.forward_gain.setText('forward gain ((s/mm)^(1/3))')
         self.forward_gain.setRange(0,1)
-        self.forward_gain.setSingleStep(0.001)
+        self.forward_gain.setSingleStep(0.01)
         self.forward_gain.setValue(0.08)
         self.forward_gain.valueChanged.connect(self.on_change)
 
         self.angular_gain = LabeledDoubleSpinBox()
         self.angular_gain.setText('angular gain (rad⋅s/mm^3)')
         self.angular_gain.setRange(0,1)
-        self.angular_gain.setSingleStep(0.001)
+        self.angular_gain.setSingleStep(0.01)
         self.angular_gain.setValue(0.01)
         self.angular_gain.valueChanged.connect(self.on_change)
 
