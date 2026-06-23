@@ -105,6 +105,7 @@ def tracker_from_json(
 
     tracker = tracker_map[settings.get('tracker', 'SingleFish')]
     id = settings.get('animal_identity', 0)
-    controls = settings['substate'][str(id)]
+    substate = settings.get('substate', {})
+    controls = substate.get(str(id), {})
 
     return tracker(controls, cam_fps, cam_pix_per_mm)
