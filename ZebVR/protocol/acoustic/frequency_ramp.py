@@ -7,7 +7,7 @@ from ZebVR.protocol import (
     Debouncer, 
     RampType
 )
-from typing import Dict
+from typing import Dict, Any
 from qtpy.QtWidgets import (
     QApplication, 
     QVBoxLayout,
@@ -203,19 +203,19 @@ class FrequencyRampWidget(AudioProtocolItemWidget):
             self.sb_ramp_duration_sec.setValue(protocol_item.ramp_duration_sec)
             self.sb_ramp_powerlaw_exponent.setValue(protocol_item.ramp_powerlaw_exponent)
 
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+        kwargs = super()._get_protocol_kwargs()
+        kwargs.update({
+            'ramp_start_Hz': self.sb_ramp_start_Hz.value(),
+            'ramp_stop_Hz': self.sb_ramp_stop_Hz.value(),
+            'ramp_duration_sec': self.sb_ramp_duration_sec.value(),
+            'ramp_powerlaw_exponent': self.sb_ramp_powerlaw_exponent.value(),
+            'ramp_type': RampType(self.cb_ramp_type.currentIndex()),
+        })
+        return kwargs
+    
     def to_protocol_item(self) -> FrequencyRamp:
-
-        protocol = FrequencyRamp(
-            name = self.stim_name.text(),
-            ramp_start_Hz = self.sb_ramp_start_Hz.value(),
-            ramp_stop_Hz = self.sb_ramp_stop_Hz.value(),
-            ramp_duration_sec = self.sb_ramp_duration_sec.value(),
-            ramp_powerlaw_exponent = self.sb_ramp_powerlaw_exponent.value(),
-            ramp_type = RampType(self.cb_ramp_type.currentIndex()),
-            amplitude_dB = self.sb_amplitude_dB.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
+        return FrequencyRamp(**self._get_protocol_kwargs())
     
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Any
 from qtpy.QtCore import QSignalBlocker
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import (
@@ -109,7 +109,8 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
         
         # add logic in daughter class / emit signal
         self.current_board = self.boards[self.current_board_type][self.board_id_cb.currentIndex()]
-      
+    
+    
     def layout_components(self) -> None:
 
         super().layout_components()
@@ -163,6 +164,20 @@ class DAQ_ProtocolItemWidget(ProtocolItemWidget):
             self.board_id_cb.setCurrentText(str(protocol_item.board_id))
             select_items_by_text(self.channel_list, [str(c) for c in protocol_item.channels])
 
-    def to_protocol_item(self) -> DAQ_ProtocolItem:
-        ...
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+        
+        kwargs = super()._get_protocol_kwargs()
 
+        channel_list_widget = self.channel_list.selectedItems()
+        channels = [int(widget.text()) for widget in channel_list_widget]
+
+        kwargs.update({
+            'board_type': self.current_board_type,
+            'board_id': self.current_board.id,
+            'channels': channels
+        })
+
+        return kwargs
+
+    def to_protocol_item(self) -> DAQ_ProtocolItem:
+        return DAQ_ProtocolItem(**self._get_protocol_kwargs())

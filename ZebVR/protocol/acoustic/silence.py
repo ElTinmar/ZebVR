@@ -22,10 +22,7 @@ class SilenceWidget(AudioProtocolItemWidget):
         self.main_layout.addWidget(self.stop_widget)
 
     def to_protocol_item(self) -> Silence:
-        return Silence(
-            name = self.stim_name.text(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
+        return Silence(**self._get_protocol_kwargs())
 
 if __name__ == '__main__':
 

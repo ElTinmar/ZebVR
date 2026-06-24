@@ -6,7 +6,7 @@ from ZebVR.protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Dict
+from typing import Dict, Any
 from qt_widgets import LabeledDoubleSpinBox
 from qtpy.QtWidgets import (
     QGroupBox, 
@@ -102,14 +102,15 @@ class PureToneWidget(AudioProtocolItemWidget):
         if isinstance(protocol_item, PureTone):
             self.sb_frequency_Hz.setValue(protocol_item.frequency_Hz)
 
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+        kwargs = super()._get_protocol_kwargs()
+        kwargs.update({
+            'frequency_Hz': self.sb_frequency_Hz.value()
+        })
+        return kwargs
+    
     def to_protocol_item(self) -> PureTone:
-        
-        return PureTone(
-            name = self.stim_name.text(),
-            frequency_Hz = self.sb_frequency_Hz.value(),
-            amplitude_dB = self.sb_amplitude_dB.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
+        return PureTone(**self._get_protocol_kwargs())
 
 if __name__ == '__main__':
 

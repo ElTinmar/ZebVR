@@ -6,7 +6,7 @@ from ZebVR.protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Dict
+from typing import Dict, Any
 from qtpy.QtWidgets import (
     QApplication, 
     QVBoxLayout,
@@ -151,18 +151,20 @@ class ClickTrainWidget(AudioProtocolItemWidget):
             self.sb_click_rate.setValue(protocol_item.click_rate)
             self.sb_click_duration.setValue(protocol_item.click_duration)
             self.cb_click_polarity.setCurrentIndex(protocol_item.click_polarity)
-        
-    def to_protocol_item(self) -> ClickTrain:
 
-        protocol = ClickTrain(
-            name = self.stim_name.text(),
-            click_rate = self.sb_click_rate.value(),
-            amplitude_dB = self.sb_amplitude_dB.value(),
-            click_duration = self.sb_click_duration.value(),
-            click_polarity = ClickPolarity(self.cb_click_polarity.currentIndex()),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
+
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+        kwargs = super()._get_protocol_kwargs()
+        kwargs.update({
+            'click_rate': self.sb_click_rate.value(),
+            'click_duration': self.sb_click_duration.value(),
+            'click_polarity': ClickPolarity(self.cb_click_polarity.currentIndex()),
+        })
+        return kwargs
+    
+    def to_protocol_item(self) -> ClickTrain:
+        return ClickTrain(**self._get_protocol_kwargs())
+
     
 if __name__ == '__main__':
 

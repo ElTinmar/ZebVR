@@ -6,7 +6,7 @@ from ...protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Dict
+from typing import Dict, Any
 from qt_widgets import FileOpenLabeledEditButton
 from qtpy.QtWidgets import (
     QGroupBox, 
@@ -99,15 +99,16 @@ class AudioFileWidget(AudioProtocolItemWidget):
         if isinstance(protocol_item, AudioFile):
             self.fs_audio_file_path.setText(protocol_item.audio_file_path)
 
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+        kwargs = super()._get_protocol_kwargs()
+        kwargs.update({
+            'audio_file_path': self.fs_audio_file_path.text()
+        })
+        return kwargs
+
     def to_protocol_item(self) -> AudioFile:
-        
-        protocol = AudioFile(
-            name = self.stim_name.text(),
-            audio_file_path = self.fs_audio_file_path.text(),
-            amplitude_dB = self.sb_amplitude_dB.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
+        return AudioFile(**self._get_protocol_kwargs())
+
     
 if __name__ == '__main__':
 

@@ -7,7 +7,7 @@ from ZebVR.protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Dict, List
+from typing import Dict, List, Any
 from qtpy.QtWidgets import (
     QApplication, 
     QCheckBox,
@@ -109,19 +109,15 @@ class DigitalWriteWidget(DAQ_ProtocolItemWidget):
         if isinstance(protocol_item, DigitalWrite):
             self.chckb_level.setChecked(protocol_item.digital_level)
 
-    def to_protocol_item(self) -> DigitalWrite:
-
-        channel_list_widget = self.channel_list.selectedItems()
-        channels = [int(widget.text()) for widget in channel_list_widget]
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+        kwargs = super()._get_protocol_kwargs()
+        kwargs.update({
+            'digital_level': self.chckb_level.isChecked(),
+        })
+        return kwargs
     
-        return DigitalWrite(
-            name = self.stim_name.text(),
-            board_type = self.current_board_type,
-            board_id = self.current_board.id,
-            channels = channels,
-            digital_level = self.chckb_level.isChecked(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
+    def to_protocol_item(self) -> DigitalWrite:
+        return DigitalWrite(**self._get_protocol_kwargs())
 
 if __name__ == '__main__':
 
