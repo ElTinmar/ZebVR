@@ -6,7 +6,7 @@ from ...protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Dict
+from typing import Dict, Any
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox
 from qtpy.QtWidgets import (
     QGroupBox, 
@@ -164,40 +164,21 @@ class TuringWidget(VisualProtocolItemWidget):
             self.sb_turing_speed.setValue(protocol_item.turing_speed_mm_per_sec) 
             self.sb_turing_n_waves.setValue(protocol_item.turing_n_waves)  
 
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+
+        kwargs = super()._get_protocol_kwargs()
+        
+        kwargs.update({
+            'turing_spatial_period_mm': self.sb_turing_spatial_freq.value(),
+            'turing_angle_deg': self.sb_turing_angle.value(),
+            'turing_speed_mm_per_sec': self.sb_turing_speed.value(),
+            'turing_n_waves': self.sb_turing_n_waves.value()
+        })
+        return kwargs
+    
     def to_protocol_item(self) -> Turing:
+        return Turing(**self._get_protocol_kwargs())
         
-        foreground_color = (
-            self.sb_foreground_color_R.value(), 
-            self.sb_foreground_color_G.value(),
-            self.sb_foreground_color_B.value(),
-            self.sb_foreground_color_A.value()
-        )
-        background_color = (
-            self.sb_background_color_R.value(), 
-            self.sb_background_color_G.value(),
-            self.sb_background_color_B.value(),
-            self.sb_background_color_A.value()
-        )
-        fade_in_duration_sec = self.sb_fade_in_duration_sec.value()
-        fade_out_duration_sec = self.sb_fade_out_duration_sec.value()
-        stimulus_duration_sec = self.sb_stimulus_duration_sec.value()
-        coordinate_system = self.cb_coordinate_system.currentIndex()
-        
-        protocol = Turing(
-            name = self.stim_name.text(),
-            foreground_color = foreground_color,
-            background_color = background_color,
-            fade_in_duration_sec = fade_in_duration_sec,
-            fade_out_duration_sec = fade_out_duration_sec,
-            stimulus_duration_sec = stimulus_duration_sec,
-            coordinate_system = coordinate_system,
-            turing_spatial_period_mm = self.sb_turing_spatial_freq.value(),
-            turing_angle_deg = self.sb_turing_angle.value(),
-            turing_speed_mm_per_sec = self.sb_turing_speed.value(),
-            turing_n_waves = self.sb_turing_n_waves.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
     
 if __name__ == '__main__':
 

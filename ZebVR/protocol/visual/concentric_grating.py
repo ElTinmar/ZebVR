@@ -6,7 +6,7 @@ from ...protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Tuple, Dict
+from typing import Any, Dict
 from qt_widgets import LabeledDoubleSpinBox
 from qtpy.QtWidgets import (
     QGroupBox, 
@@ -122,37 +122,18 @@ class ConcentricGratingWidget(VisualProtocolItemWidget):
             self.sb_concentric_spatial_freq.setValue(protocol_item.spatial_period_mm)
             self.sb_concentric_speed.setValue(protocol_item.speed_mm_per_sec)
 
-    def to_protocol_item(self) -> ConcentricGrating:
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+
+        kwargs = super()._get_protocol_kwargs()
         
-        foreground_color = (
-            self.sb_foreground_color_R.value(), 
-            self.sb_foreground_color_G.value(),
-            self.sb_foreground_color_B.value(),
-            self.sb_foreground_color_A.value()
-        )
-        background_color = (
-            self.sb_background_color_R.value(), 
-            self.sb_background_color_G.value(),
-            self.sb_background_color_B.value(),
-            self.sb_background_color_A.value()
-        )
-        fade_in_duration_sec = self.sb_fade_in_duration_sec.value()
-        fade_out_duration_sec = self.sb_fade_out_duration_sec.value()
-        stimulus_duration_sec = self.sb_stimulus_duration_sec.value()
-        coordinate_system = self.cb_coordinate_system.currentIndex()
-        protocol = ConcentricGrating(
-            name = self.stim_name.text(),
-            foreground_color = foreground_color,
-            background_color = background_color,
-            fade_in_duration_sec = fade_in_duration_sec,
-            fade_out_duration_sec = fade_out_duration_sec,
-            stimulus_duration_sec = stimulus_duration_sec,
-            coordinate_system = coordinate_system,
-            spatial_period_mm = self.sb_concentric_spatial_freq.value(),
-            speed_mm_per_sec = self.sb_concentric_speed.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
+        kwargs.update({
+            'concentric_spatial_period_mm': self.sb_concentric_spatial_freq.value(),
+            'concentric_speed_mm_per_sec': self.sb_concentric_speed.value()
+        })
+        return kwargs
+    
+    def to_protocol_item(self) -> ConcentricGrating:
+        return ConcentricGrating(**self._get_protocol_kwargs())
     
 if __name__ == '__main__':
 

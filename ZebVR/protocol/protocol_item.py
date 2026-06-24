@@ -165,5 +165,11 @@ class ProtocolItemWidget(QWidget):
         self.stop_widget.from_stop_condition(protocol_item.stop_condition)
         self.stim_name.setText(protocol_item.name)
 
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+        return {
+            'name': self.stim_name.text(),
+            'stop_condition': self.stop_widget.to_stop_condition()
+        }
+
     def to_protocol_item(self) -> ProtocolItem:
-        ...
+        return ProtocolItem(**self._get_protocol_kwargs())

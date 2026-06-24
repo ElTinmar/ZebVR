@@ -8,7 +8,7 @@ from ZebVR.protocol import (
     PreyCaptureType,
     PeriodicFunction
 )
-from typing import Dict
+from typing import Dict, Any
 from qt_widgets import LabeledDoubleSpinBox, LabeledSpinBox, LabeledComboBox
 from qtpy.QtWidgets import (
     QGroupBox, 
@@ -354,47 +354,28 @@ class PreyCaptureWidget(VisualProtocolItemWidget):
             self.sb_prey_arc_phase_deg.setValue(
                 getattr(protocol_item, "prey_arc_phase_deg", DEFAULT['prey_arc_phase_deg'])
             )
+
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+
+        kwargs = super()._get_protocol_kwargs()
+        
+        kwargs.update({
+            'prey_capture_type': PreyCaptureType(self.cb_prey_capture_type.currentIndex()),
+            'prey_periodic_function': PeriodicFunction(self.cb_prey_periodic_function.currentIndex()),
+            'n_preys': self.sb_n_preys.value(),
+            'prey_speed_mm_s': self.sb_prey_speed_mm_s.value(),
+            'prey_speed_deg_s': self.sb_prey_speed_deg_s.value(),
+            'prey_radius_mm': self.sb_prey_radius_mm.value(),
+            'prey_trajectory_radius_mm': self.sb_trajectory_prey_radius_mm.value(),
+            'prey_arc_start_deg': self.sb_prey_arc_start_deg.value(),
+            'prey_arc_stop_deg': self.sb_prey_arc_stop_deg.value(),
+            'prey_arc_phase_deg': self.sb_prey_arc_phase_deg.value(),
+        })
+        return kwargs
         
     def to_protocol_item(self) -> PreyCapture:
+        return PreyCapture(**self._get_protocol_kwargs())
         
-        foreground_color = (
-            self.sb_foreground_color_R.value(), 
-            self.sb_foreground_color_G.value(),
-            self.sb_foreground_color_B.value(),
-            self.sb_foreground_color_A.value()
-        )
-        background_color = (
-            self.sb_background_color_R.value(), 
-            self.sb_background_color_G.value(),
-            self.sb_background_color_B.value(),
-            self.sb_background_color_A.value()
-        )
-        fade_in_duration_sec = self.sb_fade_in_duration_sec.value()
-        fade_out_duration_sec = self.sb_fade_out_duration_sec.value()
-        stimulus_duration_sec = self.sb_stimulus_duration_sec.value()
-        coordinate_system = self.cb_coordinate_system.currentIndex()
-
-        protocol = PreyCapture(
-            name = self.stim_name.text(),
-            foreground_color = foreground_color,
-            background_color = background_color,
-            fade_in_duration_sec = fade_in_duration_sec,
-            fade_out_duration_sec = fade_out_duration_sec,
-            stimulus_duration_sec = stimulus_duration_sec,
-            coordinate_system = coordinate_system,
-            prey_capture_type = PreyCaptureType(self.cb_prey_capture_type.currentIndex()),
-            prey_periodic_function = PeriodicFunction(self.cb_prey_periodic_function.currentIndex()),
-            n_preys = self.sb_n_preys.value(),
-            prey_speed_mm_s = self.sb_prey_speed_mm_s.value(),
-            prey_speed_deg_s = self.sb_prey_speed_deg_s.value(),
-            prey_radius_mm = self.sb_prey_radius_mm.value(),
-            prey_trajectory_radius_mm = self.sb_trajectory_prey_radius_mm.value(),
-            prey_arc_start_deg = self.sb_prey_arc_start_deg.value(),
-            prey_arc_stop_deg = self.sb_prey_arc_stop_deg.value(),
-            prey_arc_phase_deg = self.sb_prey_arc_phase_deg.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
     
 if __name__ == '__main__':
 

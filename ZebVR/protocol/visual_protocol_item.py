@@ -1,6 +1,6 @@
 from .protocol_item import VisualProtocolItem, ProtocolItem, ProtocolItemWidget
 from .default import DEFAULT
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Any
 from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox
 from qtpy.QtCore import  Signal
 from qtpy.QtWidgets import (
@@ -297,6 +297,32 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
             self.sb_stimulus_duration_sec.setValue(protocol_item.stimulus_duration_sec) 
              
 
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+            kwargs = super()._get_protocol_kwargs()
+            
+            foreground_color = (
+                self.sb_foreground_color_R.value(), 
+                self.sb_foreground_color_G.value(),
+                self.sb_foreground_color_B.value(),
+                self.sb_foreground_color_A.value()
+            )
+            background_color = (
+                self.sb_background_color_R.value(), 
+                self.sb_background_color_G.value(),
+                self.sb_background_color_B.value(),
+                self.sb_background_color_A.value()
+            )
+
+            kwargs.update({
+                'foreground_color': foreground_color,
+                'background_color': background_color,
+                'fade_in_duration_sec': self.sb_fade_in_duration_sec.value(),
+                'fade_out_duration_sec': self.sb_fade_out_duration_sec.value(),
+                'stimulus_duration_sec': self.sb_stimulus_duration_sec.value(),
+                'coordinate_system': self.cb_coordinate_system.currentIndex(),
+            })
+            return kwargs
+
     def to_protocol_item(self) -> VisualProtocolItem:
-        ...
+        return VisualProtocolItem(**self._get_protocol_kwargs())
 
