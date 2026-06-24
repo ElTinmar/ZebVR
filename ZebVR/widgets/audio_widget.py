@@ -133,8 +133,12 @@ class AudioWidget(QWidget):
         self.main_layout.addWidget(self.rollover_time_spinbox)
         self.main_layout.addStretch()
 
+    def block_signals(self, block):
+        for widget in self.findChildren(QWidget):
+            widget.blockSignals(block)
+
     def set_state(self, state: Dict) -> None:
-        self.blockSignals(True)
+        self.block_signals(True)
         
         target_device_id = state.get('device_index', -1)
         combo_index = self.default_device  # Fallback
@@ -153,7 +157,7 @@ class AudioWidget(QWidget):
         self.units_per_dB_spinbox.setValue(state.get('units_per_dB', 1/120))
         self.rollover_time_spinbox.setValue(state.get('rollover_time_sec', 3600))
         
-        self.blockSignals(False)
+        self.block_signals(False)
         self.enable_audio() 
         self.state_changed.emit()
 
