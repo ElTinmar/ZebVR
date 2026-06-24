@@ -92,6 +92,9 @@ class VisualProtocolItem(ProtocolItem):
             self,
             foreground_color: Tuple[float,float,float,float] = DEFAULT['foreground_color'],
             background_color: Tuple[float,float,float,float] = DEFAULT['background_color'],
+            fade_in_duration_sec: float = DEFAULT['fade_in_duration_sec'],
+            fade_out_duration_sec: float = DEFAULT['fade_out_duration_sec'],
+            stimulus_duration_sec: float = DEFAULT['stimulus_duration_sec'],
             coordinate_system: CoordinateSystem = DEFAULT['coordinate_system'], 
             *args, 
             **kwargs
@@ -100,6 +103,9 @@ class VisualProtocolItem(ProtocolItem):
         super().__init__(*args, **kwargs)
         self.foreground_color = foreground_color
         self.background_color = background_color
+        self.fade_in_duration_sec = fade_in_duration_sec
+        self.fade_out_duration_sec = fade_out_duration_sec
+        self.stimulus_duration_sec = stimulus_duration_sec
         self.coordinate_system = coordinate_system
 
     def start(self) -> Dict:
@@ -107,6 +113,9 @@ class VisualProtocolItem(ProtocolItem):
         command.update({
             'foreground_color': self.foreground_color,
             'background_color': self.background_color,
+            'fade_in_duration_sec': self.fade_in_duration_sec,
+            'fade_out_duration_sec': self.fade_out_duration_sec,
+            'stimulus_duration_sec': self.stimulus_duration_sec,
             'coordinate_system': self.coordinate_system
         })
         return command

@@ -42,6 +42,9 @@ class SharedStimParameters:
         self.stim_select = RawValue(c_double, Stim.DARK) 
         self.foreground_color = RawArray(c_double, DEFAULT['foreground_color'])
         self.background_color = RawArray(c_double, DEFAULT['background_color'])
+        self.fade_in_duration_sec = RawValue(c_double, DEFAULT['fade_in_duration_sec'])
+        self.fade_out_duration_sec = RawValue(c_double, DEFAULT['fade_out_duration_sec'])
+        self.stimulus_duration_sec = RawValue(c_double, DEFAULT['stimulus_duration_sec'])
         self.coordinate_system = RawValue(c_ulong, DEFAULT['coordinate_system'])
         self.phototaxis_polarity = RawValue(c_double, DEFAULT['phototaxis_polarity']) 
         self.phototaxis_transition_width_mm = RawValue(c_double, DEFAULT['phototaxis_transition_width_mm']) 
@@ -93,6 +96,9 @@ class SharedStimParameters:
         self.stim_select.value = d.get('stim_select', Stim.DARK)
         self.foreground_color[:] = d.get('foreground_color', DEFAULT['foreground_color'])
         self.background_color[:] = d.get('background_color', DEFAULT['background_color'])
+        self.fade_in_duration_sec.value = d.get('fade_in_duration_sec', DEFAULT['fade_in_duration_sec'])
+        self.fade_out_duration_sec.value = d.get('fade_out_duration_sec', DEFAULT['fade_out_duration_sec'])
+        self.stimulus_duration_sec.value = d.get('stimulus_duration_sec', DEFAULT['stimulus_duration_sec'])
         self.coordinate_system.value = d.get('coordinate_system', DEFAULT['coordinate_system'])
         self.phototaxis_polarity.value = d.get('phototaxis_polarity', DEFAULT['phototaxis_polarity'])
         self.phototaxis_transition_width_mm.value = d.get('phototaxis_transition_width_mm', DEFAULT['phototaxis_transition_width_mm'])
@@ -145,6 +151,9 @@ class SharedStimParameters:
             'start_time_sec': self.start_time_sec.value,
             'foreground_color': list(self.foreground_color),
             'background_color': list(self.background_color),
+            'fade_in_duration_sec': self.fade_in_duration_sec.value,
+            'fade_out_duration_sec': self.fade_out_duration_sec.value,
+            'stimulus_duration_sec': self.stimulus_duration_sec.value,
             'coordinate_system': self.coordinate_system.value
         }
 
@@ -300,6 +309,9 @@ class GeneralStim(VisualStim):
         // stim parameters
         uniform vec4 u_foreground_color;
         uniform vec4 u_background_color;
+        uniform float u_fade_in_duration_sec;
+        uniform float u_fade_out_duration_sec;
+        uniform float u_stimulus_duration_sec;
         uniform int u_coordinate_system;
         uniform int u_stim_select;
         uniform float u_phototaxis_polarity;
@@ -417,6 +429,31 @@ class GeneralStim(VisualStim):
                 m[0][0], m[1][0],
                 m[0][1], m[1][1]
             );
+        }
+
+        float get_temporal_ramp_factor() {
+            float elapsed = u_time_s - u_start_time_s;
+            float factor = 1.0;
+
+            // Smooth step ramp up (Only runs if duration > 0)
+            if (u_fade_in_duration_sec > 0.0) {
+                if (elapsed < u_fade_in_duration_sec) {
+                    float linear_factor = clamp(elapsed / u_fade_in_duration_sec, 0.0, 1.0);
+                    factor = smoothstep(0.0, 1.0, linear_factor);
+                }
+            }
+            
+            // Smooth step ramp down (Only runs if duration > 0 and a total duration is set)
+            if (u_fade_out_duration_sec > 0.0 && u_stimulus_duration_sec > 0.0) {
+                float time_remaining = u_stimulus_duration_sec - elapsed;
+                if (time_remaining < u_fade_out_duration_sec) {
+                    float linear_factor = clamp(time_remaining / u_fade_out_duration_sec, 0.0, 1.0);
+                    float down_factor = smoothstep(0.0, 1.0, linear_factor);
+                    factor = min(factor, down_factor);
+                }
+            }
+            
+            return factor;
         }
 
         // STIMULI ----------------------------------------------------------------------------------
@@ -733,6 +770,9 @@ class GeneralStim(VisualStim):
                 }
             }
 
+            float ramp_factor = get_temporal_ramp_factor();
+            gl_FragColor = mix(u_background_color, gl_FragColor, ramp_factor);
+
             // convert to sRGB color space. Assume images already in sRGB.
             if (u_stim_select != IMAGE) {
                 gl_FragColor = linear_to_srgb(gl_FragColor);
@@ -797,6 +837,9 @@ class GeneralStim(VisualStim):
         self.program['u_start_time_s'] = self.shared_stim_parameters.start_time_sec.value
         self.program['u_foreground_color'] = self.shared_stim_parameters.foreground_color[:]
         self.program['u_background_color'] = self.shared_stim_parameters.background_color[:]
+        self.program['u_fade_in_duration_sec'] = self.shared_stim_parameters.fade_in_duration_sec.value
+        self.program['u_fade_out_duration_sec'] = self.shared_stim_parameters.fade_out_duration_sec.value
+        self.program['u_stimulus_duration_sec'] = self.shared_stim_parameters.stimulus_duration_sec.value
         self.program['u_coordinate_system'] = self.shared_stim_parameters.coordinate_system.value
         self.program['u_stim_select'] = self.shared_stim_parameters.stim_select.value
         self.program['u_phototaxis_polarity'] = self.shared_stim_parameters.phototaxis_polarity.value
@@ -963,6 +1006,9 @@ class GeneralStim(VisualStim):
                 self.shared_fish_state[ID].virtual_centroid[:] = self.transformation_matrix.transform_points(virtual_centroid).squeeze()
                 self.shared_fish_state[ID].virtual_caudorostral_axis[:] = -1*self.transformation_matrix.transform_vectors(virtual_body_axes[:,0]).squeeze()
                 self.shared_fish_state[ID].virtual_mediolateral_axis[:] = -1*self.transformation_matrix.transform_vectors(virtual_body_axes[:,1]).squeeze()
+
+                print(centroid, body_axes, virtual_centroid, virtual_body_axes)
+                print('\n')
                 
         except KeyError as err:
             print(f'KeyError: {err}')

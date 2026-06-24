@@ -173,12 +173,18 @@ class ImageWidget(VisualProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
+        fade_in_duration_sec = self.sb_fade_in_duration_sec.value()
+        fade_out_duration_sec = self.sb_fade_out_duration_sec.value()
+        stimulus_duration_sec = self.sb_stimulus_duration_sec.value()
         coordinate_system = self.cb_coordinate_system.currentIndex()
 
         protocol = Image(
             name = self.stim_name.text(),
             foreground_color = foreground_color,
             background_color = background_color,
+            fade_in_duration_sec = fade_in_duration_sec,
+            fade_out_duration_sec = fade_out_duration_sec,
+            stimulus_duration_sec = stimulus_duration_sec,
             coordinate_system = coordinate_system,
             image_offset_mm = (
                 self.sb_image_offset_mm_x.value(),
