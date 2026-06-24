@@ -33,7 +33,7 @@ dependencies:
   - statsmodels  
   - psutil
   - git+https://github.com/ElTinmar/tracker.git@v0.14.8
-  - git+https://github.com/ElTinmar/camera_tools.git@v0.8.15
+  - git+https://github.com/ElTinmar/camera_tools.git@v0.8.16
   - git+https://github.com/ElTinmar/video_tools.git@v0.6.11
   - git+https://github.com/ElTinmar/image_tools.git@v0.9.7
   - git+https://github.com/ElTinmar/qt_widgets.git@v0.5.4
