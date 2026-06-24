@@ -989,9 +989,9 @@ class GeneralStim(VisualStim):
                     [np.cos(theta), -np.sin(theta)],
                     [np.sin(theta), np.cos(theta)]
                 ])
-                self.fish_centroid = self.transformation_matrix.transform_points(centroid).squeeze()
-                self.fish_caudorostral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
-                self.fish_mediolateral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
+                self.shared_fish_state[ID].fish_centroid = self.transformation_matrix.transform_points(centroid).squeeze()
+                self.shared_fish_state[ID].fish_caudorostral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
+                self.shared_fish_state[ID].fish_mediolateral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
                 
                 # TODO check that
                 virtual_centroid = np.array([
