@@ -127,8 +127,8 @@ class ConcentricGratingWidget(VisualProtocolItemWidget):
         kwargs = super()._get_protocol_kwargs()
         
         kwargs.update({
-            'concentric_spatial_period_mm': self.sb_concentric_spatial_freq.value(),
-            'concentric_speed_mm_per_sec': self.sb_concentric_speed.value()
+            'spatial_period_mm': self.sb_concentric_spatial_freq.value(),
+            'speed_mm_per_sec': self.sb_concentric_speed.value()
         })
         return kwargs
     
