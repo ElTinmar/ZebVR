@@ -684,7 +684,6 @@ class GeneralStim(VisualStim):
         void main()
         {
             vec2 coordinates_centered_px;
-            vec2 virtual_coordinates_centered_px;
             mat2 change_of_basis;
             mat2 change_of_basis_virtual;
             vec4 camera_bbox_px;
@@ -705,7 +704,7 @@ class GeneralStim(VisualStim):
                 vec2 coordinates_centered_mm; // projector x,y coordinates. Origin: bounding box center, y axis: , x axis:  
                 vec2 fish_ego_coords_mm; // fish egocentric coordinates: Origin: fish centroid, y axis: fish major axis, x axis: right
                 vec2 fish_centered_coords_mm; // fish-centric coordinates: Origin: fish centroid, y axis: proj up , x axis: proj right
-                vec2 virtual_fish_ego_coords_mm; // fish egocentric coordinates: Origin: fish centroid, y axis: fish major axis, x axis: right 
+                vec2 virtual_fish_coords_mm; // fish egocentric coordinates: Origin: fish centroid, y axis: fish major axis, x axis: right 
 
                 // get current bounding box center in projector space  
                 camera_bbox_px = u_bounding_box[animal];
@@ -721,7 +720,6 @@ class GeneralStim(VisualStim):
 
                 // compute fish-centric coordinates 
                 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
-                virtual_coordinates_centered_px = coordinates_px - u_virtual_centroid[animal];
                 change_of_basis = mat2(
                     u_fish_mediolateral_axis[animal]/length(u_fish_mediolateral_axis[animal]), 
                     u_fish_caudorostral_axis[animal]/length(u_fish_caudorostral_axis[animal])
@@ -731,9 +729,9 @@ class GeneralStim(VisualStim):
                     u_virtual_caudorostral_axis[animal]/length(u_virtual_caudorostral_axis[animal])
                 );
                 vec2 fish_ego_coords_px = transpose_mat2(change_of_basis) * coordinates_centered_px;
-                vec2 virtual_fish_ego_coords_px = transpose_mat2(change_of_basis_virtual) * virtual_coordinates_centered_px;
+                vec2 virtual_fish_coords_px = u_virtual_centroid[animal] + transpose_mat2(change_of_basis_virtual) * fish_ego_coords_px;
                 fish_ego_coords_mm = fish_ego_coords_px / u_pix_per_mm_proj;
-                virtual_fish_ego_coords_mm = virtual_fish_ego_coords_px / u_pix_per_mm_proj;
+                virtual_fish_coords_mm = virtual_fish_coords_px / u_pix_per_mm_proj;
                 fish_centered_coords_mm = coordinates_centered_px / u_pix_per_mm_proj;
 
                 // STEP 2: COMPUTE STIMULI ------------------------------------------------------------------------------------------
@@ -743,7 +741,7 @@ class GeneralStim(VisualStim):
                 if (u_coordinate_system == BOUNDING_BOX_CENTER) {local_coordinates_mm = coordinates_centered_mm;}
                 if (u_coordinate_system == FISH_CENTERED) {local_coordinates_mm = fish_centered_coords_mm;}
                 if (u_coordinate_system == FISH_EGOCENTRIC) {local_coordinates_mm = fish_ego_coords_mm;}
-                if (u_coordinate_system == VIRTUAL_FISH_EGOCENTRIC) {local_coordinates_mm = virtual_fish_ego_coords_mm;}
+                if (u_coordinate_system == VIRTUAL_FISH_EGOCENTRIC) {local_coordinates_mm = virtual_fish_coords_mm;}
 
                 // choose which stimulus to show
                 gl_FragColor = u_background_color; 
@@ -984,7 +982,7 @@ class GeneralStim(VisualStim):
                     data['tracking']['embedded_x'], 
                     data['tracking']['embedded_y']
                 ])
-                theta = data['tracking']['embedded_theta']-np.pi/2
+                theta = data['tracking']['embedded_theta']-np.pi/2 # fish head facing north, angle respective to x axis
                 body_axes = np.array([
                     [np.cos(theta), -np.sin(theta)],
                     [np.sin(theta), np.cos(theta)]
