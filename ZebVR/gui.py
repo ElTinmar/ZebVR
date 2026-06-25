@@ -430,7 +430,8 @@ class MainGui(QMainWindow):
         self.close_loop_button.setChecked(state['close_loop'])
         self.video_recording_button.setChecked(state['video_recording'])
         self.tracking_button.setChecked(state['tracking'])
-        #self.head_embedded_button.setChecked(state['head_embedded']) # FIXME?
+        self.head_embedded_button.setChecked(state['head_embedded'])
+        self.update_main_settings()
 
     def set_state(self, state: Dict) -> None:
 
