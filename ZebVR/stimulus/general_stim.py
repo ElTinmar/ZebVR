@@ -1005,9 +1005,6 @@ class GeneralStim(VisualStim):
                 self.shared_fish_state[ID].virtual_caudorostral_axis[:] = -1*self.transformation_matrix.transform_vectors(virtual_body_axes[:,0]).squeeze()
                 self.shared_fish_state[ID].virtual_mediolateral_axis[:] = -1*self.transformation_matrix.transform_vectors(virtual_body_axes[:,1]).squeeze()
 
-                print(centroid, body_axes, virtual_centroid, virtual_body_axes)
-                print('\n')
-                
         except KeyError as err:
             print(f'KeyError: {err}')
             return None 
