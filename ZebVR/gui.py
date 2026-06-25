@@ -258,11 +258,13 @@ class MainGui(QMainWindow):
         top_buttons.addWidget(self.close_loop_button)
         top_buttons.addWidget(self.open_loop_button)
         top_buttons.addWidget(self.video_recording_button)
+        top_buttons.setContentsMargins(0, 0, 0, 0)
         #top_buttons.addWidget(self.tracking_button)
 
         headembedded_buttons_layout = QHBoxLayout(self.headembedded_buttons_container)
         headembedded_buttons_layout.addWidget(self.freely_swimming_button)
         headembedded_buttons_layout.addWidget(self.head_embedded_button)
+        headembedded_buttons_layout.setContentsMargins(0, 0, 0, 0)
         
         controls = QHBoxLayout()
         controls.addWidget(self.start_button)
