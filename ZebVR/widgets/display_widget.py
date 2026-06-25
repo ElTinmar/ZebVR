@@ -199,11 +199,13 @@ class TrackingDisplayWidget(QWidget):
         layout_tracker_btn.addWidget(self.btn_body)
         layout_tracker_btn.addWidget(self.btn_eyes)
         layout_tracker_btn.addWidget(self.btn_tail)
+        layout_tracker_btn.setContentsMargins(0, 0, 0, 0)
 
         layout_display_btn = QHBoxLayout()
         layout_display_btn.addWidget(self.btn_processed)
         layout_display_btn.addWidget(self.btn_overlay)
         layout_display_btn.addWidget(self.btn_mask)
+        layout_display_btn.setContentsMargins(0, 0, 0, 0)
 
         layout_status = QHBoxLayout()
         layout_status.addWidget(QLabel('index:'))
