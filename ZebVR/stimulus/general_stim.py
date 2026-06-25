@@ -992,11 +992,11 @@ class GeneralStim(VisualStim):
                 self.shared_fish_state[ID].fish_mediolateral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
                 
                 # TODO check that
-                virtual_centroid = np.array([
+                virtual_centroid = -1*np.array([
                     data['tracking']['virtual_x'], 
                     data['tracking']['virtual_y']
                 ])
-                virtual_theta = data['tracking']['virtual_theta']
+                virtual_theta = -1*data['tracking']['virtual_theta'] 
                 virtual_body_axes = np.array([
                     [np.cos(virtual_theta), -np.sin(virtual_theta)],
                     [np.sin(virtual_theta), np.cos(virtual_theta)]
