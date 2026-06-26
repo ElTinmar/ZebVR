@@ -255,17 +255,12 @@ class TrackingDisplayWidget(QWidget):
         else:
             self.animal_identity.setEnabled(True)
 
-    def on_scene_clicked(self, event) -> None:
+    def pos_to_animal_id(self, pos) -> int:
 
-        if self.bg_summary.checkedId() != Summary.SUMMARY:
-            QGraphicsScene.mousePressEvent(self.scene, event)
-            return
-
-        pos = event.scenePos()
         pixmap = self.image_item.pixmap()
         
         if pixmap.isNull():
-            return
+            return -1
 
         n_cols = int(np.ceil(np.sqrt(self.n_animals)))
         w = pixmap.width()
@@ -278,11 +273,23 @@ class TrackingDisplayWidget(QWidget):
         clicked_row = int(pos.y() // cell_h)
         animal_id = (clicked_row * n_cols) + clicked_col
 
+        return animal_id
+
+    def on_scene_clicked(self, event) -> None:
+
+        if self.bg_summary.checkedId() != Summary.SUMMARY:
+            QGraphicsScene.mousePressEvent(self.scene, event)
+            return
+
+        pos = event.scenePos()
+        animal_id = self.pos_to_animal_id(pos)
+
         if 0 <= animal_id < self.n_animals:
             self.animal_identity.setValue(animal_id)
             self.btn_individuals.click()
             
         event.accept()
+
 
     def get_state(self) -> Dict:
         state = {}
