@@ -17,6 +17,10 @@ from qtpy.QtWidgets import (
 from qtpy.QtGui import QImage
 from qt_widgets import NDarray_to_QPixmap, LabeledSpinBox, ZoomableGraphicsView
 
+class Summary(IntEnum):
+    SUMMARY = 0
+    INDIVIDUALS = 1
+
 class TrackerType(IntEnum):
     MULTI = 0
     ANIMAL = 1
@@ -150,8 +154,16 @@ class TrackingDisplayWidget(QWidget):
         self.image_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.image_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        # TODO add widget to select which fish to show
-        # and / or mouse click event
+        self.btn_summary = QPushButton('summary')
+        self.btn_summary.setCheckable(True)
+
+        self.btn_individuals = QPushButton('individuals') 
+        self.btn_individuals.setCheckable(True)
+
+        self.bg_summary = QButtonGroup()
+        self.bg_summary.addButton(self.btn_summary, id=Summary.SUMMARY)
+        self.bg_summary.addButton(self.btn_individuals, id=Summary.INDIVIDUALS)
+        self.btn_individuals.setChecked(True)
 
         self.btn_multi = QPushButton('multi')
         self.btn_multi.setCheckable(True)
@@ -193,6 +205,11 @@ class TrackingDisplayWidget(QWidget):
 
     def layout_components(self) -> None:
 
+        layout_summary_btn = QHBoxLayout()
+        layout_summary_btn.addWidget(self.btn_individuals)
+        layout_summary_btn.addWidget(self.btn_summary)
+        layout_summary_btn.setContentsMargins(0, 0, 0, 0)
+
         layout_tracker_btn = QHBoxLayout()
         layout_tracker_btn.addWidget(self.btn_multi)
         layout_tracker_btn.addWidget(self.btn_animal)
@@ -221,6 +238,7 @@ class TrackingDisplayWidget(QWidget):
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.animal_identity)
+        layout.addLayout(layout_summary_btn)
         layout.addLayout(layout_tracker_btn)
         layout.addLayout(layout_display_btn)
         layout.addLayout(layout_image)
@@ -229,6 +247,7 @@ class TrackingDisplayWidget(QWidget):
     def get_state(self) -> Dict:
         state = {}
         state['identity'] = self.animal_identity.value()
+        state['summary_type'] = self.bg_summary.checkedId()
         state['display_type'] = self.bg_display_type.checkedId()
         state['tracker_type'] = self.bg_tracker_type.checkedId()
         return state
