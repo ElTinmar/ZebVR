@@ -991,7 +991,7 @@ class GeneralStim(VisualStim):
                 self.shared_fish_state[ID].fish_caudorostral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
                 self.shared_fish_state[ID].fish_mediolateral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
                 
-                # NOTE this represent the transformation from virtual to embedded space (hence -1 sign)
+                # TODO check why -1 
                 virtual_centroid = -1*np.array([
                     data['tracking']['virtual_x'], 
                     data['tracking']['virtual_y']
