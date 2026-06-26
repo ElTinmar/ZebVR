@@ -1,6 +1,7 @@
 from enum import IntEnum
 import cv2
 from typing import Dict
+import numpy as np
 
 #import pyqtgraph as pg
 from qtpy.QtCore import Qt
@@ -148,6 +149,8 @@ class TrackingDisplayWidget(QWidget):
         self.scene = QGraphicsScene(self)
         self.image_item = QGraphicsPixmapItem()
         self.scene.addItem(self.image_item)
+        self.scene.mousePressEvent = self.on_scene_clicked
+
         self.image_view = ZoomableGraphicsView(self.scene)
         self.image_view.setFixedHeight(self.display_height)
         self.image_view.setFixedWidth(self.display_height)
@@ -163,6 +166,7 @@ class TrackingDisplayWidget(QWidget):
         self.bg_summary = QButtonGroup()
         self.bg_summary.addButton(self.btn_summary, id=Summary.SUMMARY)
         self.bg_summary.addButton(self.btn_individuals, id=Summary.INDIVIDUALS)
+        self.bg_summary.idClicked.connect(self.on_summary_mode_changed)
         self.btn_individuals.setChecked(True)
 
         self.btn_multi = QPushButton('multi')
@@ -243,6 +247,42 @@ class TrackingDisplayWidget(QWidget):
         layout.addLayout(layout_display_btn)
         layout.addLayout(layout_image)
         layout.addLayout(layout_status)
+
+    def on_summary_mode_changed(self, summary_id: int) -> None:
+
+        if summary_id == Summary.SUMMARY:
+            self.animal_identity.setEnabled(False)
+        else:
+            self.animal_identity.setEnabled(True)
+
+    def on_scene_clicked(self, event) -> None:
+
+        if self.bg_summary.checkedId() != Summary.SUMMARY:
+            QGraphicsScene.mousePressEvent(self.scene, event)
+            return
+
+        pos = event.scenePos()
+        pixmap = self.image_item.pixmap()
+        
+        if pixmap.isNull():
+            return
+
+        n_cols = int(np.ceil(np.sqrt(self.n_animals)))
+        w = pixmap.width()
+        h = pixmap.height()
+
+        cell_w = w / n_cols
+        cell_h = h / int(np.ceil(self.n_animals / n_cols))
+
+        clicked_col = int(pos.x() // cell_w)
+        clicked_row = int(pos.y() // cell_h)
+        animal_id = (clicked_row * n_cols) + clicked_col
+
+        if 0 <= animal_id < self.n_animals:
+            self.animal_identity.setValue(animal_id)
+            self.btn_individuals.click()
+            
+        event.accept()
 
     def get_state(self) -> Dict:
         state = {}
