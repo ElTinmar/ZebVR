@@ -1079,6 +1079,8 @@ class TrackerWidget(QWidget):
             key = str(i)
             if key in loaded_substate:
                 normalized_substate[i] = loaded_substate[key]
+            elif i>0:
+                normalized_substate[i] = normalized_substate[i-1]
             else:
                 normalized_substate[i] = self._get_substate()
         state["substate"] = normalized_substate
