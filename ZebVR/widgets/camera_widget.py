@@ -539,7 +539,7 @@ class CameraHandler(QObject):
             self.debounce_timer.stop()
         if self.camera is not None:
             self.camera.stop_acquisition()
-            del(self.camera)
+            self.camera = None
 
     def frame_acquisition(self, enabled: bool):
         
@@ -561,7 +561,6 @@ class CameraHandler(QObject):
             if self.acquisition_started:
                 self.camera.stop_acquisition()
                 
-            del(self.camera) 
             self.camera = None
             self.last_camera_state = None
             self.acquisition_started = False
@@ -616,7 +615,7 @@ class CameraHandler(QObject):
         self.timer.stop()
         if self.camera is not None:
             self.camera.stop_acquisition()
-            del(self.camera)
+            self.camera = None
 
         self.camera_constructor = camera_constructor
         self.camera = self.camera_constructor()
@@ -824,13 +823,13 @@ class CameraController(QObject):
             if not filename.is_file():
                 return
             
-            self.camera_constructor = partial(MovieFileCam, filename=str(filename))
+            self.camera_constructor = partial(MovieFileCam, filename=str(filename), loop=True)
 
         elif camera_model==CameraModel.MOVIE_GRAY:
             if not filename.is_file():
                 return
             
-            self.camera_constructor = partial(MovieFileCamGray, filename=str(filename))
+            self.camera_constructor = partial(MovieFileCamGray, filename=str(filename), loop=True)
 
         elif camera_model==CameraModel.XIMEA and XIMEA_ENABLED:
             self.camera_constructor = partial(XimeaCamera_Transport, dev_id=camera_index)

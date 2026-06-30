@@ -2,27 +2,9 @@ from typing import Any, Dict, Union
 import numpy as np
 from numpy.typing import NDArray
 from pathlib import Path
+from ZebVR.utils.tracker_from_json import single_fish_tracker, head_embedded_tracker
 
-# TODO control this with a widget
-ENABLE_KALMAN = False
-
-from tracker import (
-    SingleFishTracker, 
-    SingleFishTracker_CPU,
-    SingleFishTrackerParamTracking,
-    AnimalTracker_CPU,
-    AnimalTrackerKalman,  
-    AnimalTrackerParamTracking,
-    BodyTracker_CPU, 
-    BodyTrackerKalman,
-    BodyTrackerParamTracking,
-    EyesTracker_CPU,
-    EyesTrackerKalman,
-    EyesTrackerParamTracking, 
-    TailTracker_CPU,
-    TailTrackerKalman,
-    TailTrackerParamTracking,
-)
+from tracker import Tracker
 from dagline import WorkerNode
 from geometry import SimilarityTransform2D
 
@@ -30,12 +12,13 @@ class TrackerWorker(WorkerNode):
     
     def __init__(
             self, 
-            tracker: SingleFishTracker, 
+            tracker: Tracker, 
             background_image_file: Union[Path, str],
             cam_fps: float,
             cam_width: int,
             cam_height: int,
             n_tracker_workers: int,
+            head_embedded: bool = False,
             *args, 
             **kwargs
         ):
@@ -48,6 +31,7 @@ class TrackerWorker(WorkerNode):
         self.cam_height = cam_height
         self.cam_fps = cam_fps
         self.n_tracker_workers = n_tracker_workers
+        self.head_embedded = head_embedded
         self.current_tracking = None
 
     def process_data(self, data: NDArray) -> Dict:
@@ -63,7 +47,7 @@ class TrackerWorker(WorkerNode):
         ]
         
         tracking = self.tracker.track(data['image'], background, None, T)
-        
+          
         msg = np.array(
             (data['index'], data['timestamp'], tracking, data['origin'], data['shape'], data['identity']),
             dtype=np.dtype([
@@ -96,77 +80,11 @@ class TrackerWorker(WorkerNode):
 
             if control is None:
                 continue
-                        
-            if ENABLE_KALMAN:
-                # TODO : parametrize this with a widget
-                animal = AnimalTrackerKalman(
-                    tracking_param=AnimalTrackerParamTracking(**control['animal_tracking']),
-                    fps = self.cam_fps, 
-                    model_order=2,
-                    model_uncertainty=0.2,
-                    measurement_uncertainty=1
-                )
                 
-                body = eyes = tail = None
-
-                if control['body_tracking_enabled']:
-                    body = BodyTrackerKalman(
-                        tracking_param=BodyTrackerParamTracking(**control['body_tracking']), 
-                        fps = self.cam_fps, 
-                        history_sec = 0.2,
-                        model_order=2,
-                        model_uncertainty=0.2,
-                        measurement_uncertainty=1
-                    )
-
-                if control['eyes_tracking_enabled']:
-                    eyes = EyesTrackerKalman(
-                        tracking_param=EyesTrackerParamTracking(**control['eyes_tracking']),
-                        fps = self.cam_fps, 
-                        model_order=1,
-                        model_uncertainty=0.2,
-                        measurement_uncertainty=1
-                    )
-
-                if control['tail_tracking_enabled']:
-                    tail = TailTrackerKalman(
-                        tracking_param=TailTrackerParamTracking(**control['tail_tracking']),
-                        fps = self.cam_fps, 
-                        model_order=2,
-                        model_uncertainty=1,
-                        measurement_uncertainty=1
-                    )
+            if self.head_embedded:
+                self.tracker = head_embedded_tracker(control, self.cam_fps)
             else:
-                animal = AnimalTracker_CPU(
-                    tracking_param=AnimalTrackerParamTracking(**control['animal_tracking']),
-                )
-                
-                body = eyes = tail = None
-
-                if control['body_tracking_enabled']:
-                    body = BodyTracker_CPU(
-                        tracking_param=BodyTrackerParamTracking(**control['body_tracking']), 
-                        fps = self.cam_fps
-                    )
-
-                if control['eyes_tracking_enabled']:
-                    eyes = EyesTracker_CPU(
-                        tracking_param=EyesTrackerParamTracking(**control['eyes_tracking']),
-                    )
-
-                if control['tail_tracking_enabled']:
-                    tail = TailTracker_CPU(
-                        tracking_param=TailTrackerParamTracking(**control['tail_tracking']),
-                    )
-            
-            self.tracker = SingleFishTracker_CPU(
-                SingleFishTrackerParamTracking(
-                    animal = animal,
-                    body = body,
-                    eyes = eyes,
-                    tail = tail
-                )
-            )
+                self.tracker = single_fish_tracker(control, self.cam_fps)
         
         # send tracking as metadata
         if self.current_tracking is None:

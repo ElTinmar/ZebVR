@@ -40,6 +40,12 @@ class TrackingSaver(WorkerNode):
             'pc1_y',
             'pc2_x',
             'pc2_y',
+            'virtual_centroid_x',
+            'virtual_centroid_y',
+            'virtual_pc1_x',
+            'virtual_pc1_y',
+            'virtual_pc2_x',
+            'virtual_pc2_y',
             'left_eye_x',
             'left_eye_y',
             'left_eye_angle',
@@ -67,6 +73,9 @@ class TrackingSaver(WorkerNode):
         fish_centroid = np.zeros((2,), dtype=float)
         fish_caudorostral_axis = np.zeros((2,), dtype=float)
         fish_mediolateral_axis = np.zeros((2,), dtype=float)
+        virtual_centroid = np.zeros((2,), dtype=float)
+        virtual_caudorostral_axis = np.zeros((2,), dtype=float)
+        virtual_mediolateral_axis = np.zeros((2,), dtype=float)
         left_eye_centroid = np.zeros((2,), dtype=float)
         right_eye_centroid = np.zeros((2,), dtype=float)
         skeleton_interp = np.zeros((self.num_tail_points_interp,2), dtype=float)
@@ -76,17 +85,16 @@ class TrackingSaver(WorkerNode):
         try:
             fields = data['tracking'].dtype.names
 
+            if 'animals' in fields:
+                fish_centroid[:] = data['tracking']['animals']['centroids_global']
+
             if 'body' in fields:
                 fish_centroid[:] = data['tracking']['body']['centroid_global']
                 body_axes = data['tracking']['body']['body_axes_global']
                 fish_caudorostral_axis[:] = body_axes[:,0]
                 fish_mediolateral_axis[:] = body_axes[:,1]
-            else:
-                fish_centroid[:] = data['tracking']['animals']['centroids_global']
-
-
+               
             if 'eyes' in fields:
-
                 if data['tracking']['eyes']['left_eye'] is not None:
                     left_eye_centroid[:] = data['tracking']['eyes']['left_eye']['centroid_cropped'] 
                     left_eye_angle = data['tracking']['eyes']['left_eye']['angle']
@@ -97,6 +105,34 @@ class TrackingSaver(WorkerNode):
 
             if 'tail' in fields:
                 skeleton_interp = data['tracking']['tail']['skeleton_interp_cropped']  
+
+            if 'embedded_x' in fields:
+                centroid = np.array([
+                    data['tracking']['embedded_x'], 
+                    data['tracking']['embedded_y']
+                ])
+                theta = data['tracking']['embedded_theta'] # TODO check this
+                body_axes = np.array([
+                    [np.cos(theta), -np.sin(theta)],
+                    [np.sin(theta),  np.cos(theta)]
+                ])
+                fish_centroid[:] = centroid
+                fish_caudorostral_axis[:] = body_axes[:,0]
+                fish_mediolateral_axis[:] = body_axes[:,1]
+
+                virtual_centroid = np.array([
+                    data['tracking']['virtual_x'], 
+                    data['tracking']['virtual_y']
+                ])
+                theta = data['tracking']['virtual_theta'] # TODO check this
+                virtual_body_axes = np.array([
+                    [np.cos(theta), -np.sin(theta)],
+                    [np.sin(theta),  np.cos(theta)]
+                ])
+                virtual_centroid[:] = virtual_centroid
+                virtual_caudorostral_axis[:] = virtual_body_axes[:,0]
+                virtual_mediolateral_axis[:] = virtual_body_axes[:,1]
+
 
         except KeyError as err:
             print(f'KeyError: {err}')
@@ -124,6 +160,12 @@ class TrackingSaver(WorkerNode):
             f"{fish_caudorostral_axis[1]}",
             f"{fish_mediolateral_axis[0]}",
             f"{fish_mediolateral_axis[1]}",
+            f"{virtual_centroid[0]}",
+            f"{virtual_centroid[1]}",
+            f"{virtual_caudorostral_axis[0]}",
+            f"{virtual_caudorostral_axis[1]}",
+            f"{virtual_mediolateral_axis[0]}",
+            f"{virtual_mediolateral_axis[1]}",
             f"{left_eye_centroid[0]}",
             f"{left_eye_centroid[1]}",
             f"{left_eye_angle}",

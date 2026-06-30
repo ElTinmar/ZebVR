@@ -7,10 +7,9 @@ from ZebVR.protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Dict, List
+from typing import Dict, List, Any
 from qtpy.QtWidgets import (
     QApplication, 
-    QCheckBox,
 )
 from qt_widgets import LabeledDoubleSpinBox
 from ..default import DEFAULT
@@ -133,20 +132,16 @@ class PWM_PulseWidget(DAQ_ProtocolItemWidget):
             self.sb_pulse_duration_msec.setValue(protocol_item.pulse_duration_msec)
             self.sb_duty_cycle.setValue(protocol_item.duty_cycle)
 
-    def to_protocol_item(self) -> PWM_Pulse:
-
-        channel_list_widget = self.channel_list.selectedItems()
-        channels = [int(widget.text()) for widget in channel_list_widget]
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+        kwargs = super()._get_protocol_kwargs()
+        kwargs.update({
+            'pulse_duration_msec': self.sb_pulse_duration_msec.value(),
+            'duty_cycle': self.sb_duty_cycle.value(),
+        })
+        return kwargs
     
-        return PWM_Pulse(
-            name = self.stim_name.text(),
-            board_type = self.current_board_type,
-            board_id = self.current_board.id,
-            channels = channels,
-            pulse_duration_msec = self.sb_pulse_duration_msec.value(),
-            duty_cycle = self.sb_duty_cycle.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
+    def to_protocol_item(self) -> PWM_Pulse:
+        return PWM_Pulse(**self._get_protocol_kwargs())
 
 if __name__ == '__main__':
 

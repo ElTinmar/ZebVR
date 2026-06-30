@@ -7,7 +7,7 @@ from ...protocol import (
     Debouncer,
     LoomingType
 )
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Any
 from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox
 from qtpy.QtWidgets import (
     QGroupBox, 
@@ -349,43 +349,29 @@ class LoomingWidget(VisualProtocolItemWidget):
             self.sb_looming_size_to_speed_ratio.setValue(protocol_item.looming_size_to_speed_ratio_ms)
             self.sb_looming_distance_to_screen_mm.setValue(protocol_item.looming_distance_to_screen_mm)
 
-    def to_protocol_item(self) -> Looming:
-        
-        foreground_color = (
-            self.sb_foreground_color_R.value(), 
-            self.sb_foreground_color_G.value(),
-            self.sb_foreground_color_B.value(),
-            self.sb_foreground_color_A.value()
-        )
-        background_color = (
-            self.sb_background_color_R.value(), 
-            self.sb_background_color_G.value(),
-            self.sb_background_color_B.value(),
-            self.sb_background_color_A.value()
-        )
-        coordinate_system = self.cb_coordinate_system.currentIndex()
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
 
-        protocol = Looming(
-            name = self.stim_name.text(),
-            foreground_color = foreground_color,
-            background_color = background_color,
-            coordinate_system = coordinate_system,
-            looming_type = LoomingType(self.cb_looming_type.currentIndex()),
-            looming_center_mm = (
+        kwargs = super()._get_protocol_kwargs()
+
+        kwargs.update({
+            'looming_type': LoomingType(self.cb_looming_type.currentIndex()),
+            'looming_center_mm': (
                 self.sb_looming_center_mm_x.value(),
                 self.sb_looming_center_mm_y.value()
             ),
-            looming_period_sec = self.sb_looming_period_sec.value(),
-            looming_expansion_time_sec = self.sb_looming_expansion_time_sec.value(),
-            looming_expansion_speed_mm_per_sec = self.sb_looming_expansion_speed_mm_per_sec.value(),
-            looming_expansion_speed_deg_per_sec = self.sb_looming_expansion_speed_deg_per_sec.value(),
-            looming_angle_start_deg = self.sb_looming_angle_start_deg.value(),
-            looming_angle_stop_deg = self.sb_looming_angle_stop_deg.value(),
-            looming_size_to_speed_ratio_ms = self.sb_looming_size_to_speed_ratio.value(),
-            looming_distance_to_screen_mm = self.sb_looming_distance_to_screen_mm.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
+            'looming_period_sec': self.sb_looming_period_sec.value(),
+            'looming_expansion_time_sec': self.sb_looming_expansion_time_sec.value(),
+            'looming_expansion_speed_mm_per_sec': self.sb_looming_expansion_speed_mm_per_sec.value(),
+            'looming_expansion_speed_deg_per_sec': self.sb_looming_expansion_speed_deg_per_sec.value(),
+            'looming_angle_start_deg': self.sb_looming_angle_start_deg.value(),
+            'looming_angle_stop_deg': self.sb_looming_angle_stop_deg.value(),
+            'looming_size_to_speed_ratio_ms': self.sb_looming_size_to_speed_ratio.value(),
+            'looming_distance_to_screen_mm': self.sb_looming_distance_to_screen_mm.value(),
+        })
+        return kwargs
+
+    def to_protocol_item(self) -> Looming:
+        return Looming(**self._get_protocol_kwargs())
 
     
 if __name__ == '__main__':

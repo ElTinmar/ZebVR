@@ -77,12 +77,7 @@ class WhiteNoiseWidget(AudioProtocolItemWidget):
         self.main_layout.addWidget(self.stop_widget)
 
     def to_protocol_item(self) -> WhiteNoise:
-
-        return WhiteNoise(
-            name = self.stim_name.text(),
-            amplitude_dB = self.sb_amplitude_dB.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
+        return WhiteNoise(**self._get_protocol_kwargs())
 
 class PinkNoiseWidget(AudioProtocolItemWidget):
 
@@ -92,12 +87,7 @@ class PinkNoiseWidget(AudioProtocolItemWidget):
         self.main_layout.addWidget(self.stop_widget)
         
     def to_protocol_item(self) -> PinkNoise:
-
-        return PinkNoise(
-            name = self.stim_name.text(),
-            amplitude_dB = self.sb_amplitude_dB.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
+        return PinkNoise(**self._get_protocol_kwargs())
 
 class BrownNoiseWidget(AudioProtocolItemWidget):
 
@@ -107,12 +97,8 @@ class BrownNoiseWidget(AudioProtocolItemWidget):
         self.main_layout.addWidget(self.stop_widget)
 
     def to_protocol_item(self) -> BrownNoise:
+        return BrownNoise(**self._get_protocol_kwargs())
 
-        return BrownNoise(
-            name = self.stim_name.text(),
-            amplitude_dB = self.sb_amplitude_dB.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
     
 if __name__ == '__main__':
 

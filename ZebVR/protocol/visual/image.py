@@ -6,12 +6,13 @@ from ...protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Any
 from qt_widgets import LabeledDoubleSpinBox, FileOpenLabeledEditButton
 from qtpy.QtWidgets import (
     QGroupBox, 
     QVBoxLayout,
     QApplication, 
+    QCheckBox
 )
 from ...utils import set_from_dict
 from ..default import DEFAULT
@@ -24,6 +25,7 @@ class Image(VisualProtocolItem):
             image_path: str = DEFAULT['image_path'],
             image_res_px_per_mm: float = DEFAULT['image_res_px_per_mm'],
             image_offset_mm: Tuple[float, float] = DEFAULT['image_offset_mm'],
+            image_tiling: int = DEFAULT['image_tiling'],
             *args,
             **kwargs
         ) -> None:
@@ -32,6 +34,7 @@ class Image(VisualProtocolItem):
         self.image_path = image_path
         self.image_res_px_per_mm = image_res_px_per_mm
         self.image_offset_mm = image_offset_mm
+        self.image_tiling = image_tiling
 
     def start(self) -> Dict:
 
@@ -40,7 +43,8 @@ class Image(VisualProtocolItem):
             'stim_select': self.STIM_SELECT,
             'image_path': self.image_path,
             'image_res_px_per_mm': self.image_res_px_per_mm,
-            'image_offset_mm': self.image_offset_mm
+            'image_offset_mm': self.image_offset_mm,
+            'image_tiling': self.image_tiling
         })
         return command
     
@@ -51,6 +55,7 @@ class ImageWidget(VisualProtocolItemWidget):
             image_path: str = DEFAULT['image_path'],
             image_res_px_per_mm: float = DEFAULT['image_res_px_per_mm'],
             image_offset_mm: Tuple[float, float] = DEFAULT['image_offset_mm'],
+            image_tiling: int = DEFAULT['image_tiling'],
             *args, 
             **kwargs
         ) -> None:
@@ -58,6 +63,7 @@ class ImageWidget(VisualProtocolItemWidget):
         self.image_path = image_path
         self.image_res_px_per_mm = image_res_px_per_mm
         self.image_offset_mm = image_offset_mm
+        self.image_tiling = image_tiling
         
         super().__init__(*args, **kwargs)
 
@@ -89,6 +95,10 @@ class ImageWidget(VisualProtocolItemWidget):
         self.sb_image_offset_mm_y.setSingleStep(0.1)
         self.sb_image_offset_mm_y.valueChanged.connect(self.state_changed)
 
+        self.chb_tiling = QCheckBox('tile image')
+        self.chb_tiling.setChecked(self.image_tiling==1)
+        self.chb_tiling.stateChanged.connect(self.state_changed)
+
     def layout_components(self) -> None:
         
         super().layout_components()
@@ -98,6 +108,7 @@ class ImageWidget(VisualProtocolItemWidget):
         image_layout.addWidget(self.sb_image_res_px_per_mm)
         image_layout.addWidget(self.sb_image_offset_mm_x)
         image_layout.addWidget(self.sb_image_offset_mm_y)
+        image_layout.addWidget(self.chb_tiling)
         image_layout.addStretch()
 
         self.image_group = QGroupBox('Image parameters')
@@ -115,6 +126,7 @@ class ImageWidget(VisualProtocolItemWidget):
             self.sb_image_offset_mm_x.value(),
             self.sb_image_offset_mm_y.value()
         )
+        state['image_tiling'] = int(self.chb_tiling.isChecked())
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -148,6 +160,13 @@ class ImageWidget(VisualProtocolItemWidget):
             default = self.image_offset_mm,
             cast = lambda x: float(x[1])
         )
+        set_from_dict(
+            dictionary = state,
+            key = 'image_tiling',
+            setter = self.chb_tiling.setChecked,
+            default = self.image_tiling,
+            cast = bool
+        )
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
@@ -158,37 +177,25 @@ class ImageWidget(VisualProtocolItemWidget):
             self.sb_image_res_px_per_mm.setValue(protocol_item.image_res_px_per_mm)
             self.sb_image_offset_mm_x.setValue(protocol_item.image_offset_mm[0])
             self.sb_image_offset_mm_y.setValue(protocol_item.image_offset_mm[1])
+            self.chb_tiling.setChecked(protocol_item.image_tiling)
 
-    def to_protocol_item(self) -> Image:
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+
+        kwargs = super()._get_protocol_kwargs()
         
-        foreground_color = (
-            self.sb_foreground_color_R.value(), 
-            self.sb_foreground_color_G.value(),
-            self.sb_foreground_color_B.value(),
-            self.sb_foreground_color_A.value()
-        )
-        background_color = (
-            self.sb_background_color_R.value(), 
-            self.sb_background_color_G.value(),
-            self.sb_background_color_B.value(),
-            self.sb_background_color_A.value()
-        )
-        coordinate_system = self.cb_coordinate_system.currentIndex()
-
-        protocol = Image(
-            name = self.stim_name.text(),
-            foreground_color = foreground_color,
-            background_color = background_color,
-            coordinate_system = coordinate_system,
-            image_offset_mm = (
+        kwargs.update({
+            'image_offset_mm': (
                 self.sb_image_offset_mm_x.value(),
                 self.sb_image_offset_mm_y.value()
             ),
-            image_path = self.fs_image_path.text(),
-            image_res_px_per_mm = self.sb_image_res_px_per_mm.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
+            'image_res_px_per_mm':  self.sb_image_res_px_per_mm.value(),
+            'image_path': self.fs_image_path.text(),
+            'image_tiling': int(self.chb_tiling.isChecked()),
+        })
+        return kwargs
+    
+    def to_protocol_item(self) -> Image:
+        return Image(**self._get_protocol_kwargs())
     
 if __name__ == '__main__':
 

@@ -18,14 +18,18 @@ class SharedFishState:
     num_tail_points_interp: int
 
     def __post_init__(self):
-        self.fish_mediolateral_axis = RawArray('f', [0, 0])
-        self.fish_caudorostral_axis = RawArray('f', [0, 0])
+        self.fish_caudorostral_axis = RawArray('f', [0, 1])
+        self.fish_mediolateral_axis = RawArray('f', [1, 0])
         self.fish_centroid = RawArray('f', [0, 0])
         self.left_eye_centroid = RawArray('f', [0, 0])
         self.left_eye_angle = RawValue('f', 0)
         self.right_eye_centroid = RawArray('f', [0, 0])
         self.right_eye_angle = RawValue('f', 0)
         self.tail_points = RawArray('f', 2*self.num_tail_points_interp)
+        self.virtual_centroid = RawArray('f', [0, 0])
+        self.virtual_caudorostral_axis = RawArray('f', [0, 1])
+        self.virtual_mediolateral_axis = RawArray('f', [1, 0])
+        
 
 class SharedStimParameters:
     # TODO add index of fish to follow?
@@ -38,8 +42,12 @@ class SharedStimParameters:
         self.stim_select = RawValue(c_double, Stim.DARK) 
         self.foreground_color = RawArray(c_double, DEFAULT['foreground_color'])
         self.background_color = RawArray(c_double, DEFAULT['background_color'])
+        self.fade_in_duration_sec = RawValue(c_double, DEFAULT['fade_in_duration_sec'])
+        self.fade_out_duration_sec = RawValue(c_double, DEFAULT['fade_out_duration_sec'])
+        self.stimulus_duration_sec = RawValue(c_double, DEFAULT['stimulus_duration_sec'])
         self.coordinate_system = RawValue(c_ulong, DEFAULT['coordinate_system'])
         self.phototaxis_polarity = RawValue(c_double, DEFAULT['phototaxis_polarity']) 
+        self.phototaxis_transition_width_mm = RawValue(c_double, DEFAULT['phototaxis_transition_width_mm']) 
         self.omr_spatial_period_mm = RawValue(c_double, DEFAULT['omr_spatial_period_mm'])
         self.omr_angle_deg = RawValue(c_double, DEFAULT['omr_angle_deg'])
         self.omr_speed_mm_per_sec = RawValue(c_double, DEFAULT['omr_speed_mm_per_sec'])
@@ -76,6 +84,7 @@ class SharedStimParameters:
         self.image_path = SharedString(initializer = DEFAULT['image_path'])
         self.image_res_px_per_mm = RawValue(c_double, DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm = RawArray(c_double, DEFAULT['image_offset_mm'])
+        self.image_tiling = RawValue(c_double, DEFAULT['image_tiling']) 
         self.ramp_duration_sec = RawValue(c_double, DEFAULT['ramp_duration_sec'])
         self.ramp_powerlaw_exponent = RawValue(c_double, DEFAULT['ramp_powerlaw_exponent'])
         self.ramp_type = RawValue(c_double, DEFAULT['ramp_type'])
@@ -88,8 +97,12 @@ class SharedStimParameters:
         self.stim_select.value = d.get('stim_select', Stim.DARK)
         self.foreground_color[:] = d.get('foreground_color', DEFAULT['foreground_color'])
         self.background_color[:] = d.get('background_color', DEFAULT['background_color'])
+        self.fade_in_duration_sec.value = d.get('fade_in_duration_sec', DEFAULT['fade_in_duration_sec'])
+        self.fade_out_duration_sec.value = d.get('fade_out_duration_sec', DEFAULT['fade_out_duration_sec'])
+        self.stimulus_duration_sec.value = d.get('stimulus_duration_sec', DEFAULT['stimulus_duration_sec'])
         self.coordinate_system.value = d.get('coordinate_system', DEFAULT['coordinate_system'])
         self.phototaxis_polarity.value = d.get('phototaxis_polarity', DEFAULT['phototaxis_polarity'])
+        self.phototaxis_transition_width_mm.value = d.get('phototaxis_transition_width_mm', DEFAULT['phototaxis_transition_width_mm'])
         self.omr_spatial_period_mm.value = d.get('omr_spatial_period_mm', DEFAULT['omr_spatial_period_mm'])
         self.omr_angle_deg.value = d.get('omr_angle_deg', DEFAULT['omr_angle_deg'])
         self.omr_speed_mm_per_sec.value = d.get('omr_speed_mm_per_sec', DEFAULT['omr_speed_mm_per_sec'])
@@ -126,6 +139,7 @@ class SharedStimParameters:
         self.image_path.value = d.get('image_path', DEFAULT['image_path'])
         self.image_res_px_per_mm.value = d.get('image_res_px_per_mm', DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm[:] = d.get('image_offset_mm', DEFAULT['image_offset_mm'])
+        self.image_tiling.value = d.get('image_tiling', DEFAULT['image_tiling'])
         self.ramp_duration_sec.value = d.get('ramp_duration_sec', DEFAULT['ramp_duration_sec'])
         self.ramp_powerlaw_exponent.value = d.get('ramp_powerlaw_exponent', DEFAULT['ramp_powerlaw_exponent'])
         self.ramp_type.value = d.get('ramp_type', DEFAULT['ramp_type'])
@@ -139,12 +153,16 @@ class SharedStimParameters:
             'start_time_sec': self.start_time_sec.value,
             'foreground_color': list(self.foreground_color),
             'background_color': list(self.background_color),
+            'fade_in_duration_sec': self.fade_in_duration_sec.value,
+            'fade_out_duration_sec': self.fade_out_duration_sec.value,
+            'stimulus_duration_sec': self.stimulus_duration_sec.value,
             'coordinate_system': self.coordinate_system.value
         }
 
         if self.stim_select.value == Stim.PHOTOTAXIS:
             res.update({
                 'phototaxis_polarity': self.phototaxis_polarity.value,
+                'phototaxis_transition_width_mm': self.phototaxis_transition_width_mm.value,
             })
 
         if self.stim_select.value == Stim.OMR:
@@ -213,6 +231,7 @@ class SharedStimParameters:
                 'image_path': self.image_path.value,
                 'image_res_px_per_mm': self.image_res_px_per_mm.value,
                 'image_offset_mm': list(self.image_offset_mm),
+                'image_tiling': self.image_tiling.value,
             })
 
         if self.stim_select.value == Stim.RAMP:
@@ -279,6 +298,9 @@ class GeneralStim(VisualStim):
         uniform vec2 u_fish_centroid[{self.n_animals}];
         uniform vec2 u_fish_caudorostral_axis[{self.n_animals}];
         uniform vec2 u_fish_mediolateral_axis[{self.n_animals}];
+        uniform vec2 u_virtual_centroid[{self.n_animals}];
+        uniform vec2 u_virtual_caudorostral_axis[{self.n_animals}];
+        uniform vec2 u_virtual_mediolateral_axis[{self.n_animals}];
         uniform vec2 u_left_eye_centroid[{self.n_animals}]; 
         uniform float u_left_eye_angle[{self.n_animals}];
         uniform vec2 u_right_eye_centroid[{self.n_animals}];
@@ -290,9 +312,13 @@ class GeneralStim(VisualStim):
         // stim parameters
         uniform vec4 u_foreground_color;
         uniform vec4 u_background_color;
+        uniform float u_fade_in_duration_sec;
+        uniform float u_fade_out_duration_sec;
+        uniform float u_stimulus_duration_sec;
         uniform int u_coordinate_system;
         uniform int u_stim_select;
         uniform float u_phototaxis_polarity;
+        uniform float u_phototaxis_transition_width_mm;
         uniform float u_omr_spatial_period_mm;
         uniform float u_omr_angle_deg;
         uniform float u_omr_speed_mm_per_sec;
@@ -332,6 +358,7 @@ class GeneralStim(VisualStim):
         uniform vec2 u_image_size;
         uniform float u_image_res_px_per_mm;
         uniform vec2 u_image_offset_mm;
+        uniform int u_image_tiling;
         uniform float u_ramp_duration_sec;
         uniform float u_ramp_powerlaw_exponent;
         uniform int u_ramp_type;
@@ -353,7 +380,8 @@ class GeneralStim(VisualStim):
         //coordinate system
         const int BOUNDING_BOX_CENTER = 0;
         const int FISH_CENTERED = 1;
-        const int FISH_EGOCENTRIC = 2; 
+        const int FISH_EGOCENTRIC = 2;
+        const int VIRTUAL_FISH_EGOCENTRIC = 3; 
 
         //periodic function
         const int COSINE = 0;
@@ -407,6 +435,31 @@ class GeneralStim(VisualStim):
             );
         }
 
+        float get_temporal_ramp_factor() {
+            float elapsed = u_time_s - u_start_time_s;
+            float factor = 1.0;
+
+            // Smooth step ramp up (Only runs if duration > 0)
+            if (u_fade_in_duration_sec > 0.0) {
+                if (elapsed < u_fade_in_duration_sec) {
+                    float linear_factor = clamp(elapsed / u_fade_in_duration_sec, 0.0, 1.0);
+                    factor = smoothstep(0.0, 1.0, linear_factor);
+                }
+            }
+            
+            // Smooth step ramp down (Only runs if duration > 0 and a total duration is set)
+            if (u_fade_out_duration_sec > 0.0 && u_stimulus_duration_sec > 0.0) {
+                float time_remaining = u_stimulus_duration_sec - elapsed;
+                if (time_remaining < u_fade_out_duration_sec) {
+                    float linear_factor = clamp(time_remaining / u_fade_out_duration_sec, 0.0, 1.0);
+                    float down_factor = smoothstep(0.0, 1.0, linear_factor);
+                    factor = min(factor, down_factor);
+                }
+            }
+            
+            return factor;
+        }
+
         // STIMULI ----------------------------------------------------------------------------------
 
         vec4 dark_stimulus() {
@@ -418,10 +471,19 @@ class GeneralStim(VisualStim):
         }
 
         vec4 phototaxis_stimulus(vec2 coords_mm) {
-            if ( u_phototaxis_polarity * coords_mm.x > 0.0 ) {
-                return u_foreground_color;
+            float val = u_phototaxis_polarity * coords_mm.x;
+            
+            if (u_phototaxis_transition_width_mm <= 0.0) {
+                if (val > 0.0) {
+                    return u_foreground_color;
+                } else {
+                    return u_background_color;
+                }
             }
-            return u_background_color;
+            
+            float half_width = u_phototaxis_transition_width_mm * 0.5;
+            float t = smoothstep(-half_width, half_width, val);
+            return mix(u_background_color, u_foreground_color, t);
         }
 
         vec4 omr_stimulus(vec2 coords_mm) {
@@ -596,11 +658,15 @@ class GeneralStim(VisualStim):
         vec4 image_stimulus(vec2 coords_mm) {
             vec2 image_size_mm = u_image_size / u_image_res_px_per_mm;
             vec2 coords = 0.5 + (coords_mm - u_image_offset_mm) / image_size_mm;
-            if (coords.x >= 0.0 && coords.x <= 1.0 &&
-                coords.y >= 0.0 && coords.y <= 1.0) {
-                return texture2D(u_image_texture, coords);
+            if (u_image_tiling == 1) {
+                return texture2D(u_image_texture, fract(coords));
+            } else {
+                if (coords.x >= 0.0 && coords.x <= 1.0 &&
+                    coords.y >= 0.0 && coords.y <= 1.0) {
+                    return texture2D(u_image_texture, coords);
+                }
+                return u_background_color;
             }
-            return u_background_color;
         }
 
         vec4 ramp_stimulus() {
@@ -627,6 +693,7 @@ class GeneralStim(VisualStim):
         {
             vec2 coordinates_centered_px;
             mat2 change_of_basis;
+            mat2 change_of_basis_virtual;
             vec4 camera_bbox_px;
             vec4 camera_bbox_mm;
 
@@ -644,7 +711,8 @@ class GeneralStim(VisualStim):
                 // different coordinate systems
                 vec2 coordinates_centered_mm; // projector x,y coordinates. Origin: bounding box center, y axis: , x axis:  
                 vec2 fish_ego_coords_mm; // fish egocentric coordinates: Origin: fish centroid, y axis: fish major axis, x axis: right
-                vec2 fish_centered_coords_mm; // fish-centric coordinates: Origin: fish centroid, y axis: proj up , x axis: proj right 
+                vec2 fish_centered_coords_mm; // fish-centric coordinates: Origin: fish centroid, y axis: proj up , x axis: proj right
+                vec2 virtual_fish_coords_mm; // fish egocentric coordinates: Origin: fish centroid, y axis: fish major axis, x axis: right 
 
                 // get current bounding box center in projector space  
                 camera_bbox_px = u_bounding_box[animal];
@@ -664,8 +732,14 @@ class GeneralStim(VisualStim):
                     u_fish_mediolateral_axis[animal]/length(u_fish_mediolateral_axis[animal]), 
                     u_fish_caudorostral_axis[animal]/length(u_fish_caudorostral_axis[animal])
                 );
+                change_of_basis_virtual = mat2(
+                    u_virtual_mediolateral_axis[animal]/length(u_virtual_mediolateral_axis[animal]), 
+                    u_virtual_caudorostral_axis[animal]/length(u_virtual_caudorostral_axis[animal])
+                );
                 vec2 fish_ego_coords_px = transpose_mat2(change_of_basis) * coordinates_centered_px;
+                vec2 virtual_fish_coords_px = u_virtual_centroid[animal] + transpose_mat2(change_of_basis_virtual) * fish_ego_coords_px;
                 fish_ego_coords_mm = fish_ego_coords_px / u_pix_per_mm_proj;
+                virtual_fish_coords_mm = virtual_fish_coords_px / u_pix_per_mm_proj;
                 fish_centered_coords_mm = coordinates_centered_px / u_pix_per_mm_proj;
 
                 // STEP 2: COMPUTE STIMULI ------------------------------------------------------------------------------------------
@@ -675,6 +749,7 @@ class GeneralStim(VisualStim):
                 if (u_coordinate_system == BOUNDING_BOX_CENTER) {local_coordinates_mm = coordinates_centered_mm;}
                 if (u_coordinate_system == FISH_CENTERED) {local_coordinates_mm = fish_centered_coords_mm;}
                 if (u_coordinate_system == FISH_EGOCENTRIC) {local_coordinates_mm = fish_ego_coords_mm;}
+                if (u_coordinate_system == VIRTUAL_FISH_EGOCENTRIC) {local_coordinates_mm = virtual_fish_coords_mm;}
 
                 // choose which stimulus to show
                 gl_FragColor = u_background_color; 
@@ -700,6 +775,9 @@ class GeneralStim(VisualStim):
                     if (u_prey_capture_type == ARC) {gl_FragColor = prey_capture_arc_stimulus(local_coordinates_mm);}
                 }
             }
+
+            float ramp_factor = get_temporal_ramp_factor();
+            gl_FragColor = mix(u_background_color, gl_FragColor, ramp_factor);
 
             // convert to sRGB color space. Assume images already in sRGB.
             if (u_stim_select != IMAGE) {
@@ -728,6 +806,9 @@ class GeneralStim(VisualStim):
             fish_state.fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,0]).squeeze()
             fish_state.fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,1]).squeeze()
             fish_state.fish_centroid[:] = self.transformation_matrix.transform_points(centroid).squeeze()
+            fish_state.virtual_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,0]).squeeze()
+            fish_state.virtual_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,1]).squeeze()
+            fish_state.virtual_centroid[:] = self.transformation_matrix.transform_points(centroid).squeeze()
 
         self.shared_stim_parameters = SharedStimParameters()
         self.stim_change_counter = 0
@@ -750,6 +831,9 @@ class GeneralStim(VisualStim):
             self.program[f'u_fish_centroid[{i}]'] = self.shared_fish_state[i].fish_centroid[:] 
             self.program[f'u_fish_caudorostral_axis[{i}]'] = self.shared_fish_state[i].fish_caudorostral_axis[:]
             self.program[f'u_fish_mediolateral_axis[{i}]'] = self.shared_fish_state[i].fish_mediolateral_axis[:]
+            self.program[f'u_virtual_centroid[{i}]'] = self.shared_fish_state[i].virtual_centroid[:] 
+            self.program[f'u_virtual_caudorostral_axis[{i}]'] = self.shared_fish_state[i].virtual_caudorostral_axis[:]
+            self.program[f'u_virtual_mediolateral_axis[{i}]'] = self.shared_fish_state[i].virtual_mediolateral_axis[:]
             self.program[f'u_left_eye_centroid[{i}]'] = self.shared_fish_state[i].left_eye_centroid[:]
             self.program[f'u_left_eye_angle[{i}]'] = self.shared_fish_state[i].left_eye_angle.value
             self.program[f'u_right_eye_centroid[{i}]'] = self.shared_fish_state[i].right_eye_centroid[:]
@@ -759,9 +843,13 @@ class GeneralStim(VisualStim):
         self.program['u_start_time_s'] = self.shared_stim_parameters.start_time_sec.value
         self.program['u_foreground_color'] = self.shared_stim_parameters.foreground_color[:]
         self.program['u_background_color'] = self.shared_stim_parameters.background_color[:]
+        self.program['u_fade_in_duration_sec'] = self.shared_stim_parameters.fade_in_duration_sec.value
+        self.program['u_fade_out_duration_sec'] = self.shared_stim_parameters.fade_out_duration_sec.value
+        self.program['u_stimulus_duration_sec'] = self.shared_stim_parameters.stimulus_duration_sec.value
         self.program['u_coordinate_system'] = self.shared_stim_parameters.coordinate_system.value
         self.program['u_stim_select'] = self.shared_stim_parameters.stim_select.value
         self.program['u_phototaxis_polarity'] = self.shared_stim_parameters.phototaxis_polarity.value
+        self.program['u_phototaxis_transition_width_mm'] = self.shared_stim_parameters.phototaxis_transition_width_mm.value
         self.program['u_omr_spatial_period_mm'] = self.shared_stim_parameters.omr_spatial_period_mm.value
         self.program['u_omr_angle_deg'] = self.shared_stim_parameters.omr_angle_deg.value
         self.program['u_omr_speed_mm_per_sec'] = self.shared_stim_parameters.omr_speed_mm_per_sec.value
@@ -808,6 +896,7 @@ class GeneralStim(VisualStim):
 
         self.program['u_image_res_px_per_mm'] = self.shared_stim_parameters.image_res_px_per_mm.value
         self.program['u_image_offset_mm'] = self.shared_stim_parameters.image_offset_mm[:]
+        self.program['u_image_tiling'] = self.shared_stim_parameters.image_tiling.value
 
 
     def initialize(self):
@@ -870,13 +959,14 @@ class GeneralStim(VisualStim):
             fields = data['tracking'].dtype.names
             ID = data['identity']
 
+            if 'animals' in fields:
+                self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroids_global']).squeeze()
+
             if 'body' in fields and data['tracking']['body']['success']:
                 self.shared_fish_state[ID].fish_centroid[:] = self.transformation_matrix.transform_points(data['tracking']['body']['centroid_global']).squeeze()
                 body_axes = data['tracking']['body']['body_axes_global']                
                 self.shared_fish_state[ID].fish_caudorostral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze() # TODO: CHECK WHY -1 ? maybe OpenCV vs OpenGL y axis direction?
-                self.shared_fish_state[ID].fish_mediolateral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
-            else:
-                self.shared_fish_state[ID].fish_centroid[:] =  self.transformation_matrix.transform_points(data['tracking']['animals']['centroids_global']).squeeze()
+                self.shared_fish_state[ID].fish_mediolateral_axis[:] = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze() #       would need only y if that were the case
 
             # TODO use eyes heading vector if present?
             # eyes
@@ -895,6 +985,34 @@ class GeneralStim(VisualStim):
                 skeleton_interp = self.transformation_matrix.transform_points(data['tracking']['tail']['skeleton_interp_cropped'])
                 self.shared_fish_state[ID].tail_points[:self.num_tail_points_interp] = skeleton_interp[:,0]
                 self.shared_fish_state[ID].tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
+
+            if 'embedded_x' in fields:
+                centroid = np.array([
+                    data['tracking']['embedded_x'], 
+                    data['tracking']['embedded_y']
+                ])
+                theta = data['tracking']['embedded_theta']-np.pi/2 # fish head facing north, angle respective to x axis
+                body_axes = np.array([
+                    [np.cos(theta), -np.sin(theta)],
+                    [np.sin(theta), np.cos(theta)]
+                ])
+                self.shared_fish_state[ID].fish_centroid = self.transformation_matrix.transform_points(centroid).squeeze()
+                self.shared_fish_state[ID].fish_caudorostral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
+                self.shared_fish_state[ID].fish_mediolateral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
+                
+                # TODO check why -1 
+                virtual_centroid = -1*np.array([
+                    data['tracking']['virtual_x'], 
+                    data['tracking']['virtual_y']
+                ])
+                virtual_theta = -1*data['tracking']['virtual_theta'] 
+                virtual_body_axes = np.array([
+                    [np.cos(virtual_theta), -np.sin(virtual_theta)],
+                    [np.sin(virtual_theta), np.cos(virtual_theta)]
+                ])
+                self.shared_fish_state[ID].virtual_centroid[:] = self.transformation_matrix.transform_points(virtual_centroid).squeeze()
+                self.shared_fish_state[ID].virtual_caudorostral_axis[:] = -1*self.transformation_matrix.transform_vectors(virtual_body_axes[:,0]).squeeze()
+                self.shared_fish_state[ID].virtual_mediolateral_axis[:] = -1*self.transformation_matrix.transform_vectors(virtual_body_axes[:,1]).squeeze()
 
         except KeyError as err:
             print(f'KeyError: {err}')

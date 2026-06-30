@@ -35,7 +35,9 @@ class AudioWidget(QWidget):
 
         self.device_combo = LabeledComboBox()
         self.device_combo.setText('output device')
-        self.device_combo.addItems([device['name'] for device in self.output_devices])
+        for device in self.output_devices:
+            self.device_combo.addItem(device['name'], userData=device)
+            
         self.device_combo.setCurrentIndex(self.default_device)
         self.device_combo.currentIndexChanged.connect(self.device_changed)
 
@@ -95,20 +97,28 @@ class AudioWidget(QWidget):
 
     def device_changed(self) -> None:
 
-        dev = self.output_devices[self.device_combo.currentIndex()]
+        dev = self.device_combo.currentData()
+        if not dev:
+            return
         
-        max_channels = dev['max_output_channels']
-        samplerate = dev['default_samplerate']
+        max_channels = int(dev['max_output_channels'])
+        samplerate = int(dev['default_samplerate'])
+        
         self.channels_spinbox.setRange(1, max_channels)
         self.channels_spinbox.setValue(max_channels)
-        self.samplerate_spinbox.setValue(int(samplerate))
+        self.samplerate_spinbox.setValue(samplerate)
 
-        sd.check_output_settings(
-            device = dev['index'], 
-            channels = self.channels_spinbox.value(), 
-            dtype = 'float32', 
-            samplerate = samplerate
-        )
+        try:
+            sd.check_output_settings(
+                device=dev['index'], 
+                channels=self.channels_spinbox.value(), 
+                dtype='float32', 
+                samplerate=samplerate
+            )
+        except sd.PortAudioError:
+            # (Your fallback handling here)
+            pass
+
         self.state_changed.emit()
 
     def layout_components(self) -> None:
@@ -123,19 +133,38 @@ class AudioWidget(QWidget):
         self.main_layout.addWidget(self.rollover_time_spinbox)
         self.main_layout.addStretch()
 
-    def set_state(self, state: Dict):
-        self.device_combo.setCurrentIndex(state.get('index', self.default_device))
-        self.channels_spinbox.setValue(state.get('channels', self.output_devices[self.default_device]['max_output_channels']))
+    def block_signals(self, block):
+        for widget in self.findChildren(QWidget):
+            widget.blockSignals(block)
+
+    def set_state(self, state: Dict) -> None:
+        self.block_signals(True)
+        
+        target_device_id = state.get('device_index', -1)
+        combo_index = self.default_device  # Fallback
+        
+        for i in range(self.device_combo.count()):
+            dev_data = self.device_combo.itemData(i)
+            if dev_data and dev_data.get('index') == target_device_id:
+                combo_index = i
+                break
+                
+        self.device_combo.setCurrentIndex(combo_index)
         self.enabled_checkbox.setChecked(state.get('enabled', True))
-        self.samplerate_spinbox.setValue(state.get('samplerate', self.output_devices[self.default_device]['default_samplerate']))
+        self.channels_spinbox.setValue(state.get('channels', 2))
+        self.samplerate_spinbox.setValue(state.get('samplerate', 44100))
         self.blocksize_spinbox.setValue(state.get('blocksize', 256))
         self.units_per_dB_spinbox.setValue(state.get('units_per_dB', 1/120))
         self.rollover_time_spinbox.setValue(state.get('rollover_time_sec', 3600))
+        
+        self.block_signals(False)
+        self.enable_audio() 
+        self.state_changed.emit()
 
     def get_state(self):
         state = {}
-        state['index'] = self.device_combo.currentIndex()
-        state['device_index'] = self.output_devices[self.device_combo.currentIndex()]['index'] if self.output_devices else -1
+        current_dev = self.device_combo.currentData()
+        state['device_index'] = current_dev['index'] if current_dev else -1
         state['channels'] = self.channels_spinbox.value()
         state['samplerate'] = self.samplerate_spinbox.value()
         state['blocksize'] = self.blocksize_spinbox.value()

@@ -7,7 +7,24 @@ from qtpy.QtWidgets import QApplication
 from tracker import SingleFishOverlay
 from image_tools import im2uint8
 from geometry import SimilarityTransform2D
-from ..widgets import TrackingDisplayWidget, TrackerType, DisplayType
+from ..widgets import TrackingDisplayWidget, TrackerType, DisplayType, Summary
+import numpy as np
+import cv2
+
+TRACKER_KEYS = {
+    TrackerType.MULTI: 'animals',
+    TrackerType.ANIMAL: 'animals',
+    TrackerType.BODY: 'body',
+    TrackerType.EYES: 'eyes',
+    TrackerType.TAIL: 'tail'
+}
+
+OVERLAY_ATTRS = {
+    TrackerType.ANIMAL: 'animal',
+    TrackerType.BODY: 'body',
+    TrackerType.EYES: 'eyes',
+    TrackerType.TAIL: 'tail'
+}
 
 class TrackingDisplay(WorkerNode):
 
@@ -16,6 +33,7 @@ class TrackingDisplay(WorkerNode):
             overlay: SingleFishOverlay,
             n_animals: int = 1, 
             fps: int = 30,
+            display_height: int = 512,
             *args, 
             **kwargs
         ):
@@ -26,6 +44,69 @@ class TrackingDisplay(WorkerNode):
         self.n_animals = n_animals
         self.prev_time = 0
         self.first_timestamp = 0
+        self.display_height = display_height
+
+        # montage buffers
+        self.n_cols = int(np.ceil(np.sqrt(n_animals)))
+        self.n_rows = int(np.ceil(n_animals/self.n_cols))
+        self.montage_buffer = {}
+        for display in DisplayType:
+            self.montage_buffer[display] = {}
+            for tracker in TrackerType:
+                self.montage_buffer[display][tracker] = np.zeros(
+                    (self.n_rows*display_height, self.n_cols*display_height, 3), 
+                    dtype=np.uint8
+                )
+
+    def _get_buffer(self, animal_id: int, display: DisplayType, tracker: TrackerType):
+        buffer = self.montage_buffer[display][tracker]
+
+        r = animal_id // self.n_cols
+        c = animal_id % self.n_cols
+        h = self.display_height
+
+        row_start = r * h
+        row_end = row_start + h
+        col_start = c * h
+        col_end = col_start + h
+
+        return buffer[row_start:row_end, col_start:col_end, ...]
+
+    def put_into_buffer(self, image_to_display: NDArray, buffer_view: NDArray) -> None:
+        """
+        Resizes image_to_display to fit inside the provided buffer_view slice,
+        preserving its aspect ratio and centering it.
+        """
+        if image_to_display is None or image_to_display.size == 0:
+            return
+
+        # make sure we are working with uint8
+        image_to_display = im2uint8(image_to_display)
+
+        # clear previous content
+        buffer_view.fill(0)
+
+        if len(image_to_display.shape) == 2:
+            image_rgb = cv2.cvtColor(image_to_display, cv2.COLOR_GRAY2RGB)
+        else:
+            image_rgb = image_to_display
+
+        img_h, img_w = image_rgb.shape[:2]
+        target_size = buffer_view.shape[0]  
+
+        # Determine scale factor based on which dimension limits us first
+        scale = min(target_size / img_h, target_size / img_w)
+        new_w = int(img_w * scale)
+        new_h = int(img_h * scale)
+
+        if new_w == 0 or new_h == 0:
+            return
+
+        resized_img = cv2.resize(image_rgb, (new_w, new_h), interpolation=cv2.INTER_NEAREST)
+        pad_y = (target_size - new_h) // 2
+        pad_x = (target_size - new_w) // 2
+
+        buffer_view[pad_y:pad_y + new_h, pad_x:pad_x + new_w, ...] = resized_img
 
     def initialize(self) -> None:
 
@@ -47,95 +128,62 @@ class TrackingDisplay(WorkerNode):
             self.first_timestamp = data['timestamp'].copy()
 
         state = self.window.get_state()
+        fish_id = data['identity']
+        display_type = state['display_type']
+        tracker_type = state['tracker_type']
+        summary_mode = state['summary_type'] 
 
-        if state['identity'] != data['identity']:
+        if summary_mode == Summary.INDIVIDUALS and fish_id != state['identity']:
             return
+
+        buffer_view = self._get_buffer(fish_id, display_type, tracker_type)
             
-        # restrict update freq to save resources
-        if time.perf_counter() - self.prev_time > 1/self.fps:
-
-            image_to_display = None
+        try:
             
-            try:
-                if state['display_type'] == DisplayType.PROCESSED:
+            key = TRACKER_KEYS[tracker_type]
+            tracking_data = data['tracking'][key]
 
-                    if state['tracker_type'] == TrackerType.MULTI:
-                        image_to_display = im2uint8(data['tracking']['animals']['image_processed'])
+            if display_type == DisplayType.PROCESSED:
+                self.put_into_buffer(tracking_data['image_processed'], buffer_view)
 
-                    if state['tracker_type'] == TrackerType.ANIMAL:
-                        image_to_display = im2uint8(data['tracking']['animals']['image_processed'])
+            elif display_type == DisplayType.MASK:
+                mask_key = 'mask' if tracker_type in [TrackerType.ANIMAL, TrackerType.BODY, TrackerType.EYES] else 'image_processed'
+                self.put_into_buffer(tracking_data[mask_key], buffer_view)
 
-                    if state['tracker_type'] == TrackerType.BODY:
-                        image_to_display = im2uint8(data['tracking']['body']['image_processed'])
-
-                    if state['tracker_type'] == TrackerType.EYES:
-                        image_to_display = im2uint8(data['tracking']['eyes']['image_processed'])
-
-                    if state['tracker_type'] == TrackerType.TAIL:
-                        image_to_display = im2uint8(data['tracking']['tail']['image_processed'])
-                
-                if state['display_type'] == DisplayType.OVERLAY:
-                        
-                    T_downsample = SimilarityTransform2D.scaling(
-                        data['tracking']['animals']['downsample_ratio']
-                    ) 
-
+            elif display_type == DisplayType.OVERLAY:
+                if tracker_type == TrackerType.MULTI:
+                    T_downsample = SimilarityTransform2D.scaling(tracking_data['downsample_ratio']) 
                     T_offset = SimilarityTransform2D.translation(-data['origin'][0], -data['origin'][1])
+                    image_to_display = self.overlay.overlay_global(
+                        tracking_data['image_downsampled'], 
+                        data['tracking'],
+                        T_downsample @ T_offset
+                    )
+                else:
+                    attr_name = OVERLAY_ATTRS[tracker_type]
+                    sub_overlay = getattr(self.overlay.overlay_param, attr_name)
+                    image_to_display = sub_overlay.overlay_cropped(tracking_data)
 
-                    if state['tracker_type'] == TrackerType.MULTI:
-                        image_to_display = self.overlay.overlay_global(
-                            data['tracking']['animals']['image_downsampled'], 
-                            data['tracking'],
-                            T_downsample @ T_offset
-                        )
+                self.put_into_buffer(image_to_display, buffer_view)
 
-                    if state['tracker_type'] == TrackerType.ANIMAL:
-                        image_to_display = self.overlay.overlay_param.animal.overlay_cropped(
-                            data['tracking']['animals']
-                        )
+        except:
+            pass
+        
+        current_time = time.perf_counter()
+        if current_time - self.prev_time > 1 / self.fps:
 
-                    if state['tracker_type'] == TrackerType.BODY:
-                        image_to_display = self.overlay.overlay_param.body.overlay_cropped(
-                            data['tracking']['body']
-                        )
-
-                    if state['tracker_type'] == TrackerType.EYES:
-                        image_to_display = self.overlay.overlay_param.eyes.overlay_cropped(
-                            data['tracking']['eyes']
-                        )
-
-                    if state['tracker_type'] == TrackerType.TAIL:
-                        image_to_display = self.overlay.overlay_param.tail.overlay_cropped(
-                            data['tracking']['tail']
-                        )
-
-                if state['display_type'] == DisplayType.MASK:
-
-                    if state['tracker_type'] == TrackerType.MULTI:
-                        # there is no mask for multi, show image instead
-                        image_to_display = im2uint8(data['tracking']['animals']['image_processed'])
-
-                    if state['tracker_type'] == TrackerType.ANIMAL:
-                        image_to_display = im2uint8(data['tracking']['animals']['mask'])
-
-                    if state['tracker_type'] == TrackerType.BODY:
-                        image_to_display = im2uint8(data['tracking']['body']['mask'])
-
-                    if state['tracker_type'] == TrackerType.EYES:
-                        image_to_display = im2uint8(data['tracking']['eyes']['mask'])
-
-                    if state['tracker_type'] == TrackerType.TAIL:
-                        # there is no mask for the tail, show image instead
-                        image_to_display = im2uint8(data['tracking']['tail']['image_processed'])
-            except:
-                pass
-            
-            # update widget
-            if image_to_display is not None:
+            if summary_mode == Summary.INDIVIDUALS:
                 self.window.set_state(
                     index=data['index'],
                     timestamp=(data['timestamp'] - self.first_timestamp)*1e-9,
-                    image=image_to_display
+                    image=buffer_view
+                )
+
+            elif summary_mode == Summary.SUMMARY:
+                self.window.set_state(
+                    index=data['index'],
+                    timestamp=(data['timestamp'] - self.first_timestamp)*1e-9,
+                    image=self.montage_buffer[display_type][tracker_type]
                 )
 
             self.prev_time = time.perf_counter()

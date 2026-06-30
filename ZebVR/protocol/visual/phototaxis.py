@@ -6,7 +6,8 @@ from ...protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Tuple, Dict
+from typing import Dict, Any
+from qt_widgets import LabeledDoubleSpinBox
 from qtpy.QtWidgets import (
     QGroupBox, 
     QVBoxLayout,
@@ -23,19 +24,22 @@ class Phototaxis(VisualProtocolItem):
     def __init__(
             self, 
             phototaxis_polarity: int = DEFAULT['phototaxis_polarity'],
+            phototaxis_transition_width_mm: float = DEFAULT['phototaxis_transition_width_mm'],
             *args,
             **kwargs
         ) -> None:
 
         super().__init__(*args, **kwargs)
         self.phototaxis_polarity = phototaxis_polarity
+        self.phototaxis_transition_width_mm = phototaxis_transition_width_mm
 
     def start(self) -> Dict:
 
         command = super().start()
         command.update({
             'stim_select': self.STIM_SELECT,
-            'phototaxis_polarity': self.phototaxis_polarity
+            'phototaxis_polarity': self.phototaxis_polarity,
+            'phototaxis_transition_width_mm': self.phototaxis_transition_width_mm
         })
         return command
     
@@ -44,11 +48,13 @@ class PhototaxisWidget(VisualProtocolItemWidget):
     def __init__(
             self,
             phototaxis_polarity: int = DEFAULT['phototaxis_polarity'],
+            phototaxis_transition_width_mm: float = DEFAULT['phototaxis_transition_width_mm'],
             *args, 
             **kwargs
         ) -> None:
 
         self.phototaxis_polarity = phototaxis_polarity
+        self.phototaxis_transition_width_mm = phototaxis_transition_width_mm
 
         super().__init__(*args, **kwargs)
 
@@ -60,12 +66,19 @@ class PhototaxisWidget(VisualProtocolItemWidget):
         self.chb_phototaxis_polarity.stateChanged.connect(self.state_changed)
         self.chb_phototaxis_polarity.setChecked(self.phototaxis_polarity==1)
 
+        self.sb_phototaxis_transition_width_mm = LabeledDoubleSpinBox()
+        self.sb_phototaxis_transition_width_mm.setText('transition width (mm)')
+        self.sb_phototaxis_transition_width_mm.setRange(0,1000)
+        self.sb_phototaxis_transition_width_mm.setValue(self.phototaxis_transition_width_mm)
+        self.sb_phototaxis_transition_width_mm.valueChanged.connect(self.state_changed)
+
     def layout_components(self) -> None:
         
         super().layout_components()
 
         phototaxis_layout = QVBoxLayout()
         phototaxis_layout.addWidget(self.chb_phototaxis_polarity)
+        phototaxis_layout.addWidget(self.sb_phototaxis_transition_width_mm)
         phototaxis_layout.addStretch()
 
         self.phototaxis_group = QGroupBox('Phototaxis parameters')
@@ -78,6 +91,7 @@ class PhototaxisWidget(VisualProtocolItemWidget):
         
         state = super().get_state()
         state['phototaxis_polarity'] = -1+2*self.chb_phototaxis_polarity.isChecked()
+        state['phototaxis_transition_width_mm'] = self.sb_phototaxis_transition_width_mm.value()
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -91,6 +105,13 @@ class PhototaxisWidget(VisualProtocolItemWidget):
             default = self.phototaxis_polarity == 1,
             cast = lambda x: bool((x+1)/2)
         )
+        set_from_dict(
+            dictionary = state,
+            key = 'phototaxis_transition_width_mm',
+            setter = self.sb_phototaxis_transition_width_mm.setValue,
+            default = self.phototaxis_transition_width_mm,
+            cast = float
+        )
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
 
@@ -98,32 +119,19 @@ class PhototaxisWidget(VisualProtocolItemWidget):
 
         if isinstance(protocol_item, Phototaxis):
             self.chb_phototaxis_polarity.setChecked(protocol_item.phototaxis_polarity == 1) 
+    
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
 
-    def to_protocol_item(self) -> Phototaxis:
+        kwargs = super()._get_protocol_kwargs()
         
-        foreground_color = (
-            self.sb_foreground_color_R.value(), 
-            self.sb_foreground_color_G.value(),
-            self.sb_foreground_color_B.value(),
-            self.sb_foreground_color_A.value()
-        )
-        background_color = (
-            self.sb_background_color_R.value(), 
-            self.sb_background_color_G.value(),
-            self.sb_background_color_B.value(),
-            self.sb_background_color_A.value()
-        )
-        coordinate_system = self.cb_coordinate_system.currentIndex()
-
-        protocol = Phototaxis(
-            name = self.stim_name.text(),
-            foreground_color = foreground_color,
-            background_color = background_color,
-            coordinate_system = coordinate_system,
-            phototaxis_polarity = -1+2*self.chb_phototaxis_polarity.isChecked(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
+        kwargs.update({
+            'phototaxis_polarity': -1+2*self.chb_phototaxis_polarity.isChecked(),
+            'phototaxis_transition_width_mm': self.sb_phototaxis_transition_width_mm.value(),
+        })
+        return kwargs
+    
+    def to_protocol_item(self) -> Phototaxis:
+        return Phototaxis(**self._get_protocol_kwargs())
     
 if __name__ == '__main__':
 

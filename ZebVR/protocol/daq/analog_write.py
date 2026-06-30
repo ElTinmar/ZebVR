@@ -7,10 +7,9 @@ from ZebVR.protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Dict, List
+from typing import Dict, List, Any
 from qtpy.QtWidgets import (
     QApplication, 
-    QCheckBox,
 )
 from qt_widgets import LabeledDoubleSpinBox
 from ..default import DEFAULT
@@ -111,19 +110,16 @@ class AnalogWriteWidget(DAQ_ProtocolItemWidget):
         if isinstance(protocol_item, AnalogWrite):
             self.sb_analog_value.setValue(protocol_item.analog_value)
 
-    def to_protocol_item(self) -> AnalogWrite:
-
-        channel_list_widget = self.channel_list.selectedItems()
-        channels = [int(widget.text()) for widget in channel_list_widget]
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+        kwargs = super()._get_protocol_kwargs()
+        kwargs.update({
+            'analog_value': self.sb_analog_value.value(),
+        })
+        return kwargs
     
-        return AnalogWrite(
-            name = self.stim_name.text(),
-            board_type = self.current_board_type,
-            board_id = self.current_board.id,
-            channels = channels,
-            analog_value = self.sb_analog_value.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
+    def to_protocol_item(self) -> AnalogWrite:
+        return AnalogWrite(**self._get_protocol_kwargs())
+
 
 if __name__ == '__main__':
 

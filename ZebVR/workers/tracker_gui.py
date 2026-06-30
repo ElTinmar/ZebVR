@@ -3,7 +3,7 @@ from dagline import WorkerNode
 from numpy.typing import NDArray
 from typing import Dict, Optional
 from qtpy.QtWidgets import QApplication
-from ..widgets import TrackerWidget
+from ..widgets import TrackerWidget, HeadEmbeddedTrackerWidget
 from pathlib import Path
 from typing import Union, Tuple
 
@@ -15,6 +15,7 @@ class TrackerGui(WorkerNode):
             image_shape: Tuple[int, int],
             pix_per_mm: float = 30,
             settings_file: Union[Path, str] = Path('tracking.json'),
+            head_embedded: bool = False,
             *args,
             **kwargs
         ):
@@ -24,17 +25,29 @@ class TrackerGui(WorkerNode):
         self.image_shape = image_shape
         self.pix_per_mm = pix_per_mm
         self.settings_file = Path(settings_file)
+        self.head_embedded = head_embedded
 
     def initialize(self) -> None:
         super().initialize()
         
         self.app = QApplication([])
-        self.window = TrackerWidget(
-            image_shape = self.image_shape,
-            settings_file = self.settings_file,
-            pix_per_mm = self.pix_per_mm,
-            n_animals = self.n_animals
-        )
+        
+        if self.head_embedded:
+            self.window = HeadEmbeddedTrackerWidget(
+                image_shape = self.image_shape,
+                settings_file = self.settings_file,
+                pix_per_mm = self.pix_per_mm,
+                n_animals = self.n_animals
+            )
+        
+        else:
+            self.window = TrackerWidget(
+                image_shape = self.image_shape,
+                settings_file = self.settings_file,
+                pix_per_mm = self.pix_per_mm,
+                n_animals = self.n_animals
+            )
+
         self.window.show()
 
     def process_data(self, data: None) -> NDArray:

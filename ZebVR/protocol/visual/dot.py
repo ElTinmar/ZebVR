@@ -6,7 +6,7 @@ from ...protocol import (
     StopWidget, 
     Debouncer
 )
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Any
 from qt_widgets import LabeledDoubleSpinBox
 from qtpy.QtWidgets import (
     QGroupBox, 
@@ -143,36 +143,18 @@ class DotWidget(VisualProtocolItemWidget):
             self.sb_dot_center_mm_y.setValue(protocol_item.dot_center_mm[1])
             self.sb_dot_radius_mm.setValue(protocol_item.dot_radius_mm)
 
-    def to_protocol_item(self) -> Dot:
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+
+        kwargs = super()._get_protocol_kwargs()
         
-        foreground_color = (
-            self.sb_foreground_color_R.value(), 
-            self.sb_foreground_color_G.value(),
-            self.sb_foreground_color_B.value(),
-            self.sb_foreground_color_A.value()
-        )
-        background_color = (
-            self.sb_background_color_R.value(), 
-            self.sb_background_color_G.value(),
-            self.sb_background_color_B.value(),
-            self.sb_background_color_A.value()
-        )
-        coordinate_system = self.cb_coordinate_system.currentIndex()
-
-        protocol = Dot(
-            name = self.stim_name.text(),
-            foreground_color = foreground_color,
-            background_color = background_color,
-            coordinate_system = coordinate_system,
-            dot_center_mm = (
-                self.sb_dot_center_mm_x.value(),
-                self.sb_dot_center_mm_y.value()
-            ),
-            dot_radius_mm = self.sb_dot_radius_mm.value(),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
-
+        kwargs.update({
+            'dot_center_mm': (self.sb_dot_center_mm_x.value(), self.sb_dot_center_mm_y.value()),
+            'dot_radius_mm': self.sb_dot_radius_mm.value(),
+        })
+        return kwargs
+    
+    def to_protocol_item(self) -> Dot:
+        return Dot(**self._get_protocol_kwargs())
 
 if __name__ == '__main__':
 

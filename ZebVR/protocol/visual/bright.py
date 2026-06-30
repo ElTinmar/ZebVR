@@ -57,33 +57,10 @@ class BrightWidget(VisualProtocolItemWidget):
         super().set_state(state)
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
-    
         super().from_protocol_item(protocol_item)
 
     def to_protocol_item(self) -> Bright:
-        
-        foreground_color = (
-            self.sb_foreground_color_R.value(), 
-            self.sb_foreground_color_G.value(),
-            self.sb_foreground_color_B.value(),
-            self.sb_foreground_color_A.value()
-        )
-        background_color = (
-            self.sb_background_color_R.value(), 
-            self.sb_background_color_G.value(),
-            self.sb_background_color_B.value(),
-            self.sb_background_color_A.value()
-        )
-        coordinate_system = self.cb_coordinate_system.currentIndex()
-
-        protocol = Bright(
-            name = self.stim_name.text(),
-            foreground_color = foreground_color,
-            background_color = background_color,
-            coordinate_system = coordinate_system,
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
+        return Bright(**self._get_protocol_kwargs())
     
 if __name__ == '__main__':
 

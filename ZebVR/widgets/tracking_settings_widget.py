@@ -14,11 +14,11 @@ from qtpy.QtWidgets import (
 from qtpy.QtCore import  Signal
 from qt_widgets import (
     LabeledDoubleSpinBox, 
-    LabeledSpinBox, 
-    LabeledComboBox
+    LabeledSpinBox
 )
 import json
 from pathlib import Path
+from numpy import pi, deg2rad, rad2deg
 
 class Animal(QWidget):
 
@@ -915,13 +915,6 @@ class TrackerWidget(QWidget):
 
     def declare_components(self) -> None:
 
-        self.assignment_choice = LabeledComboBox()
-        self.assignment_choice.setText('Assignment:')
-        self.assignment_choice.addItem('ROI')
-        self.assignment_choice.addItem('Hungarian')
-        self.assignment_choice.currentIndexChanged.connect(self.on_change)      
-        self.assignment_choice.setEnabled(False)
-
         self.animal_identity = LabeledSpinBox()
         self.animal_identity.setText('#animal')
         self.animal_identity.setRange(0,self.n_animals-1)
@@ -1002,7 +995,6 @@ class TrackerWidget(QWidget):
         
         final = QVBoxLayout(self)
         final.addLayout(identity)
-        final.addWidget(self.assignment_choice)
         final.addLayout(groups)
         final.addLayout(io_layout)
 
@@ -1087,6 +1079,8 @@ class TrackerWidget(QWidget):
             key = str(i)
             if key in loaded_substate:
                 normalized_substate[i] = loaded_substate[key]
+            elif i>0:
+                normalized_substate[i] = normalized_substate[i-1]
             else:
                 normalized_substate[i] = self._get_substate()
         state["substate"] = normalized_substate
@@ -1097,7 +1091,6 @@ class TrackerWidget(QWidget):
     def _get_substate(self)-> Dict:
 
         state = {}
-        state['assignment'] = self.assignment_choice.currentText()
         state['body_tracking_enabled'] = self.group_body.isChecked()
         state['eyes_tracking_enabled'] = self.group_eyes.isChecked()
         state['tail_tracking_enabled'] = self.group_tail.isChecked()
@@ -1110,6 +1103,7 @@ class TrackerWidget(QWidget):
     def get_state(self) -> Dict:
 
         state = {}
+        state['tracker'] = 'SingleFish'
         state['apply_to_all'] = self.apply_to_all.isChecked()
         state['animal_identity'] = self.animal_identity.value()
         state['substate'] = self.substate
@@ -1118,13 +1112,302 @@ class TrackerWidget(QWidget):
     def _set_substate(self, id: int, substate: Dict) -> None:
 
         setters = {
-            'assignment': self.assignment_choice.setCurrentText,
             'body_tracking_enabled': self.group_body.setChecked,
             'eyes_tracking_enabled': self.group_eyes.setChecked,
             'tail_tracking_enabled': self.group_tail.setChecked,
             'animal_tracking': self.animal.set_state,
             'body_tracking': self.body.set_state,
             'eyes_tracking': self.eyes.set_state,
+            'tail_tracking': self.tail.set_state,
+        }
+
+        for key, setter in setters.items():
+            if key in substate:
+                setter(substate[key])
+
+        self.substate[id] = substate
+    
+    def _apply_substate(self, substates: Dict):
+
+        for key, substate in substates.items():
+            self._set_substate(int(key), substate)
+
+    def set_state(self, state: Dict) -> None:
+        
+        defaults = {
+            'apply_to_all': False,
+            'animal_identity': 0,
+            'substate': {}
+        }
+        for key, value in defaults.items():
+            state.setdefault(key, value)
+
+        setters = {
+            'apply_to_all': self.apply_to_all.setChecked,
+            'animal_identity': self.animal_identity.setValue,
+            'substate': self._apply_substate
+        }
+        for key, setter in setters.items():
+            setter(state[key])
+
+class HeadEmbeddedTrackerWidget(QWidget):
+
+    state_changed =  Signal()
+
+    def __init__(
+            self,
+            image_shape: Tuple[int, int],
+            settings_file: Path = Path('tracking.json'),
+            n_animals: int = 1,
+            pix_per_mm: float = 30,
+            *args,
+            **kwargs
+        ):
+
+        super().__init__(*args, **kwargs)
+        self.updated = True
+        self.settings_file = settings_file
+        self.n_animals = n_animals
+        self.image_shape = image_shape
+        self.pix_per_mm = pix_per_mm 
+            
+        self.declare_components()
+        self.layout_components()
+        self.setWindowTitle('Tracking controls')
+        
+        self.current_animal = 0
+        self.substate = {}
+        for i in range(self.n_animals):
+            self.substate[i] = self._get_substate()
+
+        if settings_file.exists():
+            self.load_from_file(settings_file)
+
+    def declare_components(self) -> None:
+
+        self.animal_identity = LabeledSpinBox()
+        self.animal_identity.setText('#animal')
+        self.animal_identity.setRange(0,self.n_animals-1)
+        self.animal_identity.setSingleStep(1)
+        self.animal_identity.setValue(0)
+        self.animal_identity.valueChanged.connect(self.animal_changed)
+
+        self.apply_to_all = QCheckBox('Apply to all animals')
+        self.apply_to_all.setChecked(True)
+        self.apply_to_all.stateChanged.connect(self.apply_to_all_changed)
+
+        self.centroid_x_px = LabeledSpinBox()
+        self.centroid_x_px.setText('centroid X (px)')
+        self.centroid_x_px.setRange(0,self.image_shape[1])
+        self.centroid_x_px.setSingleStep(1)
+        self.centroid_x_px.setValue(0)
+        self.centroid_x_px.valueChanged.connect(self.on_change)
+
+        self.centroid_y_px = LabeledSpinBox()
+        self.centroid_y_px.setText('centroid Y (px)')
+        self.centroid_y_px.setRange(0,self.image_shape[0])
+        self.centroid_y_px.setSingleStep(1)
+        self.centroid_y_px.setValue(0)
+        self.centroid_y_px.valueChanged.connect(self.on_change)
+
+        self.heading_angle_deg = LabeledDoubleSpinBox()
+        self.heading_angle_deg.setText('heading angle (deg)')
+        self.heading_angle_deg.setRange(-360,360)
+        self.heading_angle_deg.setSingleStep(0.25) 
+        self.heading_angle_deg.setValue(0)
+        self.heading_angle_deg.valueChanged.connect(self.on_change)
+
+        self.forward_gain = LabeledDoubleSpinBox()
+        self.forward_gain.setText('forward gain ((s/mm)^(1/3))')
+        self.forward_gain.setRange(0,1)
+        self.forward_gain.setSingleStep(0.01)
+        self.forward_gain.setValue(0.08)
+        self.forward_gain.valueChanged.connect(self.on_change)
+
+        self.angular_gain = LabeledDoubleSpinBox()
+        self.angular_gain.setText('angular gain (rad⋅s/mm^3)')
+        self.angular_gain.setRange(0,1)
+        self.angular_gain.setSingleStep(0.01)
+        self.angular_gain.setValue(0.01)
+        self.angular_gain.valueChanged.connect(self.on_change)
+
+        self.time_window_ms = LabeledSpinBox()
+        self.time_window_ms.setText('time window (ms)')
+        self.time_window_ms.setRange(0,1000)
+        self.time_window_ms.setSingleStep(1)
+        self.time_window_ms.setValue(30)
+        self.time_window_ms.valueChanged.connect(self.on_change)
+
+        self.smoothing = LabeledDoubleSpinBox()
+        self.smoothing.setText('smoothing')
+        self.smoothing.setRange(0,1)
+        self.smoothing.setSingleStep(0.01)
+        self.smoothing.setValue(0)
+        self.smoothing.valueChanged.connect(self.on_change)
+
+        self.tail = Tail(pix_per_mm=self.pix_per_mm)
+        self.tail.state_changed.connect(self.on_change)
+
+        self.btn_load = QPushButton('load')
+        self.btn_load.clicked.connect(self.load)
+
+        self.btn_save = QPushButton('save')
+        self.btn_save.clicked.connect(self.save)
+
+    def layout_components(self) -> None:
+
+        identity = QHBoxLayout()
+        identity.addWidget(self.apply_to_all)
+        identity.addWidget(self.animal_identity)
+
+        controls = QVBoxLayout()
+        controls.addWidget(self.centroid_x_px)
+        controls.addWidget(self.centroid_y_px)
+        controls.addWidget(self.heading_angle_deg)
+        controls.addWidget(self.forward_gain)
+        controls.addWidget(self.angular_gain)
+        controls.addWidget(self.time_window_ms)
+        controls.addWidget(self.smoothing)
+        controls.addStretch()
+
+        tail = QHBoxLayout()
+        tail.addWidget(self.tail)
+        self.group_tail = QGroupBox('tail')
+        self.group_tail.setLayout(tail)
+
+        io_layout = QHBoxLayout()
+        io_layout.addStretch()
+        io_layout.addWidget(self.btn_load)
+        io_layout.addWidget(self.btn_save)
+
+        groups = QHBoxLayout()
+        groups.addWidget(self.group_tail)
+
+        settings = QHBoxLayout()
+        settings.addLayout(controls)
+        settings.addLayout(groups)
+        
+        final = QVBoxLayout(self)
+        final.addLayout(identity)
+        final.addLayout(settings)
+        final.addLayout(io_layout)
+
+    def apply_to_all_changed(self):
+
+        if self.apply_to_all.isChecked():
+            self.animal_identity.setEnabled(False)
+            for i in range(self.n_animals):
+                self.substate[i] = self._get_substate()
+        else:
+            self.animal_identity.setEnabled(True)
+            
+        self.updated = True
+        self.state_changed.emit()
+
+    def on_change(self):
+        
+        if self.apply_to_all.isChecked():
+            for i in range(self.n_animals):
+                self.substate[i] = self._get_substate()
+        else:
+            id = self.animal_identity.value()
+            self.substate[id] = self._get_substate()
+
+        self.updated = True
+        self.state_changed.emit()
+
+    def block_all_signals(self, block: bool):
+        for child in self.findChildren(QWidget): 
+            child.blockSignals(block)
+
+    def animal_changed(self, next_animal: int):
+        self.substate[self.current_animal] = self._get_substate()
+        self.block_all_signals(True)
+        self._set_substate(next_animal, self.substate[next_animal])
+        self.block_all_signals(False)
+        self.current_animal = next_animal
+        self.state_changed.emit()
+        
+    def is_updated(self) -> bool:
+        return self.updated
+    
+    def set_updated(self, updated:bool) -> None:
+        self.updated = updated
+
+    def save(self):
+        state = self.get_state()
+        filename, _ = QFileDialog.getSaveFileName(
+            self, 
+            "Save file",
+            "tracking.json",
+            "JSON file (*.json)"
+        )
+        
+        with open(filename, 'w') as fp:
+            json.dump(state, fp)
+
+    def load(self):
+        filename, _ = QFileDialog.getOpenFileName(
+            self, 
+            "Load file",
+            "protocol.json",
+            "JSON file (*.json)"
+        )
+        self.load_from_file(filename)
+        self.state_changed.emit()
+        
+    def load_from_file(self, filename):
+
+        with open(filename, 'r') as fp:
+            state = json.load(fp)
+
+        # if more animals in saved file, discard the last one
+        # if not enough animals, create with defaults
+        loaded_substate = state.get("substate", {})
+        normalized_substate = {}
+        for i in range(self.n_animals):
+            key = str(i)
+            if key in loaded_substate:
+                normalized_substate[i] = loaded_substate[key]
+            else:
+                normalized_substate[i] = self._get_substate()
+        state["substate"] = normalized_substate
+
+        self.set_state(state)
+        self.updated = True
+
+    def _get_substate(self)-> Dict:
+
+        state = {}
+        state['centroid_x'] = self.centroid_x_px.value()
+        state['centroid_y'] = self.centroid_y_px.value()
+        state['heading_angle_rad'] = deg2rad(self.heading_angle_deg.value())
+        state['forward_gain'] = self.forward_gain.value()
+        state['angular_gain'] = self.angular_gain.value()
+        state['time_window_ms'] = self.time_window_ms.value()
+        state['smoothing'] = self.smoothing.value()
+        state['tail_tracking'] = self.tail.get_state()
+        return state
+
+    def get_state(self) -> Dict:
+
+        state = {}
+        state['tracker'] = 'HeadEmbedded'
+        state['apply_to_all'] = self.apply_to_all.isChecked()
+        state['animal_identity'] = self.animal_identity.value()
+        state['substate'] = self.substate
+        return state
+
+    def _set_substate(self, id: int, substate: Dict) -> None:
+
+        setters = {
+            'centroid_x': self.centroid_x_px.setValue,
+            'centroid_y': self.centroid_y_px.setValue,
+            'heading_angle_rad': lambda r: self.heading_angle_deg.setValue(rad2deg(r)),
+            'forward_gain': self.forward_gain.setValue,
+            'angular_gain': self.angular_gain.setValue,
+            'time_window_ms': self.time_window_ms.setValue,
+            'smoothing': self.smoothing.setValue,
             'tail_tracking': self.tail.set_state,
         }
 

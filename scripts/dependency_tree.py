@@ -7,7 +7,7 @@ import graphviz
 CUSTOM_PACKAGES = {
     "tracker", "camera_tools", "video_tools", "image_tools", "qt_widgets", 
     "dagline", "ipc_tools", "daq_tools", "thorlabs_ccs", "thorlabs_pmd", "viewsonicprojectorrs232", 
-    "multiprocessing_logger", "ds18b20"
+    "multiprocessing_logger", "ds18b20", "geometry"
 }
 def normalize(name):
     return re.sub(r'[-_]', '', name).lower().strip()

@@ -1,6 +1,7 @@
 from enum import IntEnum
 import cv2
 from typing import Dict
+import numpy as np
 
 #import pyqtgraph as pg
 from qtpy.QtCore import Qt
@@ -16,6 +17,10 @@ from qtpy.QtWidgets import (
 )
 from qtpy.QtGui import QImage
 from qt_widgets import NDarray_to_QPixmap, LabeledSpinBox, ZoomableGraphicsView
+
+class Summary(IntEnum):
+    SUMMARY = 0
+    INDIVIDUALS = 1
 
 class TrackerType(IntEnum):
     MULTI = 0
@@ -144,14 +149,25 @@ class TrackingDisplayWidget(QWidget):
         self.scene = QGraphicsScene(self)
         self.image_item = QGraphicsPixmapItem()
         self.scene.addItem(self.image_item)
+        self.scene.mousePressEvent = self.on_scene_clicked
+
         self.image_view = ZoomableGraphicsView(self.scene)
         self.image_view.setFixedHeight(self.display_height)
         self.image_view.setFixedWidth(self.display_height)
         self.image_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.image_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        # TODO add widget to select which fish to show
-        # and / or mouse click event
+        self.btn_summary = QPushButton('summary')
+        self.btn_summary.setCheckable(True)
+
+        self.btn_individuals = QPushButton('individuals') 
+        self.btn_individuals.setCheckable(True)
+
+        self.bg_summary = QButtonGroup()
+        self.bg_summary.addButton(self.btn_summary, id=Summary.SUMMARY)
+        self.bg_summary.addButton(self.btn_individuals, id=Summary.INDIVIDUALS)
+        self.bg_summary.idClicked.connect(self.on_summary_mode_changed)
+        self.btn_individuals.setChecked(True)
 
         self.btn_multi = QPushButton('multi')
         self.btn_multi.setCheckable(True)
@@ -193,17 +209,24 @@ class TrackingDisplayWidget(QWidget):
 
     def layout_components(self) -> None:
 
+        layout_summary_btn = QHBoxLayout()
+        layout_summary_btn.addWidget(self.btn_individuals)
+        layout_summary_btn.addWidget(self.btn_summary)
+        layout_summary_btn.setContentsMargins(0, 0, 0, 0)
+
         layout_tracker_btn = QHBoxLayout()
         layout_tracker_btn.addWidget(self.btn_multi)
         layout_tracker_btn.addWidget(self.btn_animal)
         layout_tracker_btn.addWidget(self.btn_body)
         layout_tracker_btn.addWidget(self.btn_eyes)
         layout_tracker_btn.addWidget(self.btn_tail)
+        layout_tracker_btn.setContentsMargins(0, 0, 0, 0)
 
         layout_display_btn = QHBoxLayout()
         layout_display_btn.addWidget(self.btn_processed)
         layout_display_btn.addWidget(self.btn_overlay)
         layout_display_btn.addWidget(self.btn_mask)
+        layout_display_btn.setContentsMargins(0, 0, 0, 0)
 
         layout_status = QHBoxLayout()
         layout_status.addWidget(QLabel('index:'))
@@ -219,14 +242,59 @@ class TrackingDisplayWidget(QWidget):
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.animal_identity)
+        layout.addLayout(layout_summary_btn)
         layout.addLayout(layout_tracker_btn)
         layout.addLayout(layout_display_btn)
         layout.addLayout(layout_image)
         layout.addLayout(layout_status)
 
+    def on_summary_mode_changed(self, summary_id: int) -> None:
+
+        if summary_id == Summary.SUMMARY:
+            self.animal_identity.setEnabled(False)
+        else:
+            self.animal_identity.setEnabled(True)
+
+    def pos_to_animal_id(self, pos) -> int:
+
+        pixmap = self.image_item.pixmap()
+        
+        if pixmap.isNull():
+            return -1
+
+        n_cols = int(np.ceil(np.sqrt(self.n_animals)))
+        w = pixmap.width()
+        h = pixmap.height()
+
+        cell_w = w / n_cols
+        cell_h = h / int(np.ceil(self.n_animals / n_cols))
+
+        clicked_col = int(pos.x() // cell_w)
+        clicked_row = int(pos.y() // cell_h)
+        animal_id = (clicked_row * n_cols) + clicked_col
+
+        return animal_id
+
+    def on_scene_clicked(self, event) -> None:
+
+        if self.bg_summary.checkedId() != Summary.SUMMARY:
+            QGraphicsScene.mousePressEvent(self.scene, event)
+            return
+
+        pos = event.scenePos()
+        animal_id = self.pos_to_animal_id(pos)
+
+        if 0 <= animal_id < self.n_animals:
+            self.animal_identity.setValue(animal_id)
+            self.btn_individuals.click()
+            
+        event.accept()
+
+
     def get_state(self) -> Dict:
         state = {}
         state['identity'] = self.animal_identity.value()
+        state['summary_type'] = self.bg_summary.checkedId()
         state['display_type'] = self.bg_display_type.checkedId()
         state['tracker_type'] = self.bg_tracker_type.checkedId()
         return state

@@ -7,7 +7,7 @@ from ...protocol import (
     Debouncer, 
     RampType
 )
-from typing import Tuple, Dict
+from typing import Any, Dict
 from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox
 from qtpy.QtWidgets import (
     QGroupBox, 
@@ -161,33 +161,19 @@ class RampWidget(VisualProtocolItemWidget):
             self.sb_ramp_powerlaw_exponent.setValue(protocol_item.ramp_powerlaw_exponent)
             self.cb_ramp_type.setCurrentIndex(protocol_item.ramp_type)
 
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+
+        kwargs = super()._get_protocol_kwargs()
+        
+        kwargs.update({
+            'ramp_duration_sec': self.sb_ramp_duration_sec.value(),
+            'ramp_powerlaw_exponent': self.sb_ramp_powerlaw_exponent.value(),
+            'ramp_type': RampType(self.cb_ramp_type.currentIndex()),
+        })
+        return kwargs
+    
     def to_protocol_item(self) -> Ramp:
-
-        foreground_color = (
-            self.sb_foreground_color_R.value(), 
-            self.sb_foreground_color_G.value(),
-            self.sb_foreground_color_B.value(),
-            self.sb_foreground_color_A.value()
-        )
-        background_color = (
-            self.sb_background_color_R.value(), 
-            self.sb_background_color_G.value(),
-            self.sb_background_color_B.value(),
-            self.sb_background_color_A.value()
-        )
-        coordinate_system = self.cb_coordinate_system.currentIndex()
-
-        protocol = Ramp(
-            name = self.stim_name.text(),
-            foreground_color = foreground_color,
-            background_color = background_color,
-            coordinate_system = coordinate_system,
-            ramp_duration_sec = self.sb_ramp_duration_sec.value(),
-            ramp_powerlaw_exponent = self.sb_ramp_powerlaw_exponent.value(),
-            ramp_type = RampType(self.cb_ramp_type.currentIndex()),
-            stop_condition = self.stop_widget.to_stop_condition()
-        )
-        return protocol
+        return Ramp(**self._get_protocol_kwargs())
 
 if __name__ == '__main__':
 

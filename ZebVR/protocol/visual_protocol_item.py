@@ -1,11 +1,13 @@
 from .protocol_item import VisualProtocolItem, ProtocolItem, ProtocolItemWidget
 from .default import DEFAULT
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Any
 from qt_widgets import LabeledDoubleSpinBox, LabeledComboBox
 from qtpy.QtCore import  Signal
 from qtpy.QtWidgets import (
     QLabel,
-    QHBoxLayout
+    QHBoxLayout,
+    QVBoxLayout,
+    QGroupBox
 )
 from ..utils import set_from_dict
 from .stim import CoordinateSystem
@@ -20,6 +22,9 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
             self,
             foreground_color: Tuple = DEFAULT['foreground_color'],
             background_color: Tuple = DEFAULT['background_color'],
+            fade_in_duration_sec: float = DEFAULT['fade_in_duration_sec'],
+            fade_out_duration_sec: float = DEFAULT['fade_out_duration_sec'],
+            stimulus_duration_sec: float = DEFAULT['stimulus_duration_sec'],
             coordinate_system: CoordinateSystem = DEFAULT['coordinate_system'],
             *args,
             **kwargs
@@ -27,6 +32,9 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
 
         self.foreground_color = foreground_color
         self.background_color = background_color
+        self.fade_in_duration_sec = fade_in_duration_sec
+        self.fade_out_duration_sec = fade_out_duration_sec
+        self.stimulus_duration_sec = stimulus_duration_sec
         self.coordinate_system = coordinate_system
 
         super().__init__(*args, **kwargs)
@@ -95,6 +103,27 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
         self.sb_background_color_A.setValue(self.background_color[3])
         self.sb_background_color_A.valueChanged.connect(self.state_changed)
 
+        self.sb_fade_in_duration_sec = LabeledDoubleSpinBox()
+        self.sb_fade_in_duration_sec.setText('fade-in duration (s)')
+        self.sb_fade_in_duration_sec.setRange(0,10_000)
+        self.sb_fade_in_duration_sec.setSingleStep(0.05)
+        self.sb_fade_in_duration_sec.setValue(self.fade_in_duration_sec)
+        self.sb_fade_in_duration_sec.valueChanged.connect(self.state_changed)
+
+        self.sb_fade_out_duration_sec = LabeledDoubleSpinBox()
+        self.sb_fade_out_duration_sec.setText('fade-out duration (s)')
+        self.sb_fade_out_duration_sec.setRange(0,10_000)
+        self.sb_fade_out_duration_sec.setSingleStep(0.05)
+        self.sb_fade_out_duration_sec.setValue(self.fade_out_duration_sec)
+        self.sb_fade_out_duration_sec.valueChanged.connect(self.state_changed)
+
+        self.sb_stimulus_duration_sec = LabeledDoubleSpinBox()
+        self.sb_stimulus_duration_sec.setText('stim duration (s)')
+        self.sb_stimulus_duration_sec.setRange(0,10_000)
+        self.sb_stimulus_duration_sec.setSingleStep(0.05)
+        self.sb_stimulus_duration_sec.setValue(self.stimulus_duration_sec)
+        self.sb_stimulus_duration_sec.valueChanged.connect(self.state_changed)
+
         self.cb_coordinate_system = LabeledComboBox()
         self.cb_coordinate_system.setText('Coordinate System')
         for coordinate_system in CoordinateSystem:
@@ -122,9 +151,17 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
         background_color_layout.addWidget(self.sb_background_color_A)
         background_color_layout.addStretch()
 
+        transition_group = QGroupBox("Transitions")
+        transition_layout = QVBoxLayout()
+        transition_layout.addWidget(self.sb_fade_in_duration_sec)
+        transition_layout.addWidget(self.sb_fade_out_duration_sec)
+        transition_layout.addWidget(self.sb_stimulus_duration_sec)
+        transition_group.setLayout(transition_layout)
+
         self.main_layout.addWidget(self.cb_coordinate_system)
         self.main_layout.addLayout(foreground_color_layout)
         self.main_layout.addLayout(background_color_layout)
+        self.main_layout.addWidget(transition_group)
 
     def get_state(self) -> Dict:
 
@@ -143,6 +180,9 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
             self.sb_background_color_B.value(),
             self.sb_background_color_A.value()
         )
+        state['fade_in_duration_sec'] = self.sb_fade_in_duration_sec.value()
+        state['fade_out_duration_sec'] = self.sb_fade_out_duration_sec.value()
+        state['stimulus_duration_sec'] = self.sb_stimulus_duration_sec.value()
         return state
 
     def set_state(self, state: Dict) -> None:
@@ -213,6 +253,28 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
             cast = lambda x: float(x[3])
         )
 
+        set_from_dict(
+            dictionary = state,
+            key = 'fade_in_duration_sec',
+            setter = self.sb_fade_in_duration_sec.setValue,
+            default = self.fade_in_duration_sec,
+            cast = float
+        )
+        set_from_dict(
+            dictionary = state,
+            key = 'fade_out_duration_sec',
+            setter = self.sb_fade_out_duration_sec.setValue,
+            default = self.fade_out_duration_sec,
+            cast = float
+        )
+        set_from_dict(
+            dictionary = state,
+            key = 'stimulus_duration_sec',
+            setter = self.sb_stimulus_duration_sec.setValue,
+            default = self.stimulus_duration_sec,
+            cast = float
+        )
+
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
         
         super().from_protocol_item(protocol_item)
@@ -228,8 +290,39 @@ class VisualProtocolItemWidget(ProtocolItemWidget):
             self.sb_background_color_R.setValue(protocol_item.background_color[0])
             self.sb_background_color_G.setValue(protocol_item.background_color[1])
             self.sb_background_color_B.setValue(protocol_item.background_color[2])
-            self.sb_background_color_A.setValue(protocol_item.background_color[3])  
+            self.sb_background_color_A.setValue(protocol_item.background_color[3]) 
+            
+            self.sb_fade_in_duration_sec.setValue(protocol_item.fade_in_duration_sec)
+            self.sb_fade_out_duration_sec.setValue(protocol_item.fade_out_duration_sec)
+            self.sb_stimulus_duration_sec.setValue(protocol_item.stimulus_duration_sec) 
+             
+
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+            kwargs = super()._get_protocol_kwargs()
+            
+            foreground_color = (
+                self.sb_foreground_color_R.value(), 
+                self.sb_foreground_color_G.value(),
+                self.sb_foreground_color_B.value(),
+                self.sb_foreground_color_A.value()
+            )
+            background_color = (
+                self.sb_background_color_R.value(), 
+                self.sb_background_color_G.value(),
+                self.sb_background_color_B.value(),
+                self.sb_background_color_A.value()
+            )
+
+            kwargs.update({
+                'foreground_color': foreground_color,
+                'background_color': background_color,
+                'fade_in_duration_sec': self.sb_fade_in_duration_sec.value(),
+                'fade_out_duration_sec': self.sb_fade_out_duration_sec.value(),
+                'stimulus_duration_sec': self.sb_stimulus_duration_sec.value(),
+                'coordinate_system': self.cb_coordinate_system.currentIndex(),
+            })
+            return kwargs
 
     def to_protocol_item(self) -> VisualProtocolItem:
-        ...
+        return VisualProtocolItem(**self._get_protocol_kwargs())
 

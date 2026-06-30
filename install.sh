@@ -101,8 +101,14 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="1313", GROUP="plugdev", MODE="0666"
 EOF
 
 echo "[+] Reloading udev rules..."
-sudo udevadm control --reload-rules
-sudo udevadm trigger
+if sudo udevadm control --ping &>/dev/null; then
+    echo "[+] Reloading udev rules..."
+    sudo udevadm control --reload-rules
+    sudo udevadm trigger
+else
+    echo "[!] udev daemon is not running or accessible. Skipping rule reload."
+    echo "    (This is normal in WSL, Docker containers, or minimal environments)."
+fi
 
 # 5. Locate or Install Mamba/Conda
 echo "[+] Locating mamba / conda installation..."
@@ -122,8 +128,7 @@ if [ -z "$MAMBA_EXE" ] || [ ! -f "$MAMBA_EXE" ]; then
         install_miniforge="y"
     else
         # Redirecting to /dev/tty guarantees interactive prompting works smoothly
-        exec </dev/tty
-        read -p "[?] Would you like to automatically download and install Miniforge3 for $REAL_USER? (y/n): " install_miniforge
+        read -p "[?] Would you like to automatically download and install Miniforge3 for $REAL_USER? (y/n): " install_miniforge </dev/tty
     fi
     
     if [ "$install_miniforge" = "y" ] || [ "$install_miniforge" = "Y" ]; then
@@ -175,8 +180,7 @@ if "$MAMBA_EXE" env list --json | grep -q "/$ENV_NAME\""; then
     if [ "$AUTO_YES" = "true" ]; then
         update_env="y"
     else
-        exec </dev/tty
-        read -p "[?] Conda environment '$ENV_NAME' already exists. Would you like to update/repair it using ZebVR.yml? (y/n): " update_env
+        read -p "[?] Conda environment '$ENV_NAME' already exists. Would you like to update/repair it using ZebVR.yml? (y/n): " update_env </dev/tty
     fi
 
     if [ "$update_env" = "y" ] || [ "$update_env" = "Y" ]; then
@@ -192,8 +196,7 @@ fi
 
 # --- XIMEA Setup ---
 if [ "$INSTALL_XIMEA" = "false" ] && [ "$AUTO_YES" = "false" ]; then
-    exec </dev/tty
-    read -p "[?] Do you want to install XIMEA Camera drivers & bindings? (y/n): " prompt_ximea
+    read -p "[?] Do you want to install XIMEA Camera drivers & bindings? (y/n): " prompt_ximea </dev/tty
     if [[ "$prompt_ximea" =~ ^[Yy]$ ]]; then INSTALL_XIMEA=true; fi
 fi
 
@@ -221,8 +224,7 @@ fi
 
 # --- Aravis Setup ---
 if [ "$INSTALL_ARAVIS" = "false" ] && [ "$AUTO_YES" = "false" ]; then
-    exec </dev/tty
-    read -p "[?] Do you want to compile and install Aravis (GigE/USB3 cameras)? (y/n): " prompt_aravis
+    read -p "[?] Do you want to compile and install Aravis (GigE/USB3 cameras)? (y/n): " prompt_aravis </dev/tty
     if [[ "$prompt_aravis" =~ ^[Yy]$ ]]; then INSTALL_ARAVIS=true; fi
 fi
 
@@ -255,24 +257,9 @@ if [ "$INSTALL_ARAVIS" = "true" ]; then
     fi
 fi
 
-if [ "$INSTALL_ARAVIS" = "true" ]; then
-    echo "[+] Building Aravis from source..."
-    CONDA_PREFIX_DIR=$("$MAMBA_EXE" run -n "$ENV_NAME" python -c "import os; print(os.environ['CONDA_PREFIX'])")
-    
-    git clone https://github.com/AravisProject/aravis.git
-    cd aravis
-
-    "$MAMBA_EXE" run -n "$ENV_NAME" meson setup build --prefix="$CONDA_PREFIX_DIR" -Dintrospection=enabled -Dviewer=disabled -Dtests=true --libdir=lib
-    "$MAMBA_EXE" run -n "$ENV_NAME" ninja -C build install
-    cd ..
-    rm -rf aravis
-    echo "[+] Aravis successfully compiled into active Conda environment."
-fi
-
 # --- Thorlabs Firmware ---
 if [ "$INSTALL_THORLABS" = "false" ] && [ "$AUTO_YES" = "false" ]; then
-    exec </dev/tty
-    read -p "[?] Do you want to fetch Thorlabs Spectrophotometer firmware? (y/n): " prompt_thor
+    read -p "[?] Do you want to fetch Thorlabs Spectrophotometer firmware? (y/n): " prompt_thor </dev/tty
     if [[ "$prompt_thor" =~ ^[Yy]$ ]]; then INSTALL_THORLABS=true; fi
 fi
 
