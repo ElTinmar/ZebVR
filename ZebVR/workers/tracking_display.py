@@ -147,7 +147,7 @@ class TrackingDisplay(WorkerNode):
                 self.put_into_buffer(tracking_data['image_processed'], buffer_view)
 
             elif display_type == DisplayType.MASK:
-                mask_key = 'mask' if 'mask' in tracking_data else 'image_processed'
+                mask_key = 'mask' if tracker_type in [TrackerType.ANIMAL, TrackerType.BODY, TrackerType.EYES] else 'image_processed'
                 self.put_into_buffer(tracking_data[mask_key], buffer_view)
 
             elif display_type == DisplayType.OVERLAY:
