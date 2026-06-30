@@ -50,6 +50,7 @@ DEFAULT = {
     'image_path': 'ZebVR/resources/checkerboard.png',
     'image_res_px_per_mm': 43,
     'image_offset_mm': (0,0),
+    'image_tiling': 0,
     'amplitude_dB': 60.0,
     'frequency_Hz': 440.0,
     'audio_ramp_start_Hz': 440.0,

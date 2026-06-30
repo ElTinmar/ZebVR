@@ -84,6 +84,7 @@ class SharedStimParameters:
         self.image_path = SharedString(initializer = DEFAULT['image_path'])
         self.image_res_px_per_mm = RawValue(c_double, DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm = RawArray(c_double, DEFAULT['image_offset_mm'])
+        self.image_tiling = RawValue(c_double, DEFAULT['image_tiling']) 
         self.ramp_duration_sec = RawValue(c_double, DEFAULT['ramp_duration_sec'])
         self.ramp_powerlaw_exponent = RawValue(c_double, DEFAULT['ramp_powerlaw_exponent'])
         self.ramp_type = RawValue(c_double, DEFAULT['ramp_type'])
@@ -138,6 +139,7 @@ class SharedStimParameters:
         self.image_path.value = d.get('image_path', DEFAULT['image_path'])
         self.image_res_px_per_mm.value = d.get('image_res_px_per_mm', DEFAULT['image_res_px_per_mm'])
         self.image_offset_mm[:] = d.get('image_offset_mm', DEFAULT['image_offset_mm'])
+        self.image_tiling.value = d.get('image_tiling', DEFAULT['image_tiling'])
         self.ramp_duration_sec.value = d.get('ramp_duration_sec', DEFAULT['ramp_duration_sec'])
         self.ramp_powerlaw_exponent.value = d.get('ramp_powerlaw_exponent', DEFAULT['ramp_powerlaw_exponent'])
         self.ramp_type.value = d.get('ramp_type', DEFAULT['ramp_type'])
@@ -229,6 +231,7 @@ class SharedStimParameters:
                 'image_path': self.image_path.value,
                 'image_res_px_per_mm': self.image_res_px_per_mm.value,
                 'image_offset_mm': list(self.image_offset_mm),
+                'image_tiling': self.image_tiling.value,
             })
 
         if self.stim_select.value == Stim.RAMP:
@@ -355,6 +358,7 @@ class GeneralStim(VisualStim):
         uniform vec2 u_image_size;
         uniform float u_image_res_px_per_mm;
         uniform vec2 u_image_offset_mm;
+        uniform int u_image_tiling;
         uniform float u_ramp_duration_sec;
         uniform float u_ramp_powerlaw_exponent;
         uniform int u_ramp_type;
@@ -654,11 +658,15 @@ class GeneralStim(VisualStim):
         vec4 image_stimulus(vec2 coords_mm) {
             vec2 image_size_mm = u_image_size / u_image_res_px_per_mm;
             vec2 coords = 0.5 + (coords_mm - u_image_offset_mm) / image_size_mm;
-            if (coords.x >= 0.0 && coords.x <= 1.0 &&
-                coords.y >= 0.0 && coords.y <= 1.0) {
-                return texture2D(u_image_texture, coords);
+            if (u_image_tiling == 1) {
+                return texture2D(u_image_texture, fract(coords));
+            } else {
+                if (coords.x >= 0.0 && coords.x <= 1.0 &&
+                    coords.y >= 0.0 && coords.y <= 1.0) {
+                    return texture2D(u_image_texture, coords);
+                }
+                return u_background_color;
             }
-            return u_background_color;
         }
 
         vec4 ramp_stimulus() {
@@ -888,6 +896,7 @@ class GeneralStim(VisualStim):
 
         self.program['u_image_res_px_per_mm'] = self.shared_stim_parameters.image_res_px_per_mm.value
         self.program['u_image_offset_mm'] = self.shared_stim_parameters.image_offset_mm[:]
+        self.program['u_image_tiling'] = self.shared_stim_parameters.image_tiling.value
 
 
     def initialize(self):
