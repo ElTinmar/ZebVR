@@ -743,7 +743,7 @@ class MainGui(QMainWindow):
         self.background_widget.set_image(image)
         self.sequencer_widget.set_background_image(image)
         self.identity_widget.set_image(image)
-        self.identity_widget.reset()
+        #self.identity_widget.reset() # TODO maybe do that only on camera change?
 
         self.busy_overlay.hide_overlay()
 
