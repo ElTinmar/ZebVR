@@ -374,7 +374,7 @@ class InteractiveCoordinateSystem(QGraphicsItem):
 
 
 class MultiCoordViewer(QGraphicsView):
-    system_updated = pyqtSignal(dict)
+    state_changed = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -388,14 +388,11 @@ class MultiCoordViewer(QGraphicsView):
         
         self.coordinate_systems = [] 
         self.bg_pixmap_item = None
-        self._global_axes_visible = True
 
-    def toggle_axes_visibility(self):
-        self._global_axes_visible = not self._global_axes_visible
+    def set_axes_visible(self, visible: bool):
         for sys_item in self.coordinate_systems:
-            sys_item.set_axes_visible(self._global_axes_visible)
-            self.notify_system_changed(sys_item)
-        return self._global_axes_visible
+            sys_item.set_axes_visible(visible)
+        self.state_changed.emit()
 
     def wheelEvent(self, event):
         zoom_in_factor = 1.15
@@ -414,6 +411,7 @@ class MultiCoordViewer(QGraphicsView):
             super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event: QMouseEvent):
+        self.state_changed.emit()
         if event.button() == Qt.MiddleButton:
             fake_event = QMouseEvent(event.type(), event.position(), Qt.LeftButton, 
                                      event.buttons() & ~Qt.LeftButton, event.modifiers())
@@ -429,6 +427,7 @@ class MultiCoordViewer(QGraphicsView):
         self.bg_pixmap_item = self.scene.addPixmap(pixmap)
         self.bg_pixmap_item.setZValue(-100)
         self.setSceneRect(QRectF(pixmap.rect()))
+        self.state_changed.emit()
 
     def add_coordinate_system(self, scene_pos: QPointF):
         index = len(self.coordinate_systems)
@@ -436,7 +435,7 @@ class MultiCoordViewer(QGraphicsView):
         coord_sys.set_axes_visible(self._global_axes_visible)
         self.scene.addItem(coord_sys)
         self.coordinate_systems.append(coord_sys)
-        self.notify_system_changed(coord_sys)
+        self.state_changed.emit()
 
     def remove_coordinate_system(self, index: int):
         if 0 <= index < len(self.coordinate_systems):
@@ -448,19 +447,18 @@ class MultiCoordViewer(QGraphicsView):
         for sys_item in self.coordinate_systems:
             self.scene.removeItem(sys_item)
         self.coordinate_systems.clear()
+        self.state_changed.emit()
 
     def reindex_systems(self):
         for idx, sys_item in enumerate(self.coordinate_systems):
             sys_item.index = idx
             sys_item.update() 
-            self.notify_system_changed(sys_item)
         self.scene.update()
-
-    def notify_system_changed(self, system: InteractiveCoordinateSystem):
-        self.system_updated.emit(system.get_data())
+        self.state_changed.emit()
 
     def get_data(self) -> dict:
         data = {}
+        data['n_animals'] = len(self.coordinate_systems)
         for idx, sys_item in enumerate(self.coordinate_systems):
             data[idx] = sys_item.get_data()
         return data
@@ -488,108 +486,3 @@ class MultiCoordViewer(QGraphicsView):
         self.scene.update()
 
 
-class MainApplication(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Unified Index Image Workspace")
-        self.resize(1200, 750)
-        
-        central = QWidget()
-        self.setCentralWidget(central)
-        main_layout = QHBoxLayout(central)
-        
-        self.viewer = MultiCoordViewer()
-        self.viewer.setSceneRect(0, 0, 1000, 1000)
-        self.viewer.system_updated.connect(self.update_telemetry_display)
-        main_layout.addWidget(self.viewer, stretch=3)
-        
-        control_panel = QWidget()
-        control_layout = QVBoxLayout(control_panel)
-        main_layout.addWidget(control_panel, stretch=1)
-        
-        self.load_img_btn = QPushButton("📷 Load Background Image")
-        self.load_img_btn.setStyleSheet("font-weight: bold; background-color: #2b5c8f; color: white; padding: 6px;")
-        self.load_img_btn.clicked.connect(self.open_image_dialog)
-        control_layout.addWidget(self.load_img_btn)
-        
-        control_layout.addSpacing(10)
-
-        self.toggle_axes_btn = QPushButton("👁️ Toggle Coordinate Axes: ON")
-        self.toggle_axes_btn.setStyleSheet("font-weight: bold; background-color: #2ca02c; color: white; padding: 5px;")
-        self.toggle_axes_btn.clicked.connect(self.fire_axes_toggle)
-        control_layout.addWidget(self.toggle_axes_btn)
-        
-        control_layout.addSpacing(5)
-        
-        self.add_btn = QPushButton("Add Bounding Box Set")
-        self.add_btn.clicked.connect(self.spawn_system)
-        control_layout.addWidget(self.add_btn)
-        
-        self.remove_btn = QPushButton("Remove Selected")
-        self.remove_btn.clicked.connect(self.delete_selected_system)
-        control_layout.addWidget(self.remove_btn)
-        
-        control_layout.addWidget(QLabel("Systems Active Registry:"))
-        self.system_list = QListWidget()
-        control_layout.addWidget(self.system_list)
-        
-        control_layout.addWidget(QLabel("Live System Metrics:"))
-        self.telemetry_label = QLabel("Interact with or select a system map.")
-        self.telemetry_label.setWordWrap(True)
-        self.telemetry_label.setFrameStyle(QFrame.StyledPanel | QFrame.Sunken)
-        self.telemetry_label.setStyleSheet(
-            "font-family: monospace; font-size: 11px; padding: 8px; background: #1e1e1e; color: #56B4E9;"
-        )
-        control_layout.addWidget(self.telemetry_label)
-
-        self.spawn_system()
-
-    def open_image_dialog(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Open Background Image Asset", "", "Images (*.png *.jpg *.jpeg *.bmp)")
-        if file_path: self.viewer.load_background_image(file_path)
-
-    def fire_axes_toggle(self):
-        is_visible = self.viewer.toggle_axes_visibility()
-        if is_visible:
-            self.toggle_axes_btn.setText("👁️ Toggle Coordinate Axes: ON")
-            self.toggle_axes_btn.setStyleSheet("font-weight: bold; background-color: #2ca02c; color: white; padding: 5px;")
-        else:
-            self.toggle_axes_btn.setText("🙈 Toggle Coordinate Axes: OFF")
-            self.toggle_axes_btn.setStyleSheet("font-weight: bold; background-color: #d62728; color: white; padding: 5px;")
-
-    def spawn_system(self):
-        center_view = self.viewer.viewport().rect().center()
-        scene_pt = self.viewer.mapToScene(center_view)
-        idx = self.system_list.count()
-        scene_pt += QPointF(idx * 45, idx * 45)
-        
-        self.viewer.add_coordinate_system(scene_pt)
-        self.refresh_list_widget()
-
-    def delete_selected_system(self):
-        row = self.system_list.currentRow()
-        if row >= 0:
-            self.viewer.remove_coordinate_system(row)
-            self.refresh_list_widget()
-            self.telemetry_label.setText("System cleared.")
-
-    def refresh_list_widget(self):
-        self.system_list.clear()
-        for sys_item in self.viewer.coordinate_systems:
-            self.system_list.addItem(f"Bounding Box Set #{sys_item.index}")
-
-    def update_telemetry_display(self, data: dict):
-        text = (
-            f"BBox      : {data['bbox_rect']} px\n"
-            f"Centroid  : {data['centroid']} px\n"
-            f"Axes      : {data['axes']}\n"
-            f"Navigation  : Wheel = Zoom | Middle-Click = Pan"
-        )
-        self.telemetry_label.setText(text)
-        
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    win = MainApplication()
-    win.show()
-    sys.exit(app.exec_())

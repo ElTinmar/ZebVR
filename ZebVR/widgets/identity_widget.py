@@ -7,7 +7,7 @@ from qtpy.QtWidgets import (
     QPushButton,
     QGroupBox
 )
-from qtpy.QtCore import  Signal
+from qtpy.QtCore import Signal, QPointF
 from typing import Dict
 from numpy.typing import NDArray
 import numpy as np
@@ -21,6 +21,8 @@ from qt_widgets import (
     LabeledDoubleSpinBox,
     NDarray_to_QPixmap
 )
+
+from .coordinate_system_widget import MultiCoordViewer
 
 class IdentityWidget(QWidget):
 
@@ -367,7 +369,65 @@ class IdentityWidget(QWidget):
 
         self.axes = state.get('axes', np.array([[1.0, 0.0], [0.0, 1.0]]))
         self.set_open_loop_visible(state.get('open_loop_visible', False))
+
+class NewIdentityWidget(QWidget):
+
+    state_changed = Signal()
+    DEFAULT_FILE: Path = Path('ZebVR/default/background.npy')
+
+    def __init__(self, pix_per_mm: float = 30, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pix_per_mm = pix_per_mm
+        self.axes_visible = True
         
+        self.viewer = MultiCoordViewer(parent_widget=self)
+        self.viewer.state_changed.connect(self.state_changed)
+        
+        self.add_btn = QPushButton("Add ROI")
+        self.add_btn.clicked.connect(lambda: self.viewer.add_coordinate_system(QPointF(150, 150)))
+        
+        self.clear_btn = QPushButton("Clear All")
+        self.clear_btn.clicked.connect(self.reset)
+
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.add_btn)
+        button_layout.addWidget(self.clear_btn)
+
+        main_layout = QVBoxLayout(self)
+        main_layout.addLayout(button_layout)
+        main_layout.addWidget(self.viewer)
+
+        # Load standard canvas
+        if self.DEFAULT_FILE.exists():
+            self.image = np.load(self.DEFAULT_FILE)
+        else:
+            self.image = np.zeros((512, 512), dtype=np.uint8)
+        self.set_image(self.image)
+
+    def set_image(self, image: NDArray) -> None:
+        self.image = image
+        self.viewer.set_background_image(self.image)
+        self.state_changed.emit()
+
+    def reset(self) -> None:
+        self.viewer.clear_systems()
+        self.state_changed.emit()
+
+    def set_axes_visible(self, visible: bool) -> None:
+        self.axes_visible = visible
+        self.viewer.set_axes_visible(visible)
+        self.state_changed.emit()
+
+    def set_pix_per_mm(self, pix_per_mm: float) -> None:
+        self.pix_per_mm = pix_per_mm
+
+    def get_state(self) -> Dict:
+        return self.viewer.get_state()
+    
+    def set_state(self, state: Dict) -> None:
+        self.viewer.set_data(state)
+        
+
 if __name__ == "__main__":
     
     app = QApplication([])
