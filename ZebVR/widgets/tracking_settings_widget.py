@@ -9,12 +9,14 @@ from qtpy.QtWidgets import (
     QPushButton,
     QCheckBox,
     QRadioButton,
-    QButtonGroup
+    QButtonGroup,
+    QStackedWidget
 )
 from qtpy.QtCore import  Signal
 from qt_widgets import (
     LabeledDoubleSpinBox, 
-    LabeledSpinBox
+    LabeledSpinBox,
+    LabeledComboBox
 )
 import json
 from pathlib import Path
@@ -1150,6 +1152,264 @@ class TrackerWidget(QWidget):
         for key, setter in setters.items():
             setter(state[key])
 
+
+class BoundaryWidget(QWidget):
+    state_changed = Signal()
+
+    def get_state(self) -> dict:
+        return {}
+
+    def set_state(self, state: dict):
+        pass
+
+class NoBoundaryWidget(BoundaryWidget):
+    ...
+
+class ClampingBoundaryWidget(BoundaryWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.declare_components()
+        self.layout_components()
+
+    def declare_components(self):
+        self.x_min = LabeledDoubleSpinBox()
+        self.x_min.setText("X Min (mm):")
+        
+        self.x_max = LabeledDoubleSpinBox()
+        self.x_max.setText("X Max (mm):")
+        
+        self.y_min = LabeledDoubleSpinBox()
+        self.y_min.setText("Y Min (mm):")
+        
+        self.y_max = LabeledDoubleSpinBox()
+        self.y_max.setText("Y Max (mm):")
+
+        for box in (self.x_min, self.x_max, self.y_min, self.y_max):
+            box.setRange(-10000.0, 10000.0)
+            box.valueChanged.connect(self.state_changed.emit)
+
+        self.x_min.setValue(-500.0)
+        self.x_max.setValue(500.0)
+        self.y_min.setValue(-500.0)
+        self.y_max.setValue(500.0)
+
+    def layout_components(self):
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        x_layout = QHBoxLayout()
+        x_layout.addWidget(self.x_min)
+        x_layout.addWidget(self.x_max)
+
+        y_layout = QHBoxLayout()
+        y_layout.addWidget(self.y_min)
+        y_layout.addWidget(self.y_max)
+
+        main_layout.addLayout(x_layout)
+        main_layout.addLayout(y_layout)
+
+    def get_state(self) -> Dict:
+        state = {}
+        state['x_bounds'] = (self.x_min.value(), self.x_max.value())
+        state['y_bounds'] = (self.y_min.value(), self.y_max.value())
+        return state
+
+    def set_state(self, state: Dict) -> None:
+        setters = {
+            'x_bounds': lambda bounds: (
+                self.x_min.setValue(bounds[0]), 
+                self.x_max.setValue(bounds[1])
+            ),
+            'y_bounds': lambda bounds: (
+                self.y_min.setValue(bounds[0]), 
+                self.y_max.setValue(bounds[1])
+            ),
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
+
+class CircularClampingBoundaryWidget(BoundaryWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.declare_components()
+        self.layout_components()
+
+    def declare_components(self):
+        self.radius = LabeledDoubleSpinBox()
+        self.radius.setText("Radius (mm):")
+        self.radius.setRange(0.0, 10000.0)
+        self.radius.setValue(300.0)
+        self.radius.valueChanged.connect(self.state_changed.emit)
+
+        self.cx = LabeledDoubleSpinBox()
+        self.cx.setText("Center X  (mm):")
+        
+        self.cy = LabeledDoubleSpinBox()
+        self.cy.setText("Center Y  (mm):")
+        
+        for box in (self.cx, self.cy):
+            box.setRange(-5000.0, 5000.0)
+            box.setValue(0.0)
+            box.valueChanged.connect(self.state_changed.emit)
+
+    def layout_components(self):
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        
+        main_layout.addWidget(self.radius)
+
+        center_layout = QHBoxLayout()
+        center_layout.addWidget(self.cx)
+        center_layout.addWidget(self.cy)
+        
+        main_layout.addLayout(center_layout)
+
+    def get_state(self) -> Dict:
+        state = {}
+        state['radius'] = self.radius.value()
+        state['center'] = (self.cx.value(), self.cy.value())
+        return state
+
+    def set_state(self, state: Dict) -> None:
+        setters = {
+            'radius': self.radius.setValue,
+            'center': lambda coords: (
+                self.cx.setValue(coords[0]), 
+                self.cy.setValue(coords[1])
+            ),
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
+
+
+BOUNDARY_WIDGETS: Dict[str, BoundaryWidget] = {
+    'none': NoBoundaryWidget,
+    'rectangle': ClampingBoundaryWidget,
+    'circle': CircularClampingBoundaryWidget,
+    'torus': ClampingBoundaryWidget
+}
+
+
+class LighthillWidget(QWidget):
+    state_changed = Signal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.declare_components()
+        self.layout_components()
+        self.handle_boundary_switch()
+
+    def declare_components(self):
+        self.forward_gain = LabeledDoubleSpinBox()
+        self.forward_gain.setText("Forward Gain:")
+        self.forward_gain.setRange(0.0, 10.0)
+        #self.forward_gain.setDecimals(4)
+        self.forward_gain.setValue(0.08)
+
+        self.angular_gain = LabeledDoubleSpinBox()
+        self.angular_gain.setText("Angular Gain:")
+        self.angular_gain.setRange(0.0, 10.0)
+        #self.angular_gain.setDecimals(4)
+        self.angular_gain.setValue(0.01)
+
+        self.tau = LabeledDoubleSpinBox()
+        self.tau.setText("Tau (smoothing):")
+        self.tau.setRange(0.0, 10.0)
+        self.tau.setValue(0.0)
+
+        self.time_window = LabeledSpinBox()
+        self.time_window.setText("Time Window (ms):")
+        self.time_window.setRange(1, 1000)
+        self.time_window.setValue(30)
+
+        for widget in (self.forward_gain, self.angular_gain, self.tau, self.time_window):
+            widget.valueChanged.connect(self.state_changed.emit)
+
+        self.boundary_combo = LabeledComboBox()
+        self.boundary_combo.setText("Constraint Type:")
+        self.boundary_stack = QStackedWidget()
+
+        for key, widget_class in BOUNDARY_WIDGETS.items():
+            panel = widget_class()
+            self.boundary_stack.addWidget(panel)
+            panel.state_changed.connect(self.state_changed.emit)
+            self.boundary_combo.addItem(key, userData=(key, panel))
+
+        self.boundary_combo.currentIndexChanged.connect(self.handle_boundary_switch)
+
+    def layout_components(self):
+        main_layout = QVBoxLayout(self)
+
+        hyper_group = QGroupBox("Model Parameters")
+        hyper_layout = QVBoxLayout(hyper_group)
+        hyper_layout.addWidget(self.forward_gain)
+        hyper_layout.addWidget(self.angular_gain)
+        hyper_layout.addWidget(self.tau)
+        hyper_layout.addWidget(self.time_window)
+        main_layout.addWidget(hyper_group)
+
+        boundary_group = QGroupBox("Arena Boundaries")
+        boundary_layout = QVBoxLayout(boundary_group)
+        boundary_layout.addWidget(self.boundary_combo)
+        boundary_layout.addWidget(self.boundary_stack)
+        main_layout.addWidget(boundary_group)
+
+    def handle_boundary_switch(self):
+        _, active_panel = self.boundary_combo.currentData()
+        self.boundary_stack.setCurrentWidget(active_panel)
+        self.state_changed.emit()
+
+    def _set_boundary_type(self, target_key: str):
+        for index in range(self.boundary_combo.count()):
+            data = self.boundary_combo.itemData(index)
+            if data and data[0] == target_key:
+                self.boundary_combo.blockSignals(True)
+                self.boundary_combo.setCurrentIndex(index)
+                self.boundary_combo.blockSignals(False)
+                
+                _, active_panel = data
+                self.boundary_stack.setCurrentWidget(active_panel)
+                break
+
+    def _set_boundary_parameters(self, params: Dict):
+        _, active_panel = self.boundary_combo.currentData()
+        active_panel.set_state(params)
+
+    def get_state(self) -> Dict:
+        boundary_key, active_panel = self.boundary_combo.currentData()
+        
+        state = {}
+        state['forward_gain'] = self.forward_gain.value()
+        state['angular_gain'] = self.angular_gain.value()
+        state['tau'] = self.tau.value()
+        state['time_window'] = self.time_window.value()
+        state['boundary_type'] = boundary_key
+        state['boundary_parameters'] = active_panel.get_state() 
+        return state
+
+    def set_state(self, state: Dict) -> None:
+
+        if 'boundary_type' in state:
+            self._set_boundary_type(state['boundary_type'])
+
+        setters = {
+            'forward_gain': self.forward_gain.setValue,
+            'angular_gain': self.angular_gain.setValue,
+            'tau': self.tau.setValue,
+            'time_window': self.time_window.setValue,
+            'boundary_parameters': self._set_boundary_parameters,
+        }
+
+        for key, setter in setters.items():
+            if key in state:
+                setter(state[key])
+
 class HeadEmbeddedTrackerWidget(QWidget):
 
     state_changed =  Signal()
@@ -1217,33 +1477,8 @@ class HeadEmbeddedTrackerWidget(QWidget):
         self.heading_angle_deg.setValue(0)
         self.heading_angle_deg.valueChanged.connect(self.on_change)
 
-        self.forward_gain = LabeledDoubleSpinBox()
-        self.forward_gain.setText('forward gain ((s/mm)^(1/3))')
-        self.forward_gain.setRange(0,1)
-        self.forward_gain.setSingleStep(0.01)
-        self.forward_gain.setValue(0.08)
-        self.forward_gain.valueChanged.connect(self.on_change)
-
-        self.angular_gain = LabeledDoubleSpinBox()
-        self.angular_gain.setText('angular gain (rad⋅s/mm^3)')
-        self.angular_gain.setRange(0,1)
-        self.angular_gain.setSingleStep(0.01)
-        self.angular_gain.setValue(0.01)
-        self.angular_gain.valueChanged.connect(self.on_change)
-
-        self.time_window_ms = LabeledSpinBox()
-        self.time_window_ms.setText('time window (ms)')
-        self.time_window_ms.setRange(0,1000)
-        self.time_window_ms.setSingleStep(1)
-        self.time_window_ms.setValue(30)
-        self.time_window_ms.valueChanged.connect(self.on_change)
-
-        self.smoothing = LabeledDoubleSpinBox()
-        self.smoothing.setText('smoothing')
-        self.smoothing.setRange(0,1)
-        self.smoothing.setSingleStep(0.01)
-        self.smoothing.setValue(0)
-        self.smoothing.valueChanged.connect(self.on_change)
+        self.lighthill = LighthillWidget()
+        self.lighthill.state_changed.connect(self.on_change)
 
         self.tail = Tail(pix_per_mm=self.pix_per_mm)
         self.tail.state_changed.connect(self.on_change)
@@ -1264,10 +1499,7 @@ class HeadEmbeddedTrackerWidget(QWidget):
         controls.addWidget(self.centroid_x_px)
         controls.addWidget(self.centroid_y_px)
         controls.addWidget(self.heading_angle_deg)
-        controls.addWidget(self.forward_gain)
-        controls.addWidget(self.angular_gain)
-        controls.addWidget(self.time_window_ms)
-        controls.addWidget(self.smoothing)
+        controls.addWidget(self.lighthill)
         controls.addStretch()
 
         tail = QHBoxLayout()
@@ -1382,10 +1614,7 @@ class HeadEmbeddedTrackerWidget(QWidget):
         state['centroid_x'] = self.centroid_x_px.value()
         state['centroid_y'] = self.centroid_y_px.value()
         state['heading_angle_rad'] = deg2rad(self.heading_angle_deg.value())
-        state['forward_gain'] = self.forward_gain.value()
-        state['angular_gain'] = self.angular_gain.value()
-        state['time_window_ms'] = self.time_window_ms.value()
-        state['smoothing'] = self.smoothing.value()
+        state['lighthill'] = self.lighthill.get_state()
         state['tail_tracking'] = self.tail.get_state()
         return state
 
@@ -1404,10 +1633,7 @@ class HeadEmbeddedTrackerWidget(QWidget):
             'centroid_x': self.centroid_x_px.setValue,
             'centroid_y': self.centroid_y_px.setValue,
             'heading_angle_rad': lambda r: self.heading_angle_deg.setValue(rad2deg(r)),
-            'forward_gain': self.forward_gain.setValue,
-            'angular_gain': self.angular_gain.setValue,
-            'time_window_ms': self.time_window_ms.setValue,
-            'smoothing': self.smoothing.setValue,
+            'lighthill': self.lighthill.set_state,
             'tail_tracking': self.tail.set_state,
         }
 
