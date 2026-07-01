@@ -320,7 +320,7 @@ class IdentityWidget(QWidget):
     def set_pix_per_mm(self, pix_per_mm: float) -> None:
         self.pix_per_mm = pix_per_mm
         
-    def set_open_loop_visible(self, visible: bool) -> None:
+    def set_axes_visible(self, visible: bool) -> None:
         self.open_loop_group.setVisible(visible)
         self.open_loop_visible = visible
         self.on_change()
@@ -368,7 +368,7 @@ class IdentityWidget(QWidget):
                 setter(state[key])
 
         self.axes = state.get('axes', np.array([[1.0, 0.0], [0.0, 1.0]]))
-        self.set_open_loop_visible(state.get('open_loop_visible', False))
+        self.set_axes_visible(state.get('open_loop_visible', False))
 
 class NewIdentityWidget(QWidget):
 
@@ -380,7 +380,7 @@ class NewIdentityWidget(QWidget):
         self.pix_per_mm = pix_per_mm
         self.axes_visible = True
         
-        self.viewer = MultiCoordViewer(parent_widget=self)
+        self.viewer = MultiCoordViewer(self)
         self.viewer.state_changed.connect(self.state_changed)
         
         self.add_btn = QPushButton("Add ROI")
@@ -410,7 +410,7 @@ class NewIdentityWidget(QWidget):
         self.state_changed.emit()
 
     def reset(self) -> None:
-        self.viewer.clear_systems()
+        self.viewer.clear_coordinate_systems()
         self.state_changed.emit()
 
     def set_axes_visible(self, visible: bool) -> None:
