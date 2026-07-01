@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, Dict
 from tracker import (
     Tracker,
     AnimalTracker_CPU, AnimalTrackerParamTracking,
@@ -8,8 +8,23 @@ from tracker import (
     EyesTracker_CPU, EyesTrackerParamTracking,
     TailTracker_CPU, TailTrackerParamTracking,
     SingleFishTracker_CPU, SingleFishTrackerParamTracking,
-    HeadEmbeddedTracker_CPU, HeadEmbedded_ParamTracking, LighthillPredictor
+    HeadEmbeddedTracker_CPU, HeadEmbedded_ParamTracking
 )
+from tracker import (
+    LighthillPredictor,
+    Boundary,
+    NoBoundary,
+    ClampingBoundary,
+    CircularClampingBoundary,
+    WrapAroundBoundary
+)
+
+BOUNDARY_STRATEGIES: Dict[str, Boundary] = {
+    'none': NoBoundary,
+    'rectangle': ClampingBoundary,
+    'circle': CircularClampingBoundary,
+    'torus': WrapAroundBoundary
+}
 
 def head_embedded_tracker(settings: dict, cam_fps: float, cam_pix_per_mm: Optional[float] = None) -> HeadEmbeddedTracker_CPU:
     
@@ -18,12 +33,19 @@ def head_embedded_tracker(settings: dict, cam_fps: float, cam_pix_per_mm: Option
         tracking_param=TailTrackerParamTracking(**tail_tracking_params),
     )
 
+    lighthill: dict = settings.get('lighthill', {})
+
+    boundary_type = lighthill.get('boundary_type', 'none')
+    boundary_parameters: dict = lighthill.get('boundary_parameters', {})
+    boundary = BOUNDARY_STRATEGIES[boundary_type](**boundary_parameters)
+
     predictor = LighthillPredictor(
-        forward_gain = settings.get('forward_gain', 0.08),
-        angular_gain = settings.get('angular_gain', 0.01),
-        time_window_ms = settings.get('time_window_ms', 30),
+        forward_gain = lighthill.get('forward_gain', 0.08),
+        angular_gain = lighthill.get('angular_gain', 0.01),
+        time_window_ms = lighthill.get('time_window_ms', 30),
         framerate = cam_fps,
         tau = settings.get('tau', 0.0),
+        boundary = boundary
     )
 
     tracker = HeadEmbeddedTracker_CPU(
