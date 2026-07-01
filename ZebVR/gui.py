@@ -44,6 +44,7 @@ from .widgets import (
     CalibrationWidget,
     BackgroundWidget,
     IdentityWidget,
+    NewIdentityWidget,
     SequencerWidget,
     SettingsWidget,
     TemperatureWidget,
@@ -148,6 +149,7 @@ class MainGui(QMainWindow):
         self.background_widget.background_signal.connect(self.start_background)
 
         self.identity_widget = IdentityWidget()
+        #self.identity_widget = NewIdentityWidget()
         self.identity_widget.state_changed.connect(self.update_identity_settings)
 
         self.sequencer_widget = SequencerWidget()
@@ -315,7 +317,7 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(True)
             self.settings_widget.force_videorecording(False)
             self.settings_widget.set_stim_output_visible(True)
-            self.identity_widget.set_open_loop_visible(False)
+            self.identity_widget.set_axes_visible(False)
 
         elif self.open_loop_button.isChecked():
 
@@ -338,7 +340,7 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(False)
             self.settings_widget.force_videorecording(False)
             self.settings_widget.set_stim_output_visible(True)
-            self.identity_widget.set_open_loop_visible(True)
+            self.identity_widget.set_axes_visible(True)
 
         elif self.video_recording_button.isChecked():
 
@@ -363,7 +365,7 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(False)
             self.settings_widget.force_videorecording(True)
             self.settings_widget.set_stim_output_visible(False)
-            self.identity_widget.set_open_loop_visible(False)
+            self.identity_widget.set_axes_visible(False)
 
         elif self.tracking_button.isChecked():
             
@@ -388,7 +390,7 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(True)
             self.settings_widget.force_videorecording(False)
             self.settings_widget.set_stim_output_visible(False)
-            self.identity_widget.set_open_loop_visible(False)
+            self.identity_widget.set_axes_visible(False)
 
         else:
             raise RuntimeError    
