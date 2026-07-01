@@ -2,14 +2,16 @@ import sys
 import math
 from numpy.typing import NDArray
 from qtpy.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
-                            QWidget, QLabel, QGraphicsItem, QGraphicsView, 
+                            QWidget, QLabel, QGraphicsItem, QGraphicsView, QGraphicsObject,
                             QGraphicsScene, QFrame, QPushButton, QListWidget, QFileDialog)
 from qtpy.QtGui import QColor, QPen, QBrush, QPainter, QPainterPath, QPainterPathStroker, QPixmap, QFont, QMouseEvent
 from qtpy.QtCore import Qt, QRectF, QPointF, Signal as pyqtSignal
 from qt_widgets import NDarray_to_QPixmap
 
 
-class BaseSystemHandle(QGraphicsItem):
+class BaseSystemHandle(QGraphicsObject):
+    state_changed = pyqtSignal()
+
     def __init__(self, color: QColor, size: float, interaction_margin: float = 10.0, parent=None):
         super().__init__(parent)
         self.color = color
@@ -56,6 +58,9 @@ class BaseSystemHandle(QGraphicsItem):
         else:
             super().mousePressEvent(event)
 
+    def mouseReleaseEvent(self, event: QMouseEvent):
+        self.state_changed.emit()
+        super().mouseReleaseEvent(event)
 
 class OriginHandle(BaseSystemHandle):
     def __init__(self, color: QColor, parent=None):
@@ -84,7 +89,6 @@ class OriginHandle(BaseSystemHandle):
         if parent and event.buttons() & Qt.LeftButton:
             delta = event.scenePos() - self._drag_start_scene
             parent.setPos(self._drag_start_parent_pos + delta)
-            parent.parent_widget.notify_system_changed(parent)
             event.accept()
 
 
@@ -136,7 +140,9 @@ class BBoxCornerHandle(BaseSystemHandle):
             event.accept()
 
 
-class InteractiveCoordinateSystem(QGraphicsItem):
+class InteractiveCoordinateSystem(QGraphicsObject):
+    state_changed = pyqtSignal()
+
     def __init__(self, index: int, initial_pos: QPointF, parent_widget):
         super().__init__()
         self.index: int = index  
@@ -171,6 +177,14 @@ class InteractiveCoordinateSystem(QGraphicsItem):
         self.bbox_tr = BBoxCornerHandle(self.color_bbox, "tr", parent=self)
         self.bbox_bl = BBoxCornerHandle(self.color_bbox, "bl", parent=self)
         self.bbox_br = BBoxCornerHandle(self.color_bbox, "br", parent=self)
+
+        self.origin.state_changed.connect(self.state_changed.emit)
+        self.axis_lateral.state_changed.connect(self.state_changed.emit)
+        self.axis_heading.state_changed.connect(self.state_changed.emit)
+        self.bbox_tl.state_changed.connect(self.state_changed.emit)
+        self.bbox_tr.state_changed.connect(self.state_changed.emit)
+        self.bbox_bl.state_changed.connect(self.state_changed.emit)
+        self.bbox_br.state_changed.connect(self.state_changed.emit)
 
         self.update_axis_positions()
         self.update_bbox_positions()
@@ -282,7 +296,6 @@ class InteractiveCoordinateSystem(QGraphicsItem):
             self._current_angle = math.atan2(dy, dx) + (math.pi / 2.0)
         self.update_axis_positions()
         self.update()
-        self.parent_widget.notify_system_changed(self)
 
     def handle_bbox_resize(self, node, local_mouse_pos):
         self.prepareGeometryChange()
@@ -294,7 +307,6 @@ class InteractiveCoordinateSystem(QGraphicsItem):
 
         self.update_bbox_positions()
         self.update()
-        self.parent_widget.notify_system_changed(self)
 
     def _resize_asymmetric(self, node, local_mouse_pos):
         """Mode A: Bounding box adjusts freely around a static origin local coordinate point."""
@@ -323,7 +335,7 @@ class InteractiveCoordinateSystem(QGraphicsItem):
         self._bbox_cx = 0.0
         self._bbox_cy = 0.0
 
-    def get_data(self) -> dict:
+    def get_state(self) -> dict:
         bbox_tl_scene_pos = self.mapToScene(self.bbox_tl.pos())
     
         x = bbox_tl_scene_pos.x()
@@ -348,7 +360,7 @@ class InteractiveCoordinateSystem(QGraphicsItem):
             ]
         }
     
-    def set_data(self, data: dict):
+    def set_state(self, data: dict):
         self.prepareGeometryChange()
         
         x, y, w, h = data["bbox_rect"]
@@ -388,10 +400,12 @@ class MultiCoordViewer(QGraphicsView):
         
         self.coordinate_systems = [] 
         self.bg_pixmap_item = None
+        self._global_axes_visible = False
 
     def set_axes_visible(self, visible: bool):
         for sys_item in self.coordinate_systems:
             sys_item.set_axes_visible(visible)
+        self._global_axes_visible = visible
         self.state_changed.emit()
 
     def wheelEvent(self, event):
@@ -411,7 +425,6 @@ class MultiCoordViewer(QGraphicsView):
             super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event: QMouseEvent):
-        self.state_changed.emit()
         if event.button() == Qt.MiddleButton:
             fake_event = QMouseEvent(event.type(), event.position(), Qt.LeftButton, 
                                      event.buttons() & ~Qt.LeftButton, event.modifiers())
@@ -432,6 +445,7 @@ class MultiCoordViewer(QGraphicsView):
     def add_coordinate_system(self, scene_pos: QPointF):
         index = len(self.coordinate_systems)
         coord_sys = InteractiveCoordinateSystem(index, scene_pos, self)
+        coord_sys.state_changed.connect(self.state_changed)
         coord_sys.set_axes_visible(self._global_axes_visible)
         self.scene.addItem(coord_sys)
         self.coordinate_systems.append(coord_sys)
@@ -456,14 +470,14 @@ class MultiCoordViewer(QGraphicsView):
         self.scene.update()
         self.state_changed.emit()
 
-    def get_data(self) -> dict:
+    def get_state(self) -> dict:
         data = {}
         data['n_animals'] = len(self.coordinate_systems)
         for idx, sys_item in enumerate(self.coordinate_systems):
-            data[idx] = sys_item.get_data()
+            data[idx] = sys_item.get_state()
         return data
     
-    def set_data(self, data: dict):
+    def set_state(self, data: dict):
         self.clear_coordinate_systems()
         
         for str_idx in sorted(data.keys(), key=int):
@@ -478,7 +492,7 @@ class MultiCoordViewer(QGraphicsView):
             # Create, configure, and add to tracking
             coord_sys = InteractiveCoordinateSystem(idx, initial_pos, self)
             coord_sys.set_axes_visible(self._global_axes_visible)
-            coord_sys.set_data(item_data)
+            coord_sys.set_state(item_data)
             
             self.scene.addItem(coord_sys)
             self.coordinate_systems.append(coord_sys)
