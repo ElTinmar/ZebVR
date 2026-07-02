@@ -372,6 +372,8 @@ class IdentityWidget(QWidget):
 
 class NewIdentityWidget(QWidget):
 
+    # TODO merge this with background
+
     state_changed = Signal()
     DEFAULT_FILE: Path = Path('ZebVR/default/background.npy')
 
