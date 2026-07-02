@@ -1,16 +1,32 @@
-import sys
 import math
 from numpy.typing import NDArray
-from qtpy.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
-                            QWidget, QLabel, QGraphicsItem, QGraphicsView, QGraphicsObject,
-                            QGraphicsScene, QFrame, QPushButton, QListWidget, QFileDialog)
-from qtpy.QtGui import QColor, QPen, QBrush, QPainter, QPainterPath, QPainterPathStroker, QPixmap, QFont, QMouseEvent
-from qtpy.QtCore import Qt, QRectF, QPointF, Signal as pyqtSignal
+from qtpy.QtWidgets import (
+    QGraphicsItem, 
+    QGraphicsView, 
+    QGraphicsObject,
+    QGraphicsScene
+)
+from qtpy.QtGui import (
+    QColor, 
+    QPen, 
+    QBrush, 
+    QPainter, 
+    QPainterPath, 
+    QPainterPathStroker, 
+    QFont, 
+    QMouseEvent
+)
+from qtpy.QtCore import (
+    Qt, 
+    QRectF, 
+    QPointF, 
+    Signal
+)
+
 from qt_widgets import NDarray_to_QPixmap
 
-
 class BaseSystemHandle(QGraphicsObject):
-    state_changed = pyqtSignal()
+    state_changed = Signal()
 
     def __init__(self, color: QColor, size: float, interaction_margin: float = 10.0, parent=None):
         super().__init__(parent)
@@ -52,6 +68,12 @@ class BaseSystemHandle(QGraphicsObject):
             self._drag_start_scene = event.scenePos()
             parent = self.parentItem()
             if parent:
+                # Direct top parent activation forward
+                if hasattr(parent, "setSelected"):
+                    parent.setSelected(True)
+                    if hasattr(parent, "selected_signal") and hasattr(parent, "index"):
+                        parent.selected_signal.emit(parent.index)
+                
                 self._drag_start_parent_pos = parent.pos()
                 self._drag_start_local_mouse = parent.mapFromScene(event.scenePos())
             event.accept()
@@ -61,6 +83,7 @@ class BaseSystemHandle(QGraphicsObject):
     def mouseReleaseEvent(self, event: QMouseEvent):
         self.state_changed.emit()
         super().mouseReleaseEvent(event)
+
 
 class OriginHandle(BaseSystemHandle):
     def __init__(self, color: QColor, parent=None):
@@ -141,13 +164,15 @@ class BBoxCornerHandle(BaseSystemHandle):
 
 
 class InteractiveCoordinateSystem(QGraphicsObject):
-    state_changed = pyqtSignal()
+    state_changed = Signal()
+    selected_signal = Signal(int)
 
     def __init__(self, index: int, initial_pos: QPointF, parent_widget):
         super().__init__()
         self.index: int = index  
         self.parent_widget = parent_widget
         self.axes_visible: bool = True  
+        self.is_selected: bool = False
         
         self.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemSendsGeometryChanges)
         self.setPos(initial_pos)
@@ -165,6 +190,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.color_lateral = QColor(230, 159, 0)        
         self.color_heading = QColor(86, 180, 233)       
         self.color_bbox = QColor(255, 255, 255, 160)
+        self.color_bbox_selected = QColor(0, 255, 127, 220)  # Selection highlight color (Spring Green)
 
         # Child handles initialization
         self.origin = OriginHandle(self.color_origin, parent=self)
@@ -189,6 +215,16 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.update_axis_positions()
         self.update_bbox_positions()
 
+    def itemChange(self, change, value):
+        if change == QGraphicsItem.ItemSelectedChange and value == True:
+            self.selected_signal.emit(self.index)
+        return super().itemChange(change, value)
+
+    def mousePressEvent(self, event):
+        self.setSelected(True)
+        self.selected_signal.emit(self.index)
+        super().mousePressEvent(event)
+
     def set_axes_visible(self, visible: bool):
         self.prepareGeometryChange()
         self.axes_visible = visible
@@ -196,7 +232,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.axis_heading.setVisible(visible)
 
         if not self.axes_visible:
-            # Shift the coordinate pivot system directly onto the physical box layout center coordinates
             scene_center = self.mapToScene(QPointF(self._bbox_cx, self._bbox_cy))
             self.setPos(scene_center)
             self._bbox_cx = 0.0
@@ -262,7 +297,11 @@ class InteractiveCoordinateSystem(QGraphicsObject):
     def paint(self, painter, option, widget):
         painter.setRenderHint(QPainter.Antialiasing)
         
-        painter.setPen(QPen(self.color_bbox, 2.0, Qt.DashLine))
+        if self.is_selected:
+            painter.setPen(QPen(self.color_bbox_selected, 2.5, Qt.DashLine))
+        else:
+            painter.setPen(QPen(self.color_bbox, 2.0, Qt.DashLine))
+            
         painter.setBrush(Qt.NoBrush)
         painter.drawRect(self.get_bbox_rect())
 
@@ -309,7 +348,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.update()
 
     def _resize_asymmetric(self, node, local_mouse_pos):
-        """Mode A: Bounding box adjusts freely around a static origin local coordinate point."""
         hw, hh = self._bbox_w / 2.0, self._bbox_h / 2.0
         x1, x2 = self._bbox_cx - hw, self._bbox_cx + hw  
         y1, y2 = self._bbox_cy - hh, self._bbox_cy + hh  
@@ -329,7 +367,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self._bbox_cy = y1 + self._bbox_h / 2.0
 
     def _resize_symmetric(self, local_mouse_pos):
-        """Mode B: Pure uniform resize anchored strictly to the lock center point (0,0)."""
         self._bbox_w = max(20.0, abs(local_mouse_pos.x()) * 2.0)
         self._bbox_h = max(20.0, abs(local_mouse_pos.y()) * 2.0)
         self._bbox_cx = 0.0
@@ -386,7 +423,8 @@ class InteractiveCoordinateSystem(QGraphicsObject):
 
 
 class MultiCoordViewer(QGraphicsView):
-    state_changed = pyqtSignal()
+    state_changed = Signal()
+    selection_changed = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -395,12 +433,31 @@ class MultiCoordViewer(QGraphicsView):
         self.setRenderHint(QPainter.Antialiasing)
         self.setBackgroundBrush(QBrush(QColor(40, 40, 40)))
         
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
         self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
         
         self.coordinate_systems = [] 
         self.bg_pixmap_item = None
         self._global_axes_visible = False
+        self.selected_index = -1
+
+    def set_selected_index(self, index: int):
+        if self.selected_index == index and index != -1:
+            return
+            
+        self.selected_index = index
+        
+        for sys_item in self.coordinate_systems:
+            is_target = (sys_item.index == index)
+            if sys_item.is_selected != is_target:
+                sys_item.is_selected = is_target
+                sys_item.setSelected(is_target)
+                sys_item.update()
+                
+        self.selection_changed.emit(self.selected_index)
 
     def set_axes_visible(self, visible: bool):
         for sys_item in self.coordinate_systems:
@@ -416,6 +473,10 @@ class MultiCoordViewer(QGraphicsView):
         event.accept()
 
     def mousePressEvent(self, event: QMouseEvent):
+        item = self.itemAt(event.pos())
+        if item is None or item == self.bg_pixmap_item:
+            self.set_selected_index(-1)
+
         if event.button() == Qt.MiddleButton:
             self.setDragMode(QGraphicsView.ScrollHandDrag)
             fake_event = QMouseEvent(event.type(), event.position(), Qt.LeftButton, 
@@ -433,6 +494,12 @@ class MultiCoordViewer(QGraphicsView):
         else:
             super().mouseReleaseEvent(event)
 
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if self.bg_pixmap_item:
+            # Fixed: Keep original aspect ratio while maximizing image layout
+            self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
+
     def set_background_image(self, image: NDArray):
         pixmap = NDarray_to_QPixmap(image)
         if self.bg_pixmap_item in self.scene.items(): 
@@ -440,15 +507,27 @@ class MultiCoordViewer(QGraphicsView):
         self.bg_pixmap_item = self.scene.addPixmap(pixmap)
         self.bg_pixmap_item.setZValue(-100)
         self.setSceneRect(QRectF(pixmap.rect()))
+        
+        # Fixed: Keep original aspect ratio while maximizing image layout
+        self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
         self.state_changed.emit()
 
     def add_coordinate_system(self, scene_pos: QPointF):
+        if self.bg_pixmap_item:
+            s_rect = self.sceneRect()
+            scene_pos.setX(max(s_rect.left(), min(scene_pos.x(), s_rect.right())))
+            scene_pos.setY(max(s_rect.top(), min(scene_pos.y(), s_rect.bottom())))
+
         index = len(self.coordinate_systems)
         coord_sys = InteractiveCoordinateSystem(index, scene_pos, self)
         coord_sys.state_changed.connect(self.state_changed)
+        coord_sys.selected_signal.connect(self.set_selected_index)
         coord_sys.set_axes_visible(self._global_axes_visible)
+        
         self.scene.addItem(coord_sys)
         self.coordinate_systems.append(coord_sys)
+        
+        self.set_selected_index(index)
         self.state_changed.emit()
 
     def remove_coordinate_system(self, index: int):
@@ -456,11 +535,15 @@ class MultiCoordViewer(QGraphicsView):
             item = self.coordinate_systems.pop(index)
             self.scene.removeItem(item)
             self.reindex_systems()
+            
+            new_selection = len(self.coordinate_systems) - 1 if self.coordinate_systems else -1
+            self.set_selected_index(new_selection)
 
     def clear_coordinate_systems(self):
         for sys_item in self.coordinate_systems:
             self.scene.removeItem(sys_item)
         self.coordinate_systems.clear()
+        self.set_selected_index(-1)
         self.state_changed.emit()
 
     def reindex_systems(self):
@@ -484,19 +567,16 @@ class MultiCoordViewer(QGraphicsView):
             idx = int(str_idx)
             item_data = data[str_idx]
             
-            # Extract temporary scene position to instantiate the object
             x, y, _, _ = item_data["bbox_rect"]
             offset_x, offset_y = item_data["centroid"]
             initial_pos = QPointF(x + offset_x, y + offset_y)
             
-            # Create, configure, and add to tracking
             coord_sys = InteractiveCoordinateSystem(idx, initial_pos, self)
             coord_sys.set_axes_visible(self._global_axes_visible)
+            coord_sys.selected_signal.connect(self.set_selected_index)
             coord_sys.set_state(item_data)
             
             self.scene.addItem(coord_sys)
             self.coordinate_systems.append(coord_sys)
             
         self.scene.update()
-
-
