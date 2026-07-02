@@ -27,7 +27,8 @@ from qt_widgets import NDarray_to_QPixmap
 
 class BaseSystemHandle(QGraphicsObject):
     state_changed = Signal()
-
+    selected_signal = Signal()
+    
     def __init__(self, color: QColor, size: float, interaction_margin: float = 10.0, parent=None):
         super().__init__(parent)
         self.color = color
@@ -66,14 +67,10 @@ class BaseSystemHandle(QGraphicsObject):
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             self._drag_start_scene = event.scenePos()
+            self.selected_signal.emit()
+
             parent = self.parentItem()
             if parent:
-                # Direct top parent activation forward
-                if hasattr(parent, "setSelected"):
-                    parent.setSelected(True)
-                    if hasattr(parent, "selected_signal") and hasattr(parent, "index"):
-                        parent.selected_signal.emit(parent.index)
-                
                 self._drag_start_parent_pos = parent.pos()
                 self._drag_start_local_mouse = parent.mapFromScene(event.scenePos())
             event.accept()
@@ -212,8 +209,20 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.bbox_bl.state_changed.connect(self.state_changed.emit)
         self.bbox_br.state_changed.connect(self.state_changed.emit)
 
+        self.origin.selected_signal.connect(self._on_child_handle_selected)
+        self.axis_lateral.selected_signal.connect(self._on_child_handle_selected)
+        self.axis_heading.selected_signal.connect(self._on_child_handle_selected)
+        self.bbox_tl.selected_signal.connect(self._on_child_handle_selected)
+        self.bbox_tr.selected_signal.connect(self._on_child_handle_selected)
+        self.bbox_bl.selected_signal.connect(self._on_child_handle_selected)
+        self.bbox_br.selected_signal.connect(self._on_child_handle_selected)
+
         self.update_axis_positions()
         self.update_bbox_positions()
+
+    def _on_child_handle_selected(self):
+        self.setSelected(True)
+        self.selected_signal.emit(self.index)
 
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemSelectedChange and value == True:
