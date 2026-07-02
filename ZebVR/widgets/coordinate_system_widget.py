@@ -106,9 +106,11 @@ class OriginHandle(BaseSystemHandle):
 
     def mouseMoveEvent(self, event):
         parent = self.parentItem()
-        if parent and event.buttons() & Qt.LeftButton:
+        scene = self.scene()
+
+        if parent and scene and (event.buttons() & Qt.LeftButton):
             delta = event.scenePos() - self._drag_start_scene
-            parent.setPos(self._drag_start_parent_pos + delta)
+            parent.handle_origin_move(delta, self._drag_start_parent_pos)
             event.accept()
 
 
@@ -334,6 +336,33 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         painter.setPen(QColor(255, 255, 255, 240))
         painter.drawText(rect_offset, align_flags, label)
 
+    def handle_origin_move(self, delta: QPointF, drag_start_parent_pos: QPointF):
+        scene = self.scene()
+        if not scene:
+            return
+            
+        self.prepareGeometryChange()
+        
+        target_scene_pos = drag_start_parent_pos + delta
+        scene_rect = scene.sceneRect()
+        
+        hw, hh = self._bbox_w / 2.0, self._bbox_h / 2.0
+        local_left = self._bbox_cx - hw
+        local_right = self._bbox_cx + hw
+        local_top = self._bbox_cy - hh
+        local_bottom = self._bbox_cy + hh
+        
+        min_x = scene_rect.left() - local_left
+        max_x = scene_rect.right() - local_right
+        min_y = scene_rect.top() - local_top
+        max_y = scene_rect.bottom() - local_bottom
+        
+        clamped_x = max(min_x, min(target_scene_pos.x(), max_x))
+        clamped_y = max(min_y, min(target_scene_pos.y(), max_y))
+        
+        self.setPos(QPointF(clamped_x, clamped_y))
+        self.update()
+
     def handle_axis_drag(self, node, local_mouse_pos):
         self.prepareGeometryChange()
         dx, dy = local_mouse_pos.x(), local_mouse_pos.y()
@@ -356,27 +385,57 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.update()
 
     def _resize_asymmetric(self, node, local_mouse_pos):
+        scene = self.scene()
+        if not scene:
+            return
+
         hw, hh = self._bbox_w / 2.0, self._bbox_h / 2.0
         x1, x2 = self._bbox_cx - hw, self._bbox_cx + hw  
         y1, y2 = self._bbox_cy - hh, self._bbox_cy + hh  
 
         if "br" in node.corner_id:
-            x2, y2 = max(0.0, local_mouse_pos.x()), max(0.0, local_mouse_pos.y())
+            x2, y2 = local_mouse_pos.x(), local_mouse_pos.y()
         elif "tl" in node.corner_id:
-            x1, y1 = min(0.0, local_mouse_pos.x()), min(0.0, local_mouse_pos.y())
+            x1, y1 = local_mouse_pos.x(), local_mouse_pos.y()
         elif "tr" in node.corner_id:
-            x2, y1 = max(0.0, local_mouse_pos.x()), min(0.0, local_mouse_pos.y())
+            x2, y1 = local_mouse_pos.x(), local_mouse_pos.y()
         elif "bl" in node.corner_id:
-            x1, y2 = min(0.0, local_mouse_pos.x()), max(0.0, local_mouse_pos.y())
+            x1, y2 = local_mouse_pos.x(), local_mouse_pos.y()
 
-        self._bbox_w = max(20.0, x2 - x1)
-        self._bbox_h = max(20.0, y2 - y1)
-        self._bbox_cx = x1 + self._bbox_w / 2.0
-        self._bbox_cy = y1 + self._bbox_h / 2.0
+        tentative_tl = self.mapToScene(QPointF(x1, y1))
+        tentative_br = self.mapToScene(QPointF(x2, y2))
+        
+        scene_rect = scene.sceneRect()
+
+        clamped_tl_x = max(scene_rect.left(), min(tentative_tl.x(), scene_rect.right()))
+        clamped_tl_y = max(scene_rect.top(), min(tentative_tl.y(), scene_rect.bottom()))
+        clamped_br_x = max(scene_rect.left(), min(tentative_br.x(), scene_rect.right()))
+        clamped_br_y = max(scene_rect.top(), min(tentative_br.y(), scene_rect.bottom()))
+
+        local_tl = self.mapFromScene(QPointF(clamped_tl_x, clamped_tl_y))
+        local_br = self.mapFromScene(QPointF(clamped_br_x, clamped_br_y))
+
+        self._bbox_w = max(20.0, local_br.x() - local_tl.x())
+        self._bbox_h = max(20.0, local_br.y() - local_tl.y())
+        self._bbox_cx = local_tl.x() + self._bbox_w / 2.0
+        self._bbox_cy = local_tl.y() + self._bbox_h / 2.0
 
     def _resize_symmetric(self, local_mouse_pos):
-        self._bbox_w = max(20.0, abs(local_mouse_pos.x()) * 2.0)
-        self._bbox_h = max(20.0, abs(local_mouse_pos.y()) * 2.0)
+        scene = self.scene()
+        if not scene:
+            return
+
+        scene_rect = scene.sceneRect()
+        parent_scene_pos = self.scenePos()
+
+        max_hw = min(parent_scene_pos.x() - scene_rect.left(), scene_rect.right() - parent_scene_pos.x())
+        max_hh = min(parent_scene_pos.y() - scene_rect.top(), scene_rect.bottom() - parent_scene_pos.y())
+
+        target_hw = min(abs(local_mouse_pos.x()), max_hw)
+        target_hh = min(abs(local_mouse_pos.y()), max_hh)
+
+        self._bbox_w = max(20.0, target_hw * 2.0)
+        self._bbox_h = max(20.0, target_hh * 2.0)
         self._bbox_cx = 0.0
         self._bbox_cy = 0.0
 
@@ -510,7 +569,9 @@ class MultiCoordViewer(QGraphicsView):
             self.scene.removeItem(self.bg_pixmap_item)
         self.bg_pixmap_item = self.scene.addPixmap(pixmap)
         self.bg_pixmap_item.setZValue(-100)
+        image_rect = QRectF(pixmap.rect())
         self.setSceneRect(QRectF(pixmap.rect()))
+        self.scene.setSceneRect(image_rect)
         
         self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
         self.state_changed.emit()
