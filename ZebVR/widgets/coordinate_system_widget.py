@@ -380,7 +380,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
             self._resize_asymmetric(node, local_mouse_pos)
         else:
             self._resize_symmetric(local_mouse_pos)
-
+    
         self.update_bbox_positions()
         self.update()
 
@@ -389,29 +389,44 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         if not scene:
             return
 
+        # 1. Enforce that the corner cannot cross over the origin (0, 0)
+        # This restores your core quadrant constraint.
+        mx, my = local_mouse_pos.x(), local_mouse_pos.y()
+        if "br" in node.corner_id:
+            mx, my = max(0.0, mx), max(0.0, my)
+        elif "tl" in node.corner_id:
+            mx, my = min(0.0, mx), min(0.0, my)
+        elif "tr" in node.corner_id:
+            mx, my = max(0.0, mx), min(0.0, my)
+        elif "bl" in node.corner_id:
+            mx, my = min(0.0, mx), max(0.0, my)
+
+        # 2. Extract current local boundaries
         hw, hh = self._bbox_w / 2.0, self._bbox_h / 2.0
         x1, x2 = self._bbox_cx - hw, self._bbox_cx + hw  
         y1, y2 = self._bbox_cy - hh, self._bbox_cy + hh  
 
+        # 3. Update the target corner using our origin-constrained coordinates
         if "br" in node.corner_id:
-            x2, y2 = local_mouse_pos.x(), local_mouse_pos.y()
+            x2, y2 = mx, my
         elif "tl" in node.corner_id:
-            x1, y1 = local_mouse_pos.x(), local_mouse_pos.y()
+            x1, y1 = mx, my
         elif "tr" in node.corner_id:
-            x2, y1 = local_mouse_pos.x(), local_mouse_pos.y()
+            x2, y1 = mx, my
         elif "bl" in node.corner_id:
-            x1, y2 = local_mouse_pos.x(), local_mouse_pos.y()
+            x1, y2 = mx, my
 
+        # 4. Enforce scene rect boundaries (ensure box doesn't leave the image)
         tentative_tl = self.mapToScene(QPointF(x1, y1))
         tentative_br = self.mapToScene(QPointF(x2, y2))
         
         scene_rect = scene.sceneRect()
-
         clamped_tl_x = max(scene_rect.left(), min(tentative_tl.x(), scene_rect.right()))
         clamped_tl_y = max(scene_rect.top(), min(tentative_tl.y(), scene_rect.bottom()))
         clamped_br_x = max(scene_rect.left(), min(tentative_br.x(), scene_rect.right()))
         clamped_br_y = max(scene_rect.top(), min(tentative_br.y(), scene_rect.bottom()))
 
+        # 5. Convert back to local variables to safely finalize box geometry
         local_tl = self.mapFromScene(QPointF(clamped_tl_x, clamped_tl_y))
         local_br = self.mapFromScene(QPointF(clamped_br_x, clamped_br_y))
 
