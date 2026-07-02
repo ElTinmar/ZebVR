@@ -41,7 +41,6 @@ class BaseSystemHandle(QGraphicsObject):
         
         self._drag_start_scene = QPointF()
         self._drag_start_parent_pos = QPointF()
-        self._drag_start_local_mouse = QPointF()
 
     def boundingRect(self):
         s = self.size + self.interaction_margin
@@ -72,7 +71,6 @@ class BaseSystemHandle(QGraphicsObject):
             parent = self.parentItem()
             if parent:
                 self._drag_start_parent_pos = parent.pos()
-                self._drag_start_local_mouse = parent.mapFromScene(event.scenePos())
             event.accept()
         else:
             super().mousePressEvent(event)
