@@ -469,6 +469,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         offset_y = -self.bbox_tl.y()
 
         return {
+            "axes_visible": self.axes_visible,
             "bbox_rect": [x, y, w, h],
             "centroid": [offset_x, offset_y],
             "axes": [
@@ -496,6 +497,8 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         lateral_x_norm = axes[0][1]
         lateral_y_norm = axes[1][1]
         self._current_angle = math.atan2(lateral_y_norm, lateral_x_norm)
+
+        self.set_axes_visible(data["axes_visible"])
         
         self.update_axis_positions()
         self.update_bbox_positions()
