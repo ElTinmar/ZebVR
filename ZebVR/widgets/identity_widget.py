@@ -24,7 +24,7 @@ from qt_widgets import (
 
 from .coordinate_system_widget import MultiCoordViewer
 
-class IdentityWidget(QWidget):
+class OldIdentityWidget(QWidget):
 
     state_changed =  Signal()
     PREVIEW_HEIGHT: int = 512
@@ -370,7 +370,7 @@ class IdentityWidget(QWidget):
         self.axes = state.get('axes', np.array([[1.0, 0.0], [0.0, 1.0]]))
         self.set_axes_visible(state.get('open_loop_visible', False))
 
-class NewIdentityWidget(QWidget):
+class IdentityWidget(QWidget):
 
     # TODO merge this with background
 

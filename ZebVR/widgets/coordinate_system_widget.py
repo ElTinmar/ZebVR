@@ -25,6 +25,40 @@ from qtpy.QtCore import (
 
 from qt_widgets import NDarray_to_QPixmap
 
+class ScaleInvariantLabel(QGraphicsObject):
+    def __init__(self, text: str, parent=None):
+        super().__init__(parent)
+        self.text = text
+        self.setFlags(QGraphicsItem.ItemIgnoresTransformations)
+        self.font = QFont("Arial", 14, QFont.Bold)
+
+    def boundingRect(self):
+        # Allow room for the text offset boundaries
+        return QRectF(-50, -50, 100, 100)
+
+    def shape(self):
+        path = QPainterPath()
+        path.addRect(self.boundingRect())
+        return path
+
+    def paint(self, painter, option, widget):
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setFont(self.font)
+        
+
+        offset_x = 15
+        offset_y = 20
+        
+        # Draw shadow/outline
+        painter.setPen(QColor(0, 0, 0, 255))
+        painter.drawText(offset_x + 1, offset_y + 1, self.text)
+        painter.drawText(offset_x - 1, offset_y - 1, self.text)
+        
+        # Draw clean crisp white font
+        painter.setPen(QColor(255, 255, 255, 240))
+        painter.drawText(offset_x, offset_y, self.text)
+
+
 class BaseSystemHandle(QGraphicsObject):
     state_changed = Signal()
     selected_signal = Signal()
@@ -37,7 +71,7 @@ class BaseSystemHandle(QGraphicsObject):
         self._hovered = False
         
         self.setAcceptHoverEvents(True)
-        self.setFlags(QGraphicsItem.ItemSendsGeometryChanges)
+        self.setFlags(QGraphicsItem.ItemSendsGeometryChanges | QGraphicsItem.ItemIgnoresTransformations)
         
         self._drag_start_scene = QPointF()
         self._drag_start_parent_pos = QPointF()
@@ -98,7 +132,10 @@ class OriginHandle(BaseSystemHandle):
         painter.drawEllipse(QPointF(0, 0), r, r)
         
         alpha = 140 if self._hovered else 90
-        painter.setPen(QPen(QColor(0, 0, 0, alpha), 1.2))
+        # Cosmetic pen for uniform crosshairs
+        crosshair_pen = QPen(QColor(0, 0, 0, alpha), 1.2)
+        crosshair_pen.setCosmetic(True)
+        painter.setPen(crosshair_pen)
         painter.drawLine(QPointF(-r * 1.5, 0), QPointF(r * 1.5, 0))
         painter.drawLine(QPointF(0, -r * 1.5), QPointF(0, r * 1.5))
 
@@ -203,6 +240,9 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.bbox_bl = BBoxCornerHandle(self.color_bbox, "bl", parent=self)
         self.bbox_br = BBoxCornerHandle(self.color_bbox, "br", parent=self)
 
+        # Scale invariant child label proxy
+        self.label_item = ScaleInvariantLabel(str(self.index), parent=self)
+
         self.origin.state_changed.connect(self.state_changed.emit)
         self.axis_lateral.state_changed.connect(self.state_changed.emit)
         self.axis_heading.state_changed.connect(self.state_changed.emit)
@@ -305,6 +345,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.bbox_tr.setPos(self._bbox_cx + hw, self._bbox_cy - hh)
         self.bbox_bl.setPos(self._bbox_cx - hw, self._bbox_cy + hh)
         self.bbox_br.setPos(self._bbox_cx + hw, self._bbox_cy + hh)
+        self.label_item.setPos(self.bbox_tl.pos())
 
     def get_bbox_rect(self):
         return QRectF(self._bbox_cx - self._bbox_w / 2.0, 
@@ -350,36 +391,32 @@ class InteractiveCoordinateSystem(QGraphicsObject):
     def paint(self, painter, option, widget):
         painter.setRenderHint(QPainter.Antialiasing)
         
+        # Bbox Pens configured as Cosmetic
         if self.isSelected():
-            painter.setPen(QPen(self.color_bbox_selected, 2.5, Qt.DashLine))
+            bbox_pen = QPen(self.color_bbox_selected, 2.5, Qt.DashLine)
+            bbox_pen.setCosmetic(True)
+            painter.setPen(bbox_pen)
             if not self.axes_visible:
                 painter.setBrush(QBrush(QColor(self.color_bbox_selected.red(), self.color_bbox_selected.green(), self.color_bbox_selected.blue(), 15)))
         else:
-            painter.setPen(QPen(self.color_bbox, 2.0, Qt.DashLine))
+            bbox_pen = QPen(self.color_bbox, 2.0, Qt.DashLine)
+            bbox_pen.setCosmetic(True)
+            painter.setPen(bbox_pen)
             painter.setBrush(Qt.NoBrush)
             
         painter.drawRect(self.get_bbox_rect())
 
+        # Vector Axis Pens configured as Cosmetic
         if self.axes_visible:
-            painter.setPen(QPen(QColor(self.color_lateral.red(), self.color_lateral.green(), self.color_lateral.blue(), 230), 3.0))
+            lat_pen = QPen(QColor(self.color_lateral.red(), self.color_lateral.green(), self.color_lateral.blue(), 230), 3.0)
+            lat_pen.setCosmetic(True)
+            painter.setPen(lat_pen)
             painter.drawLine(self.origin.pos(), self.axis_lateral.pos())
             
-            painter.setPen(QPen(QColor(self.color_heading.red(), self.color_heading.green(), self.color_heading.blue(), 230), 3.0))
+            head_pen = QPen(QColor(self.color_heading.red(), self.color_heading.green(), self.color_heading.blue(), 230), 3.0)
+            head_pen.setCosmetic(True)
+            painter.setPen(head_pen)
             painter.drawLine(self.origin.pos(), self.axis_heading.pos())
-
-        label = str(self.index)
-        font = QFont("Arial", 12, QFont.Bold)
-        painter.setFont(font)
-        
-        rect_offset = QRectF(-24, 10, 20, 20) if self.axes_visible else QRectF(self._bbox_cx - (self._bbox_w/2.0) + 5, self._bbox_cy - (self._bbox_h/2.0) + 5, 20, 20)
-        align_flags = (Qt.AlignRight | Qt.AlignTop) if self.axes_visible else (Qt.AlignLeft | Qt.AlignTop)
-
-        painter.setPen(QColor(0, 0, 0, 255))
-        painter.drawText(rect_offset.translated(1, 1), align_flags, label)
-        painter.drawText(rect_offset.translated(-1, -1), align_flags, label)
-
-        painter.setPen(QColor(255, 255, 255, 240))
-        painter.drawText(rect_offset, align_flags, label)
 
     def handle_origin_move(self, delta: QPointF, drag_start_parent_pos: QPointF):
         scene = self.scene()
@@ -481,27 +518,37 @@ class InteractiveCoordinateSystem(QGraphicsObject):
 
     def get_state(self) -> dict:
         bbox_tl_scene_pos = self.mapToScene(self.bbox_tl.pos())
+
+        # Clean integer transformations upon serialization
+        x = int(round(bbox_tl_scene_pos.x()))
+        y = int(round(bbox_tl_scene_pos.y()))
+        w = int(round(self._bbox_w))
+        h = int(round(self._bbox_h))
+        
+        centroid_x = int(round(-self.bbox_tl.x()))
+        centroid_y = int(round(-self.bbox_tl.y()))
+        
         return {
             "axes_visible": self.axes_visible,
-            "bbox_rect": [bbox_tl_scene_pos.x(), bbox_tl_scene_pos.y(), self._bbox_w, self._bbox_h],
-            "centroid": [-self.bbox_tl.x(), -self.bbox_tl.y()],
+            "bbox_rect": [x, y, w, h],
+            "centroid": [centroid_x, centroid_y],
             "axes": [
                 [(self.axis_heading.x() - self.origin.x()) / self._len_heading, (self.axis_lateral.x() - self.origin.x()) / self._len_lateral],
                 [(self.axis_heading.y() - self.origin.y()) / self._len_heading, (self.axis_lateral.y() - self.origin.y()) / self._len_lateral]
             ]
         }
-    
+
     def set_state(self, data: dict):
         self.prepareGeometryChange()
         x, y, w, h = data["bbox_rect"]
         offset_x, offset_y = data["centroid"]
         
-        self._bbox_w = w
-        self._bbox_h = h
-        self._bbox_cx = (w / 2.0) - offset_x
-        self._bbox_cy = (h / 2.0) - offset_y
+        self._bbox_w = float(w)
+        self._bbox_h = float(h)
+        self._bbox_cx = (self._bbox_w / 2.0) - float(offset_x)
+        self._bbox_cy = (self._bbox_h / 2.0) - float(offset_y)
         
-        self.setPos(QPointF(x + offset_x, y + offset_y))
+        self.setPos(QPointF(float(x + offset_x), float(y + offset_y)))
         
         axes = data["axes"]
         self._current_angle = math.atan2(axes[1][1], axes[0][1])
@@ -540,7 +587,13 @@ class MultiCoordViewer(QGraphicsView):
             
         self.selected_index = index
         for sys_item in self.coordinate_systems:
-            sys_item.setSelected(sys_item.index == index)
+            is_selected = (sys_item.index == index)
+            sys_item.setSelected(is_selected)
+            
+            if is_selected:
+                sys_item.setZValue(1.0)  
+            else:
+                sys_item.setZValue(0.0) 
                 
         self.selection_changed.emit(self.selected_index)
 
@@ -634,6 +687,7 @@ class MultiCoordViewer(QGraphicsView):
     def reindex_systems(self):
         for idx, sys_item in enumerate(self.coordinate_systems):
             sys_item.index = idx
+            sys_item.label_item.text = str(idx) # Sync proxy label text string
             sys_item.update() 
         self.scene.update()
         self.state_changed.emit()

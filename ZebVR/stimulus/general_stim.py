@@ -258,13 +258,11 @@ class GeneralStim(VisualStim):
 
     def __init__(
             self,  
-            ROI_identities: List[Tuple[int,int,int,int]],
+            identities: Dict,
             window_size: Tuple[int, int], 
             window_position: Tuple[int, int], 
             camera_resolution: Tuple[int, int],
             window_decoration: bool = True,
-            init_offset: Tuple[float, float] = (0.0, 0.0),
-            init_heading: NDArray[np.float32] = np.array([[1.0, 0.0], [0.0, 1.0]]),
             transformation_matrix: AffineTransform2D = AffineTransform2D.identity(),
             pixel_scaling: Tuple[float, float] = (1.0,1.0),
             pix_per_mm: float = 30,
@@ -275,9 +273,9 @@ class GeneralStim(VisualStim):
             rollover_time_sec: float = 3600 # TODO add that to a gui somewhere
         ) -> None:
 
-        self.ROI_identities = ROI_identities
+        self.identities = identities
         self.num_tail_points_interp = num_tail_points_interp
-        self.n_animals = len(ROI_identities)
+        self.n_animals = len(identities)
         self.rollover_time_sec = rollover_time_sec
         self._last_image_path: str = ''
 
@@ -800,14 +798,18 @@ class GeneralStim(VisualStim):
             fullscreen = fullscreen
         )
 
-        self.shared_fish_state = [SharedFishState(num_tail_points_interp) for _ in  ROI_identities]
+        self.shared_fish_state = [SharedFishState(num_tail_points_interp) for _ in  range(self.n_animals)]
+        
         for fish_id, fish_state in enumerate(self.shared_fish_state):
-            centroid = np.array(init_offset) + np.array(ROI_identities[fish_id][:2]) + np.array(ROI_identities[fish_id][2:])//2
-            fish_state.fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,0]).squeeze()
-            fish_state.fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,1]).squeeze()
+            centroid = np.array(identities[fish_id]["centroid"]) + np.array(identities[fish_id]["bbox_rect"][:2])
+            axes = np.array(identities[fish_id]['axes'])
+
+            fish_state.fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(axes[:,0]).squeeze()
+            fish_state.fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(axes[:,1]).squeeze()
             fish_state.fish_centroid[:] = self.transformation_matrix.transform_points(centroid).squeeze()
-            fish_state.virtual_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,0]).squeeze()
-            fish_state.virtual_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(init_heading[:,1]).squeeze()
+
+            fish_state.virtual_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(axes[:,0]).squeeze()
+            fish_state.virtual_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(axes[:,1]).squeeze()
             fish_state.virtual_centroid[:] = self.transformation_matrix.transform_points(centroid).squeeze()
 
         self.shared_stim_parameters = SharedStimParameters()
@@ -825,7 +827,7 @@ class GeneralStim(VisualStim):
         # fish state 
         # TODO send tail data to shader?        
 
-        self.program['u_bounding_box'] = self.ROI_identities
+        self.program['u_bounding_box'] = [v["bbox_rect"] for _, v in self.identities.items()]
         
         for i in range(self.n_animals):
             self.program[f'u_fish_centroid[{i}]'] = self.shared_fish_state[i].fish_centroid[:] 

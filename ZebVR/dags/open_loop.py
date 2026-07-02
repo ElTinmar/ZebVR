@@ -187,12 +187,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     # visual stim ----------------------------------------------
     stim = GeneralStim(
-        ROI_identities = settings['identity']['ROIs'],
-        init_offset = (
-            settings['identity']['open_loop_x_offset'],
-            settings['identity']['open_loop_y_offset']
-        ),
-        init_heading = np.array(settings['identity']['open_loop_axes']), 
+        identities = settings['identity']['identities'],
         window_size = settings['projector']['resolution'],
         window_position = settings['projector']['offset'],
         window_decoration = False,

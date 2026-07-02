@@ -116,7 +116,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     )
 
     cropper = CropWorker(
-        ROI_identities = settings['identity']['ROIs'],
+        identities = settings['identity']['identities'],
         name = f'crop', 
         logger = worker_logger, 
         logger_queues = queue_logger,

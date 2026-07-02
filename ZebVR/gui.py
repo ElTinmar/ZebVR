@@ -44,7 +44,6 @@ from .widgets import (
     CalibrationWidget,
     BackgroundWidget,
     IdentityWidget,
-    NewIdentityWidget,
     SequencerWidget,
     SettingsWidget,
     TemperatureWidget,
@@ -149,7 +148,6 @@ class MainGui(QMainWindow):
         self.background_widget.background_signal.connect(self.start_background)
 
         self.identity_widget = IdentityWidget()
-        #self.identity_widget = NewIdentityWidget()
         self.identity_widget.state_changed.connect(self.update_identity_settings)
 
         self.sequencer_widget = SequencerWidget()
@@ -513,6 +511,12 @@ class MainGui(QMainWindow):
         self.settings['main']['video_recording'] = self.video_recording_button.isChecked()
         self.settings['main']['tracking'] = self.tracking_button.isChecked()
         self.settings['main']['head_embedded'] = self.head_embedded_button.isChecked()
+        
+        if self.settings['main']['close_loop']:
+            if self.settings['main']['head_embedded']:
+                self.identity_widget.set_axes_visible(True)
+            else:
+                self.identity_widget.set_axes_visible(False)
 
     def refresh_settings(self):
         self.update_camera_settings()
