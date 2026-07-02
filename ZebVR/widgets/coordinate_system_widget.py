@@ -633,24 +633,28 @@ class MultiCoordViewer(QGraphicsView):
     def get_state(self) -> dict:
         data = {}
         data['n_animals'] = len(self.coordinate_systems)
+        data['identities'] = {}
         for idx, sys_item in enumerate(self.coordinate_systems):
-            data[idx] = sys_item.get_state()
+            data['identities'][idx] = sys_item.get_state()
         return data
     
     def set_state(self, data: dict):
         self.clear_coordinate_systems()
-        
-        for str_idx in sorted(data.keys(), key=int):
+
+        identities = data.get("identities", {})
+
+        for str_idx in sorted(identities.keys(), key=int):
             idx = int(str_idx)
-            item_data = data[str_idx]
+            item_data = identities[str_idx]
             
             x, y, _, _ = item_data["bbox_rect"]
             offset_x, offset_y = item_data["centroid"]
             initial_pos = QPointF(x + offset_x, y + offset_y)
             
             coord_sys = InteractiveCoordinateSystem(idx, initial_pos, self)
-            coord_sys.set_axes_visible(self._global_axes_visible)
+            coord_sys.state_changed.connect(self.state_changed)
             coord_sys.selected_signal.connect(self.set_selected_index)
+            coord_sys.set_axes_visible(self._global_axes_visible)
             coord_sys.set_state(item_data)
             
             self.scene.addItem(coord_sys)

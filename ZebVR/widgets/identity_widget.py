@@ -427,7 +427,7 @@ class NewIdentityWidget(QWidget):
         return self.viewer.get_state()
     
     def set_state(self, state: Dict) -> None:
-        self.viewer.set_data(state)
+        self.viewer.set_state(state)
         
 
 if __name__ == "__main__":
