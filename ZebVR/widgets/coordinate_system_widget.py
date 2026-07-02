@@ -169,7 +169,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.index: int = index  
         self.parent_widget = parent_widget
         self.axes_visible: bool = True  
-        self.is_selected: bool = False
         
         self.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemSendsGeometryChanges)
         self.setPos(initial_pos)
@@ -306,7 +305,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
     def paint(self, painter, option, widget):
         painter.setRenderHint(QPainter.Antialiasing)
         
-        if self.is_selected:
+        if self.isSelected():
             painter.setPen(QPen(self.color_bbox_selected, 2.5, Qt.DashLine))
         else:
             painter.setPen(QPen(self.color_bbox, 2.0, Qt.DashLine))
@@ -461,10 +460,7 @@ class MultiCoordViewer(QGraphicsView):
         
         for sys_item in self.coordinate_systems:
             is_target = (sys_item.index == index)
-            if sys_item.is_selected != is_target:
-                sys_item.is_selected = is_target
-                sys_item.setSelected(is_target)
-                sys_item.update()
+            sys_item.setSelected(is_target)
                 
         self.selection_changed.emit(self.selected_index)
 
