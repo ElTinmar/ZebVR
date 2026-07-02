@@ -5,7 +5,7 @@ from qtpy.QtWidgets import (
     QHBoxLayout,
     QPushButton
 )
-from qtpy.QtCore import Signal, QPointF
+from qtpy.QtCore import Signal, QPointF, QTimer
 from typing import Dict
 from numpy.typing import NDArray
 import numpy as np
@@ -20,7 +20,8 @@ class IdentityWidget(QWidget):
 
     state_changed = Signal()
     DEFAULT_FILE: Path = Path('ZebVR/default/background.npy')
-
+    REFRESH_RATE = 60
+    
     def __init__(self, pix_per_mm: float = 30, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pix_per_mm = pix_per_mm
@@ -53,11 +54,16 @@ class IdentityWidget(QWidget):
         else:
             self.image = np.zeros((512, 512), dtype=np.uint8)
         self.set_image(self.image)
+        
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_background_image)
+        self.timer.start(1000//self.REFRESH_RATE) 
+
+    def update_background_image(self):
+        self.viewer.set_background_image(self.image)
 
     def set_image(self, image: NDArray) -> None:
         self.image = image
-        self.viewer.set_background_image(self.image)
-        self.state_changed.emit()
 
     def reset(self) -> None:
         self.viewer.clear_coordinate_systems()

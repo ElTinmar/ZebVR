@@ -1,8 +1,7 @@
 from pathlib import Path
 from functools import partial
-from typing import Dict, Callable, Union
+from typing import Dict, Callable, Union, Protocol
 from enum import IntEnum
-import time
 
 from qtpy.QtWidgets import (
     QWidget, 
@@ -497,6 +496,10 @@ class CameraWidget(QWidget):
         self.stop_signal.emit()
         self.stop()
 
+class DisplayWidget(Protocol):
+    def set_image(self, image: np.ndarray):
+        ...
+
 class CameraHandler(QObject):
 
     validated_state =  Signal(dict)
@@ -509,6 +512,8 @@ class CameraHandler(QObject):
         
         self.view = view
 
+        self.display_widgets: list[DisplayWidget] = []
+
         self.camera = None
         self.camera_constructor = None
         self.last_camera_state = None
@@ -520,6 +525,9 @@ class CameraHandler(QObject):
 
         self.timer = None
         self.debounce_timer = None
+
+    def register_display_widget(self, widget: DisplayWidget):
+        self.display_widgets.append(widget)
 
     def start_handler(self):
         self.timer = QTimer()
@@ -749,7 +757,8 @@ class CameraHandler(QObject):
         try:                
             frame = self.camera.get_frame()
             if frame is not None:
-                self.view.set_image(frame['image'])
+                for widget in self.display_widgets:
+                    widget.set_image(frame['image'])
         except Exception as e:
             print(f'CameraHandler.get_frame caught exception: {e}')               
 
@@ -767,6 +776,7 @@ class CameraController(QObject):
 
         self.camera_thread = QThread()
         self.camera_handler = CameraHandler(self.view)
+        self.camera_handler.register_display_widget(self.view)
         self.camera_handler.moveToThread(self.camera_thread)
 
         # wire up signals and slots
@@ -840,6 +850,9 @@ class CameraController(QObject):
 
     def set_preview(self, enable: bool):
         self.preview.emit(enable)
+
+    def get_camera_handler(self) -> CameraHandler:
+        return self.camera_handler
 
     def get_state(self):
         state = self.view.get_state()

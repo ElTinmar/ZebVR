@@ -120,6 +120,7 @@ class MainGui(QMainWindow):
 
         self.camera_widget = CameraWidget()
         self.camera_controller = CameraController(self.camera_widget)
+        camera_handler = self.camera_controller.get_camera_handler()
         self.camera_controller.state_changed.connect(self.update_camera_settings)
 
         self.projector_widget = ProjectorWidget()
@@ -149,6 +150,7 @@ class MainGui(QMainWindow):
 
         self.identity_widget = IdentityWidget()
         self.identity_widget.state_changed.connect(self.update_identity_settings)
+        camera_handler.register_display_widget(self.identity_widget)
 
         self.sequencer_widget = SequencerWidget()
         self.sequencer_widget.state_changed.connect(self.update_sequencer_settings)
