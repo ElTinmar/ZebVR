@@ -44,9 +44,8 @@ class ScaleInvariantLabel(QGraphicsObject):
     def paint(self, painter, option, widget):
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setFont(self.font)
-        
-
-        offset_x = 15
+    
+        offset_x = 10
         offset_y = 20
         
         # Draw shadow/outline
