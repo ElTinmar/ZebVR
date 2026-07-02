@@ -118,7 +118,7 @@ def find_circular_arenas(
 
     ROIs = np.array(bounding_boxes, dtype=np.uint16)
 
-    row = np.round((circles_px[:, 1] - circles_px[:, 1].min())/ well_distance_px).astype(int)
+    row = np.round((circles_px[:, 1] - circles_px[:, 1].min())/well_distance_px).astype(int)
     sort_idx = np.lexsort((circles_px[:, 0], row))
     circles = circles_px[sort_idx]
     ROIs = ROIs[sort_idx]
