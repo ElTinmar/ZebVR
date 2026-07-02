@@ -118,7 +118,7 @@ def find_circular_arenas(
 
     ROIs = np.array(bounding_boxes, dtype=np.uint16)
 
-    # Sort circles for consistent ordering (top-to-bottom, then left-to-right)
+    # Sort circles for consistent ordering 
     sort_idx = np.lexsort((circles_px[:, 0], circles_px[:, 1]))
     circles = circles_px[sort_idx]
     ROIs = ROIs[sort_idx]
@@ -139,7 +139,7 @@ class FindCircularArenasDialog(QDialog):
             distance_mm: float = 22.0,
             gradient_thresh: float = 50,
             circle_thresh: float = 30,
-            box_tolerance_mm: float = 1.0,
+            box_tolerance_mm: float = 0.5,
             blur_kernel_large_mm: float = 2.5,
             blur_kernel_small_mm: float = 0.3,
             parent=None
