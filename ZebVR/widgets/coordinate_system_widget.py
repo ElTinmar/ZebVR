@@ -186,7 +186,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.color_lateral = QColor(230, 159, 0)        
         self.color_heading = QColor(86, 180, 233)       
         self.color_bbox = QColor(255, 255, 255, 160)
-        self.color_bbox_selected = QColor(0, 255, 127, 220)  # Selection highlight color (Spring Green)
+        self.color_bbox_selected = QColor(0, 255, 127, 220)  
 
         # Child handles initialization
         self.origin = OriginHandle(self.color_origin, parent=self)
@@ -502,7 +502,6 @@ class MultiCoordViewer(QGraphicsView):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         if self.bg_pixmap_item:
-            # Fixed: Keep original aspect ratio while maximizing image layout
             self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
 
     def set_background_image(self, image: NDArray):
@@ -513,7 +512,6 @@ class MultiCoordViewer(QGraphicsView):
         self.bg_pixmap_item.setZValue(-100)
         self.setSceneRect(QRectF(pixmap.rect()))
         
-        # Fixed: Keep original aspect ratio while maximizing image layout
         self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
         self.state_changed.emit()
 
