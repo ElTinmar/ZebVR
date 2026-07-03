@@ -224,9 +224,9 @@ class InteractiveCoordinateSystem(QGraphicsObject):
 
         self.color_origin = QColor(255, 255, 255, 180) 
         self.color_lateral = QColor(230, 159, 0)        
-        self.color_heading = QColor(86, 180, 233)       
+        self.color_heading = QColor(204, 121, 167)       
         self.color_bbox = QColor(255, 255, 255, 160)
-        self.color_bbox_selected = QColor(0, 255, 127, 220)  
+        self.color_bbox_selected = QColor(0, 122, 255, 220)  
 
         self.origin = OriginHandle(self.color_origin, parent=self)
         self.origin.setPos(0, 0)
