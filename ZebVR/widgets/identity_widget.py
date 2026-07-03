@@ -27,12 +27,42 @@ class IdentityWidget(QWidget):
         super().__init__(*args, **kwargs)
         self.pix_per_mm = pix_per_mm
         self.axes_visible = True
+        self.showing_background = False
         
         # Internal list keeping track of snapped NumPy images
         self.snapped_images: List[NDArray] = []
+        self.background_image = np.zeros((512, 512, 3), dtype=np.uint8)
         
         self.viewer = MultiCoordViewer(self)
         self.viewer.state_changed.connect(self.state_changed)
+
+        # Overlay Button in the upper left corner of the image viewer (Subtle footprint)
+        self.layer_btn = QPushButton("BG", self.viewer)
+        self.layer_btn.setCheckable(True)
+        self.layer_btn.setFixedSize(32, 24)  
+        self.layer_btn.move(8, 8)
+        self.layer_btn.clicked.connect(self.toggle_layer)
+        self.layer_btn.setToolTip("Toggle Live View / Static Background")
+        self.layer_btn.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(0, 0, 0, 80);
+                color: rgba(255, 255, 255, 140);
+                border: 1px solid rgba(255, 255, 255, 40);
+                border-radius: 3px;
+                font-size: 10px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 0, 0, 160);
+                color: #fff;
+                border-color: rgba(255, 255, 255, 80);
+            }
+            QPushButton:checked {
+                background-color: rgba(40, 167, 69, 120);
+                color: #fff;
+                border-color: rgba(40, 167, 69, 200);
+            }
+        """)
         
         # Existing Control Buttons
         self.add_btn = QPushButton("Add ROI")
@@ -50,16 +80,16 @@ class IdentityWidget(QWidget):
         
         self.bg_modal_btn = QPushButton("Process Background")
         self.bg_modal_btn.clicked.connect(self.open_background_modal)
-        self.bg_modal_btn.setEnabled(False)  # Disabled until we have at least 1 image
+        self.bg_modal_btn.setEnabled(False)  
 
-        # Horizontal Thumbnail List Widget
+        # Horizontal Thumbnail List Widget (Configured for full vertical textless icons)
         self.thumb_strip = QListWidget()
         self.thumb_strip.setViewMode(QListWidget.ViewMode.IconMode)
-        self.thumb_strip.setFlow(QListWidget.Flow.LeftToRight)  # Fixed: Flows horizontally correctly
+        self.thumb_strip.setFlow(QListWidget.Flow.LeftToRight)  
         self.thumb_strip.setIconSize(QSize(80, 80))
-        self.thumb_strip.setFixedHeight(100)
+        self.thumb_strip.setFixedHeight(80)  
+        self.thumb_strip.setResizeMode(QListWidget.ResizeMode.Adjust)
         self.thumb_strip.setMovement(QListWidget.Movement.Static)
-        self.thumb_strip.setStyleSheet("background-color: #222; border: 1px solid #444;")
 
         # Assemble layouts
         button_layout = QHBoxLayout()
@@ -70,23 +100,32 @@ class IdentityWidget(QWidget):
         button_layout.addWidget(self.bg_modal_btn)
 
         main_layout = QVBoxLayout(self)
-        main_layout.addLayout(button_layout)
-        main_layout.addWidget(self.thumb_strip)
+        main_layout.addLayout(button_layout) 
         main_layout.addWidget(self.viewer)
+        main_layout.addWidget(self.thumb_strip)
 
         # Load standard canvas
         if self.DEFAULT_FILE.exists():
             self.image = np.load(self.DEFAULT_FILE)
         else:
-            self.image = np.zeros((512, 512, 3), dtype=np.uint8)  # Defaulting to HxWx3 color array
+            self.image = np.zeros((512, 512, 3), dtype=np.uint8)  
         self.set_image(self.image)
         
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_background_image)
         self.timer.start(1000 // self.REFRESH_RATE) 
 
+    def toggle_layer(self, checked: bool):
+        """Switches between regular live image loop and computed background."""
+        self.showing_background = checked
+        if self.showing_background:
+            self.timer.stop()
+            self.viewer.set_background_image(self.background_image)
+        else:
+            self.timer.start(1000 // self.REFRESH_RATE)
+
     def snap_current_image(self):
-        """Captures a snapshot copy of the current image, adds it to the storage pipeline, and draws a thumbnail."""
+        """Captures a snapshot copy of the current image, adds it to the storage pipeline, and draws a textless thumbnail."""
         if self.image is None:
             return
             
@@ -102,8 +141,10 @@ class IdentityWidget(QWidget):
         qimg = QImage(img_copy.data, w, h, bytes_per_line, fmt)
         pixmap = QPixmap.fromImage(qimg)
         
+        # Create an item with an empty label string and force tight sizing
+        item = QListWidgetItem(QIcon(pixmap), "")
+        
         # Append to UI Thumbnail Strip
-        item = QListWidgetItem(QIcon(pixmap), f"Snap {len(self.snapped_images)}")
         self.thumb_strip.addItem(item)
         
         # Allow modal launcher processing
@@ -118,14 +159,18 @@ class IdentityWidget(QWidget):
         if modal.exec_():
             result = modal.get_result()
             if result is not None:
-                self.set_image(result)
-                # Clear snap pool after an applied stack execution
+                self.background_image = result.copy()
                 self.snapped_images.clear()
                 self.thumb_strip.clear()
                 self.bg_modal_btn.setEnabled(False)
+                
+                # Switch to showing background view immediately once generated
+                self.layer_btn.setChecked(True)
+                self.toggle_layer(True)
 
     def update_background_image(self):
-        self.viewer.set_background_image(self.image)
+        if not self.showing_background:
+            self.viewer.set_background_image(self.image)
 
     def set_image(self, image: NDArray) -> None:
         self.image = image
