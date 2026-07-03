@@ -9,7 +9,7 @@ from qtpy.QtWidgets import (
 )
 from qtpy.QtGui import QColor, QPainter, QPolygonF, QPen
 from qtpy.QtCore import Qt, QSize, QThread, Signal
-
+from qt_widgets import NDarray_to_QPixmap
 
 class ComputeWorker(QThread):
     finished = Signal(np.ndarray)
