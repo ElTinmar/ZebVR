@@ -1,12 +1,14 @@
 import sys
 import math
+import cv2
 import numpy as np
 from PyQt6.QtWidgets import (
     QApplication, QDialog, QWidget, QVBoxLayout, QHBoxLayout, 
-    QGridLayout, QCheckBox, QLabel, QPushButton, QScrollArea, QSplitter, QSlider
+    QGridLayout, QCheckBox, QLabel, QPushButton, QScrollArea, QSplitter, 
+    QSlider, QComboBox, QSpinBox, QGroupBox
 )
-from PyQt6.QtGui import QPixmap, QColor, QPainter, QImage
-from PyQt6.QtCore import Qt, QSize, QThread, pyqtSignal
+from PyQt6.QtGui import QPixmap, QColor, QPainter, QImage, QPolygonF, QPen
+from PyQt6.QtCore import Qt, QSize, QThread, pyqtSignal, QPointF
 
 def np_to_qpixmap(arr):
     """Utility function to convert an HxWx3 uint8 NumPy array safely into a QPixmap."""
@@ -46,27 +48,221 @@ class ComputeWorker(QThread):
             self.error.emit(f"Computation failed: {str(e)}")
 
 
+class DrawPolyMask(QWidget):
+    """Interactive canvas supporting live guide lines, vertex dragging, and canvas resets."""
+    def __init__(self, fixed_size, parent=None):
+        super().__init__(parent)
+        self.fixed_size = fixed_size
+        self.setFixedSize(self.fixed_size)
+        
+        # Core State variables
+        self.base_np = None          
+        self.inpainted_np = None     
+        self.display_pixmap = None
+        self.preview_mode = False    
+        
+        self.points = []             # List of QPointF coordinates
+        self.is_closed = False
+        
+        # Interaction variables
+        self.current_mouse_pos = None
+        self.dragged_point_idx = None
+        self.hovered_point_idx = None
+        self.handle_radius = 6.0      # Clickable pixel radius around vertices
+        
+        # Enable mouse tracking to catch mouse move events without holding a click down
+        self.setMouseTracking(True)
+        
+    def set_image(self, arr, clear_mask=True):
+        self.base_np = arr.copy()
+        raw_pixmap = np_to_qpixmap(self.base_np)
+        self.display_pixmap = raw_pixmap.scaled(
+            self.fixed_size, 
+            Qt.AspectRatioMode.KeepAspectRatio, 
+            Qt.TransformationMode.SmoothTransformation
+        )
+        if clear_mask:
+            self.clear_mask_data()
+        self.update()
+
+    def clear_mask_data(self):
+        """Resets the vector path history canvas to default settings."""
+        self.points = []
+        self.is_closed = False
+        self.inpainted_np = None
+        self.preview_mode = False
+        self.dragged_point_idx = None
+        self.hovered_point_idx = None
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+        self.update()
+
+    def set_preview_mode(self, show_preview):
+        if show_preview and self.inpainted_np is not None:
+            self.preview_mode = True
+            raw_pixmap = np_to_qpixmap(self.inpainted_np)
+            self.display_pixmap = raw_pixmap.scaled(
+                self.fixed_size, 
+                Qt.AspectRatioMode.KeepAspectRatio, 
+                Qt.TransformationMode.SmoothTransformation
+            )
+        else:
+            self.preview_mode = False
+            if self.base_np is not None:
+                raw_pixmap = np_to_qpixmap(self.base_np)
+                self.display_pixmap = raw_pixmap.scaled(
+                    self.fixed_size, 
+                    Qt.AspectRatioMode.KeepAspectRatio, 
+                    Qt.TransformationMode.SmoothTransformation
+                )
+        self.update()
+
+    def _find_hovered_vertex(self, pos):
+        """Helper to find if mouse position is within range of an existing point vertex."""
+        for idx, pt in enumerate(self.points):
+            distance = math.hypot(pos.x() - pt.x(), pos.y() - pt.y())
+            if distance <= self.handle_radius:
+                return idx
+        return None
+
+    def mousePressEvent(self, event):
+        if self.display_pixmap is None or self.preview_mode:
+            return
+            
+        pos = event.position()
+        
+        if event.button() == Qt.MouseButton.LeftButton:
+            # Check if user is clicking an existing handle to drag it
+            hovered = self._find_hovered_vertex(pos)
+            if hovered is not None:
+                self.dragged_point_idx = hovered
+                return
+                
+            # Otherwise, drop a new vertex if the shape isn't already closed
+            if not self.is_closed:
+                self.points.append(pos)
+                self.inpainted_np = None
+                self.update()
+            
+        elif event.button() == Qt.MouseButton.RightButton:
+            if len(self.points) >= 3 and not self.is_closed:
+                self.is_closed = True
+                self.update()
+
+    def mouseMoveEvent(self, event):
+        if self.display_pixmap is None or self.preview_mode:
+            return
+            
+        pos = event.position()
+        self.current_mouse_pos = pos
+        
+        # If dragging a vertex handle, update its position interactively
+        if self.dragged_point_idx is not None:
+            self.points[self.dragged_point_idx] = pos
+            self.inpainted_np = None # Invalidate stale cache
+            self.update()
+            return
+            
+        # Update cursor visual cue if hovering over an existing handle
+        hovered = self._find_hovered_vertex(pos)
+        if hovered != self.hovered_point_idx:
+            self.hovered_point_idx = hovered
+            if self.hovered_point_idx is not None:
+                self.setCursor(Qt.CursorShape.SizeAllCursor)
+            else:
+                self.setCursor(Qt.CursorShape.ArrowCursor)
+            self.update()
+            
+        # If drawing (unclosed line strings), force refresh to update the moving guideline
+        if not self.is_closed and self.points:
+            self.update()
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.dragged_point_idx = None
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        
+        if self.display_pixmap is None:
+            painter.setPen(QPen(QColor("#aaa"), 2, Qt.PenStyle.DashLine))
+            painter.setBrush(QColor("#f5f5f5"))
+            painter.drawRect(self.rect())
+            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "Select images to display canvas frame")
+            return
+            
+        dx = (self.width() - self.display_pixmap.width()) // 2
+        dy = (self.height() - self.display_pixmap.height()) // 2
+        painter.drawPixmap(dx, dy, self.display_pixmap)
+        
+        if not self.preview_mode and self.points:
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            
+            # Draw polygon layout
+            if self.is_closed:
+                painter.setPen(QPen(QColor(255, 0, 0, 200), 2))
+                painter.setBrush(QColor(255, 0, 0, 60))
+                painter.drawPolygon(QPolygonF(self.points))
+            else:
+                # Draw solid committed lines
+                painter.setPen(QPen(QColor(0, 120, 255), 2))
+                for i in range(len(self.points) - 1):
+                    painter.drawLine(self.points[i], self.points[i+1])
+                
+                # Draw the dynamic guideline to the cursor position
+                if self.current_mouse_pos is not None:
+                    painter.setPen(QPen(QColor(0, 120, 255, 140), 1, Qt.PenStyle.DashLine))
+                    painter.drawLine(self.points[-1], self.current_mouse_pos)
+                
+            # Draw circular vertex ticks
+            for idx, pt in enumerate(self.points):
+                if idx == self.hovered_point_idx:
+                    painter.setBrush(QColor(255, 69, 0)) # Red-Orange highlight on hover
+                    r = self.handle_radius + 1
+                else:
+                    painter.setBrush(QColor(255, 215, 0)) # Default Gold
+                    r = self.handle_radius - 2
+                    
+                painter.setPen(QPen(Qt.GlobalColor.black, 1))
+                painter.drawEllipse(pt, r, r)
+
+    def flatten_mask(self):
+        if self.base_np is None or not self.is_closed or len(self.points) < 3:
+            return None
+            
+        h, w, _ = self.base_np.shape
+        dx = (self.width() - self.display_pixmap.width()) // 2
+        dy = (self.height() - self.display_pixmap.height()) // 2
+        
+        scale_w = w / self.display_pixmap.width()
+        scale_h = h / self.display_pixmap.height()
+        
+        mapped_points = []
+        for pt in self.points:
+            orig_x = (pt.x() - dx) * scale_w
+            orig_y = (pt.y() - dy) * scale_h
+            mapped_points.append([orig_x, orig_y])
+            
+        mask = np.zeros((h, w), dtype=np.uint8)
+        pts_array = np.array(mapped_points, dtype=np.int32).reshape((-1, 1, 2))
+        cv2.fillPoly(mask, [pts_array], 255)
+        return mask
+
+
 class ImageItemWidget(QWidget):
-    """A widget that converts a NumPy array to a dynamic display thumbnail and overlays a checkbox."""
     def __init__(self, np_array, index, thumb_size=240, parent=None):
         super().__init__(parent)
         self.index = index
         self.np_array = np_array
         
-        # Keep a lazy evaluation cache of the full-res rendering pixmap to save conversion cycles
         self.base_pixmap = np_to_qpixmap(self.np_array)
-        
-        # Sub-component initializations
         self.image_label = QLabel(self)
         self.image_label.setStyleSheet("border: 1px solid #ccc; background-color: #222;")
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.checkbox = QCheckBox(self)
         
-        # Apply the initial size profile
         self.update_thumbnail_size(thumb_size)
 
     def update_thumbnail_size(self, size):
-        """Updates internal frame geometries and downsamples pixel assets on the fly."""
         fixed_size = QSize(size, size)
         self.setFixedSize(fixed_size)
         self.image_label.setFixedSize(fixed_size)
@@ -78,7 +274,6 @@ class ImageItemWidget(QWidget):
         )
         self.image_label.setPixmap(scaled_thumb)
         
-        # Recalculate checkbox corner layout footprint anchors
         cb_width = self.checkbox.sizeHint().width()
         self.checkbox.move(size - cb_width - 4, 4)
 
@@ -96,11 +291,10 @@ class ImageGridModal(QDialog):
         self.image_widgets = []
         self.processed_result_np = None  
         self.worker = None 
-        self.current_thumb_size = 200 # App operational base size setting
+        self.current_thumb_size = 200 
         
-        self.setWindowTitle("Scalable Image Grid Processor")
-        self.resize(1100, 750)
-        
+        self.setWindowTitle("Background")
+        self.resize(1200, 800)
         self.init_ui()
         
     def init_ui(self):
@@ -112,32 +306,25 @@ class ImageGridModal(QDialog):
         left_layout = QVBoxLayout(left_container)
         left_layout.setContentsMargins(0, 0, 0, 0)
         
-        # Top Interactive Control Action Panel Layout Line Container
         control_panel_layout = QHBoxLayout()
-        
         self.master_checkbox = QCheckBox("Select All", self)
         self.master_checkbox.clicked.connect(self.toggle_select_all)
         control_panel_layout.addWidget(self.master_checkbox)
         
-        # Slider implementation: Handles real-time adjustments
-        control_panel_layout.addSpacing(20)
-        control_panel_layout.addWidget(QLabel("Size:", self))
+        control_panel_layout.addSpacing(15)
+        control_panel_layout.addWidget(QLabel("Grid Size:", self))
         self.size_slider = QSlider(Qt.Orientation.Horizontal, self)
         self.size_slider.setMinimum(120)
         self.size_slider.setMaximum(360)
         self.size_slider.setValue(self.current_thumb_size)
-        self.size_slider.setFixedWidth(150)
+        self.size_slider.setFixedWidth(110)
         self.size_slider.valueChanged.connect(self.on_slider_size_changed)
         control_panel_layout.addWidget(self.size_slider)
         control_panel_layout.addStretch()
         
         self.btn_mode = QPushButton("Compute Mode", self)
-        self.btn_inpaint = QPushButton("Inpaint Selected", self)
         self.btn_mode.clicked.connect(self.compute_mode)
-        self.btn_inpaint.clicked.connect(self.inpaint_selected)
-        
         control_panel_layout.addWidget(self.btn_mode)
-        control_panel_layout.addWidget(self.btn_inpaint)
         left_layout.addLayout(control_panel_layout)
         
         scroll = QScrollArea(self)
@@ -152,7 +339,6 @@ class ImageGridModal(QDialog):
         for i, arr in enumerate(self.np_arrays):
             row = i % rows
             col = i // rows
-            
             img_widget = ImageItemWidget(arr, i, thumb_size=self.current_thumb_size, parent=self)
             self.grid_layout.addWidget(img_widget, row, col, Qt.AlignmentFlag.AlignCenter)
             self.image_widgets.append(img_widget)
@@ -161,21 +347,63 @@ class ImageGridModal(QDialog):
         scroll.setWidget(grid_widget)
         left_layout.addWidget(scroll)
         
-        # --- RIGHT SIDE: Large Preview ---
+        # --- RIGHT SIDE: Canvas Controls ---
         right_container = QWidget()
+        
+
+        self.preview_size = QSize(512, 512)
+        self.canvas_widget = DrawPolyMask(self.preview_size, self)
+        
+        
+        view_toggle_layout = QHBoxLayout()
+        self.btn_view_mask = QPushButton("Edit Mask (Before)", self)
+        self.btn_view_result = QPushButton("View Inpaint (After)", self)
+        
+        self.btn_view_mask.setCheckable(True)
+        self.btn_view_result.setCheckable(True)
+        self.btn_view_mask.setChecked(True)
+        
+        self.btn_view_mask.clicked.connect(lambda: self.change_visualization_layer(False))
+        self.btn_view_result.clicked.connect(lambda: self.change_visualization_layer(True))
+        
+        view_toggle_layout.addWidget(self.btn_view_mask)
+        view_toggle_layout.addWidget(self.btn_view_result)
+        
+        
+        # Parameters Box Group
+        param_group = QGroupBox("Inpainting")
+        param_layout = QGridLayout(param_group)
+        
+        param_layout.addWidget(QLabel("Algorithm:"), 0, 0)
+        self.combo_algo = QComboBox(self)
+        self.combo_algo.addItem("Navier-Stokes", cv2.INPAINT_NS)
+        self.combo_algo.addItem("Telea", cv2.INPAINT_TELEA)
+        param_layout.addWidget(self.combo_algo, 0, 1)
+        
+        param_layout.addWidget(QLabel("Radius (px):"), 1, 0)
+        self.spin_radius = QSpinBox(self)
+        self.spin_radius.setRange(1, 50)
+        self.spin_radius.setValue(3)
+        param_layout.addWidget(self.spin_radius, 1, 1)
+        
+        # Utility actions foot row inside parameters layout box
+        actions_sub_layout = QHBoxLayout()
+        self.btn_clear_mask = QPushButton("Clear Mask", self)
+        self.btn_clear_mask.clicked.connect(self.canvas_widget.clear_mask_data)
+        
+        self.btn_inpaint = QPushButton("Apply Inpaint", self)
+        self.btn_inpaint.setStyleSheet("background-color: #2da44e; color: white; font-weight: bold;")
+        self.btn_inpaint.clicked.connect(self.inpaint_selected)
+        
+        actions_sub_layout.addWidget(self.btn_clear_mask, 1)
+        actions_sub_layout.addWidget(self.btn_inpaint, 2)
+        param_layout.addLayout(actions_sub_layout, 2, 0, 1, 2)
+        
         right_layout = QVBoxLayout(right_container)
-        right_layout.setContentsMargins(0, 0, 0, 0)
-        
-        self.preview_label = QLabel("No operation performed yet", self)
-        self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.preview_label.setStyleSheet("border: 2px dashed #aaa; background: #f5f5f5; padding: 10px;")
-        
-        self.preview_size = QSize(450, 450)
-        self.preview_label.setFixedSize(self.preview_size)
-        
-        right_layout.addStretch()
-        right_layout.addWidget(self.preview_label, alignment=Qt.AlignmentFlag.AlignCenter)
-        right_layout.addStretch()
+        right_layout.setContentsMargins(10, 0, 0, 0)
+        right_layout.addWidget(param_group)
+        right_layout.addLayout(view_toggle_layout)
+        right_layout.addWidget(self.canvas_widget, alignment=Qt.AlignmentFlag.AlignCenter)
         
         main_splitter.addWidget(left_container)
         main_splitter.addWidget(right_container)
@@ -183,10 +411,9 @@ class ImageGridModal(QDialog):
         main_splitter.setStretchFactor(1, 2)
         window_layout.addWidget(main_splitter)
         
-        # --- BOTTOM ROW: Dialog Footer Actions ---
+        # --- BOTTOM ROW: Footer ---
         footer_layout = QHBoxLayout()
         footer_layout.addStretch() 
-        
         self.btn_cancel = QPushButton("Cancel", self)
         self.btn_apply = QPushButton("Apply", self)
         self.btn_apply.setDefault(True) 
@@ -198,10 +425,13 @@ class ImageGridModal(QDialog):
         footer_layout.addWidget(self.btn_apply)
         window_layout.addLayout(footer_layout)
 
+    def change_visualization_layer(self, show_preview_layer):
+        self.btn_view_mask.setChecked(not show_preview_layer)
+        self.btn_view_result.setChecked(show_preview_layer)
+        self.canvas_widget.set_preview_mode(show_preview_layer)
+
     def on_slider_size_changed(self, value):
-        """Loops through item handles to execute re-scale metrics across the active matrix."""
         self.current_thumb_size = value
-        # Block layout execution loops temporarily during the mass updates to maintain performance
         self.grid_layout.setEnabled(False)
         for widget in self.image_widgets:
             widget.update_thumbnail_size(value)
@@ -216,12 +446,10 @@ class ImageGridModal(QDialog):
     def toggle_select_all(self):
         intent_deselect = (self.master_checkbox.text() == "Deselect All")
         target_state = not intent_deselect
-        
         for widget in self.image_widgets:
             widget.checkbox.blockSignals(True)
             widget.set_checked(target_state)
             widget.checkbox.blockSignals(False)
-        
         self.master_checkbox.blockSignals(True)
         self.master_checkbox.setCheckState(Qt.CheckState.Checked if target_state else Qt.CheckState.Unchecked)
         self.master_checkbox.setText("Deselect All" if target_state else "Select All")
@@ -230,7 +458,6 @@ class ImageGridModal(QDialog):
     def update_master_checkbox_text(self):
         selected_count = len(self.get_selected_indices())
         total_count = len(self.image_widgets)
-        
         self.master_checkbox.blockSignals(True)
         if selected_count == total_count:
             self.master_checkbox.setCheckState(Qt.CheckState.Checked)
@@ -242,15 +469,6 @@ class ImageGridModal(QDialog):
             self.master_checkbox.setCheckState(Qt.CheckState.PartiallyChecked)
             self.master_checkbox.setText("Deselect All")
         self.master_checkbox.blockSignals(False)
-
-    def update_preview_from_numpy(self, arr):
-        pixmap = np_to_qpixmap(arr)
-        scaled_pixmap = pixmap.scaled(
-            self.preview_size, 
-            Qt.AspectRatioMode.KeepAspectRatio, 
-            Qt.TransformationMode.SmoothTransformation
-        )
-        self.preview_label.setPixmap(scaled_pixmap)
 
     def set_ui_enabled(self, enabled):
         self.btn_mode.setEnabled(enabled)
@@ -264,14 +482,8 @@ class ImageGridModal(QDialog):
     def compute_mode(self):
         selected_idx = self.get_selected_indices()
         if not selected_idx:
-            self.preview_label.setPixmap(QPixmap()) 
-            self.preview_label.setText("Please select images first.")
-            self.processed_result_np = None
             return
-            
-        self.preview_label.setText("Calculating statistical pixel mode\non background thread...")
         self.set_ui_enabled(False)
-        
         selected_arrays = [self.np_arrays[idx] for idx in selected_idx]
         
         self.worker = ComputeWorker(selected_arrays)
@@ -284,53 +496,59 @@ class ImageGridModal(QDialog):
     def on_compute_success(self, result_np):
         self.set_ui_enabled(True)
         self.processed_result_np = result_np  
-        self.update_preview_from_numpy(result_np)
+        self.canvas_widget.set_image(result_np, clear_mask=True)
+        self.change_visualization_layer(False)
 
     def on_compute_failure(self, error_message):
         self.set_ui_enabled(True)
         self.processed_result_np = None
-        self.preview_label.setPixmap(QPixmap())
-        self.preview_label.setText(error_message)
 
     def inpaint_selected(self):
         selected_idx = self.get_selected_indices()
         if not selected_idx:
-            self.preview_label.setPixmap(QPixmap())
-            self.preview_label.setText("Please select images first.")
-            self.processed_result_np = None
             return
             
-        base_arr = self.np_arrays[selected_idx[0]].copy()
-        h, w, _ = base_arr.shape
-        base_arr[h//3:2*h//3, w//4:3*w//4, 0] = 255 
-        base_arr[h//3:2*h//3, w//4:3*w//4, 1:] = 0  
+        if self.canvas_widget.base_np is not None:
+            src_image = self.canvas_widget.base_np.copy()
+        else:
+            src_image = self.np_arrays[selected_idx[0]].copy()
+            self.canvas_widget.set_image(src_image, clear_mask=False)
+
+        mask = self.canvas_widget.flatten_mask()
+        if mask is None or np.sum(mask) == 0:
+            return 
+            
+        radius = self.spin_radius.value()
+        algo = self.combo_algo.currentData()
         
-        self.processed_result_np = base_arr
-        self.update_preview_from_numpy(base_arr)
+        background = cv2.inpaint(src_image, mask, radius, algo)
+        
+        self.canvas_widget.inpainted_np = background
+        self.processed_result_np = background
+        
+        self.change_visualization_layer(True)
 
 
 # --- Dummy Execution Block ---
-def create_dummy_np_array(width, height, rgb_color):
+def create_dummy_np_array(width, height, rgb_color, pattern_offset=0):
     arr = np.zeros((height, width, 3), dtype=np.uint8)
     arr[:, :, 0] = rgb_color[0]
     arr[:, :, 1] = rgb_color[1]
     arr[:, :, 2] = rgb_color[2]
+    # Simulate a blemish to inpaint
+    cv2.rectangle(arr, (width//3 + pattern_offset, height//3), (2*width//3 + pattern_offset, 2*height//3), (16, 16, 16), -1)
     return arr
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    
     colors = [
-        (255, 0, 0),   (0, 255, 0),   (0, 0, 255),   (255, 255, 0),
-        (0, 255, 255), (255, 0, 255), (255, 128, 0), (128, 128, 128),
-        (255, 255, 255),(200, 200, 200),(0, 128, 128), (128, 128, 0)
+        (200, 50, 50),   (50, 200, 50),   (50, 50, 200),   (200, 200, 50),
+        (50, 200, 200), (200, 50, 200), (200, 128, 50), (128, 128, 128),
+        (220, 220, 220),(180, 180, 180),(50, 128, 128), (128, 128, 50)
     ]
+    dummy_np_arrays = [create_dummy_np_array(800, 800, colors[i], pattern_offset=i*8) for i in range(12)]
     
-    dummy_np_arrays = [create_dummy_np_array(800, 800, colors[i]) for i in range(12)]
     dialog = ImageGridModal(dummy_np_arrays)
-    
     if dialog.exec() == QDialog.DialogCode.Accepted:
         output_array = dialog.get_result()
-        print(f"Modal Accepted! Object type: {type(output_array)}")
-    else:
-        print("Modal Cancelled/Rejected.")
+        print("Modal Closed and Applied output back to main script matrix stream.")
