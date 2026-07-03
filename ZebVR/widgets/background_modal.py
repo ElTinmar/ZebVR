@@ -9,10 +9,9 @@ from qtpy.QtWidgets import (
 )
 from qtpy.QtGui import QColor, QPainter, QPolygonF, QPen
 from qtpy.QtCore import Qt, QSize, QThread, Signal
-from qt_widgets import NDarray_to_QPixmap
+
 
 class ComputeWorker(QThread):
-    """Background worker thread dedicated solely to computing the statistical mode of NumPy arrays."""
     finished = Signal(np.ndarray)
     error = Signal(str)
 
@@ -36,13 +35,12 @@ class ComputeWorker(QThread):
             result_np = sorted_stack[sorted_stack.shape[0] // 2]
             
             self.finished.emit(result_np)
-
         except Exception as e:
             self.error.emit(f"Computation failed: {str(e)}")
 
 
 class DrawPolyMask(QWidget):
-    """Interactive canvas supporting live guide lines, vertex dragging, and canvas resets."""
+    """Interactive canvas supporting multiple live masks, vertex dragging, and canvas resets."""
     def __init__(self, fixed_size, parent=None):
         super().__init__(parent)
         self.fixed_size = fixed_size
@@ -53,11 +51,13 @@ class DrawPolyMask(QWidget):
         self.display_pixmap = None
         self.preview_mode = False    
         
-        self.points = []             
-        self.is_closed = False
+        # Structure: list of dicts -> [{'points': [QPointF, ...], 'is_closed': True/False}, ...]
+        self.polygons = []
         
         self.current_mouse_pos = None
+        self.dragged_poly_idx = None
         self.dragged_point_idx = None
+        self.hovered_poly_idx = None
         self.hovered_point_idx = None
         self.handle_radius = 6.0      
         
@@ -76,11 +76,12 @@ class DrawPolyMask(QWidget):
         self.update()
 
     def clear_mask_data(self):
-        self.points = []
-        self.is_closed = False
+        self.polygons = []
         self.inpainted_np = None
         self.preview_mode = False
+        self.dragged_poly_idx = None
         self.dragged_point_idx = None
+        self.hovered_poly_idx = None
         self.hovered_point_idx = None
         self.setCursor(Qt.CursorShape.ArrowCursor)
         self.update()
@@ -106,28 +107,40 @@ class DrawPolyMask(QWidget):
         self.update()
 
     def _find_hovered_vertex(self, pos):
-        for idx, pt in enumerate(self.points):
-            distance = math.hypot(pos.x() - pt.x(), pos.y() - pt.y())
-            if distance <= self.handle_radius:
-                return idx
-        return None
+        for poly_idx, poly in enumerate(self.polygons):
+            for pt_idx, pt in enumerate(poly['points']):
+                distance = math.hypot(pos.x() - pt.x(), pos.y() - pt.y())
+                if distance <= self.handle_radius:
+                    return poly_idx, pt_idx
+        return None, None
 
     def mousePressEvent(self, event):
         if self.display_pixmap is None or self.preview_mode:
             return
         pos = event.position()
         if event.button() == Qt.MouseButton.LeftButton:
-            hovered = self._find_hovered_vertex(pos)
-            if hovered is not None:
-                self.dragged_point_idx = hovered
+            poly_idx, pt_idx = self._find_hovered_vertex(pos)
+            if poly_idx is not None:
+                self.dragged_poly_idx = poly_idx
+                self.dragged_point_idx = pt_idx
                 return
-            if not self.is_closed:
-                self.points.append(pos)
-                self.inpainted_np = None
-                self.update()
+            
+            # If there is no active open polygon, spin up a new one
+            if not self.polygons or self.polygons[-1]['is_closed']:
+                self.polygons.append({'points': [pos], 'is_closed': False})
+            else:
+                self.polygons[-1]['points'].append(pos)
+                
+            self.inpainted_np = None
+            self.update()
+            
         elif event.button() == Qt.MouseButton.RightButton:
-            if len(self.points) >= 3 and not self.is_closed:
-                self.is_closed = True
+            if self.polygons and not self.polygons[-1]['is_closed']:
+                if len(self.polygons[-1]['points']) >= 3:
+                    self.polygons[-1]['is_closed'] = True
+                else:
+                    # Remove it if it doesn't meet minimum polygon geometry constraints
+                    self.polygons.pop()
                 self.update()
 
     def mouseMoveEvent(self, event):
@@ -135,24 +148,29 @@ class DrawPolyMask(QWidget):
             return
         pos = event.position()
         self.current_mouse_pos = pos
-        if self.dragged_point_idx is not None:
-            self.points[self.dragged_point_idx] = pos
+        
+        if self.dragged_poly_idx is not None and self.dragged_point_idx is not None:
+            self.polygons[self.dragged_poly_idx]['points'][self.dragged_point_idx] = pos
             self.inpainted_np = None 
             self.update()
             return
-        hovered = self._find_hovered_vertex(pos)
-        if hovered != self.hovered_point_idx:
-            self.hovered_point_idx = hovered
+            
+        p_idx, pt_idx = self._find_hovered_vertex(pos)
+        if p_idx != self.hovered_poly_idx or pt_idx != self.hovered_point_idx:
+            self.hovered_poly_idx = p_idx
+            self.hovered_point_idx = pt_idx
             if self.hovered_point_idx is not None:
                 self.setCursor(Qt.CursorShape.SizeAllCursor)
             else:
                 self.setCursor(Qt.CursorShape.ArrowCursor)
             self.update()
-        if not self.is_closed and self.points:
+            
+        if self.polygons and not self.polygons[-1]['is_closed']:
             self.update()
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
+            self.dragged_poly_idx = None
             self.dragged_point_idx = None
 
     def paintEvent(self, event):
@@ -163,49 +181,69 @@ class DrawPolyMask(QWidget):
             painter.drawRect(self.rect())
             painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "Workbench Area (Locked until Mode is Computed)")
             return
+            
         dx = (self.width() - self.display_pixmap.width()) // 2
         dy = (self.height() - self.display_pixmap.height()) // 2
         painter.drawPixmap(dx, dy, self.display_pixmap)
-        if not self.preview_mode and self.points:
+        
+        if not self.preview_mode and self.polygons:
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-            if self.is_closed:
-                painter.setPen(QPen(QColor(255, 0, 0, 200), 2))
-                painter.setBrush(QColor(255, 0, 0, 60))
-                painter.drawPolygon(QPolygonF(self.points))
-            else:
-                painter.setPen(QPen(QColor(0, 120, 255), 2))
-                for i in range(len(self.points) - 1):
-                    painter.drawLine(self.points[i], self.points[i+1])
-                if self.current_mouse_pos is not None:
-                    painter.setPen(QPen(QColor(0, 120, 255, 140), 1, Qt.PenStyle.DashLine))
-                    painter.drawLine(self.points[-1], self.current_mouse_pos)
-            for idx, pt in enumerate(self.points):
-                if idx == self.hovered_point_idx:
-                    painter.setBrush(QColor(255, 69, 0)) 
-                    r = self.handle_radius + 1
+            
+            # Draw lines and fills for all shapes
+            for poly in self.polygons:
+                pts = poly['points']
+                if poly['is_closed']:
+                    painter.setPen(QPen(QColor(255, 0, 0, 200), 2))
+                    painter.setBrush(QColor(255, 0, 0, 60))
+                    painter.drawPolygon(QPolygonF(pts))
                 else:
-                    painter.setBrush(QColor(255, 215, 0)) 
-                    r = self.handle_radius - 2
-                painter.setPen(QPen(Qt.GlobalColor.black, 1))
-                painter.drawEllipse(pt, r, r)
+                    painter.setPen(QPen(QColor(0, 120, 255), 2))
+                    for i in range(len(pts) - 1):
+                        painter.drawLine(pts[i], pts[i+1])
+                    if self.current_mouse_pos is not None and poly == self.polygons[-1]:
+                        painter.setPen(QPen(QColor(0, 120, 255, 140), 1, Qt.PenStyle.DashLine))
+                        painter.drawLine(pts[-1], self.current_mouse_pos)
+            
+            # Render node handles across structures
+            for poly_idx, poly in enumerate(self.polygons):
+                for pt_idx, pt in enumerate(poly['points']):
+                    if poly_idx == self.hovered_poly_idx and pt_idx == self.hovered_point_idx:
+                        painter.setBrush(QColor(255, 69, 0)) 
+                        r = self.handle_radius + 1
+                    else:
+                        painter.setBrush(QColor(255, 215, 0)) 
+                        r = self.handle_radius - 2
+                    painter.setPen(QPen(Qt.GlobalColor.black, 1))
+                    painter.drawEllipse(pt, r, r)
 
     def flatten_mask(self):
-        if self.base_np is None or not self.is_closed or len(self.points) < 3:
+        if self.base_np is None or not self.polygons:
             return None
+            
         h, w, _ = self.base_np.shape
         dx = (self.width() - self.display_pixmap.width()) // 2
         dy = (self.height() - self.display_pixmap.height()) // 2
         scale_w = w / self.display_pixmap.width()
         scale_h = h / self.display_pixmap.height()
-        mapped_points = []
-        for pt in self.points:
-            orig_x = (pt.x() - dx) * scale_w
-            orig_y = (pt.y() - dy) * scale_h
-            mapped_points.append([orig_x, orig_y])
+        
         mask = np.zeros((h, w), dtype=np.uint8)
-        pts_array = np.array(mapped_points, dtype=np.int32).reshape((-1, 1, 2))
-        cv2.fillPoly(mask, [pts_array], 255)
-        return mask
+        has_content = False
+        
+        for poly in self.polygons:
+            if not poly['is_closed'] or len(poly['points']) < 3:
+                continue
+                
+            mapped_points = []
+            for pt in poly['points']:
+                orig_x = (pt.x() - dx) * scale_w
+                orig_y = (pt.y() - dy) * scale_h
+                mapped_points.append([orig_x, orig_y])
+                
+            pts_array = np.array(mapped_points, dtype=np.int32).reshape((-1, 1, 2))
+            cv2.fillPoly(mask, [pts_array], 255)
+            has_content = True
+            
+        return mask if has_content else None
 
 
 class ImageItemWidget(QWidget):
@@ -245,7 +283,7 @@ class BackgroundModal(QDialog):
         self.worker = None 
         self.current_thumb_size = 200 
         
-        self.setWindowTitle("Background")
+        self.setWindowTitle("Background Manager")
         self.resize(1250, 820)
         self.init_ui()
         self.update_workflow_state()
@@ -253,7 +291,6 @@ class BackgroundModal(QDialog):
     def init_ui(self):
         window_layout = QVBoxLayout(self)
         
-        # ACTIVE STATUS BANNER: Guides user through steps explicitly
         self.status_banner = QLabel(self)
         self.status_banner.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_banner.setStyleSheet("font-size: 14px; font-weight: bold; padding: 2px; background-color: #eaeaea; border-radius: 4px; color: #333;")
@@ -262,7 +299,6 @@ class BackgroundModal(QDialog):
         
         main_splitter = QSplitter(Qt.Orientation.Horizontal, self)
         
-        # --- LEFT SIDE: Grid Selection ---
         left_container = QWidget()
         left_layout = QVBoxLayout(left_container)
         left_layout.setContentsMargins(0, 0, 0, 0)
@@ -310,7 +346,6 @@ class BackgroundModal(QDialog):
         scroll.setWidget(grid_widget)
         left_layout.addWidget(scroll)
         
-        # --- RIGHT SIDE: Canvas, Options, Visualization toggles ---
         self.right_container = QWidget()
         right_layout = QVBoxLayout(self.right_container)
         right_layout.setContentsMargins(10, 0, 0, 0)
@@ -349,7 +384,7 @@ class BackgroundModal(QDialog):
         param_layout.addWidget(self.spin_radius, 1, 1)
         
         actions_sub_layout = QHBoxLayout()
-        self.btn_clear_mask = QPushButton("Clear Mask", self)
+        self.btn_clear_mask = QPushButton("Clear Masks", self)
         self.btn_clear_mask.clicked.connect(self.canvas_widget.clear_mask_data)
         
         self.btn_inpaint = QPushButton("Run Inpaint", self)
@@ -367,7 +402,6 @@ class BackgroundModal(QDialog):
         main_splitter.setStretchFactor(1, 2)
         window_layout.addWidget(main_splitter)
         
-        # --- BOTTOM ROW: Footer ---
         footer_layout = QHBoxLayout()
         footer_layout.addStretch() 
         self.btn_cancel = QPushButton("Cancel", self)
@@ -383,41 +417,37 @@ class BackgroundModal(QDialog):
         window_layout.addLayout(footer_layout)
 
     def update_workflow_state(self):
-        """Active logic check block verifying UI accessibility states dynamically."""
         selected_count = len(self.get_selected_indices())
         
-        # State A: No thumbnails selected
         if selected_count == 0:
             self.status_banner.setText("STEP 1: Please select one or more image thumbnails on the grid.")
-            self.status_banner.setStyleSheet("font-size: 14px; font-weight: bold; padding: 2px; background-color: #fff3cd; border-radius: 4px; color: #856404;") # Warning Yellow
+            self.status_banner.setStyleSheet("font-size: 14px; font-weight: bold; padding: 2px; background-color: #fff3cd; border-radius: 4px; color: #856404;")
             self.btn_mode.setEnabled(False)
             self.right_container.setEnabled(False)
             self.btn_apply.setEnabled(False)
             return
 
-        # State B: Thumbnails selected, but Mode hasn't run yet
         if self.processed_result_np is None:
             self.status_banner.setText("STEP 2: Click 'Compute Mode' to extract the background.")
-            self.status_banner.setStyleSheet("font-size: 14px; font-weight: bold; padding: 2px; background-color: #cce5ff; border-radius: 4px; color: #004085;") # Action Blue
+            self.status_banner.setStyleSheet("font-size: 14px; font-weight: bold; padding: 2px; background-color: #cce5ff; border-radius: 4px; color: #004085;")
             self.btn_mode.setEnabled(True)
             self.btn_mode.setStyleSheet("background-color: #007bff; color: white; font-weight: bold; padding: 6px 12px;")
             self.right_container.setEnabled(False)
             self.btn_apply.setEnabled(False)
             return
 
-        # State C: Mode extraction calculation has succeeded
         self.btn_mode.setEnabled(True)
         self.btn_mode.setStyleSheet("font-weight: normal;")
         self.right_container.setEnabled(True)
-        self.btn_apply.setEnabled(True) # Step 4 unlocked
+        self.btn_apply.setEnabled(True)
         self.btn_apply.setStyleSheet("background-color: #28a745; color: white; font-weight: bold; padding: 4px 15px;")
         
         if self.canvas_widget.inpainted_np is not None:
             self.status_banner.setText("STEP 4 COMPLETE: Inpaint generated. Press 'Apply' to save and close.")
-            self.status_banner.setStyleSheet("font-size: 14px; font-weight: bold; padding: 2px; background-color: #d4edda; border-radius: 4px; color: #155724;") # Green success
+            self.status_banner.setStyleSheet("font-size: 14px; font-weight: bold; padding: 2px; background-color: #d4edda; border-radius: 4px; color: #155724;")
         else:
-            self.status_banner.setText("STEP 3 (Optional): Draw on the canvas to mask blemishes and click 'Run Inpaint', or proceed straight to Step 4.")
-            self.status_banner.setStyleSheet("font-size: 14px; font-weight: bold; padding: 2px; background-color: #e2e3e5; border-radius: 4px; color: #383d41;") # Neutral prompt
+            self.status_banner.setText("STEP 3 (Optional): Draw multiple closed shapes to mask blemishes, then click 'Run Inpaint'.")
+            self.status_banner.setStyleSheet("font-size: 14px; font-weight: bold; padding: 2px; background-color: #e2e3e5; border-radius: 4px; color: #383d41;")
 
     def change_visualization_layer(self, show_preview_layer):
         self.btn_view_mask.setChecked(not show_preview_layer)
@@ -517,7 +547,6 @@ class BackgroundModal(QDialog):
         self.update_workflow_state()
 
 
-# --- Dummy Execution Block ---
 def create_dummy_np_array(width, height, rgb_color, pattern_offset=0):
     arr = np.zeros((height, width, 3), dtype=np.uint8)
     arr[:, :, 0] = rgb_color[0]
@@ -537,4 +566,4 @@ if __name__ == "__main__":
     
     dialog = BackgroundModal(dummy_np_arrays)
     if dialog.exec() == QDialog.DialogCode.Accepted:
-        print("Modal Closed: Result returned safely to processing pipeline.")
+        print("Modal Closed Successfully.")
