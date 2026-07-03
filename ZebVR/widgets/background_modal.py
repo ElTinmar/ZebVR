@@ -429,12 +429,11 @@ class BackgroundModal(QDialog):
         self.grid_layout = QGridLayout(grid_widget)
         self.grid_layout.setSpacing(6) 
         
-        n = len(self.np_arrays)
-        rows = math.ceil(math.sqrt(n)) if n > 0 else 1
+        n_cols = 3
         
         for i, arr in enumerate(self.np_arrays):
-            row = i % rows
-            col = i // rows
+            row = i // n_cols
+            col = i % n_cols
             img_widget = ImageItemWidget(arr, i, thumb_size=self.current_thumb_size, parent=self)
             self.grid_layout.addWidget(img_widget, row, col, Qt.AlignmentFlag.AlignCenter)
             self.image_widgets.append(img_widget)
