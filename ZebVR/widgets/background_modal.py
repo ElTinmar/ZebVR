@@ -2,13 +2,13 @@ import sys
 import math
 import cv2
 import numpy as np
-from PyQt6.QtWidgets import (
+from qtpy.QtWidgets import (
     QApplication, QDialog, QWidget, QVBoxLayout, QHBoxLayout, 
     QGridLayout, QCheckBox, QLabel, QPushButton, QScrollArea, QSplitter, 
     QSlider, QComboBox, QSpinBox, QGroupBox
 )
-from PyQt6.QtGui import QPixmap, QColor, QPainter, QImage, QPolygonF, QPen
-from PyQt6.QtCore import Qt, QSize, QThread, pyqtSignal, QPointF
+from qtpy.QtGui import QPixmap, QColor, QPainter, QImage, QPolygonF, QPen
+from qtpy.QtCore import Qt, QSize, QThread, Signal
 
 def np_to_qpixmap(arr):
     """Utility function to convert an HxWx3 uint8 NumPy array safely into a QPixmap."""
@@ -20,8 +20,8 @@ def np_to_qpixmap(arr):
 
 class ComputeWorker(QThread):
     """Background worker thread dedicated solely to computing the statistical mode of NumPy arrays."""
-    finished = pyqtSignal(np.ndarray)
-    error = pyqtSignal(str)
+    finished = Signal(np.ndarray)
+    error = Signal(str)
 
     def __init__(self, arrays_list):
         super().__init__()
@@ -378,7 +378,7 @@ class ImageGridModal(QDialog):
         footer_layout = QHBoxLayout()
         footer_layout.addStretch() 
         self.btn_cancel = QPushButton("Cancel", self)
-        self.btn_apply = QPushButton("Step 4: Apply and Close", self)
+        self.btn_apply = QPushButton("Step 4: Apply", self)
         self.btn_apply.setStyleSheet("font-weight: bold; padding: 4px 15px;")
         self.btn_apply.setDefault(True) 
         
@@ -420,7 +420,7 @@ class ImageGridModal(QDialog):
         self.btn_apply.setStyleSheet("background-color: #28a745; color: white; font-weight: bold; padding: 4px 15px;")
         
         if self.canvas_widget.inpainted_np is not None:
-            self.status_banner.setText("STEP 4 COMPLETE: Inpaint generated. Press 'Apply and Close' to save.")
+            self.status_banner.setText("STEP 4 COMPLETE: Inpaint generated. Press 'Apply' to save and close.")
             self.status_banner.setStyleSheet("font-size: 14px; font-weight: bold; padding: 2px; background-color: #d4edda; border-radius: 4px; color: #155724;") # Green success
         else:
             self.status_banner.setText("STEP 3 (Optional): Draw on the canvas to mask blemishes and click 'Run Inpaint', or proceed straight to Step 4.")
