@@ -9,7 +9,7 @@ from PyQt6.QtCore import Qt, QSize
 
 class ImageItemWidget(QWidget):
     """A widget that scales any input image to a fixed thumbnail size and overlays a checkbox."""
-    def __init__(self, pixmap, index, thumb_size=120, parent=None):
+    def __init__(self, pixmap, index, thumb_size=240, parent=None):
         super().__init__(parent)
         self.index = index
         self.pixmap = pixmap
@@ -42,6 +42,9 @@ class ImageItemWidget(QWidget):
     def is_checked(self):
         return self.checkbox.isChecked()
 
+    def set_checked(self, state):
+        self.checkbox.setChecked(state)
+
 
 class ImageGridModal(QDialog):
     def __init__(self, pixmaps, parent=None):
@@ -50,20 +53,30 @@ class ImageGridModal(QDialog):
         self.image_widgets = []
         
         self.setWindowTitle("Image Grid Processor")
-        self.resize(1000, 650)
+        self.resize(1000, 700)
         
         self.init_ui()
         
     def init_ui(self):
+        # Master Window Layout
+        window_layout = QVBoxLayout(self)
+        
         # Main layout splitter to separate Grid (left) and Preview (right)
         main_splitter = QSplitter(Qt.Orientation.Horizontal, self)
         
         # --- LEFT SIDE: Grid & Actions ---
         left_container = QWidget()
         left_layout = QVBoxLayout(left_container)
+        left_layout.setContentsMargins(0, 0, 0, 0)
         
-        # Action Buttons
+        # Action Panel (Master Checkbox + Buttons)
         btn_layout = QHBoxLayout()
+        
+        # Master select/deselect checkbox
+        self.master_checkbox = QCheckBox("Select All", self)
+        self.master_checkbox.clicked.connect(self.toggle_select_all) # Switched to .clicked for user intent
+        btn_layout.addWidget(self.master_checkbox)
+        
         self.btn_mode = QPushButton("Compute Mode", self)
         self.btn_inpaint = QPushButton("Inpaint Selected", self)
         
@@ -90,10 +103,12 @@ class ImageGridModal(QDialog):
             row = i % rows
             col = i // rows
             
-            # Thumbnails are strictly drawn at 120x120 regardless of input dimension
             img_widget = ImageItemWidget(pixmap, i, thumb_size=240, parent=self)
             grid_layout.addWidget(img_widget, row, col, Qt.AlignmentFlag.AlignCenter)
             self.image_widgets.append(img_widget)
+            
+            # Link manual checks to track and update master checkbox natively
+            img_widget.checkbox.clicked.connect(self.update_master_checkbox_text)
             
         scroll.setWidget(grid_widget)
         left_layout.addWidget(scroll)
@@ -101,6 +116,7 @@ class ImageGridModal(QDialog):
         # --- RIGHT SIDE: Large Preview ---
         right_container = QWidget()
         right_layout = QVBoxLayout(right_container)
+        right_layout.setContentsMargins(0, 0, 0, 0)
         
         self.preview_label = QLabel("No operation performed yet", self)
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -121,12 +137,70 @@ class ImageGridModal(QDialog):
         main_splitter.setStretchFactor(0, 3)
         main_splitter.setStretchFactor(1, 2)
         
-        # Dialog window layout
-        window_layout = QVBoxLayout(self)
+        # Add the interactive workbench area to the master layout window
         window_layout.addWidget(main_splitter)
+        
+        # --- BOTTOM ROW: Dialog Footer Actions (Cancel / Apply) ---
+        footer_layout = QHBoxLayout()
+        footer_layout.addStretch() 
+        
+        self.btn_cancel = QPushButton("Cancel", self)
+        self.btn_apply = QPushButton("Apply", self)
+        self.btn_apply.setDefault(True) 
+        
+        self.btn_cancel.clicked.connect(self.reject)
+        self.btn_apply.clicked.connect(self.accept)
+        
+        footer_layout.addWidget(self.btn_cancel)
+        footer_layout.addWidget(self.btn_apply)
+        
+        window_layout.addLayout(footer_layout)
 
     def get_selected_indices(self):
         return [w.index for w in self.image_widgets if w.is_checked()]
+
+    def toggle_select_all(self):
+        """Forces all child image widgets to match the target action cleanly."""
+        # Check current label text to understand user's contextual intent.
+        # If it says "Deselect All", user wants EVERYTHING off, regardless of partial states.
+        intent_deselect = (self.master_checkbox.text() == "Deselect All")
+        target_state = not intent_deselect
+        
+        # Block signals on child checkboxes to prevent feedback loop recursion
+        for widget in self.image_widgets:
+            widget.checkbox.blockSignals(True)
+            widget.set_checked(target_state)
+            widget.checkbox.blockSignals(False)
+        
+        # Update Master widget states
+        self.master_checkbox.blockSignals(True)
+        if target_state:
+            self.master_checkbox.setCheckState(Qt.CheckState.Checked)
+            self.master_checkbox.setText("Deselect All")
+        else:
+            self.master_checkbox.setCheckState(Qt.CheckState.Unchecked)
+            self.master_checkbox.setText("Select All")
+        self.master_checkbox.blockSignals(False)
+
+    def update_master_checkbox_text(self):
+        """Monitors individual checks to update the master label and state contextually."""
+        selected_count = len(self.get_selected_indices())
+        total_count = len(self.image_widgets)
+        
+        self.master_checkbox.blockSignals(True)
+        
+        if selected_count == total_count:
+            self.master_checkbox.setCheckState(Qt.CheckState.Checked)
+            self.master_checkbox.setText("Deselect All")
+        elif selected_count == 0:
+            self.master_checkbox.setCheckState(Qt.CheckState.Unchecked)
+            self.master_checkbox.setText("Select All")
+        else:
+            # If some are selected, label should prompt "Deselect All" to clear the board safely
+            self.master_checkbox.setCheckState(Qt.CheckState.PartiallyChecked)
+            self.master_checkbox.setText("Deselect All")
+            
+        self.master_checkbox.blockSignals(False)
 
     def update_preview(self, pixmap):
         """Displays the resulting image scaled cleanly into the locked placeholder bounds."""
@@ -174,7 +248,6 @@ class ImageGridModal(QDialog):
 
 # --- Dummy Execution Block ---
 def create_dummy_pixmap(width, height, color_name, text):
-    """Generates mismatched input resolutions to prove layout normalization."""
     pixmap = QPixmap(width, height)
     pixmap.fill(QColor(color_name))
     painter = QPainter(pixmap)
@@ -186,7 +259,6 @@ def create_dummy_pixmap(width, height, color_name, text):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     
-    # Intentionally loading completely non-uniform image resolutions
     resolutions = [
         (100, 100), (800, 600), (1920, 1080), (300, 400),
         (500, 500), (128, 128), (200, 600),   (1000, 200),
@@ -203,4 +275,8 @@ if __name__ == "__main__":
     ]
     
     dialog = ImageGridModal(dummy_pixmaps)
-    dialog.exec()
+    
+    if dialog.exec() == QDialog.DialogCode.Accepted:
+        print("User clicked Apply! Selected indices:", dialog.get_selected_indices())
+    else:
+        print("User cancelled the transaction.")
