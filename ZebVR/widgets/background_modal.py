@@ -8,7 +8,7 @@ from qtpy.QtWidgets import (
     QSlider, QComboBox, QSpinBox, QGroupBox
 )
 from qtpy.QtGui import QColor, QPainter, QPolygonF, QPen
-from qtpy.QtCore import Qt, QSize, QThread, Signal
+from qtpy.QtCore import Qt, QSize, QThread, Signal, QPointF
 from qt_widgets import NDarray_to_QPixmap
 
 class ComputeWorker(QThread):
@@ -40,40 +40,98 @@ class ComputeWorker(QThread):
 
 
 class DrawPolyMask(QWidget):
-    """Interactive canvas supporting multiple live masks, vertex dragging, and canvas resets."""
-    def __init__(self, fixed_size, parent=None):
+    """Interactive canvas supporting live masks, vector dragging, Ctrl+Wheel zoom, and Middle-Click Panning."""
+    zoom_changed = Signal()  # Notify parent window to update status labels
+
+    def __init__(self, base_size, parent=None):
         super().__init__(parent)
-        self.fixed_size = fixed_size
-        self.setFixedSize(self.fixed_size)
+        self.base_size = base_size
+        self.zoom_factor = 1.0
+        self.setFixedSize(self.base_size)
         
         self.base_np = None          
         self.inpainted_np = None     
         self.display_pixmap = None
         self.preview_mode = False    
         
-        # Structure: list of dicts -> [{'points': [QPointF, ...], 'is_closed': True/False}, ...]
         self.polygons = []
+        self.current_mouse_pos = None  
         
-        self.current_mouse_pos = None
+        # Dragging/Hover states for vector points
         self.dragged_poly_idx = None
         self.dragged_point_idx = None
         self.hovered_poly_idx = None
         self.hovered_point_idx = None
         self.handle_radius = 6.0      
         
+        # Panning states
+        self.is_panning = False
+        self.pan_start_pos = None
+
         self.setMouseTracking(True)
         
     def set_image(self, arr, clear_mask=True):
         self.base_np = arr.copy()
-        raw_pixmap = NDarray_to_QPixmap(self.base_np)
-        self.display_pixmap = raw_pixmap.scaled(
-            self.fixed_size, 
-            Qt.AspectRatioMode.KeepAspectRatio, 
-            Qt.TransformationMode.SmoothTransformation
-        )
+        self.update_scaled_pixmap()
         if clear_mask:
             self.clear_mask_data()
         self.update()
+
+    def update_scaled_pixmap(self):
+        if self.base_np is None:
+            return
+        
+        active_np = self.inpainted_np if (self.preview_mode and self.inpainted_np is not None) else self.base_np
+        raw_pixmap = NDarray_to_QPixmap(active_np)
+        
+        target_size = QSize(int(self.base_size.width() * self.zoom_factor), 
+                            int(self.base_size.height() * self.zoom_factor))
+        
+        self.display_pixmap = raw_pixmap.scaled(
+            target_size, 
+            Qt.AspectRatioMode.KeepAspectRatio, 
+            Qt.TransformationMode.SmoothTransformation
+        )
+        self.setFixedSize(target_size)
+
+    def set_zoom(self, factor, mouse_pos=None):
+        """Sets zoom factor and anchors the view around the cursor position."""
+        old_factor = self.zoom_factor
+        self.zoom_factor = max(0.25, min(15.0, factor))  # Bounds: 25% to 1500%
+        
+        if old_factor == self.zoom_factor:
+            return
+
+        scroll_area = self.get_scroll_area()
+        if scroll_area:
+            h_bar = scroll_area.horizontalScrollBar()
+            v_bar = scroll_area.verticalScrollBar()
+            
+            anchor = mouse_pos if mouse_pos else QPointF(self.width() / 2, self.height() / 2)
+            logical_x = anchor.x() / old_factor
+            logical_y = anchor.y() / old_factor
+            
+            scroll_dx = anchor.x() - h_bar.value()
+            scroll_dy = anchor.y() - v_bar.value()
+
+            self.update_scaled_pixmap()
+
+            h_bar.setValue(int(logical_x * self.zoom_factor - scroll_dx))
+            v_bar.setValue(int(logical_y * self.zoom_factor - scroll_dy))
+        else:
+            self.update_scaled_pixmap()
+            
+        self.zoom_changed.emit()
+        self.update()
+
+    def get_scroll_area(self):
+        """Helper to find the bounding scroll viewport layout wrapper."""
+        parent_widget = self.parent()
+        if parent_widget and hasattr(parent_widget, 'parent'):
+            grandparent = parent_widget.parent()
+            if isinstance(grandparent, QScrollArea):
+                return grandparent
+        return None
 
     def clear_mask_data(self):
         self.polygons = []
@@ -83,53 +141,66 @@ class DrawPolyMask(QWidget):
         self.dragged_point_idx = None
         self.hovered_poly_idx = None
         self.hovered_point_idx = None
+        self.is_panning = False
         self.setCursor(Qt.CursorShape.ArrowCursor)
         self.update()
 
     def set_preview_mode(self, show_preview):
-        if show_preview and self.inpainted_np is not None:
-            self.preview_mode = True
-            raw_pixmap = NDarray_to_QPixmap(self.inpainted_np)
-            self.display_pixmap = raw_pixmap.scaled(
-                self.fixed_size, 
-                Qt.AspectRatioMode.KeepAspectRatio, 
-                Qt.TransformationMode.SmoothTransformation
-            )
-        else:
-            self.preview_mode = False
-            if self.base_np is not None:
-                raw_pixmap = NDarray_to_QPixmap(self.base_np)
-                self.display_pixmap = raw_pixmap.scaled(
-                    self.fixed_size, 
-                    Qt.AspectRatioMode.KeepAspectRatio, 
-                    Qt.TransformationMode.SmoothTransformation
-                )
+        self.preview_mode = show_preview
+        self.update_scaled_pixmap()
         self.update()
 
-    def _find_hovered_vertex(self, pos):
+    def to_logical(self, pos):
+        return QPointF(pos.x() / self.zoom_factor, pos.y() / self.zoom_factor)
+
+    def wheelEvent(self, event):
+        """Ctrl + Wheel to zoom seamlessly around cursor location."""
+        if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+            angle = event.angleDelta().y()
+            factor = self.zoom_factor * (1.15 if angle > 0 else 0.82)
+            self.set_zoom(factor, event.position())
+            event.accept()
+        else:
+            super().wheelEvent(event)
+
+    def _find_hovered_vertex(self, logical_pos):
+        scaled_radius = self.handle_radius / self.zoom_factor
         for poly_idx, poly in enumerate(self.polygons):
             for pt_idx, pt in enumerate(poly['points']):
-                distance = math.hypot(pos.x() - pt.x(), pos.y() - pt.y())
-                if distance <= self.handle_radius:
+                distance = math.hypot(logical_pos.x() - pt.x(), logical_pos.y() - pt.y())
+                if distance <= scaled_radius:
                     return poly_idx, pt_idx
         return None, None
 
     def mousePressEvent(self, event):
-        if self.display_pixmap is None or self.preview_mode:
+        if self.display_pixmap is None:
             return
-        pos = event.position()
+
+        # 1. Capture Panning Initialization (Middle Mouse Button click)
+        if event.button() == Qt.MouseButton.MiddleButton:
+            self.is_panning = True
+            self.pan_start_pos = event.globalPosition()
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+            event.accept()
+            return
+
+        if self.preview_mode:
+            return
+            
+        logical_pos = self.to_logical(event.position())
+        
+        # 2. Polygon Point Mask Controls
         if event.button() == Qt.MouseButton.LeftButton:
-            poly_idx, pt_idx = self._find_hovered_vertex(pos)
+            poly_idx, pt_idx = self._find_hovered_vertex(logical_pos)
             if poly_idx is not None:
                 self.dragged_poly_idx = poly_idx
                 self.dragged_point_idx = pt_idx
                 return
             
-            # If there is no active open polygon, spin up a new one
             if not self.polygons or self.polygons[-1]['is_closed']:
-                self.polygons.append({'points': [pos], 'is_closed': False})
+                self.polygons.append({'points': [logical_pos], 'is_closed': False})
             else:
-                self.polygons[-1]['points'].append(pos)
+                self.polygons[-1]['points'].append(logical_pos)
                 
             self.inpainted_np = None
             self.update()
@@ -139,23 +210,43 @@ class DrawPolyMask(QWidget):
                 if len(self.polygons[-1]['points']) >= 3:
                     self.polygons[-1]['is_closed'] = True
                 else:
-                    # Remove it if it doesn't meet minimum polygon geometry constraints
                     self.polygons.pop()
                 self.update()
 
     def mouseMoveEvent(self, event):
-        if self.display_pixmap is None or self.preview_mode:
+        if self.display_pixmap is None:
             return
-        pos = event.position()
-        self.current_mouse_pos = pos
+
+        # 1. Handle Panning Delta Modifications
+        if self.is_panning and self.pan_start_pos is not None:
+            current_global_pos = event.globalPosition()
+            delta = current_global_pos - self.pan_start_pos
+            self.pan_start_pos = current_global_pos
+            
+            scroll_area = self.get_scroll_area()
+            if scroll_area:
+                h_bar = scroll_area.horizontalScrollBar()
+                v_bar = scroll_area.verticalScrollBar()
+                h_bar.setValue(int(h_bar.value() - delta.x()))
+                v_bar.setValue(int(v_bar.value() - delta.y()))
+            event.accept()
+            return
+
+        if self.preview_mode:
+            return
+            
+        logical_pos = self.to_logical(event.position())
+        self.current_mouse_pos = logical_pos
         
+        # 2. Handle point dragging adjustments
         if self.dragged_poly_idx is not None and self.dragged_point_idx is not None:
-            self.polygons[self.dragged_poly_idx]['points'][self.dragged_point_idx] = pos
+            self.polygons[self.dragged_poly_idx]['points'][self.dragged_point_idx] = logical_pos
             self.inpainted_np = None 
             self.update()
             return
             
-        p_idx, pt_idx = self._find_hovered_vertex(pos)
+        # 3. Dynamic Cursor Updates
+        p_idx, pt_idx = self._find_hovered_vertex(logical_pos)
         if p_idx != self.hovered_poly_idx or pt_idx != self.hovered_point_idx:
             self.hovered_poly_idx = p_idx
             self.hovered_point_idx = pt_idx
@@ -169,6 +260,12 @@ class DrawPolyMask(QWidget):
             self.update()
 
     def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.MiddleButton:
+            self.is_panning = False
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+            event.accept()
+            return
+            
         if event.button() == Qt.MouseButton.LeftButton:
             self.dragged_poly_idx = None
             self.dragged_point_idx = None
@@ -182,49 +279,51 @@ class DrawPolyMask(QWidget):
             painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "Workbench Area (Locked until Mode is Computed)")
             return
             
-        dx = (self.width() - self.display_pixmap.width()) // 2
-        dy = (self.height() - self.display_pixmap.height()) // 2
-        painter.drawPixmap(dx, dy, self.display_pixmap)
+        painter.drawPixmap(0, 0, self.display_pixmap)
         
         if not self.preview_mode and self.polygons:
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
             
-            # Draw lines and fills for all shapes
+            painter.save()
+            painter.scale(self.zoom_factor, self.zoom_factor)
+            
+            line_thickness = 2.0 / self.zoom_factor
+            dash_thickness = 1.0 / self.zoom_factor
+            
             for poly in self.polygons:
                 pts = poly['points']
                 if poly['is_closed']:
-                    painter.setPen(QPen(QColor(255, 0, 0, 200), 2))
+                    painter.setPen(QPen(QColor(255, 0, 0, 200), line_thickness))
                     painter.setBrush(QColor(255, 0, 0, 60))
                     painter.drawPolygon(QPolygonF(pts))
                 else:
-                    painter.setPen(QPen(QColor(0, 120, 255), 2))
+                    painter.setPen(QPen(QColor(0, 120, 255), line_thickness))
                     for i in range(len(pts) - 1):
                         painter.drawLine(pts[i], pts[i+1])
                     if self.current_mouse_pos is not None and poly == self.polygons[-1]:
-                        painter.setPen(QPen(QColor(0, 120, 255, 140), 1, Qt.PenStyle.DashLine))
+                        painter.setPen(QPen(QColor(0, 120, 255, 140), dash_thickness, Qt.PenStyle.DashLine))
                         painter.drawLine(pts[-1], self.current_mouse_pos)
             
-            # Render node handles across structures
             for poly_idx, poly in enumerate(self.polygons):
                 for pt_idx, pt in enumerate(poly['points']):
                     if poly_idx == self.hovered_poly_idx and pt_idx == self.hovered_point_idx:
                         painter.setBrush(QColor(255, 69, 0)) 
-                        r = self.handle_radius + 1
+                        r = (self.handle_radius + 1) / self.zoom_factor
                     else:
                         painter.setBrush(QColor(255, 215, 0)) 
-                        r = self.handle_radius - 2
-                    painter.setPen(QPen(Qt.GlobalColor.black, 1))
+                        r = (self.handle_radius - 2) / self.zoom_factor
+                    painter.setPen(QPen(Qt.GlobalColor.black, 1.0 / self.zoom_factor))
                     painter.drawEllipse(pt, r, r)
+                    
+            painter.restore()
 
     def flatten_mask(self):
         if self.base_np is None or not self.polygons:
             return None
             
         h, w, _ = self.base_np.shape
-        dx = (self.width() - self.display_pixmap.width()) // 2
-        dy = (self.height() - self.display_pixmap.height()) // 2
-        scale_w = w / self.display_pixmap.width()
-        scale_h = h / self.display_pixmap.height()
+        scale_w = w / self.base_size.width()
+        scale_h = h / self.base_size.height()
         
         mask = np.zeros((h, w), dtype=np.uint8)
         has_content = False
@@ -235,8 +334,8 @@ class DrawPolyMask(QWidget):
                 
             mapped_points = []
             for pt in poly['points']:
-                orig_x = (pt.x() - dx) * scale_w
-                orig_y = (pt.y() - dy) * scale_h
+                orig_x = pt.x() * scale_w
+                orig_y = pt.y() * scale_h
                 mapped_points.append([orig_x, orig_y])
                 
             pts_array = np.array(mapped_points, dtype=np.int32).reshape((-1, 1, 2))
@@ -284,7 +383,7 @@ class BackgroundModal(QDialog):
         self.current_thumb_size = 200 
         
         self.setWindowTitle("Background Manager")
-        self.resize(1250, 820)
+        self.resize(1300, 850)
         self.init_ui()
         self.update_workflow_state()
         
@@ -298,7 +397,6 @@ class BackgroundModal(QDialog):
         window_layout.addWidget(self.status_banner)
         
         main_splitter = QSplitter(Qt.Orientation.Horizontal, self)
-        
         left_container = QWidget()
         left_layout = QVBoxLayout(left_container)
         left_layout.setContentsMargins(0, 0, 0, 0)
@@ -350,9 +448,28 @@ class BackgroundModal(QDialog):
         right_layout = QVBoxLayout(self.right_container)
         right_layout.setContentsMargins(10, 0, 0, 0)
         
+        # --- ZOOMABLE AREA WRAPPER ---
+        self.canvas_scroll_area = QScrollArea(self)
+        self.canvas_scroll_area.setWidgetResizable(False)
+        self.canvas_scroll_area.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        #self.canvas_scroll_area.setStyleSheet("background-color: #333; border: 1px solid #111;")
+        
         self.preview_size = QSize(512, 512)
         self.canvas_widget = DrawPolyMask(self.preview_size, self)
-        right_layout.addWidget(self.canvas_widget, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.canvas_widget.zoom_changed.connect(self.update_workflow_state)
+        self.canvas_scroll_area.setWidget(self.canvas_widget)
+        right_layout.addWidget(self.canvas_scroll_area, 1)
+        
+        # Minimalist Navigation Controls Row
+        zoom_ctrl_layout = QHBoxLayout()
+        self.lbl_zoom = QLabel("Zoom: 100%", self)
+        btn_zoom_reset = QPushButton("Reset View (100%)", self)
+        btn_zoom_reset.clicked.connect(lambda: self.canvas_widget.set_zoom(1.0))
+        
+        zoom_ctrl_layout.addWidget(self.lbl_zoom)
+        zoom_ctrl_layout.addWidget(btn_zoom_reset)
+        zoom_ctrl_layout.addStretch()
+        right_layout.addLayout(zoom_ctrl_layout)
         
         self.view_toggle_widget = QWidget()
         view_toggle_layout = QHBoxLayout(self.view_toggle_widget)
@@ -398,8 +515,8 @@ class BackgroundModal(QDialog):
         
         main_splitter.addWidget(left_container)
         main_splitter.addWidget(self.right_container)
-        main_splitter.setStretchFactor(0, 3)
-        main_splitter.setStretchFactor(1, 2)
+        main_splitter.setStretchFactor(0, 1)
+        main_splitter.setStretchFactor(1, 1)
         window_layout.addWidget(main_splitter)
         
         footer_layout = QHBoxLayout()
@@ -418,6 +535,7 @@ class BackgroundModal(QDialog):
 
     def update_workflow_state(self):
         selected_count = len(self.get_selected_indices())
+        self.lbl_zoom.setText(f"Zoom: {int(self.canvas_widget.zoom_factor * 100)}%")
         
         if selected_count == 0:
             self.status_banner.setText("STEP 1: Please select one or more image thumbnails on the grid.")
@@ -446,7 +564,7 @@ class BackgroundModal(QDialog):
             self.status_banner.setText("STEP 4 COMPLETE: Inpaint generated. Press 'Apply' to save and close.")
             self.status_banner.setStyleSheet("font-size: 14px; font-weight: bold; padding: 2px; background-color: #d4edda; border-radius: 4px; color: #155724;")
         else:
-            self.status_banner.setText("STEP 3 (Optional): Draw multiple closed shapes to mask blemishes, then click 'Run Inpaint'.")
+            self.status_banner.setText("NAVIGATION: [Ctrl+Wheel] Zoom. [Middle Click Drag] Pan around canvas.")
             self.status_banner.setStyleSheet("font-size: 14px; font-weight: bold; padding: 2px; background-color: #e2e3e5; border-radius: 4px; color: #383d41;")
 
     def change_visualization_layer(self, show_preview_layer):
@@ -562,7 +680,7 @@ if __name__ == "__main__":
         (50, 200, 200), (200, 50, 200), (200, 128, 50), (128, 128, 128),
         (220, 220, 220),(180, 180, 180),(50, 128, 128), (128, 128, 50)
     ]
-    dummy_np_arrays = [create_dummy_np_array(800, 800, colors[i], pattern_offset=i*8) for i in range(12)]
+    dummy_np_arrays = [create_dummy_np_array(1200, 1200, colors[i], pattern_offset=i*8) for i in range(12)]
     
     dialog = BackgroundModal(dummy_np_arrays)
     if dialog.exec() == QDialog.DialogCode.Accepted:
