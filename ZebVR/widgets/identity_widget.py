@@ -5,7 +5,7 @@ from numpy.typing import NDArray
 
 from qtpy.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, 
-    QPushButton, QScrollArea, QLabel
+    QPushButton, QScrollArea, QLabel, QProgressBar
 )
 from qtpy.QtCore import Signal, QPointF, QTimer, Qt
 from qtpy.QtGui import QImage, QPixmap
@@ -13,6 +13,7 @@ from qtpy.QtGui import QImage, QPixmap
 from .coordinate_system_widget import MultiCoordViewer
 from .background_modal import BackgroundModal
 from ZebVR.utils import FindCircularArenasDialog
+from qt_widgets import LabeledSpinBox, LabeledDoubleSpinBox
 
 class IdentityWidget(QWidget):
     state_changed = Signal()
@@ -32,7 +33,7 @@ class IdentityWidget(QWidget):
         self.viewer = MultiCoordViewer(self)
         self.viewer.state_changed.connect(self.state_changed)
 
-        # Overlay Button
+        # UI Elements
         self.layer_btn = QPushButton("BG", self.viewer)
         self.layer_btn.setCheckable(True)
         self.layer_btn.setFixedSize(32, 24)  
@@ -44,7 +45,7 @@ class IdentityWidget(QWidget):
             QPushButton:checked { background-color: rgba(40, 167, 69, 120); }
         """)
         
-        # Buttons
+        # Action Buttons
         self.add_btn = QPushButton("Add ROI")
         self.add_btn.clicked.connect(lambda: self.viewer.add_coordinate_system(QPointF(150, 150)))
         
@@ -64,29 +65,49 @@ class IdentityWidget(QWidget):
         self.bg_modal_btn.clicked.connect(self.open_background_modal)
         self.bg_modal_btn.setEnabled(False)  
 
-        # Scroll Area for Thumbnails
+        self.count_input = LabeledSpinBox()
+        self.count_input.setText("Count:")
+        self.count_input.setValue(10)
+        self.count_input.setMinimum(1)
+        self.count_input.setMaximum(1000)
+
+        self.interval_input = LabeledDoubleSpinBox()
+        self.interval_input.setText("Interval (s):")
+        self.interval_input.setValue(1.0)
+        self.interval_input.setMinimum(0.01)
+        self.interval_input.setMaximum(60.0)
+
+        self.start_auto_btn = QPushButton("Start Auto Capture")
+        self.start_auto_btn.setCheckable(True)
+        self.start_auto_btn.clicked.connect(self.toggle_auto_capture)
+        
+        self.progress_bar = QProgressBar()
+        self.progress_bar.hide()
+
+        # Capture Timer
+        self.capture_timer = QTimer(self)
+        self.capture_timer.timeout.connect(self._process_auto_capture)
+        self.snaps_remaining = 0
+
+        # Thumbnail Area
         self.thumb_scroll = QScrollArea()
         self.thumb_scroll.setFixedHeight(120)
         self.thumb_scroll.setWidgetResizable(True)
-        
         self.thumb_container = QWidget()
         self.thumb_layout = QHBoxLayout(self.thumb_container)
         self.thumb_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.thumb_layout.setContentsMargins(5, 5, 5, 5)
-        self.thumb_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.thumb_scroll.setWidget(self.thumb_container)
 
         # Layout Assembly
-        btn_layout = QHBoxLayout()
-        for btn in [self.add_btn, self.clear_btn, self.auto_btn, self.snap_btn, self.clear_snap_btn, self.bg_modal_btn]:
-            btn_layout.addWidget(btn)
-
         main_layout = QVBoxLayout(self)
-        main_layout.addLayout(btn_layout)
+        main_layout.addLayout(self._create_hlayout([self.add_btn, self.clear_btn, self.auto_btn]))
         main_layout.addWidget(self.viewer, 1)
+        main_layout.addLayout(self._create_hlayout([self.snap_btn, self.clear_snap_btn, self.bg_modal_btn]))
+        main_layout.addLayout(self._create_hlayout([self.count_input, self.interval_input, self.start_auto_btn]))
+        main_layout.addWidget(self.progress_bar)
         main_layout.addWidget(self.thumb_scroll)
 
-        # Data initialization
+        # Data Initialization
         if self.DEFAULT_FILE.exists():
             self.image = np.load(self.DEFAULT_FILE)
         else:
@@ -96,6 +117,41 @@ class IdentityWidget(QWidget):
         self.timer.timeout.connect(self.update_background_image)
         self.timer.start(1000 // self.REFRESH_RATE) 
 
+    def _create_hlayout(self, widgets):
+        l = QHBoxLayout()
+        for w in widgets: l.addWidget(w)
+        return l
+
+    # --- Auto Capture Logic ---
+    def toggle_auto_capture(self, checked: bool):
+        if checked:
+            self.snaps_remaining = self.count_input.value()
+            interval_ms = int(self.interval_input.value() * 1000)
+            self.progress_bar.setRange(0, self.snaps_remaining)
+            self.progress_bar.setValue(0)
+            self.progress_bar.show()
+            self.start_auto_btn.setText("Stop Capture")
+            self.capture_timer.start(interval_ms)
+            self._process_auto_capture()
+        else:
+            self.stop_auto_capture()
+
+    def stop_auto_capture(self):
+        self.capture_timer.stop()
+        self.progress_bar.hide()
+        self.start_auto_btn.setChecked(False)
+        self.start_auto_btn.setText("Start Auto Capture")
+
+    def _process_auto_capture(self):
+        if self.snaps_remaining <= 0:
+            self.stop_auto_capture()
+            return
+        
+        self.snap_current_image()
+        self.snaps_remaining -= 1
+        self.progress_bar.setValue(self.progress_bar.maximum() - self.snaps_remaining)
+
+    # --- Standard Functionality ---
     def toggle_layer(self, checked: bool):
         self.showing_background = checked
         if self.showing_background:
@@ -109,7 +165,6 @@ class IdentityWidget(QWidget):
         img_copy = self.image.copy()
         self.snapped_images.append(img_copy)
         
-        # Convert to QPixmap
         h, w = img_copy.shape[:2]
         fmt = QImage.Format.Format_RGB888 if len(img_copy.shape) == 3 else QImage.Format.Format_Grayscale8
         qimg = QImage(img_copy.data, w, h, img_copy.strides[0], fmt)
@@ -118,9 +173,7 @@ class IdentityWidget(QWidget):
         lbl = QLabel()
         lbl.setPixmap(pixmap)
         lbl.setFixedSize(80, 80)
-        lbl.setStyleSheet("border: 1px solid #666; background-color: #222;")
         self.thumb_layout.addWidget(lbl)
-        
         self.bg_modal_btn.setEnabled(True)
 
     def open_background_modal(self):
