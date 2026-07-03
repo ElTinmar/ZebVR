@@ -7,16 +7,9 @@ from qtpy.QtWidgets import (
     QGridLayout, QCheckBox, QLabel, QPushButton, QScrollArea, QSplitter, 
     QSlider, QComboBox, QSpinBox, QGroupBox
 )
-from qtpy.QtGui import QPixmap, QColor, QPainter, QImage, QPolygonF, QPen
+from qtpy.QtGui import QColor, QPainter, QPolygonF, QPen
 from qtpy.QtCore import Qt, QSize, QThread, Signal
-
-def np_to_qpixmap(arr):
-    """Utility function to convert an HxWx3 uint8 NumPy array safely into a QPixmap."""
-    h, w, c = arr.shape
-    bytes_per_line = c * w
-    qimg = QImage(arr.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
-    return QPixmap.fromImage(qimg.copy())
-
+from qt_widgets import NDarray_to_QPixmap
 
 class ComputeWorker(QThread):
     """Background worker thread dedicated solely to computing the statistical mode of NumPy arrays."""
@@ -72,7 +65,7 @@ class DrawPolyMask(QWidget):
         
     def set_image(self, arr, clear_mask=True):
         self.base_np = arr.copy()
-        raw_pixmap = np_to_qpixmap(self.base_np)
+        raw_pixmap = NDarray_to_QPixmap(self.base_np)
         self.display_pixmap = raw_pixmap.scaled(
             self.fixed_size, 
             Qt.AspectRatioMode.KeepAspectRatio, 
@@ -95,7 +88,7 @@ class DrawPolyMask(QWidget):
     def set_preview_mode(self, show_preview):
         if show_preview and self.inpainted_np is not None:
             self.preview_mode = True
-            raw_pixmap = np_to_qpixmap(self.inpainted_np)
+            raw_pixmap = NDarray_to_QPixmap(self.inpainted_np)
             self.display_pixmap = raw_pixmap.scaled(
                 self.fixed_size, 
                 Qt.AspectRatioMode.KeepAspectRatio, 
@@ -104,7 +97,7 @@ class DrawPolyMask(QWidget):
         else:
             self.preview_mode = False
             if self.base_np is not None:
-                raw_pixmap = np_to_qpixmap(self.base_np)
+                raw_pixmap = NDarray_to_QPixmap(self.base_np)
                 self.display_pixmap = raw_pixmap.scaled(
                     self.fixed_size, 
                     Qt.AspectRatioMode.KeepAspectRatio, 
@@ -220,7 +213,7 @@ class ImageItemWidget(QWidget):
         super().__init__(parent)
         self.index = index
         self.np_array = np_array
-        self.base_pixmap = np_to_qpixmap(self.np_array)
+        self.base_pixmap = NDarray_to_QPixmap(self.np_array)
         self.image_label = QLabel(self)
         self.image_label.setStyleSheet("border: 1px solid #ccc; background-color: #222;")
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -243,7 +236,7 @@ class ImageItemWidget(QWidget):
         self.checkbox.setChecked(state)
 
 
-class ImageGridModal(QDialog):
+class BackgroundModal(QDialog):
     def __init__(self, np_arrays, parent=None):
         super().__init__(parent)
         self.np_arrays = np_arrays  
@@ -542,6 +535,6 @@ if __name__ == "__main__":
     ]
     dummy_np_arrays = [create_dummy_np_array(800, 800, colors[i], pattern_offset=i*8) for i in range(12)]
     
-    dialog = ImageGridModal(dummy_np_arrays)
+    dialog = BackgroundModal(dummy_np_arrays)
     if dialog.exec() == QDialog.DialogCode.Accepted:
         print("Modal Closed: Result returned safely to processing pipeline.")
