@@ -162,9 +162,7 @@ class IdentityWidget(QWidget):
                 self.background_image = result.copy()
                 self.snapped_images.clear()
                 self.thumb_strip.clear()
-                self.bg_modal_btn.setEnabled(False)
-                
-                # Switch to showing background view immediately once generated
+                self.bg_modal_btn.setEnabled(False)                
                 self.layer_btn.setChecked(True)
                 self.toggle_layer(True)
 
