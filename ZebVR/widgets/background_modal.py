@@ -287,8 +287,8 @@ class DrawPolyMask(QWidget):
             painter.save()
             painter.scale(self.zoom_factor, self.zoom_factor)
             
-            line_thickness = 2.0 / self.zoom_factor
-            dash_thickness = 1.0 / self.zoom_factor
+            line_thickness = 2.5 / self.zoom_factor
+            dash_thickness = 2.5 / self.zoom_factor
             
             for poly in self.polygons:
                 pts = poly['points']
