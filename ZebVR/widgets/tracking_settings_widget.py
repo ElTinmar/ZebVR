@@ -1416,9 +1416,9 @@ class HeadEmbeddedTrackerWidget(QWidget):
 
     def __init__(
             self,
+            identities: Dict,
             image_shape: Tuple[int, int],
             settings_file: Path = Path('tracking.json'),
-            n_animals: int = 1,
             pix_per_mm: float = 30,
             *args,
             **kwargs
@@ -1426,8 +1426,9 @@ class HeadEmbeddedTrackerWidget(QWidget):
 
         super().__init__(*args, **kwargs)
         self.updated = True
+        self.identities = identities
         self.settings_file = settings_file
-        self.n_animals = n_animals
+        self.n_animals = len(identities)
         self.image_shape = image_shape
         self.pix_per_mm = pix_per_mm 
             
