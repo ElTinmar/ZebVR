@@ -29,9 +29,13 @@ class IdentityWidget(QWidget):
         self.snapped_images: List[NDArray] = []
         self.background_image = np.zeros((512, 512, 3), dtype=np.uint8)
         
+        # New container holding separate background copies for each ROI index
+        self.roi_backgrounds: Dict[int, NDArray] = {}
+        
         # Initialize Viewer
         self.viewer = MultiCoordViewer(self)
         self.viewer.state_changed.connect(self.state_changed)
+        self.viewer.systems_reindexed.connect(self.on_viewer_reindexed)
 
         # UI Elements
         self.layer_btn = QPushButton("BG", self.viewer)
@@ -176,15 +180,53 @@ class IdentityWidget(QWidget):
         self.thumb_layout.addWidget(lbl)
         self.bg_modal_btn.setEnabled(True)
 
+    def on_viewer_reindexed(self, index_mapping: Dict[int, int]):
+        updated_backgrounds = {}
+        
+        for old_idx, new_idx in index_mapping.items():
+            if old_idx in self.roi_backgrounds:
+                updated_backgrounds[new_idx] = self.roi_backgrounds[old_idx]
+                
+        self.roi_backgrounds = updated_backgrounds
+
     def open_background_modal(self):
         modal = BackgroundModal(self.snapped_images, parent=self)
         if modal.exec_():
             result = modal.get_result()
             if result is not None:
                 self.background_image = result.copy()
+                img_h, img_w = self.background_image.shape[:2]
+                
+                # Update background slices entirely within this widget context
+                for sys_item in self.viewer.coordinate_systems:
+                    # GUARD: Skip updating if the user locked the item
+                    if sys_item.is_locked:
+                        continue
+                        
+                    # Extract the bounds safely
+                    item_state = sys_item.get_state()
+                    x, y, w, h = item_state["bbox_rect"]
+                    
+                    x1 = max(0, min(x, img_w))
+                    y1 = max(0, min(y, img_h))
+                    x2 = max(0, min(x + w, img_w))
+                    y2 = max(0, min(y + h, img_h))
+                    
+                    if (x2 > x1) and (y2 > y1):
+                        self.roi_backgrounds[sys_item.index] = self.background_image[y1:y2, x1:x2].copy()
+                
                 self.clear_thumbnails()
                 self.layer_btn.setChecked(True)
                 self.toggle_layer(True)
+
+    def sync_roi_background_indices(self):
+        """Ensures index tracking matches the viewer tracking after deletions."""
+        updated_backgrounds = {}
+        for idx, sys_item in enumerate(self.viewer.coordinate_systems):
+            # Map old item backgrounds into their newly assigned reindexed positions
+            if sys_item.index in self.roi_backgrounds:
+                updated_backgrounds[idx] = self.roi_backgrounds[sys_item.index]
+        self.roi_backgrounds = updated_backgrounds
 
     def clear_thumbnails(self):
         self.snapped_images.clear()
@@ -202,6 +244,7 @@ class IdentityWidget(QWidget):
 
     def clear_roi(self):
         self.viewer.clear_coordinate_systems()
+        self.roi_backgrounds.clear()  # Keep dictionary clean
         self.state_changed.emit()
 
     def clear_snaps(self):
@@ -217,7 +260,9 @@ class IdentityWidget(QWidget):
         self.pix_per_mm = pix_per_mm
 
     def get_state(self) -> Dict:
-        return self.viewer.get_state()
+        state = self.viewer.get_state()
+        # Cleanly attach sub-background profiles to matching state signatures if desired
+        return state
     
     def set_state(self, state: Dict) -> None:
         self.viewer.set_state(state)
@@ -228,13 +273,15 @@ class IdentityWidget(QWidget):
         modal.exec_()
 
     def handle_auto(self, circles, rois, annotated_image):
+        self.roi_backgrounds.clear()
         state = {'identities': {}}
         for idx, (circle, bbox) in enumerate(zip(circles, rois)):
             state['identities'][idx] = {
                 'bbox_rect': bbox,
                 'centroid': circle[:2] - bbox[:2],
                 'axes': [[1,0],[0,1]],
-                'axes_visible': False
+                'axes_visible': False,
+                'is_locked': False
             }
         self.set_state(state)
         self.state_changed.emit()
