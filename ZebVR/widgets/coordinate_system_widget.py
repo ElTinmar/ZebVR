@@ -29,7 +29,7 @@ class ScaleInvariantLabel(QGraphicsObject):
         super().__init__(parent)
         self.text = text
         self.setFlags(QGraphicsItem.ItemIgnoresTransformations)
-        self.font = QFont("Arial", 14, QFont.Bold)
+        self.font = QFont("Arial", 16, QFont.Bold)
 
     def boundingRect(self):
         return QRectF(-50, -50, 100, 100)
@@ -43,7 +43,7 @@ class ScaleInvariantLabel(QGraphicsObject):
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setFont(self.font)
     
-        offset_x = 10
+        offset_x = 5
         offset_y = 20
         
         painter.setPen(QColor(0, 0, 0, 255))
