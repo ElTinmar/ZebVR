@@ -58,7 +58,7 @@ class IdentityWidget(QWidget):
         self.snap_btn = QPushButton("Snap Image")
         self.snap_btn.clicked.connect(self.snap_current_image)
 
-        self.clear_snap_btn = QPushButton("Clear Snaps")
+        self.clear_snap_btn = QPushButton("Clear Snapshots")
         self.clear_snap_btn.clicked.connect(self.clear_snaps)
         
         self.bg_modal_btn = QPushButton("Process Background")
