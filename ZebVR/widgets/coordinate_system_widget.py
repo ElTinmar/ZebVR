@@ -53,28 +53,43 @@ class ScaleInvariantLabel(QGraphicsObject):
         painter.setPen(QColor(255, 255, 255, 240))
         painter.drawText(offset_x, offset_y, self.text)
 
-
 class ROIButton(QGraphicsObject):
-    """Subtle, small scale-invariant action button for the ROI corner."""
     clicked = Signal()
 
-    def __init__(self, text: str, bg_color: QColor, hover_color: QColor, parent=None):
+    def __init__(self, text: str, bg_color: QColor, hover_color: QColor, pixel_offset: QPointF, parent=None):
         super().__init__(parent)
         self.text = text
         self.bg_color = bg_color
         self.hover_color = hover_color
+        self.pixel_offset = pixel_offset  # Store fixed screen pixel offset
         self._hovered = False
         
         self.setFlags(QGraphicsItem.ItemIgnoresTransformations)
         self.setAcceptHoverEvents(True)
 
     def boundingRect(self):
-        return QRectF(-12, -12, 24, 24)
+        # Shift the interaction bounding box by the fixed pixel offset
+        return QRectF(-12 + self.pixel_offset.x(), -12 + self.pixel_offset.y(), 24, 24)
 
     def shape(self):
         path = QPainterPath()
         path.addEllipse(self.boundingRect())
         return path
+
+    def paint(self, painter, option, widget):
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        color = self.hover_color if self._hovered else self.bg_color
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QBrush(color))
+        
+        # Draw explicitly at the offset location
+        painter.drawEllipse(self.boundingRect())
+        
+        painter.setPen(QColor(255, 255, 255, 220))
+        painter.setFont(QFont("Arial", 14, QFont.Bold))
+        rect = self.boundingRect().adjusted(0, -1, 0, 0)
+        painter.drawText(rect, Qt.AlignCenter, self.text)
 
     def hoverEnterEvent(self, event):
         self._hovered = True
@@ -100,26 +115,7 @@ class ROIButton(QGraphicsObject):
             event.accept()
         else:
             super().mouseReleaseEvent(event)
-
-    def paint(self, painter, option, widget):
-        painter.setRenderHint(QPainter.Antialiasing)
-        
-        # Draw background circle
-        color = self.hover_color if self._hovered else self.bg_color
-        painter.setPen(Qt.NoPen)
-        painter.setBrush(QBrush(color))
-        painter.drawEllipse(self.boundingRect())
-        
-        # Draw subtle text center icon
-        painter.setPen(QColor(255, 255, 255, 220))
-        font = QFont("Arial", 14, QFont.Bold)
-        painter.setFont(font)
-        
-        # Manual minor centering offset adjust for text icons
-        rect = self.boundingRect().adjusted(0, -1, 0, 0)
-        painter.drawText(rect, Qt.AlignCenter, self.text)
-
-
+            
 class BaseSystemHandle(QGraphicsObject):
     state_changed = Signal()
     selected_signal = Signal()
@@ -309,8 +305,11 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.bbox_bl = BBoxCornerHandle(self.color_bbox, "bl", parent=self)
         self.bbox_br = BBoxCornerHandle(self.color_bbox, "br", parent=self)
 
-        self.btn_delete = ROIButton("×", QColor(190, 50, 50, 180), QColor(240, 40, 40, 240), parent=self)
-        self.btn_lock = ROIButton("🔓", QColor(60, 60, 60, 180), QColor(100, 100, 100, 240), parent=self)
+        self.btn_delete = ROIButton("×", QColor(190, 50, 50, 180), QColor(240, 40, 40, 240), 
+                                    pixel_offset=QPointF(-16, 16), parent=self.bbox_tr)
+                                    
+        self.btn_lock = ROIButton("🔓", QColor(60, 60, 60, 180), QColor(100, 100, 100, 240), 
+                                  pixel_offset=QPointF(-46, 16), parent=self.bbox_tr)
 
         self.label_item = ScaleInvariantLabel(str(self.index), parent=self)
 
@@ -431,11 +430,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.bbox_tr.setPos(self._bbox_cx + hw, self._bbox_cy - hh)
         self.bbox_bl.setPos(self._bbox_cx - hw, self._bbox_cy + hh)
         self.bbox_br.setPos(self._bbox_cx + hw, self._bbox_cy + hh)
-        
-        # Position the subtle buttons dynamically right inside the top right corner line edge
-        self.btn_delete.setPos(self._bbox_cx + hw - 18, self._bbox_cy - hh + 18)
-        self.btn_lock.setPos(self._bbox_cx + hw - 44, self._bbox_cy - hh + 18)
-        
         self.label_item.setPos(self.bbox_tl.pos())
 
     def get_bbox_rect(self):
@@ -666,6 +660,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
 class MultiCoordViewer(QGraphicsView):
     state_changed = Signal()
     selection_changed = Signal(int)
+    systems_reindexed = Signal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -795,12 +790,18 @@ class MultiCoordViewer(QGraphicsView):
         self.state_changed.emit()
 
     def reindex_systems(self):
+        index_mapping = {}
         for idx, sys_item in enumerate(self.coordinate_systems):
+            old_idx = sys_item.index
+            index_mapping[old_idx] = idx
+            
             sys_item.index = idx
             sys_item.label_item.text = str(idx) 
             sys_item.update() 
+            
         self.scene.update()
         self.state_changed.emit()
+        self.systems_reindexed.emit(index_mapping)
 
     def get_state(self) -> dict:
         data = {'n_animals': len(self.coordinate_systems), 'identities': {}}
