@@ -192,18 +192,17 @@ class IdentityWidget(QWidget):
     def open_background_modal(self):
         modal = BackgroundModal(self.snapped_images, parent=self)
         if modal.exec_():
-            result = modal.get_result()
-            if result is not None:
-                self.background_image = result.copy()
-                img_h, img_w = self.background_image.shape[:2]
+            background_image = modal.get_result()
+            if background_image is not None:
+                img_h, img_w = background_image.shape[:2]
                 
-                # Update background slices entirely within this widget context
+                if self.background_image.shape[:2] != (img_h, img_w):
+                    self.background_image = np.zeros_like(background_image)
+
                 for sys_item in self.viewer.coordinate_systems:
-                    # GUARD: Skip updating if the user locked the item
                     if sys_item.is_locked:
                         continue
                         
-                    # Extract the bounds safely
                     item_state = sys_item.get_state()
                     x, y, w, h = item_state["bbox_rect"]
                     
@@ -213,7 +212,8 @@ class IdentityWidget(QWidget):
                     y2 = max(0, min(y + h, img_h))
                     
                     if (x2 > x1) and (y2 > y1):
-                        self.roi_backgrounds[sys_item.index] = self.background_image[y1:y2, x1:x2].copy()
+                        self.roi_backgrounds[sys_item.index] = background_image[y1:y2, x1:x2].copy()
+                        self.background_image[y1:y2, x1:x2] = self.roi_backgrounds[sys_item.index] 
                 
                 self.clear_thumbnails()
                 self.layer_btn.setChecked(True)
