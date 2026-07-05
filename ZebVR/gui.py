@@ -203,7 +203,7 @@ class MainGui(QMainWindow):
         self.tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding) 
 
         self.start_button = QPushButton()
-        self.start_button.setText('start')
+        self.start_button.setText('interactive mode')
         self.start_button.clicked.connect(self.preview)
 
         self.stop_button = QPushButton()
@@ -211,7 +211,7 @@ class MainGui(QMainWindow):
         self.stop_button.clicked.connect(self.stop)
 
         self.record_button = QPushButton()
-        self.record_button.setText('record')
+        self.record_button.setText('run protocol')
         self.record_button.clicked.connect(self.record)
 
         self.recording_duration = LabeledDoubleSpinBox()
