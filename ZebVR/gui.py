@@ -9,7 +9,6 @@ from array import array
 from enum import Enum
 from collections import deque
 
-import cv2
 import numpy as np
 from qtpy.QtWidgets import (
     QWidget, 
@@ -409,7 +408,8 @@ class MainGui(QMainWindow):
             'projector.light_analysis.spectrometer.spectrometer_constructor',
             'projector.light_analysis.spectrometer.spectrometers',
             'sequencer.protocol',
-            'daq'
+            'daq',
+            'identity.background'
         }
         clean_state = make_json_safe(state, exclude_keys)
         with open(filename_correct_ext, 'w') as fp:
