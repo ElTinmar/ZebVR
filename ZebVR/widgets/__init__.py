@@ -4,7 +4,6 @@ from .sequencer_tree_widget import *
 from .projector_widget import *
 from .registration_widget import *
 from .calibration_widget import *
-from .background_widget import *
 from .logs_widget import *
 from .identity_widget import *
 from .temperature_widget import *

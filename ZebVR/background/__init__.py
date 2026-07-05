@@ -1,2 +1,0 @@
-from .inpaint_background import inpaint_background
-from .static_background import static_background
