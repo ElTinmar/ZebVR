@@ -79,7 +79,6 @@ class SequencerWidget(QWidget):
 
     state_changed =  Signal()
     DEFAULT_DEBOUNCER_LENGTH = 5
-    DEFAULT_BACKGROUND_FILE: Path = Path('ZebVR/default/background.npy')
 
     def __init__(
             self,
@@ -93,8 +92,6 @@ class SequencerWidget(QWidget):
         self.debouncer = Debouncer(self.DEFAULT_DEBOUNCER_LENGTH)
         self.daq_boards = daq_boards
         self.background_image = None
-        if self.DEFAULT_BACKGROUND_FILE.exists():
-            self.background_image = np.load(self.DEFAULT_BACKGROUND_FILE)
 
         self.declare_components()
         self.layout_components()

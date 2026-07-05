@@ -137,7 +137,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         tracker_worker_list.append(
             TrackerWorker(
                 tracker, 
-                background_image_file = settings['background']['background_file'],
+                background_image = settings['background']['background'],
                 cam_fps = settings['camera']['framerate_value'],
                 cam_width = settings['camera']['width_value'],
                 cam_height = settings['camera']['height_value'],

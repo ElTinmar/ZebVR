@@ -13,7 +13,7 @@ class TrackerWorker(WorkerNode):
     def __init__(
             self, 
             tracker: Tracker, 
-            background_image_file: Union[Path, str],
+            background_image: np.ndarray,
             cam_fps: float,
             cam_width: int,
             cam_height: int,
@@ -25,8 +25,7 @@ class TrackerWorker(WorkerNode):
 
         super().__init__(*args, **kwargs)
         self.tracker = tracker
-        self.background_image_file = Path(background_image_file)
-        self.background_image = np.load(self.background_image_file)
+        self.background_image = background_image
         self.cam_width = cam_width 
         self.cam_height = cam_height
         self.cam_fps = cam_fps
