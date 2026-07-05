@@ -108,7 +108,7 @@ class IdentityWidget(QWidget):
         main_layout.addWidget(self.thumb_scroll)
             
         self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_background_image)
+        self.timer.timeout.connect(self.update_viewer_image)
         self.timer.start(1000 // self.REFRESH_RATE) 
 
     def _create_hlayout(self, widgets):
@@ -116,7 +116,6 @@ class IdentityWidget(QWidget):
         for w in widgets: l.addWidget(w)
         return l
 
-    # --- Auto Capture Logic ---
     def toggle_auto_capture(self, checked: bool):
         if checked:
             self.snaps_remaining = self.count_input.value()
@@ -145,12 +144,11 @@ class IdentityWidget(QWidget):
         self.snaps_remaining -= 1
         self.progress_bar.setValue(self.progress_bar.maximum() - self.snaps_remaining)
 
-    # --- Standard Functionality ---
     def toggle_layer(self, checked: bool):
         self.showing_background = checked
         if self.showing_background:
             self.timer.stop()
-            self.viewer.set_background_image(self.background_image)
+            self.viewer.set_image(self.background_image)
         else:
             self.timer.start(1000 // self.REFRESH_RATE)
 
@@ -174,30 +172,33 @@ class IdentityWidget(QWidget):
         modal = BackgroundModal(self.snapped_images, parent=self)
         if modal.exec_():
             background_image = modal.get_result()
-            if background_image is not None:
-                img_h, img_w = background_image.shape[:2]
-                
-                if self.background_image.shape[:2] != (img_h, img_w):
-                    self.background_image = np.zeros_like(background_image)
+            if background_image is None:
+                return 
+            
+            img_h, img_w = background_image.shape[:2]
+            
+            if self.background_image.shape[:2] != (img_h, img_w):
+                self.background_image = np.zeros_like(background_image)
 
-                for sys_item in self.viewer.coordinate_systems:
-                    if sys_item.is_locked:
-                        continue
-                        
-                    item_state = sys_item.get_state()
-                    x, y, w, h = item_state["bbox_rect"]
+            for sys_item in self.viewer.coordinate_systems:
+                if sys_item.is_locked:
+                    continue
                     
-                    x1 = max(0, min(x, img_w))
-                    y1 = max(0, min(y, img_h))
-                    x2 = max(0, min(x + w, img_w))
-                    y2 = max(0, min(y + h, img_h))
-                    
-                    if (x2 > x1) and (y2 > y1):
-                        self.background_image[y1:y2, x1:x2] = background_image[y1:y2, x1:x2].copy() 
+                item_state = sys_item.get_state()
+                x, y, w, h = item_state["bbox_rect"]
                 
-                self.clear_thumbnails()
-                self.layer_btn.setChecked(True)
-                self.toggle_layer(True)
+                x1 = max(0, min(x, img_w))
+                y1 = max(0, min(y, img_h))
+                x2 = max(0, min(x + w, img_w))
+                y2 = max(0, min(y + h, img_h))
+                
+                if (x2 > x1) and (y2 > y1):
+                    self.background_image[y1:y2, x1:x2] = background_image[y1:y2, x1:x2].copy() 
+            
+            self.clear_thumbnails()
+            self.layer_btn.setChecked(True)
+            self.toggle_layer(True)
+            self.state_changed.emit()
 
     def clear_thumbnails(self):
         self.snapped_images.clear()
@@ -206,9 +207,9 @@ class IdentityWidget(QWidget):
             if item.widget(): item.widget().deleteLater()
         self.bg_modal_btn.setEnabled(False)
 
-    def update_background_image(self):
+    def update_viewer_image(self):
         if not self.showing_background:
-            self.viewer.set_background_image(self.image)
+            self.viewer.set_image(self.image)
 
     def set_image(self, image: NDArray) -> None:
         self.image = image
