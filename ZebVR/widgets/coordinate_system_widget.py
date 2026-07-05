@@ -482,14 +482,14 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         
         # Adjust styling slightly if it's locked to visually represent lock state
         if self.isSelected():
-            color = QColor(130, 130, 130, 150) if self.is_locked else self.color_bbox_selected
+            color = QColor(137, 243, 54, 180) if self.is_locked else self.color_bbox_selected
             bbox_pen = QPen(color, 2.5, Qt.DashLine)
             bbox_pen.setCosmetic(True)
             painter.setPen(bbox_pen)
             if not self.axes_visible:
                 painter.setBrush(QBrush(QColor(color.red(), color.green(), color.blue(), 15)))
         else:
-            color = QColor(150, 150, 150, 100) if self.is_locked else self.color_bbox
+            color = QColor(137, 243, 54, 180) if self.is_locked else self.color_bbox
             bbox_pen = QPen(color, 2.0, Qt.DashLine)
             bbox_pen.setCosmetic(True)
             painter.setPen(bbox_pen)
