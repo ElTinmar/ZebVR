@@ -17,7 +17,6 @@ from qt_widgets import LabeledSpinBox, LabeledDoubleSpinBox
 
 class IdentityWidget(QWidget):
     state_changed = Signal()
-    DEFAULT_FILE: Path = Path('ZebVR/default/background.npy')
     REFRESH_RATE = 60
     
     def __init__(self, pix_per_mm: float = 30, *args, **kwargs):
@@ -27,15 +26,12 @@ class IdentityWidget(QWidget):
         self.showing_background = False
         
         self.snapped_images: List[NDArray] = []
-        self.background_image = np.zeros((512, 512, 3), dtype=np.uint8)
-        
-        # New container holding separate background copies for each ROI index
-        self.roi_backgrounds: Dict[int, NDArray] = {}
+        self.image = np.zeros((512, 512, 3), dtype=np.uint8)
+        self.background_image = np.zeros((512, 512, 3), dtype=np.uint8)        
         
         # Initialize Viewer
         self.viewer = MultiCoordViewer(self)
         self.viewer.state_changed.connect(self.state_changed)
-        self.viewer.systems_reindexed.connect(self.on_viewer_reindexed)
 
         # UI Elements
         self.layer_btn = QPushButton("BG", self.viewer)
@@ -110,12 +106,6 @@ class IdentityWidget(QWidget):
         main_layout.addLayout(self._create_hlayout([self.count_input, self.interval_input, self.start_auto_btn]))
         main_layout.addWidget(self.progress_bar)
         main_layout.addWidget(self.thumb_scroll)
-
-        # Data Initialization
-        if self.DEFAULT_FILE.exists():
-            self.image = np.load(self.DEFAULT_FILE)
-        else:
-            self.image = np.zeros((512, 512, 3), dtype=np.uint8)
             
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_background_image)
@@ -180,15 +170,6 @@ class IdentityWidget(QWidget):
         self.thumb_layout.addWidget(lbl)
         self.bg_modal_btn.setEnabled(True)
 
-    def on_viewer_reindexed(self, index_mapping: Dict[int, int]):
-        updated_backgrounds = {}
-        
-        for old_idx, new_idx in index_mapping.items():
-            if old_idx in self.roi_backgrounds:
-                updated_backgrounds[new_idx] = self.roi_backgrounds[old_idx]
-                
-        self.roi_backgrounds = updated_backgrounds
-
     def open_background_modal(self):
         modal = BackgroundModal(self.snapped_images, parent=self)
         if modal.exec_():
@@ -212,21 +193,11 @@ class IdentityWidget(QWidget):
                     y2 = max(0, min(y + h, img_h))
                     
                     if (x2 > x1) and (y2 > y1):
-                        self.roi_backgrounds[sys_item.index] = background_image[y1:y2, x1:x2].copy()
-                        self.background_image[y1:y2, x1:x2] = self.roi_backgrounds[sys_item.index] 
+                        self.background_image[y1:y2, x1:x2] = background_image[y1:y2, x1:x2].copy() 
                 
                 self.clear_thumbnails()
                 self.layer_btn.setChecked(True)
                 self.toggle_layer(True)
-
-    def sync_roi_background_indices(self):
-        """Ensures index tracking matches the viewer tracking after deletions."""
-        updated_backgrounds = {}
-        for idx, sys_item in enumerate(self.viewer.coordinate_systems):
-            # Map old item backgrounds into their newly assigned reindexed positions
-            if sys_item.index in self.roi_backgrounds:
-                updated_backgrounds[idx] = self.roi_backgrounds[sys_item.index]
-        self.roi_backgrounds = updated_backgrounds
 
     def clear_thumbnails(self):
         self.snapped_images.clear()
@@ -244,7 +215,6 @@ class IdentityWidget(QWidget):
 
     def clear_roi(self):
         self.viewer.clear_coordinate_systems()
-        self.roi_backgrounds.clear()  # Keep dictionary clean
         self.state_changed.emit()
 
     def clear_snaps(self):
@@ -261,7 +231,7 @@ class IdentityWidget(QWidget):
 
     def get_state(self) -> Dict:
         state = self.viewer.get_state()
-        # Cleanly attach sub-background profiles to matching state signatures if desired
+        state['background'] = self.background_image
         return state
     
     def set_state(self, state: Dict) -> None:
@@ -273,7 +243,6 @@ class IdentityWidget(QWidget):
         modal.exec_()
 
     def handle_auto(self, circles, rois, annotated_image):
-        self.roi_backgrounds.clear()
         state = {'identities': {}}
         for idx, (circle, bbox) in enumerate(zip(circles, rois)):
             state['identities'][idx] = {
