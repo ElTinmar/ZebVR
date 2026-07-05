@@ -237,7 +237,7 @@ class IdentityWidget(QWidget):
     
     def set_state(self, state: Dict) -> None:
         self.viewer.set_state(state)
-        self.background_image = state['background']
+        #self.background_image = state['background']
         
     def on_auto(self):
         modal = FindCircularArenasDialog(image=self.image, pix_per_mm=self.pix_per_mm)
