@@ -269,7 +269,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         tracker_worker_list.append(
             TrackerWorker(
                 tracker, 
-                background_image = settings['background']['background'],
+                background_image = settings['identity']['background'],
                 cam_fps = settings['camera']['framerate_value'],
                 cam_width = settings['camera']['width_value'],
                 cam_height = settings['camera']['height_value'],
