@@ -321,7 +321,7 @@ class DrawPolyMask(QWidget):
         if self.base_np is None or not self.polygons:
             return None
             
-        h, w, _ = self.base_np.shape
+        h, w = self.base_np.shape[:2]
         scale_w = w / self.base_size.width()
         scale_h = h / self.base_size.height()
         
