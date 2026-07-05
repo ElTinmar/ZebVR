@@ -304,9 +304,10 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.bbox_tr = BBoxCornerHandle(self.color_bbox, "tr", parent=self)
         self.bbox_bl = BBoxCornerHandle(self.color_bbox, "bl", parent=self)
         self.bbox_br = BBoxCornerHandle(self.color_bbox, "br", parent=self)
-
+        
         self.btn_delete = ROIButton("×", QColor(190, 50, 50, 180), QColor(240, 40, 40, 240), 
                                     pixel_offset=QPointF(-16, 16), parent=self.bbox_tr)
+        
                                     
         self.btn_lock = ROIButton("🔓", QColor(60, 60, 60, 180), QColor(100, 100, 100, 240), 
                                   pixel_offset=QPointF(-46, 16), parent=self.bbox_tr)
@@ -480,7 +481,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
     def paint(self, painter, option, widget):
         painter.setRenderHint(QPainter.Antialiasing)
         
-        # Adjust styling slightly if it's locked to visually represent lock state
         if self.isSelected():
             color = QColor(137, 243, 54, 180) if self.is_locked else self.color_bbox_selected
             bbox_pen = QPen(color, 2.5, Qt.DashLine)
@@ -622,7 +622,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         centroid_y = int(round(-self.bbox_tl.y()))
         
         return {
-            "is_locked": self.is_locked,
             "axes_visible": self.axes_visible,
             "bbox_rect": [x, y, w, h],
             "centroid": [centroid_x, centroid_y],
@@ -648,9 +647,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self._current_angle = math.atan2(axes[1][1], axes[0][1])
 
         self.set_axes_visible(data["axes_visible"])
-        
-        if "is_locked" in data and data["is_locked"] != self.is_locked:
-            self.toggle_lock()
             
         self.update_axis_positions()
         self.update_bbox_positions()
