@@ -734,15 +734,19 @@ class MultiCoordViewer(QGraphicsView):
 
     def set_image(self, image: NDArray):
         pixmap = NDarray_to_QPixmap(image)
-        if self.bg_pixmap_item in self.scene.items(): 
-            self.scene.removeItem(self.bg_pixmap_item)
-        self.bg_pixmap_item = self.scene.addPixmap(pixmap)
-        self.bg_pixmap_item.setZValue(-100)
-        image_rect = QRectF(pixmap.rect())
-        self.setSceneRect(QRectF(pixmap.rect()))
-        self.scene.setSceneRect(image_rect)
         
-        self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
+        if self.bg_pixmap_item is None:
+            self.bg_pixmap_item = self.scene.addPixmap(pixmap)
+            self.bg_pixmap_item.setZValue(-100)
+        else:
+            self.bg_pixmap_item.setPixmap(pixmap)
+            
+        image_rect = QRectF(pixmap.rect())
+        if self.sceneRect() != image_rect:
+            self.setSceneRect(image_rect)
+            self.scene.setSceneRect(image_rect)
+            self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
+            
         self.state_changed.emit()
 
     def add_coordinate_system(self, scene_pos: QPointF):
