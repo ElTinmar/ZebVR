@@ -22,7 +22,6 @@ from qtpy.QtCore import (
     QPointF, 
     Signal
 )
-
 from qt_widgets import NDarray_to_QPixmap
 
 class ScaleInvariantLabel(QGraphicsObject):
@@ -33,7 +32,6 @@ class ScaleInvariantLabel(QGraphicsObject):
         self.font = QFont("Arial", 14, QFont.Bold)
 
     def boundingRect(self):
-        # Allow room for the text offset boundaries
         return QRectF(-50, -50, 100, 100)
 
     def shape(self):
@@ -48,14 +46,78 @@ class ScaleInvariantLabel(QGraphicsObject):
         offset_x = 10
         offset_y = 20
         
-        # Draw shadow/outline
         painter.setPen(QColor(0, 0, 0, 255))
         painter.drawText(offset_x + 1, offset_y + 1, self.text)
         painter.drawText(offset_x - 1, offset_y - 1, self.text)
         
-        # Draw clean crisp white font
         painter.setPen(QColor(255, 255, 255, 240))
         painter.drawText(offset_x, offset_y, self.text)
+
+
+class ROIButton(QGraphicsObject):
+    """Subtle, small scale-invariant action button for the ROI corner."""
+    clicked = Signal()
+
+    def __init__(self, text: str, bg_color: QColor, hover_color: QColor, parent=None):
+        super().__init__(parent)
+        self.text = text
+        self.bg_color = bg_color
+        self.hover_color = hover_color
+        self._hovered = False
+        
+        self.setFlags(QGraphicsItem.ItemIgnoresTransformations)
+        self.setAcceptHoverEvents(True)
+
+    def boundingRect(self):
+        return QRectF(-12, -12, 24, 24)
+
+    def shape(self):
+        path = QPainterPath()
+        path.addEllipse(self.boundingRect())
+        return path
+
+    def hoverEnterEvent(self, event):
+        self._hovered = True
+        self.setCursor(Qt.PointingHandCursor)
+        self.update()
+        super().hoverEnterEvent(event)
+
+    def hoverLeaveEvent(self, event):
+        self._hovered = False
+        self.unsetCursor()
+        self.update()
+        super().hoverLeaveEvent(event)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            event.accept()
+        else:
+            super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton and self.boundingRect().contains(event.pos()):
+            self.clicked.emit()
+            event.accept()
+        else:
+            super().mouseReleaseEvent(event)
+
+    def paint(self, painter, option, widget):
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        # Draw background circle
+        color = self.hover_color if self._hovered else self.bg_color
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QBrush(color))
+        painter.drawEllipse(self.boundingRect())
+        
+        # Draw subtle text center icon
+        painter.setPen(QColor(255, 255, 255, 220))
+        font = QFont("Arial", 14, QFont.Bold)
+        painter.setFont(font)
+        
+        # Manual minor centering offset adjust for text icons
+        rect = self.boundingRect().adjusted(0, -1, 0, 0)
+        painter.drawText(rect, Qt.AlignCenter, self.text)
 
 
 class BaseSystemHandle(QGraphicsObject):
@@ -97,6 +159,11 @@ class BaseSystemHandle(QGraphicsObject):
         super().hoverLeaveEvent(event)
 
     def mousePressEvent(self, event):
+        # Ignore handle manipulation if locked
+        if self.parentItem() and getattr(self.parentItem(), "is_locked", False):
+            event.ignore()
+            return
+            
         if event.button() == Qt.LeftButton:
             self._drag_start_scene = event.scenePos()
             self.selected_signal.emit()
@@ -118,7 +185,8 @@ class OriginHandle(BaseSystemHandle):
         super().__init__(color, size=14, interaction_margin=10, parent=parent)
 
     def hoverEnterEvent(self, event):
-        self.setCursor(Qt.CrossCursor)
+        if not getattr(self.parentItem(), "is_locked", False):
+            self.setCursor(Qt.CrossCursor)
         super().hoverEnterEvent(event)
 
     def paint(self, painter, option, widget):
@@ -131,7 +199,6 @@ class OriginHandle(BaseSystemHandle):
         painter.drawEllipse(QPointF(0, 0), r, r)
         
         alpha = 140 if self._hovered else 90
-        # Cosmetic pen for uniform crosshairs
         crosshair_pen = QPen(QColor(0, 0, 0, alpha), 1.2)
         crosshair_pen.setCosmetic(True)
         painter.setPen(crosshair_pen)
@@ -142,7 +209,7 @@ class OriginHandle(BaseSystemHandle):
         parent = self.parentItem()
         scene = self.scene()
 
-        if parent and scene and (event.buttons() & Qt.LeftButton):
+        if parent and scene and (event.buttons() & Qt.LeftButton) and not parent.is_locked:
             delta = event.scenePos() - self._drag_start_scene
             parent.handle_origin_move(delta, self._drag_start_parent_pos)
             event.accept()
@@ -153,7 +220,8 @@ class AxisHandle(BaseSystemHandle):
         super().__init__(color, size=10, interaction_margin=10, parent=parent)
 
     def hoverEnterEvent(self, event):
-        self.setCursor(Qt.SizeAllCursor)
+        if not getattr(self.parentItem(), "is_locked", False):
+            self.setCursor(Qt.SizeAllCursor)
         super().hoverEnterEvent(event)
 
     def paint(self, painter, option, widget):
@@ -165,7 +233,7 @@ class AxisHandle(BaseSystemHandle):
 
     def mouseMoveEvent(self, event):
         parent = self.parentItem()
-        if parent and event.buttons() & Qt.LeftButton:
+        if parent and (event.buttons() & Qt.LeftButton) and not parent.is_locked:
             local_mouse_pos = parent.mapFromScene(event.scenePos())
             parent.handle_axis_drag(self, local_mouse_pos)
             event.accept()
@@ -177,7 +245,8 @@ class BBoxCornerHandle(BaseSystemHandle):
         self.corner_id = corner_id
 
     def hoverEnterEvent(self, event):
-        self.setCursor(Qt.SizeFDiagCursor if self.corner_id in ["tl", "br"] else Qt.SizeBDiagCursor)
+        if not getattr(self.parentItem(), "is_locked", False):
+            self.setCursor(Qt.SizeFDiagCursor if self.corner_id in ["tl", "br"] else Qt.SizeBDiagCursor)
         super().hoverEnterEvent(event)
 
     def paint(self, painter, option, widget):
@@ -190,7 +259,7 @@ class BBoxCornerHandle(BaseSystemHandle):
 
     def mouseMoveEvent(self, event):
         parent = self.parentItem()
-        if parent and event.buttons() & Qt.LeftButton:
+        if parent and (event.buttons() & Qt.LeftButton) and not parent.is_locked:
             local_mouse_pos = parent.mapFromScene(event.scenePos())
             parent.handle_bbox_resize(self, local_mouse_pos)
             event.accept()
@@ -205,6 +274,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.index: int = index  
         self.parent_widget = parent_widget
         self.axes_visible: bool = True  
+        self.is_locked: bool = False
         
         self.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemSendsGeometryChanges)
         self.setAcceptHoverEvents(True)
@@ -239,8 +309,14 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.bbox_bl = BBoxCornerHandle(self.color_bbox, "bl", parent=self)
         self.bbox_br = BBoxCornerHandle(self.color_bbox, "br", parent=self)
 
-        # Scale invariant child label proxy
+        self.btn_delete = ROIButton("×", QColor(190, 50, 50, 180), QColor(240, 40, 40, 240), parent=self)
+        self.btn_lock = ROIButton("🔓", QColor(60, 60, 60, 180), QColor(100, 100, 100, 240), parent=self)
+
         self.label_item = ScaleInvariantLabel(str(self.index), parent=self)
+
+        # Wire Up Button actions
+        self.btn_delete.clicked.connect(self._on_delete_clicked)
+        self.btn_lock.clicked.connect(self.toggle_lock)
 
         self.origin.state_changed.connect(self.state_changed.emit)
         self.axis_lateral.state_changed.connect(self.state_changed.emit)
@@ -261,6 +337,17 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.update_axis_positions()
         self.update_bbox_positions()
 
+    def toggle_lock(self):
+        self.is_locked = not self.is_locked
+        self.btn_lock.text = "🔒" if self.is_locked else "🔓"
+        self.btn_lock.bg_color = QColor(190, 140, 0, 180) if self.is_locked else QColor(60, 60, 60, 180)
+        self.btn_lock.update()
+        self.state_changed.emit()
+
+    def _on_delete_clicked(self):
+        if self.parent_widget:
+            self.parent_widget.remove_coordinate_system(self.index)
+
     def _on_child_handle_selected(self):
         self.setSelected(True)
         self.selected_signal.emit(self.index)
@@ -271,7 +358,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         return super().itemChange(change, value)
 
     def hoverEnterEvent(self, event):
-        if not self.axes_visible:
+        if not self.axes_visible and not self.is_locked:
             self.setCursor(Qt.SizeAllCursor)
         super().hoverEnterEvent(event)
 
@@ -283,7 +370,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.setSelected(True)
         self.selected_signal.emit(self.index)
         
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.LeftButton and not self.is_locked:
             self._drag_start_scene = event.scenePos()
             self._drag_start_pos = self.pos()
             event.accept()
@@ -291,7 +378,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
             super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if event.buttons() & Qt.LeftButton:
+        if (event.buttons() & Qt.LeftButton) and not self.is_locked:
             delta = event.scenePos() - self._drag_start_scene
             self.handle_origin_move(delta, self._drag_start_pos)
             event.accept()
@@ -344,6 +431,11 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.bbox_tr.setPos(self._bbox_cx + hw, self._bbox_cy - hh)
         self.bbox_bl.setPos(self._bbox_cx - hw, self._bbox_cy + hh)
         self.bbox_br.setPos(self._bbox_cx + hw, self._bbox_cy + hh)
+        
+        # Position the subtle buttons dynamically right inside the top right corner line edge
+        self.btn_delete.setPos(self._bbox_cx + hw - 18, self._bbox_cy - hh + 18)
+        self.btn_lock.setPos(self._bbox_cx + hw - 44, self._bbox_cy - hh + 18)
+        
         self.label_item.setPos(self.bbox_tl.pos())
 
     def get_bbox_rect(self):
@@ -380,6 +472,10 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         total_shape.addPath(self.bbox_bl.mapToParent(self.bbox_bl.shape()))
         total_shape.addPath(self.bbox_br.mapToParent(self.bbox_br.shape()))
         
+        # Register buttons bounds into item shape
+        total_shape.addPath(self.btn_delete.mapToParent(self.btn_delete.shape()))
+        total_shape.addPath(self.btn_lock.mapToParent(self.btn_lock.shape()))
+        
         if self.axes_visible:
             total_shape.addPath(self.origin.mapToParent(self.origin.shape()))
             total_shape.addPath(self.axis_lateral.mapToParent(self.axis_lateral.shape()))
@@ -390,22 +486,23 @@ class InteractiveCoordinateSystem(QGraphicsObject):
     def paint(self, painter, option, widget):
         painter.setRenderHint(QPainter.Antialiasing)
         
-        # Bbox Pens configured as Cosmetic
+        # Adjust styling slightly if it's locked to visually represent lock state
         if self.isSelected():
-            bbox_pen = QPen(self.color_bbox_selected, 2.5, Qt.DashLine)
+            color = QColor(130, 130, 130, 150) if self.is_locked else self.color_bbox_selected
+            bbox_pen = QPen(color, 2.5, Qt.DashLine)
             bbox_pen.setCosmetic(True)
             painter.setPen(bbox_pen)
             if not self.axes_visible:
-                painter.setBrush(QBrush(QColor(self.color_bbox_selected.red(), self.color_bbox_selected.green(), self.color_bbox_selected.blue(), 15)))
+                painter.setBrush(QBrush(QColor(color.red(), color.green(), color.blue(), 15)))
         else:
-            bbox_pen = QPen(self.color_bbox, 2.0, Qt.DashLine)
+            color = QColor(150, 150, 150, 100) if self.is_locked else self.color_bbox
+            bbox_pen = QPen(color, 2.0, Qt.DashLine)
             bbox_pen.setCosmetic(True)
             painter.setPen(bbox_pen)
             painter.setBrush(Qt.NoBrush)
             
         painter.drawRect(self.get_bbox_rect())
 
-        # Vector Axis Pens configured as Cosmetic
         if self.axes_visible:
             lat_pen = QPen(QColor(self.color_lateral.red(), self.color_lateral.green(), self.color_lateral.blue(), 230), 3.0)
             lat_pen.setCosmetic(True)
@@ -419,7 +516,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
 
     def handle_origin_move(self, delta: QPointF, drag_start_parent_pos: QPointF):
         scene = self.scene()
-        if not scene:
+        if not scene or self.is_locked:
             return
             
         self.prepareGeometryChange()
@@ -445,6 +542,8 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.update()
 
     def handle_axis_drag(self, node, local_mouse_pos):
+        if self.is_locked:
+            return
         self.prepareGeometryChange()
         dx, dy = local_mouse_pos.x(), local_mouse_pos.y()
         if node == self.axis_lateral:
@@ -455,6 +554,8 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self.update()
 
     def handle_bbox_resize(self, node, local_mouse_pos):
+        if self.is_locked:
+            return
         self.prepareGeometryChange()
         self._resize_asymmetric(node, local_mouse_pos)
         self.update_bbox_positions()
@@ -518,7 +619,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
     def get_state(self) -> dict:
         bbox_tl_scene_pos = self.mapToScene(self.bbox_tl.pos())
 
-        # Clean integer transformations upon serialization
         x = int(round(bbox_tl_scene_pos.x()))
         y = int(round(bbox_tl_scene_pos.y()))
         w = int(round(self._bbox_w))
@@ -528,6 +628,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         centroid_y = int(round(-self.bbox_tl.y()))
         
         return {
+            "is_locked": self.is_locked,
             "axes_visible": self.axes_visible,
             "bbox_rect": [x, y, w, h],
             "centroid": [centroid_x, centroid_y],
@@ -553,6 +654,10 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         self._current_angle = math.atan2(axes[1][1], axes[0][1])
 
         self.set_axes_visible(data["axes_visible"])
+        
+        if "is_locked" in data and data["is_locked"] != self.is_locked:
+            self.toggle_lock()
+            
         self.update_axis_positions()
         self.update_bbox_positions()
         self.update()
@@ -637,7 +742,13 @@ class MultiCoordViewer(QGraphicsView):
             self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
 
     def set_background_image(self, image: NDArray):
-        pixmap = NDarray_to_QPixmap(image)
+        # Fallback to standard check if implementation relies on exterior script logic
+        try:
+            from qt_widgets import NDarray_to_QPixmap
+            pixmap = NDarray_to_QPixmap(image)
+        except ImportError:
+            return
+            
         if self.bg_pixmap_item in self.scene.items(): 
             self.scene.removeItem(self.bg_pixmap_item)
         self.bg_pixmap_item = self.scene.addPixmap(pixmap)
@@ -686,7 +797,7 @@ class MultiCoordViewer(QGraphicsView):
     def reindex_systems(self):
         for idx, sys_item in enumerate(self.coordinate_systems):
             sys_item.index = idx
-            sys_item.label_item.text = str(idx) # Sync proxy label text string
+            sys_item.label_item.text = str(idx) 
             sys_item.update() 
         self.scene.update()
         self.state_changed.emit()
