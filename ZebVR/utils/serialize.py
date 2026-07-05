@@ -1,5 +1,8 @@
-from typing import Callable, Any, Dict
+from typing import Callable, Any, Dict, Optional
 from collections import deque
+import cv2
+import base64
+import numpy as np
 
 def get_attributes(obj: Any) -> Dict[str, Any]:
     result = {}
@@ -36,3 +39,35 @@ def serialize(obj: Any, serializers: Dict[Any, Callable]):
         return serialize(attrs, serializers)
 
     return repr(obj)
+
+
+def ndarray_to_b64_png(image: np.ndarray) -> str:
+    """
+    Compresses a NumPy image array into a PNG and encodes it to a Base64 string 
+    suitable for JSON serialization. Returns an empty string if compression fails.
+    """
+    if image is None or image.size == 0:
+        return ""
+    
+    success, encoded_img = cv2.imencode('.png', image)
+    if not success:
+        return ""
+        
+    return base64.b64encode(encoded_img).decode('utf-8')
+
+
+def b64_png_to_ndarray(b64_string: str) -> Optional[np.ndarray]:
+    """
+    Decodes a Base64 PNG string back into a standard NumPy image array.
+    Returns None if the string is empty or invalid.
+    """
+    if not b64_string:
+        return None
+        
+    try:
+        img_bytes = base64.b64decode(b64_string)
+        nparr = np.frombuffer(img_bytes, np.uint8)
+        return cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    except Exception:
+        # Catch decoding or corruption errors gracefully
+        return None
