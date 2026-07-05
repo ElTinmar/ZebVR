@@ -736,14 +736,8 @@ class MultiCoordViewer(QGraphicsView):
         if self.bg_pixmap_item:
             self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
 
-    def set_background_image(self, image: NDArray):
-        # Fallback to standard check if implementation relies on exterior script logic
-        try:
-            from qt_widgets import NDarray_to_QPixmap
-            pixmap = NDarray_to_QPixmap(image)
-        except ImportError:
-            return
-            
+    def set_image(self, image: NDArray):
+        pixmap = NDarray_to_QPixmap(image)
         if self.bg_pixmap_item in self.scene.items(): 
             self.scene.removeItem(self.bg_pixmap_item)
         self.bg_pixmap_item = self.scene.addPixmap(pixmap)
