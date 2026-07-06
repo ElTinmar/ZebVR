@@ -250,7 +250,7 @@ class IdentityWidget(QWidget):
             state['identities'][idx] = {
                 'bbox_rect': bbox,
                 'centroid': circle[:2] - bbox[:2],
-                'axes': [[1,0],[0,1]],
+                'axes': [[0,1],[-1,0]],
                 'axes_visible': False,
                 'is_locked': False
             }
