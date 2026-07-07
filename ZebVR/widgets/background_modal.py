@@ -361,6 +361,9 @@ class BackgroundModal(QDialog):
         self.resize(1300, 850)
         self.init_ui()
         self.update_workflow_state()
+
+        if len(np_arrays) == 1:
+            self.btn_mode.click()
         
     def init_ui(self):
         window_layout = QVBoxLayout(self)
