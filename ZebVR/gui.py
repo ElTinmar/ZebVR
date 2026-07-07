@@ -761,6 +761,7 @@ class MainGui(QMainWindow):
         self.start_thread = WorkerThread(self.start_dag)
         self.start_thread.finished.connect(self._on_start_finished, Qt.UniqueConnection)
         self.start_thread.finished.connect(self.start_thread.deleteLater)
+        self.start_thread.exception.connect(print)
         self.start_thread.start()
 
     def _on_start_finished(self):
