@@ -1,7 +1,6 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict
 import numpy as np
 from numpy.typing import NDArray
-from pathlib import Path
 from ZebVR.utils.tracker_from_json import single_fish_tracker, head_embedded_tracker
 
 from tracker import Tracker
