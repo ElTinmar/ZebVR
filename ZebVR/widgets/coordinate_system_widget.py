@@ -269,7 +269,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         super().__init__()
         self.index: int = index  
         self.parent_widget = parent_widget
-        self.axes_visible: bool = True  
         self.is_locked: bool = False
         
         self.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemSendsGeometryChanges)
@@ -358,7 +357,7 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         return super().itemChange(change, value)
 
     def hoverEnterEvent(self, event):
-        if not self.axes_visible and not self.is_locked:
+        if not self.is_locked:
             self.setCursor(Qt.SizeAllCursor)
         super().hoverEnterEvent(event)
 
@@ -392,29 +391,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         else:
             super().mouseReleaseEvent(event)
 
-    def set_axes_visible(self, visible: bool):
-        self.prepareGeometryChange()
-        
-        if visible and not self.axes_visible:
-            bbox_center_scene = self.mapToScene(QPointF(self._bbox_cx, self._bbox_cy))
-            self.setPos(bbox_center_scene)
-            self._bbox_cx = 0.0
-            self._bbox_cy = 0.0
-            
-        elif not visible and self.axes_visible:
-            scene_center = self.mapToScene(QPointF(self._bbox_cx, self._bbox_cy))
-            self.setPos(scene_center)
-            self._bbox_cx = 0.0
-            self._bbox_cy = 0.0
-            
-        self.axes_visible = visible
-        self.axis_lateral.setVisible(visible)
-        self.axis_heading.setVisible(visible)
-        self.origin.setVisible(visible) 
-        
-        self.update_bbox_positions()
-        self.update()
-
     def update_axis_positions(self):
         x_target = QPointF(math.cos(self._current_angle) * self._len_lateral, 
                            math.sin(self._current_angle) * self._len_lateral)
@@ -440,28 +416,22 @@ class InteractiveCoordinateSystem(QGraphicsObject):
 
     def boundingRect(self):
         bbox = self.get_bbox_rect()
-        if not self.axes_visible:
-            return bbox.adjusted(-15, -15, 15, 15)
         axes_rect = QRectF(self.origin.pos(), self.axis_lateral.pos()).united(QRectF(self.origin.pos(), self.axis_heading.pos()))
         return bbox.united(axes_rect).adjusted(-35, -20, 20, 35)
 
     def shape(self):
         path = QPainterPath()
-        if self.axes_visible:
-            path.moveTo(self.origin.pos())
-            path.lineTo(self.axis_lateral.pos())
-            path.moveTo(self.origin.pos())
-            path.lineTo(self.axis_heading.pos())
-            
-            stroker = QPainterPathStroker()
-            stroker.setWidth(16)
-            stroker.setCapStyle(Qt.RoundCap)
-            total_shape = stroker.createStroke(path)
-            total_shape.addRect(self.get_bbox_rect())
-        else:
-            path.addRect(self.get_bbox_rect())
-            total_shape = path
-            
+        path.moveTo(self.origin.pos())
+        path.lineTo(self.axis_lateral.pos())
+        path.moveTo(self.origin.pos())
+        path.lineTo(self.axis_heading.pos())
+        
+        stroker = QPainterPathStroker()
+        stroker.setWidth(16)
+        stroker.setCapStyle(Qt.RoundCap)
+        total_shape = stroker.createStroke(path)
+        total_shape.addRect(self.get_bbox_rect())
+
         total_shape.addPath(self.bbox_tl.mapToParent(self.bbox_tl.shape()))
         total_shape.addPath(self.bbox_tr.mapToParent(self.bbox_tr.shape()))
         total_shape.addPath(self.bbox_bl.mapToParent(self.bbox_bl.shape()))
@@ -471,10 +441,9 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         total_shape.addPath(self.btn_delete.mapToParent(self.btn_delete.shape()))
         total_shape.addPath(self.btn_lock.mapToParent(self.btn_lock.shape()))
         
-        if self.axes_visible:
-            total_shape.addPath(self.origin.mapToParent(self.origin.shape()))
-            total_shape.addPath(self.axis_lateral.mapToParent(self.axis_lateral.shape()))
-            total_shape.addPath(self.axis_heading.mapToParent(self.axis_heading.shape()))
+        total_shape.addPath(self.origin.mapToParent(self.origin.shape()))
+        total_shape.addPath(self.axis_lateral.mapToParent(self.axis_lateral.shape()))
+        total_shape.addPath(self.axis_heading.mapToParent(self.axis_heading.shape()))
             
         return total_shape
 
@@ -486,8 +455,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
             bbox_pen = QPen(color, 2.5, Qt.DashLine)
             bbox_pen.setCosmetic(True)
             painter.setPen(bbox_pen)
-            if not self.axes_visible:
-                painter.setBrush(QBrush(QColor(color.red(), color.green(), color.blue(), 15)))
         else:
             color = QColor(137, 243, 54, 180) if self.is_locked else self.color_bbox
             bbox_pen = QPen(color, 2.0, Qt.DashLine)
@@ -497,16 +464,15 @@ class InteractiveCoordinateSystem(QGraphicsObject):
             
         painter.drawRect(self.get_bbox_rect())
 
-        if self.axes_visible:
-            lat_pen = QPen(QColor(self.color_lateral.red(), self.color_lateral.green(), self.color_lateral.blue(), 230), 3.0)
-            lat_pen.setCosmetic(True)
-            painter.setPen(lat_pen)
-            painter.drawLine(self.origin.pos(), self.axis_lateral.pos())
-            
-            head_pen = QPen(QColor(self.color_heading.red(), self.color_heading.green(), self.color_heading.blue(), 230), 3.0)
-            head_pen.setCosmetic(True)
-            painter.setPen(head_pen)
-            painter.drawLine(self.origin.pos(), self.axis_heading.pos())
+        lat_pen = QPen(QColor(self.color_lateral.red(), self.color_lateral.green(), self.color_lateral.blue(), 230), 3.0)
+        lat_pen.setCosmetic(True)
+        painter.setPen(lat_pen)
+        painter.drawLine(self.origin.pos(), self.axis_lateral.pos())
+        
+        head_pen = QPen(QColor(self.color_heading.red(), self.color_heading.green(), self.color_heading.blue(), 230), 3.0)
+        head_pen.setCosmetic(True)
+        painter.setPen(head_pen)
+        painter.drawLine(self.origin.pos(), self.axis_heading.pos())
 
     def handle_origin_move(self, delta: QPointF, drag_start_parent_pos: QPointF):
         scene = self.scene()
@@ -565,33 +531,14 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         x1, x2 = self._bbox_cx - hw, self._bbox_cx + hw  
         y1, y2 = self._bbox_cy - hh, self._bbox_cy + hh  
 
-        if self.axes_visible:
-            if "br" in node.corner_id:
-                mx, my = max(0.0, mx), max(0.0, my)
-            elif "tl" in node.corner_id:
-                mx, my = min(0.0, mx), min(0.0, my)
-            elif "tr" in node.corner_id:
-                mx, my = max(0.0, mx), min(0.0, my)
-            elif "bl" in node.corner_id:
-                mx, my = min(0.0, mx), max(0.0, my)
-        else:
-            if "r" in node.corner_id:
-                mx = max(x1 + 20.0, mx)
-            if "l" in node.corner_id:
-                mx = min(x2 - 20.0, mx)
-            if "b" in node.corner_id:
-                my = max(y1 + 20.0, my)
-            if "t" in node.corner_id:
-                my = min(y2 - 20.0, my)
-
         if "br" in node.corner_id:
-            x2, y2 = mx, my
+            x2, y2 = max(0.0, mx), max(0.0, my)
         elif "tl" in node.corner_id:
-            x1, y1 = mx, my
+            x1, y1 = min(0.0, mx), min(0.0, my)
         elif "tr" in node.corner_id:
-            x2, y1 = mx, my
+            x2, y1 = max(0.0, mx), min(0.0, my)
         elif "bl" in node.corner_id:
-            x1, y2 = mx, my
+            x1, y2 = min(0.0, mx), max(0.0, my)
 
         tentative_tl = self.mapToScene(QPointF(x1, y1))
         tentative_br = self.mapToScene(QPointF(x2, y2))
@@ -622,7 +569,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         centroid_y = int(round(-self.bbox_tl.y()))
         
         return {
-            "axes_visible": self.axes_visible,
             "bbox_rect": [x, y, w, h],
             "centroid": [centroid_x, centroid_y],
             "axes": [
@@ -645,8 +591,6 @@ class InteractiveCoordinateSystem(QGraphicsObject):
         
         axes = data["axes"]
         self._current_angle = math.atan2(axes[1][1], axes[0][1])
-
-        self.set_axes_visible(data["axes_visible"])
             
         self.update_axis_positions()
         self.update_bbox_positions()
@@ -673,7 +617,6 @@ class MultiCoordViewer(QGraphicsView):
         
         self.coordinate_systems = [] 
         self.bg_pixmap_item = None
-        self._global_axes_visible = False
         self.selected_index = -1
 
     def set_selected_index(self, index: int):
@@ -691,12 +634,6 @@ class MultiCoordViewer(QGraphicsView):
                 sys_item.setZValue(0.0) 
                 
         self.selection_changed.emit(self.selected_index)
-
-    def set_axes_visible(self, visible: bool):
-        for sys_item in self.coordinate_systems:
-            sys_item.set_axes_visible(visible)
-        self._global_axes_visible = visible
-        self.state_changed.emit()
 
     def wheelEvent(self, event):
         zoom_in_factor = 1.15
@@ -759,7 +696,6 @@ class MultiCoordViewer(QGraphicsView):
         coord_sys = InteractiveCoordinateSystem(index, scene_pos, self)
         coord_sys.state_changed.connect(self.state_changed)
         coord_sys.selected_signal.connect(self.set_selected_index)
-        coord_sys.set_axes_visible(self._global_axes_visible)
         
         self.scene.addItem(coord_sys)
         self.coordinate_systems.append(coord_sys)
@@ -818,7 +754,6 @@ class MultiCoordViewer(QGraphicsView):
             coord_sys = InteractiveCoordinateSystem(idx, initial_pos, self)
             coord_sys.state_changed.connect(self.state_changed)
             coord_sys.selected_signal.connect(self.set_selected_index)
-            coord_sys.set_axes_visible(self._global_axes_visible)
             coord_sys.set_state(item_data)
             
             self.scene.addItem(coord_sys)

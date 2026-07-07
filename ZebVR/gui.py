@@ -308,7 +308,6 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(True)
             self.settings_widget.force_videorecording(False)
             self.settings_widget.set_stim_output_visible(True)
-            self.identity_widget.set_axes_visible(False)
 
         elif self.open_loop_button.isChecked():
 
@@ -330,7 +329,6 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(False)
             self.settings_widget.force_videorecording(False)
             self.settings_widget.set_stim_output_visible(True)
-            self.identity_widget.set_axes_visible(True)
 
         elif self.video_recording_button.isChecked():
 
@@ -354,7 +352,6 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(False)
             self.settings_widget.force_videorecording(True)
             self.settings_widget.set_stim_output_visible(False)
-            self.identity_widget.set_axes_visible(False)
 
         elif self.tracking_button.isChecked():
             
@@ -378,7 +375,6 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(True)
             self.settings_widget.force_videorecording(False)
             self.settings_widget.set_stim_output_visible(False)
-            self.identity_widget.set_axes_visible(False)
 
         else:
             raise RuntimeError    
@@ -499,12 +495,6 @@ class MainGui(QMainWindow):
         self.settings['main']['video_recording'] = self.video_recording_button.isChecked()
         self.settings['main']['tracking'] = self.tracking_button.isChecked()
         self.settings['main']['head_embedded'] = self.head_embedded_button.isChecked()
-        
-        if self.settings['main']['close_loop']:
-            if self.settings['main']['head_embedded']:
-                self.identity_widget.set_axes_visible(True)
-            else:
-                self.identity_widget.set_axes_visible(False)
 
     def refresh_settings(self):
         self.update_camera_settings()
