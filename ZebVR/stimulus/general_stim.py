@@ -989,19 +989,6 @@ class GeneralStim(VisualStim):
                 self.shared_fish_state[ID].tail_points[self.num_tail_points_interp:] = skeleton_interp[:,1]
 
             if 'embedded_x' in fields:
-                centroid = np.array([
-                    data['tracking']['embedded_x'], 
-                    data['tracking']['embedded_y']
-                ])
-                theta = data['tracking']['embedded_theta']-np.pi/2 # fish head facing north, angle respective to x axis
-                body_axes = np.array([
-                    [np.cos(theta), -np.sin(theta)],
-                    [np.sin(theta), np.cos(theta)]
-                ])
-                self.shared_fish_state[ID].fish_centroid = self.transformation_matrix.transform_points(centroid).squeeze()
-                self.shared_fish_state[ID].fish_caudorostral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,0]).squeeze()
-                self.shared_fish_state[ID].fish_mediolateral_axis = -1*self.transformation_matrix.transform_vectors(body_axes[:,1]).squeeze()
-                
                 # TODO check why -1 
                 virtual_centroid = -1*np.array([
                     data['tracking']['virtual_x'], 
