@@ -735,7 +735,7 @@ class GeneralStim(VisualStim):
                     u_virtual_caudorostral_axis[animal]/length(u_virtual_caudorostral_axis[animal])
                 );
                 vec2 fish_ego_coords_px = transpose_mat2(change_of_basis) * coordinates_centered_px;
-                vec2 virtual_fish_coords_px = u_virtual_centroid[animal] + transpose_mat2(change_of_basis_virtual) * fish_ego_coords_px;
+                vec2 virtual_fish_coords_px = u_virtual_centroid[animal] - transpose_mat2(change_of_basis_virtual) * fish_ego_coords_px;
                 fish_ego_coords_mm = fish_ego_coords_px / u_pix_per_mm_proj;
                 virtual_fish_coords_mm = virtual_fish_coords_px / u_pix_per_mm_proj;
                 fish_centered_coords_mm = coordinates_centered_px / u_pix_per_mm_proj;
