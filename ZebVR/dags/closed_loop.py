@@ -607,12 +607,14 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             queue = queue_stim_saver, 
             name = 'audio_stim_logger'
         )
-    dag.connect_metadata(
-        sender = stim_saver,
-        receiver = protocol_display,
-        queue = QueueMP(), 
-        name = 'protocol_display'
-    )
+        
+    if settings['main']['record']:
+        dag.connect_metadata(
+            sender = stim_saver,
+            receiver = protocol_display,
+            queue = QueueMP(), 
+            name = 'protocol_display'
+        )
 
     # isolated nodes
     dag.add_node(queue_monitor_worker)
