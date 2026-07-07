@@ -15,3 +15,4 @@ from .audio_stim import AudioStimWorker
 from .daq import DAQ_Worker
 from .latency_display import LatencyDisplay
 from .stim_saver import StimSaver
+from .protocol_display_worker import ProtocolDisplayWorker

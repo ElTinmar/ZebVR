@@ -20,7 +20,7 @@ from qt_widgets import (
 )
 import json
 from pathlib import Path
-from numpy import pi, deg2rad, rad2deg
+import numpy as np
 
 class Animal(QWidget):
 
@@ -1439,7 +1439,7 @@ class HeadEmbeddedTrackerWidget(QWidget):
         self.current_animal = 0
         self.substate = {}
         for i in range(self.n_animals):
-            self.substate[i] = self._get_substate()
+            self.substate[i] = self._get_substate(i)
 
         if settings_file.exists():
             self.load_from_file(settings_file)
@@ -1456,27 +1456,6 @@ class HeadEmbeddedTrackerWidget(QWidget):
         self.apply_to_all = QCheckBox('Apply to all animals')
         self.apply_to_all.setChecked(True)
         self.apply_to_all.stateChanged.connect(self.apply_to_all_changed)
-
-        self.centroid_x_px = LabeledSpinBox()
-        self.centroid_x_px.setText('centroid X (px)')
-        self.centroid_x_px.setRange(0,self.image_shape[1])
-        self.centroid_x_px.setSingleStep(1)
-        self.centroid_x_px.setValue(0)
-        self.centroid_x_px.valueChanged.connect(self.on_change)
-
-        self.centroid_y_px = LabeledSpinBox()
-        self.centroid_y_px.setText('centroid Y (px)')
-        self.centroid_y_px.setRange(0,self.image_shape[0])
-        self.centroid_y_px.setSingleStep(1)
-        self.centroid_y_px.setValue(0)
-        self.centroid_y_px.valueChanged.connect(self.on_change)
-
-        self.heading_angle_deg = LabeledDoubleSpinBox()
-        self.heading_angle_deg.setText('heading angle (deg)')
-        self.heading_angle_deg.setRange(-360,360)
-        self.heading_angle_deg.setSingleStep(0.25) 
-        self.heading_angle_deg.setValue(0)
-        self.heading_angle_deg.valueChanged.connect(self.on_change)
 
         self.lighthill = LighthillWidget()
         self.lighthill.state_changed.connect(self.on_change)
@@ -1497,9 +1476,6 @@ class HeadEmbeddedTrackerWidget(QWidget):
         identity.addWidget(self.animal_identity)
 
         controls = QVBoxLayout()
-        controls.addWidget(self.centroid_x_px)
-        controls.addWidget(self.centroid_y_px)
-        controls.addWidget(self.heading_angle_deg)
         controls.addWidget(self.lighthill)
         controls.addStretch()
 
@@ -1530,7 +1506,7 @@ class HeadEmbeddedTrackerWidget(QWidget):
         if self.apply_to_all.isChecked():
             self.animal_identity.setEnabled(False)
             for i in range(self.n_animals):
-                self.substate[i] = self._get_substate()
+                self.substate[i] = self._get_substate(i)
         else:
             self.animal_identity.setEnabled(True)
             
@@ -1541,10 +1517,10 @@ class HeadEmbeddedTrackerWidget(QWidget):
         
         if self.apply_to_all.isChecked():
             for i in range(self.n_animals):
-                self.substate[i] = self._get_substate()
+                self.substate[i] = self._get_substate(i)
         else:
             id = self.animal_identity.value()
-            self.substate[id] = self._get_substate()
+            self.substate[id] = self._get_substate(id)
 
         self.updated = True
         self.state_changed.emit()
@@ -1554,7 +1530,7 @@ class HeadEmbeddedTrackerWidget(QWidget):
             child.blockSignals(block)
 
     def animal_changed(self, next_animal: int):
-        self.substate[self.current_animal] = self._get_substate()
+        self.substate[self.current_animal] = self._get_substate(self.current_animal)
         self.block_all_signals(True)
         self._set_substate(next_animal, self.substate[next_animal])
         self.block_all_signals(False)
@@ -1603,20 +1579,24 @@ class HeadEmbeddedTrackerWidget(QWidget):
             if key in loaded_substate:
                 normalized_substate[i] = loaded_substate[key]
             elif i>0:
-                normalized_substate[i] = normalized_substate[i-1]
+                normalized_substate[i] = normalized_substate[i-1] 
             else:
-                normalized_substate[i] = self._get_substate()
+                normalized_substate[i] = self._get_substate(i)
         state["substate"] = normalized_substate
         
         self.set_state(state)
         self.updated = True
 
-    def _get_substate(self)-> Dict:
+    def _get_substate(self, ind: int)-> Dict:
+
+        x,y = self.identities[ind]['centroid']
+        axes = np.array(self.identities[ind]['axes'])
+        theta = np.arctan2(axes[1,0], axes[0,0])
 
         state = {}
-        state['centroid_x'] = self.centroid_x_px.value()
-        state['centroid_y'] = self.centroid_y_px.value()
-        state['heading_angle_rad'] = deg2rad(self.heading_angle_deg.value())
+        state['centroid_x'] = x
+        state['centroid_y'] = y
+        state['heading_angle_rad'] = -theta + np.pi/2
         state['lighthill'] = self.lighthill.get_state()
         state['tail_tracking'] = self.tail.get_state()
         return state
@@ -1633,9 +1613,6 @@ class HeadEmbeddedTrackerWidget(QWidget):
     def _set_substate(self, id: int, substate: Dict) -> None:
 
         setters = {
-            'centroid_x': self.centroid_x_px.setValue,
-            'centroid_y': self.centroid_y_px.setValue,
-            'heading_angle_rad': lambda r: self.heading_angle_deg.setValue(rad2deg(r)),
             'lighthill': self.lighthill.set_state,
             'tail_tracking': self.tail.set_state,
         }

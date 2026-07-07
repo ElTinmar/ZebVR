@@ -21,7 +21,6 @@ class IdentityWidget(QWidget):
     def __init__(self, pix_per_mm: float = 30, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pix_per_mm = pix_per_mm
-        self.axes_visible = True
         self.showing_background = False
         
         self.snapped_images: List[NDArray] = []
@@ -221,11 +220,6 @@ class IdentityWidget(QWidget):
         self.clear_thumbnails()
         self.state_changed.emit()
 
-    def set_axes_visible(self, visible: bool) -> None:
-        self.axes_visible = visible
-        self.viewer.set_axes_visible(visible)
-        self.state_changed.emit()
-
     def set_pix_per_mm(self, pix_per_mm: float) -> None:
         self.pix_per_mm = pix_per_mm
 
@@ -250,8 +244,6 @@ class IdentityWidget(QWidget):
                 'bbox_rect': bbox,
                 'centroid': circle[:2] - bbox[:2],
                 'axes': [[0,1],[-1,0]],
-                'axes_visible': False,
-                'is_locked': False
             }
         self.set_state(state)
         self.state_changed.emit()

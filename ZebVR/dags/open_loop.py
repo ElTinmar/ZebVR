@@ -18,6 +18,7 @@ from ..workers import (
     TemperatureLoggerWorker,
     DAQ_Worker,
     StimSaver,
+    ProtocolDisplayWorker,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -257,6 +258,15 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         receive_metadata_strategy = receive_strategy.POLL
     )
 
+    protocol_display = ProtocolDisplayWorker(
+        recording_duration = settings['main']['recording_duration'],
+        name = 'protocol_display', 
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        log_level = Logger.ERROR,
+        receive_data_timeout = 1.0,
+    )
+
     # connect DAG -----------------------------------------------------------------------
     if settings['settings']['videorecording']['video_recording']:
 
@@ -383,6 +393,14 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             name = 'audio_stim_logger'
         )
 
+    if settings['main']['record']:
+        dag.connect_metadata(
+            sender = stim_saver,
+            receiver = protocol_display,
+            queue = QueueMP(), 
+            name = 'protocol_display'
+        )
+        
     dag.add_node(queue_monitor_worker)
     if settings['temperature']['serial_port'] != '':
         dag.add_node(temperature_logger)
