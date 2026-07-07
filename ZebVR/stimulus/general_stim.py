@@ -304,6 +304,8 @@ class GeneralStim(VisualStim):
         uniform vec2 u_right_eye_centroid[{self.n_animals}];
         uniform float u_right_eye_angle[{self.n_animals}];
         uniform vec4 u_bounding_box[{self.n_animals}];
+        uniform vec2 u_bounding_box_axis_y[{self.n_animals}];
+        uniform vec2 u_bounding_box_axis_x[{self.n_animals}];
         uniform highp float u_time_s;
         uniform highp float u_start_time_s;
 
@@ -377,9 +379,8 @@ class GeneralStim(VisualStim):
 
         //coordinate system
         const int BOUNDING_BOX_CENTER = 0;
-        const int FISH_CENTERED = 1;
-        const int FISH_EGOCENTRIC = 2;
-        const int VIRTUAL_FISH_EGOCENTRIC = 3; 
+        const int FISH_EGOCENTRIC = 1;
+        const int VIRTUAL_FISH_EGOCENTRIC = 2; 
 
         //periodic function
         const int COSINE = 0;
@@ -690,8 +691,9 @@ class GeneralStim(VisualStim):
         void main()
         {
             vec2 coordinates_centered_px;
-            mat2 change_of_basis;
-            mat2 change_of_basis_virtual;
+            mat2 rot_bbox;
+            mat2 rot_fish;
+            mat2 rot_virtual;
             vec4 camera_bbox_px;
             vec4 camera_bbox_mm;
 
@@ -707,9 +709,8 @@ class GeneralStim(VisualStim):
                 // STEP 1: COMPUTE THE DIFFERENT COORDINATES SYSTEMS ----------------------------------------------------------------
 
                 // different coordinate systems
-                vec2 coordinates_centered_mm; // projector x,y coordinates. Origin: bounding box center, y axis: , x axis:  
+                vec2 coordinates_bbox_mm; // projector x,y coordinates. Origin: bounding box center, y axis: , x axis:  
                 vec2 fish_ego_coords_mm; // fish egocentric coordinates: Origin: fish centroid, y axis: fish major axis, x axis: right
-                vec2 fish_centered_coords_mm; // fish-centric coordinates: Origin: fish centroid, y axis: proj up , x axis: proj right
                 vec2 virtual_fish_coords_mm; // fish egocentric coordinates: Origin: fish centroid, y axis: fish major axis, x axis: right 
 
                 // get current bounding box center in projector space  
@@ -722,30 +723,35 @@ class GeneralStim(VisualStim):
                 vec4 proj_bbox_px = vec4(proj_bbox_origin.xy, proj_bbox_size.xy);
                 vec4 proj_bbox_mm = vec4(proj_bbox_origin.xy / u_pix_per_mm_proj, proj_bbox_size.xy/ u_pix_per_mm_proj);
                 vec2 proj_bbox_center_mm = proj_bbox_mm.xy + proj_bbox_mm.zw/2.0;
-                coordinates_centered_mm = coordinates_mm - proj_bbox_center_mm; 
-
+                coordinates_bbox_mm = coordinates_mm - proj_bbox_center_mm; 
+                rot_bbox = mat2(
+                    u_bounding_box_axis_x[animal]/length(u_bounding_box_axis_x[animal]), 
+                    u_bounding_box_axis_y[animal]/length(u_bounding_box_axis_y[animal])
+                );
+                coordinates_bbox_mm =  transpose_mat2(rot_bbox) * coordinates_bbox_mm;
+                
                 // compute fish-centric coordinates 
                 coordinates_centered_px = coordinates_px - u_fish_centroid[animal];
-                change_of_basis = mat2(
+                rot_fish = mat2(
                     u_fish_mediolateral_axis[animal]/length(u_fish_mediolateral_axis[animal]), 
                     u_fish_caudorostral_axis[animal]/length(u_fish_caudorostral_axis[animal])
                 );
-                change_of_basis_virtual = mat2(
+                vec2 fish_ego_coords_px = transpose_mat2(rot_fish) * coordinates_centered_px;
+                fish_ego_coords_mm = fish_ego_coords_px / u_pix_per_mm_proj;
+
+                rot_virtual = mat2(
                     u_virtual_mediolateral_axis[animal]/length(u_virtual_mediolateral_axis[animal]), 
                     u_virtual_caudorostral_axis[animal]/length(u_virtual_caudorostral_axis[animal])
                 );
-                vec2 fish_ego_coords_px = transpose_mat2(change_of_basis) * coordinates_centered_px;
-                vec2 virtual_fish_coords_px = u_virtual_centroid[animal] - transpose_mat2(change_of_basis_virtual) * fish_ego_coords_px;
-                fish_ego_coords_mm = fish_ego_coords_px / u_pix_per_mm_proj;
+                vec2 virtual_fish_coords_px = u_virtual_centroid[animal] - transpose_mat2(rot_virtual) * fish_ego_coords_px;
                 virtual_fish_coords_mm = virtual_fish_coords_px / u_pix_per_mm_proj;
-                fish_centered_coords_mm = coordinates_centered_px / u_pix_per_mm_proj;
+
 
                 // STEP 2: COMPUTE STIMULI ------------------------------------------------------------------------------------------
 
                 // choose which coordinate system to use
-                vec2 local_coordinates_mm = coordinates_centered_mm;
-                if (u_coordinate_system == BOUNDING_BOX_CENTER) {local_coordinates_mm = coordinates_centered_mm;}
-                if (u_coordinate_system == FISH_CENTERED) {local_coordinates_mm = fish_centered_coords_mm;}
+                vec2 local_coordinates_mm = coordinates_bbox_mm;
+                if (u_coordinate_system == BOUNDING_BOX_CENTER) {local_coordinates_mm = coordinates_bbox_mm;}
                 if (u_coordinate_system == FISH_EGOCENTRIC) {local_coordinates_mm = fish_ego_coords_mm;}
                 if (u_coordinate_system == VIRTUAL_FISH_EGOCENTRIC) {local_coordinates_mm = virtual_fish_coords_mm;}
 
@@ -799,18 +805,30 @@ class GeneralStim(VisualStim):
         )
 
         self.shared_fish_state = [SharedFishState(num_tail_points_interp) for _ in  range(self.n_animals)]
+        self.bbox_rect_cam = []
+        self.bbox_axis_y_proj = []
+        self.bbox_axis_x_proj = []
         
         for fish_id, fish_state in enumerate(self.shared_fish_state):
+
             centroid = np.array(identities[fish_id]["centroid"]) + np.array(identities[fish_id]["bbox_rect"][:2])
             axes = np.array(identities[fish_id]['axes'])
 
-            fish_state.fish_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(axes[:,0]).squeeze()
-            fish_state.fish_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(axes[:,1]).squeeze()
-            fish_state.fish_centroid[:] = self.transformation_matrix.transform_points(centroid).squeeze()
+            centroid_proj = self.transformation_matrix.transform_points(centroid).squeeze()
+            axis_y_proj = self.transformation_matrix.transform_vectors(axes[:,0]).squeeze()
+            axis_x_proj = self.transformation_matrix.transform_vectors(axes[:,1]).squeeze()
 
-            fish_state.virtual_caudorostral_axis[:] = self.transformation_matrix.transform_vectors(axes[:,0]).squeeze()
-            fish_state.virtual_mediolateral_axis[:] = self.transformation_matrix.transform_vectors(axes[:,1]).squeeze()
-            fish_state.virtual_centroid[:] = self.transformation_matrix.transform_points(centroid).squeeze()
+            fish_state.fish_caudorostral_axis[:] = axis_y_proj
+            fish_state.fish_mediolateral_axis[:] = axis_x_proj
+            fish_state.fish_centroid[:] = centroid_proj
+
+            fish_state.virtual_caudorostral_axis[:] =  axis_y_proj
+            fish_state.virtual_mediolateral_axis[:] = axis_x_proj
+            fish_state.virtual_centroid[:] = centroid_proj
+
+            self.bbox_rect_cam.append(identities[fish_id]["bbox_rect"])
+            self.bbox_axis_y_proj.append(axis_y_proj)
+            self.bbox_axis_x_proj.append(axis_x_proj)
 
         self.shared_stim_parameters = SharedStimParameters()
         self.stim_change_counter = 0
@@ -826,8 +844,6 @@ class GeneralStim(VisualStim):
 
         # fish state 
         # TODO send tail data to shader?        
-
-        self.program['u_bounding_box'] = [v["bbox_rect"] for _, v in self.identities.items()]
         
         for i in range(self.n_animals):
             self.program[f'u_fish_centroid[{i}]'] = self.shared_fish_state[i].fish_centroid[:] 
@@ -914,6 +930,9 @@ class GeneralStim(VisualStim):
         self.program['u_n_animals'] = self.n_animals
         self.program['u_prey_position'] = self.transformation_matrix.transform_points(np.column_stack((x, y)).astype(np.float32)).squeeze()
         self.program['u_prey_trajectory_angle'] = theta.astype(np.float32)
+        self.program['u_bounding_box'] = self.bbox_rect_cam
+        self.program['u_bounding_box_axis_y'] = self.bbox_axis_y_proj
+        self.program['u_bounding_box_axis_x'] = self.bbox_axis_x_proj
 
         self.show()
         self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
