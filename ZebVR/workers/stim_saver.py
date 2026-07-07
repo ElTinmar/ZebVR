@@ -34,7 +34,7 @@ class StimSaver(WorkerNode):
     def process_data(self, data) -> None:
         pass
         
-    def process_metadata(self, metadata) -> None:
+    def process_metadata(self, metadata):
 
         if self.fd is None:
             return
@@ -46,3 +46,7 @@ class StimSaver(WorkerNode):
 
         json.dump(metadata, self.fd)
         self.fd.write('\n')
+
+        res = {}
+        res['protocol_display'] = metadata
+        return res

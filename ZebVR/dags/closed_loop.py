@@ -25,6 +25,7 @@ from ..workers import (
     DAQ_Worker,
     LatencyDisplay,
     StimSaver,
+    ProtocolDisplayWorker,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -415,6 +416,15 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         receive_metadata_strategy = receive_strategy.POLL
     )
 
+    protocol_display = ProtocolDisplayWorker(
+        recording_duration = settings['main']['recording_duration'],
+        name = 'protocol_display', 
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        log_level = Logger.ERROR,
+        receive_data_timeout = 1.0,
+    )
+
     # connect DAG -----------------------------------------------------------------------
     # data
     dag.connect_data(
@@ -597,6 +607,12 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             queue = queue_stim_saver, 
             name = 'audio_stim_logger'
         )
+    dag.connect_metadata(
+        sender = stim_saver,
+        receiver = protocol_display,
+        queue = QueueMP(), 
+        name = 'protocol_display'
+    )
 
     # isolated nodes
     dag.add_node(queue_monitor_worker)
