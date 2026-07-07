@@ -43,7 +43,7 @@ class ProtocolDisplay(QWidget):
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         hbar = self.scroll_area.horizontalScrollBar()
-        hbar.setSingleStep(2)
+        hbar.setSingleStep(1)
         
         # Enable smooth kinematic touch/mouse-drag scrolling natively (optional gesture control)
         QScroller.grabGesture(self.scroll_area.viewport(), QScroller.LeftMouseButtonGesture)
