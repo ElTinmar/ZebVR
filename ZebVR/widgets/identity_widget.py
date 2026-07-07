@@ -251,7 +251,6 @@ class IdentityWidget(QWidget):
                 'centroid': circle[:2] - bbox[:2],
                 'axes': [[0,1],[-1,0]],
                 'axes_visible': False,
-                'is_locked': False
             }
         self.set_state(state)
         self.state_changed.emit()
