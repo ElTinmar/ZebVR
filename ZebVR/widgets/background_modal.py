@@ -377,7 +377,7 @@ class BackgroundModal(QDialog):
         left_layout.setContentsMargins(0, 0, 0, 0)
         
         control_panel_layout = QHBoxLayout()
-        self.master_checkbox = QCheckBox("Select All", self)
+        self.master_checkbox = QCheckBox("Deselect All", self)
         self.master_checkbox.clicked.connect(self.toggle_select_all)
         control_panel_layout.addWidget(self.master_checkbox)
         
@@ -410,6 +410,7 @@ class BackgroundModal(QDialog):
             row = i // n_cols
             col = i % n_cols
             img_widget = ImageItemWidget(arr, i, thumb_size=self.current_thumb_size, parent=self)
+            img_widget.set_checked(True)
             self.grid_layout.addWidget(img_widget, row, col, Qt.AlignmentFlag.AlignCenter)
             self.image_widgets.append(img_widget)
             img_widget.checkbox.clicked.connect(self.update_master_checkbox_text)
