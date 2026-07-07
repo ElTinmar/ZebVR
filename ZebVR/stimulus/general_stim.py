@@ -378,7 +378,7 @@ class GeneralStim(VisualStim):
         const int ARC = 2;
 
         //coordinate system
-        const int BOUNDING_BOX_CENTER = 0;
+        const int BOUNDING_BOX = 0;
         const int FISH_EGOCENTRIC = 1;
         const int VIRTUAL_FISH_EGOCENTRIC = 2; 
 
@@ -751,7 +751,7 @@ class GeneralStim(VisualStim):
 
                 // choose which coordinate system to use
                 vec2 local_coordinates_mm = coordinates_bbox_mm;
-                if (u_coordinate_system == BOUNDING_BOX_CENTER) {local_coordinates_mm = coordinates_bbox_mm;}
+                if (u_coordinate_system == BOUNDING_BOX) {local_coordinates_mm = coordinates_bbox_mm;}
                 if (u_coordinate_system == FISH_EGOCENTRIC) {local_coordinates_mm = fish_ego_coords_mm;}
                 if (u_coordinate_system == VIRTUAL_FISH_EGOCENTRIC) {local_coordinates_mm = virtual_fish_coords_mm;}
 
