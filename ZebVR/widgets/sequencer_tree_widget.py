@@ -363,6 +363,7 @@ class SequencerWidget(QWidget):
         self.tree.addTopLevelItem(self.root_item)
         self.root_widget = LoopWidget()
         self.tree.setItemWidget(self.root_item, 0, self.root_widget)
+        self.root_widget.valueChanged.connect(self.state_changed)
 
         self.state_changed.emit()
 
