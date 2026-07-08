@@ -1573,10 +1573,21 @@ class HeadEmbeddedTrackerWidget(QWidget):
         # if more animals in saved file, discard the last one
         # if not enough animals, create with defaults
         loaded_substate = state.get("substate", {})
+        
         normalized_substate = {}
         for i in range(self.n_animals):
             key = str(i)
             if key in loaded_substate:
+
+                # override settings from file
+                x,y = self.identities[i]['centroid']
+                axes = np.array(self.identities[i]['axes'])
+                theta = np.arctan2(axes[1,0], axes[0,0])
+    
+                loaded_substate[key]['centroid_x'] = x
+                loaded_substate[key]['centroid_y'] = y
+                loaded_substate[key]['heading_angle_rad'] = -theta + np.pi/2
+
                 normalized_substate[i] = loaded_substate[key]
             elif i>0:
                 normalized_substate[i] = normalized_substate[i-1] 
