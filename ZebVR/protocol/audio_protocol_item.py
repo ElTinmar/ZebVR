@@ -3,10 +3,6 @@ from .default import DEFAULT
 from typing import Any, Dict
 from qt_widgets import LabeledDoubleSpinBox
 from qtpy.QtCore import Signal
-from qtpy.QtWidgets import (
-    QLabel,
-    QHBoxLayout,
-)
 from ..utils import set_from_dict
 
 class AudioProtocolItemWidget(ProtocolItemWidget):
@@ -67,11 +63,12 @@ class AudioProtocolItemWidget(ProtocolItemWidget):
             self.sb_amplitude_dB.setValue(protocol_item.amplitude_dB)
 
     def _get_protocol_kwargs(self) -> Dict[str, Any]:
-            kwargs = super()._get_protocol_kwargs()
-            kwargs.update({
-                'amplitude_dB': self.sb_amplitude_dB.value()
-            })
-            return kwargs
+
+        kwargs = super()._get_protocol_kwargs()
+        kwargs.update({
+            'amplitude_dB': self.sb_amplitude_dB.value()
+        })
+        return kwargs
 
     def to_protocol_item(self) -> AudioProtocolItem:
         return AudioProtocolItem(**self._get_protocol_kwargs())
