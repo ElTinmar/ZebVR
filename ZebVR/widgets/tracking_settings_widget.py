@@ -1586,7 +1586,7 @@ class HeadEmbeddedTrackerWidget(QWidget):
     
                 loaded_substate[key]['centroid_x'] = x
                 loaded_substate[key]['centroid_y'] = y
-                loaded_substate[key]['heading_angle_rad'] = -theta + np.pi/2
+                loaded_substate[key]['heading_angle_rad'] = theta + np.pi/2
 
                 normalized_substate[i] = loaded_substate[key]
             elif i>0:
@@ -1607,7 +1607,7 @@ class HeadEmbeddedTrackerWidget(QWidget):
         state = {}
         state['centroid_x'] = x
         state['centroid_y'] = y
-        state['heading_angle_rad'] = -theta + np.pi/2
+        state['heading_angle_rad'] = theta + np.pi/2
         state['lighthill'] = self.lighthill.get_state()
         state['tail_tracking'] = self.tail.get_state()
         return state
