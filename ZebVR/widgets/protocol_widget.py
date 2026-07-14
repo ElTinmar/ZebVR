@@ -106,6 +106,7 @@ class StimWidget(QWidget):
     def on_change(self):
         current_widget = self.stack.currentWidget()
         if current_widget:
+            current_widget.layout().activate()
             new_height = current_widget.sizeHint().height()  
             self.stack.setFixedHeight(new_height)
             self.adjustSize() 
