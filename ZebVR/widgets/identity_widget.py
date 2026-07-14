@@ -109,6 +109,8 @@ class IdentityWidget(QWidget):
         self.timer.timeout.connect(self.update_viewer_image)
         self.timer.start(1000 // self.REFRESH_RATE) 
 
+        self.viewer.add_coordinate_system(QPointF(self.image.shape[0]/2, self.image.shape[1]/2))
+
     def _create_hlayout(self, widgets):
         l = QHBoxLayout()
         for w in widgets: l.addWidget(w)
