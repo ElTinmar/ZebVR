@@ -34,6 +34,8 @@ class Stim(IntEnum):
     PWM_PULSE = 204
     ANALOG_PULSE = 205
 
+    COMPOSITE = 1000
+
     def __str__(self):
         return self.name
     

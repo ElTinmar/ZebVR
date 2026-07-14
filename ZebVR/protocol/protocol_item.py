@@ -4,7 +4,11 @@ from .stop_condition import StopCondition, Pause, StopWidget
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import (
     QWidget, 
-    QVBoxLayout
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QStyle,
+    QSizePolicy
 )
 from qt_widgets import LabeledEditLine
 from ..utils import set_from_dict
@@ -43,6 +47,43 @@ class ProtocolItem(ABC):
     def set_stop_condition(self, stop_condition: StopCondition):
         self.stop_condition = stop_condition
 
+
+class CompositeProtocolItem(ProtocolItem):
+
+    def __init__(
+        self,
+        sub_protocols: List[ProtocolItem],
+        *args,
+        **kwargs
+    ):
+        super().__init__(*args, **kwargs)
+        self.sub_protocols = sub_protocols
+        self._sync_stop_conditions()
+
+    def _sync_stop_conditions(self):
+        for sub in self.sub_protocols:
+            sub.set_stop_condition(self.stop_condition)
+
+    def set_stop_condition(self, stop_condition: StopCondition):
+        super().set_stop_condition(stop_condition)
+        self._sync_stop_conditions()
+
+    def start(self) -> Dict:
+        command = super().start()
+        sub_commands = [sub.start() for sub in self.sub_protocols]
+        command.update({
+            'composite': True,
+            'sub_commands': sub_commands
+        })
+        return command
+
+    def initialize(self):
+        for sub in self.sub_protocols:
+            sub.initialize()
+
+    def cleanup(self):
+        for sub in self.sub_protocols:
+            sub.cleanup()
 
 class DAQ_ProtocolItem(ProtocolItem):
 
@@ -173,3 +214,75 @@ class ProtocolItemWidget(QWidget):
 
     def to_protocol_item(self) -> ProtocolItem:
         return ProtocolItem(**self._get_protocol_kwargs())
+
+class CompositeProtocolItemWidget(ProtocolItemWidget):
+
+    add = Signal()
+
+    def __init__(self, stop_widget: StopWidget, *args, **kwargs):
+        self.sub_widgets: List[ProtocolItemWidget] = []
+        super().__init__(stop_widget, *args, **kwargs)
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+
+    def declare_components(self) -> None:
+        super().declare_components()
+        self.add_button = QPushButton("Add Protocol Item", self)
+        self.add_button.clicked.connect(self.add)
+
+    def layout_components(self) -> None:
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setSizeConstraint(QVBoxLayout.SetMinAndMaxSize)
+
+        self.main_layout.addWidget(self.stim_name)
+        self.main_layout.addWidget(self.add_button)
+        self.main_layout.addWidget(self.stop_widget)
+
+    def add_sub_widget(self, widget: ProtocolItemWidget) -> None:
+
+        self.sub_widgets.append(widget)
+        widget.stop_widget.hide() 
+
+        row_container = QWidget(self)
+        trash_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_TrashIcon)
+        delete_button = QPushButton(row_container)
+        delete_button.setIcon(trash_icon)
+        delete_button.setFixedWidth(24)
+        delete_button.clicked.connect(
+            lambda: self.remove_sub_widget(widget, row_container)
+        )
+
+        row_layout = QHBoxLayout(row_container)
+        row_layout.setContentsMargins(0, 0, 0, 0)  # Tight fit, no unnecessary padding
+        row_layout.addWidget(widget, stretch=1)
+        row_layout.addWidget(delete_button)
+
+        insert_index = max(0, self.main_layout.count() - 1)
+        self.main_layout.insertWidget(insert_index, row_container)
+        self.state_changed.emit()
+
+    def remove_sub_widget(self, widget: ProtocolItemWidget, wrapper: QWidget) -> None:
+
+        if widget in self.sub_widgets:
+            self.sub_widgets.remove(widget)
+            
+            self.main_layout.removeWidget(wrapper)
+            wrapper.setParent(None)
+            wrapper.deleteLater()
+
+        self.state_changed.emit()
+        
+    def _on_add_button_clicked(self) -> None:
+
+        new_widget = ProtocolItemWidget(StopWidget(
+            debouncer=self.stop_widget.debouncer,
+            background_image=self.stop_widget.background_image
+        ))
+        self.add_sub_widget(new_widget)
+
+    def to_protocol_item(self) -> CompositeProtocolItem:
+        sub_protocols = [widget.to_protocol_item() for widget in self.sub_widgets]
+        
+        return CompositeProtocolItem(
+            sub_protocols=sub_protocols,
+            **self._get_protocol_kwargs()
+        )

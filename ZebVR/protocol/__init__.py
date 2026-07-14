@@ -37,5 +37,6 @@ PROTOCOL_WIDGETS: List[Tuple[Type[ProtocolItemWidget], Stim]] = [
     (daq.DigitalWriteWidget, Stim.DIGITAL_WRITE),
     (daq.PWM_PulseWidget, Stim.PWM_PULSE),
     (daq.PWM_WriteWidget, Stim.PWM_WRITE),
+    (CompositeProtocolItemWidget, Stim.COMPOSITE)
 ]
 PROTOCOL_WIDGETS.sort(key = lambda x: x[1])
