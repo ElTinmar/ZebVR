@@ -286,3 +286,16 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
             sub_protocols=sub_protocols,
             **self._get_protocol_kwargs()
         )
+    
+    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
+        ...
+
+    def get_state(self):
+        ...
+
+    def set_state(self, state):
+        ...
+
+    def _get_protocol_kwargs(self) -> Dict[str, Any]:
+        ...
+
