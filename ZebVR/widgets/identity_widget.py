@@ -1,376 +1,249 @@
-from qtpy.QtWidgets import (
-    QWidget, 
-    QApplication,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QGroupBox
-)
-from qtpy.QtCore import  Signal
-from typing import Dict
-from numpy.typing import NDArray
 import numpy as np
-import cv2
-from pathlib import Path
-from geometry import SimilarityTransform2D
-from ZebVR.utils import FindCircularArenasDialog
+from typing import Dict, List
+from numpy.typing import NDArray
 
-from qt_widgets import (
-    LabeledSpinBox, 
-    LabeledDoubleSpinBox,
-    NDarray_to_QPixmap
+from qtpy.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, 
+    QPushButton, QScrollArea, QLabel, QProgressBar
 )
+from qtpy.QtCore import Signal, QPointF, QTimer, Qt
+from qtpy.QtGui import QImage, QPixmap
+
+from .coordinate_system_widget import MultiCoordViewer
+from .background_modal import BackgroundModal
+from ZebVR.utils import FindCircularArenasDialog
+from qt_widgets import LabeledSpinBox, LabeledDoubleSpinBox
 
 class IdentityWidget(QWidget):
-
-    state_changed =  Signal()
-    PREVIEW_HEIGHT: int = 512
-    DEFAULT_FILE: Path = Path('ZebVR/default/background.npy')
-
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    fontweight = 2
-    fontsize = 1.5
-    color = (0, 255, 0) 
-    line_thickness = 2
-    axis_y_color = (0, 255, 255) 
-    axis_x_color = (0, 0, 255)
-
+    state_changed = Signal()
+    REFRESH_RATE = 60
+    
     def __init__(self, pix_per_mm: float = 30, *args, **kwargs):
-
         super().__init__(*args, **kwargs)
-
-        if self.DEFAULT_FILE.exists():
-            self.image = np.load(self.DEFAULT_FILE)
-        else:
-            self.image = np.zeros((512,512), dtype=np.uint8)
-        self.ROIs = []
         self.pix_per_mm = pix_per_mm
-        self.open_loop_visible = False
-        self.axes = np.array([[1.0, 0.0], [0.0, 1.0]]) 
+        self.showing_background = False
+        
+        self.snapped_images: List[NDArray] = []
+        self.image = np.zeros((512, 512, 3), dtype=np.uint8)
+        self.background_image = np.zeros((512, 512, 3), dtype=np.uint8)        
+        
+        # Initialize Viewer
+        self.viewer = MultiCoordViewer(self)
+        self.viewer.state_changed.connect(self.state_changed)
 
-        self.declare_components()
-        self.layout_components()
-
-    def declare_components(self) -> None:
-
+        # UI Elements
+        self.layer_btn = QPushButton("BG", self.viewer)
+        self.layer_btn.setCheckable(True)
+        self.layer_btn.setFixedSize(32, 24)  
+        self.layer_btn.move(8, 8)
+        self.layer_btn.clicked.connect(self.toggle_layer)
+        self.layer_btn.setStyleSheet("""
+            QPushButton { background-color: rgba(0, 0, 0, 80); color: rgba(255, 255, 255, 140); border: 1px solid rgba(255, 255, 255, 40); border-radius: 3px; font-size: 10px; font-weight: bold; }
+            QPushButton:hover { background-color: rgba(0, 0, 0, 160); color: #fff; }
+            QPushButton:checked { background-color: rgba(40, 167, 69, 120); }
+        """)
+        
+        # Action Buttons
+        self.add_btn = QPushButton("Add ROI")
+        self.add_btn.clicked.connect(lambda: self.viewer.add_coordinate_system(QPointF(150, 150)))
+        
+        self.clear_btn = QPushButton("Clear ROI")
+        self.clear_btn.clicked.connect(self.clear_roi)
+        
         self.auto_btn = QPushButton("Auto find circular wells")
         self.auto_btn.clicked.connect(self.on_auto)
-
-        self.row = LabeledSpinBox()
-        self.row.setText('row')
-        self.row.setRange(1,10)
-        self.row.setSingleStep(1)
-        self.row.setValue(1)
-        self.row.valueChanged.connect(self.on_change)
-
-        self.col = LabeledSpinBox()
-        self.col.setText('col')
-        self.col.setRange(1,10)
-        self.col.setSingleStep(1)
-        self.col.setValue(1)
-        self.col.valueChanged.connect(self.on_change)
-
-        self.width = LabeledSpinBox()
-        self.width.setText('width')
-        self.width.setRange(1,self.image.shape[1])
-        self.width.setSingleStep(1)
-        self.width.setValue(self.image.shape[1])
-        self.width.valueChanged.connect(self.on_change)
-
-        self.height = LabeledSpinBox()
-        self.height.setText('height')
-        self.height.setRange(1,self.image.shape[0])
-        self.height.setSingleStep(1)
-        self.height.setValue(self.image.shape[0])
-        self.height.valueChanged.connect(self.on_change)
-    
-        self.offsetX = LabeledSpinBox()
-        self.offsetX.setText('offsetX')
-        self.offsetX.setRange(0,self.image.shape[1]-1)
-        self.offsetX.setSingleStep(1)
-        self.offsetX.setValue(0)
-        self.offsetX.valueChanged.connect(self.on_change)
-
-        self.offsetY = LabeledSpinBox()
-        self.offsetY.setText('offsetY')
-        self.offsetY.setRange(0,self.image.shape[0]-1)
-        self.offsetY.setSingleStep(1)
-        self.offsetY.setValue(0)
-        self.offsetY.valueChanged.connect(self.on_change)
-
-        self.marginX = LabeledSpinBox()
-        self.marginX.setText('marginX')
-        self.marginX.setRange(0,self.image.shape[1]-1)
-        self.marginX.setSingleStep(1)
-        self.marginX.setValue(0)
-        self.marginX.valueChanged.connect(self.on_change)
-
-        self.marginY = LabeledSpinBox()
-        self.marginY.setText('marginY')
-        self.marginY.setRange(0,self.image.shape[0]-1)
-        self.marginY.setSingleStep(1)
-        self.marginY.setValue(0)
-        self.marginY.valueChanged.connect(self.on_change)
-
-        self.centroid_X = LabeledSpinBox()
-        self.centroid_X.setText('open-loop centroid offset X')
-        self.centroid_X.setRange(0,self.image.shape[1]-1)
-        self.centroid_X.setSingleStep(1)
-        self.centroid_X.setValue(0)
-        self.centroid_X.valueChanged.connect(self.on_change)
-
-        self.centroid_Y = LabeledSpinBox()
-        self.centroid_Y.setText('open-loop centroid offset Y')
-        self.centroid_Y.setRange(0,self.image.shape[0]-1)
-        self.centroid_Y.setSingleStep(1)
-        self.centroid_Y.setValue(0)
-        self.centroid_Y.valueChanged.connect(self.on_change)
-
-        self.open_loop_group = QGroupBox('Open-loop coordinate system')
-
-        self.rotation = LabeledDoubleSpinBox()
-        self.rotation.setText(u'axes rotation (\N{DEGREE SIGN})')
-        self.rotation.setRange(0,360)
-        self.rotation.setSingleStep(0.5)
-        self.rotation.setValue(0)
-        self.rotation.valueChanged.connect(self.on_change)
-
-        self.image_label = QLabel()
-        self.set_image(self.image)
-
-    def layout_components(self) -> None:
-
-        image_layout = QHBoxLayout()
-        image_layout.addStretch()
-        image_layout.addWidget(self.image_label)
-        image_layout.addStretch() 
-
-        grid_layout = QHBoxLayout()
-        grid_layout.addWidget(self.col)
-        grid_layout.addWidget(self.row)
-        grid_layout.setSpacing(50)
-
-        size_layout = QHBoxLayout()
-        size_layout.addWidget(self.width)
-        size_layout.addWidget(self.height)
-        size_layout.setSpacing(50)
-
-        offset_layout = QHBoxLayout()
-        offset_layout.addWidget(self.offsetX)
-        offset_layout.addWidget(self.offsetY)
-        offset_layout.setSpacing(50)
-
-        margin_layout = QHBoxLayout()
-        margin_layout.addWidget(self.marginX)
-        margin_layout.addWidget(self.marginY)
-        margin_layout.setSpacing(50)
-
-        centroid_offset_layout = QHBoxLayout()
-        centroid_offset_layout.addWidget(self.centroid_X)
-        centroid_offset_layout.addWidget(self.centroid_Y)
-        centroid_offset_layout.setSpacing(50)
-
-        open_loop_layout = QVBoxLayout()
-        open_loop_layout.addLayout(centroid_offset_layout)
-        open_loop_layout.addWidget(self.rotation)
-        self.open_loop_group.setLayout(open_loop_layout)
         
+        self.snap_btn = QPushButton("Snap Image")
+        self.snap_btn.clicked.connect(self.snap_current_image)
+
+        self.clear_snap_btn = QPushButton("Clear Snapshots")
+        self.clear_snap_btn.clicked.connect(self.clear_snaps)
+        
+        self.bg_modal_btn = QPushButton("Process Background")
+        self.bg_modal_btn.clicked.connect(self.open_background_modal)
+        self.bg_modal_btn.setEnabled(False)  
+
+        self.count_input = LabeledSpinBox()
+        self.count_input.setText("Count:")
+        self.count_input.setValue(10)
+        self.count_input.setMinimum(1)
+        self.count_input.setMaximum(1000)
+
+        self.interval_input = LabeledDoubleSpinBox()
+        self.interval_input.setText("Interval (s):")
+        self.interval_input.setValue(1.0)
+        self.interval_input.setMinimum(0.01)
+        self.interval_input.setMaximum(60.0)
+
+        self.start_auto_btn = QPushButton("Start Auto Capture")
+        self.start_auto_btn.setCheckable(True)
+        self.start_auto_btn.clicked.connect(self.toggle_auto_capture)
+        
+        self.progress_bar = QProgressBar()
+        self.progress_bar.hide()
+
+        # Capture Timer
+        self.capture_timer = QTimer(self)
+        self.capture_timer.timeout.connect(self._process_auto_capture)
+        self.snaps_remaining = 0
+
+        # Thumbnail Area
+        self.thumb_scroll = QScrollArea()
+        self.thumb_scroll.setFixedHeight(120)
+        self.thumb_scroll.setWidgetResizable(True)
+        self.thumb_container = QWidget()
+        self.thumb_layout = QHBoxLayout(self.thumb_container)
+        self.thumb_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.thumb_scroll.setWidget(self.thumb_container)
+
+        # Layout Assembly
         main_layout = QVBoxLayout(self)
-        main_layout.addWidget(self.auto_btn)
-        main_layout.addLayout(grid_layout)
-        main_layout.addLayout(size_layout)
-        main_layout.addLayout(offset_layout)
-        main_layout.addLayout(margin_layout)
-        main_layout.addStretch()
-        main_layout.addWidget(self.open_loop_group)
-        main_layout.addStretch()
-        main_layout.addLayout(image_layout)
-        main_layout.addStretch()
+        main_layout.addLayout(self._create_hlayout([self.add_btn, self.clear_btn, self.auto_btn]))
+        main_layout.addWidget(self.viewer, 1)
+        main_layout.addLayout(self._create_hlayout([self.snap_btn, self.clear_snap_btn, self.bg_modal_btn]))
+        main_layout.addLayout(self._create_hlayout([self.count_input, self.interval_input, self.start_auto_btn]))
+        main_layout.addWidget(self.progress_bar)
+        main_layout.addWidget(self.thumb_scroll)
+            
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_viewer_image)
+        self.timer.start(1000 // self.REFRESH_RATE) 
 
-    def on_auto(self):
-        modal = FindCircularArenasDialog(
-            image = self.image,
-            pix_per_mm = self.pix_per_mm
-        )
-        modal.data.connect(self.handle_auto)
-        modal.exec_()
+    def _create_hlayout(self, widgets):
+        l = QHBoxLayout()
+        for w in widgets: l.addWidget(w)
+        return l
 
-    def handle_auto(self, circles, rois, annotated_image):
-        self.ROIs.clear()
-        self.ROIs.extend(rois.tolist())
+    def toggle_auto_capture(self, checked: bool):
+        if checked:
+            self.snaps_remaining = self.count_input.value()
+            interval_ms = int(self.interval_input.value() * 1000)
+            self.progress_bar.setRange(0, self.snaps_remaining)
+            self.progress_bar.setValue(0)
+            self.progress_bar.show()
+            self.start_auto_btn.setText("Stop Capture")
+            self.capture_timer.start(interval_ms)
+            self._process_auto_capture()
+        else:
+            self.stop_auto_capture()
 
-        h, w = annotated_image.shape[:2]
-        preview_width = int(w * self.PREVIEW_HEIGHT/h)
-        image_resized = cv2.resize(annotated_image, (preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
-        self.image_label.setPixmap(NDarray_to_QPixmap(image_resized))
-        self.state_changed.emit()
+    def stop_auto_capture(self):
+        self.capture_timer.stop()
+        self.progress_bar.hide()
+        self.start_auto_btn.setChecked(False)
+        self.start_auto_btn.setText("Start Auto Capture")
 
-    def block_all_signals(self, block: bool):
-        for child in self.findChildren(QWidget): 
-            child.blockSignals(block)
+    def _process_auto_capture(self):
+        if self.snaps_remaining <= 0:
+            self.stop_auto_capture()
+            return
+        
+        self.snap_current_image()
+        self.snaps_remaining -= 1
+        self.progress_bar.setValue(self.progress_bar.maximum() - self.snaps_remaining)
 
-    def on_change(self) -> None:
-        self.set_image(self.image)
+    def toggle_layer(self, checked: bool):
+        self.showing_background = checked
+        if self.showing_background:
+            self.timer.stop()
+            self.viewer.set_image(self.background_image)
+        else:
+            self.timer.start(1000 // self.REFRESH_RATE)
 
-    def reset(self) -> None:
-        self.row.setValue(1)
-        self.col.setValue(1)
-        self.height.setValue(self.image.shape[0])
-        self.width.setValue(self.image.shape[1])
-        self.offsetX.setValue(0)
-        self.offsetY.setValue(0)
-        self.marginX.setValue(0)
-        self.marginY.setValue(0)
-        self.centroid_X.setValue(0)
-        self.centroid_Y.setValue(0)
-        self.rotation.setValue(0)
-        self.axes = np.array([[1.0, 0.0], [0.0, 1.0]])
+    def snap_current_image(self):
+        if self.image is None: return
+        img_copy = self.image.copy()
+        self.snapped_images.append(img_copy)
+        
+        h, w = img_copy.shape[:2]
+        fmt = QImage.Format.Format_RGB888 if len(img_copy.shape) == 3 else QImage.Format.Format_Grayscale8
+        qimg = QImage(img_copy.data, w, h, img_copy.strides[0], fmt)
+        pixmap = QPixmap.fromImage(qimg).scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        
+        lbl = QLabel()
+        lbl.setPixmap(pixmap)
+        lbl.setFixedSize(80, 80)
+        self.thumb_layout.addWidget(lbl)
+        self.bg_modal_btn.setEnabled(True)
+
+    def open_background_modal(self):
+        modal = BackgroundModal(self.snapped_images, parent=self)
+        if modal.exec_():
+            background_image = modal.get_result()
+            if background_image is None:
+                return 
+            
+            img_h, img_w = background_image.shape[:2]
+            
+            if self.background_image.shape[:2] != (img_h, img_w):
+                self.background_image = np.zeros_like(background_image)
+
+            for sys_item in self.viewer.coordinate_systems:
+                if sys_item.is_locked:
+                    continue
+                    
+                item_state = sys_item.get_state()
+                x, y, w, h = item_state["bbox_rect"]
+                
+                x1 = max(0, min(x, img_w))
+                y1 = max(0, min(y, img_h))
+                x2 = max(0, min(x + w, img_w))
+                y2 = max(0, min(y + h, img_h))
+                
+                if (x2 > x1) and (y2 > y1):
+                    self.background_image[y1:y2, x1:x2] = background_image[y1:y2, x1:x2].copy() 
+            
+            self.clear_thumbnails()
+            self.layer_btn.setChecked(True)
+            self.toggle_layer(True)
+            self.state_changed.emit()
+
+    def clear_thumbnails(self):
+        self.snapped_images.clear()
+        while self.thumb_layout.count():
+            item = self.thumb_layout.takeAt(0)
+            if item.widget(): item.widget().deleteLater()
+        self.bg_modal_btn.setEnabled(False)
+
+    def update_viewer_image(self):
+        if not self.showing_background:
+            self.viewer.set_image(self.image)
 
     def set_image(self, image: NDArray) -> None:
-
-        self.block_all_signals(True)
-
         self.image = image
 
-        self.ROIs.clear()
-        self.width.setRange(1,self.image.shape[1])
-        self.height.setRange(1,self.image.shape[0])
-        self.offsetX.setRange(0,self.image.shape[1]-1)
-        self.offsetY.setRange(0,self.image.shape[0]-1)
+    def clear_roi(self):
+        self.viewer.clear_coordinate_systems()
+        self.state_changed.emit()
 
-        # Create a copy to draw the grid
-        grid_image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-
-        # Get grid parameters
-        rows, cols = self.row.value(), self.col.value()
-        offset_x, offset_y = self.offsetX.value(), self.offsetY.value()
-        margin_x, margin_y = self.marginX.value(), self.marginY.value()
-        box_width, box_height = (self.width.value() - 2*cols*margin_x)//cols, (self.height.value() - 2*rows*margin_y)//rows
-        
-        self.centroid_X.setRange(int(-box_width//2),int(box_width//2))
-        self.centroid_Y.setRange(int(-box_height//2),int(box_height//2))
-        
-        self.axes = SimilarityTransform2D.rotation(np.deg2rad(self.rotation.value()))[:2,:2]
-        centroid_offset_x = self.centroid_X.value()
-        centroid_offset_y = self.centroid_Y.value()
-
-        # Draw grid
-        count = 0
-        for r in range(rows):
-            for c in range(cols):
-                x1 = min(offset_x + c * (2*margin_x + box_width), image.shape[1])
-                y1 = min(offset_y + r * (2*margin_y + box_height), image.shape[0])
-                x2 = min(x1 + box_width, image.shape[1]) 
-                y2 = min(y1 + box_height, image.shape[0])
-                text = str(count)
-                textsize = cv2.getTextSize(text, self.font, self.fontsize, self.fontweight)[0]
-                centroid_x = x1+box_width//2
-                centroid_y = y1+box_height//2
-                scale_x = box_width//4
-                scale_y = box_height//8
-                
-                cv2.rectangle(
-                    grid_image, 
-                    (x1, y1), (x2, y2), 
-                    self.color, 
-                    self.line_thickness
-                )
-                cv2.putText(
-                    grid_image, 
-                    str(count), 
-                    (centroid_x-textsize[0]//2, centroid_y+textsize[1]//2), 
-                    self.font, self.fontsize, 
-                    self.color, 
-                    self.fontweight, 
-                    cv2.LINE_AA
-                )
-
-                if self.open_loop_visible:
-                    cv2.line(
-                        grid_image, 
-                        (int(centroid_x+centroid_offset_x), int(centroid_y+centroid_offset_y)), 
-                        (int(centroid_x+centroid_offset_x+scale_y*self.axes[0,1]), int(centroid_y+centroid_offset_y+scale_y*self.axes[1,1])), 
-                        self.axis_y_color, 
-                        self.line_thickness
-                    )
-                    cv2.line(
-                        grid_image, 
-                        (int(centroid_x+centroid_offset_x), int(centroid_y+centroid_offset_y)), 
-                        (int(centroid_x+centroid_offset_x+scale_x*self.axes[0,0]), int(centroid_y+centroid_offset_y+scale_x*self.axes[1,0])), 
-                        self.axis_x_color, 
-                        self.line_thickness
-                    )
-
-                self.ROIs.append((x1,y1,x2-x1,y2-y1))
-                count += 1
-
-        # Convert to QPixmap and display
-        h, w = image.shape[:2]
-        preview_width = int(w * self.PREVIEW_HEIGHT/h)
-        image_resized = cv2.resize(grid_image,(preview_width, self.PREVIEW_HEIGHT), cv2.INTER_NEAREST)
-        self.image_label.setPixmap(NDarray_to_QPixmap(image_resized))
-
-        self.block_all_signals(False)
-
+    def clear_snaps(self):
+        self.clear_thumbnails()
         self.state_changed.emit()
 
     def set_pix_per_mm(self, pix_per_mm: float) -> None:
         self.pix_per_mm = pix_per_mm
-        
-    def set_open_loop_visible(self, visible: bool) -> None:
-        self.open_loop_group.setVisible(visible)
-        self.open_loop_visible = visible
-        self.on_change()
 
     def get_state(self) -> Dict:
-
-        state = {
-            'row': self.row.value(),
-            'col': self.col.value(),
-            'width': self.width.value(),
-            'height': self.height.value(),
-            'offsetX': self.offsetX.value(),
-            'offsetY': self.offsetY.value(),
-            'marginX': self.marginX.value(),
-            'marginY': self.marginY.value(),
-            'rotation': self.rotation.value(),
-            'open_loop_visible': self.open_loop_visible,
-            'ROIs': self.ROIs.copy(),
-            'n_animals': len(self.ROIs),
-            'open_loop_x_offset': self.centroid_X.value(),
-            'open_loop_y_offset': self.centroid_Y.value(),
-            'open_loop_axes': self.axes.tolist()
-        }
-
+        state = self.viewer.get_state()
+        state['background'] = self.background_image
         return state
     
     def set_state(self, state: Dict) -> None:
+        self.viewer.set_state(state)
+        #self.background_image = state['background']
         
-        setters = {
-            'row': self.row.setValue,
-            'col': self.col.setValue,
-            'width': self.width.setValue,
-            'height': self.height.setValue,
-            'offsetX': self.offsetX.setValue,
-            'offsetY': self.offsetY.setValue,
-            'marginX': self.marginX.setValue,
-            'marginY': self.marginY.setValue,
-            'rotation': self.rotation.setValue,
-            'open_loop_x_offset':  self.centroid_X.setValue,
-            'open_loop_y_offset':  self.centroid_Y.setValue,
-        }
+    def on_auto(self):
+        modal = FindCircularArenasDialog(image=self.image, pix_per_mm=self.pix_per_mm)
+        modal.data.connect(self.handle_auto)
+        modal.exec_()
 
-        for key, setter in setters.items():
-            if key in state:
-                setter(state[key])
-
-        self.axes = state.get('axes', np.array([[1.0, 0.0], [0.0, 1.0]]))
-        self.set_open_loop_visible(state.get('open_loop_visible', False))
-        
-if __name__ == "__main__":
-    
-    app = QApplication([])
-    window = IdentityWidget()
-    window.show()
-    app.exec()
+    def handle_auto(self, circles, rois, annotated_image):
+        state = {'identities': {}}
+        for idx, (circle, bbox) in enumerate(zip(circles, rois)):
+            state['identities'][idx] = {
+                'bbox_rect': bbox,
+                'centroid': circle[:2] - bbox[:2],
+                'axes': [[0,1],[-1,0]],
+            }
+        self.set_state(state)
+        self.state_changed.emit()

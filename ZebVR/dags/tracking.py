@@ -116,7 +116,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
     )
 
     cropper = CropWorker(
-        ROI_identities = settings['identity']['ROIs'],
+        identities = settings['identity']['identities'],
         name = f'crop', 
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -137,7 +137,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         tracker_worker_list.append(
             TrackerWorker(
                 tracker, 
-                background_image_file = settings['background']['background_file'],
+                background_image = settings['identity']['background'],
                 cam_fps = settings['camera']['framerate_value'],
                 cam_width = settings['camera']['width_value'],
                 cam_height = settings['camera']['height_value'],
@@ -152,7 +152,7 @@ def tracking(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proce
         )
     
     tracker_control_worker = TrackerGui(
-        n_animals = settings['identity']['n_animals'],
+        identities = settings['identity']['identities'],
         settings_file = settings['settings']['tracking']['tracker_settings_file'],
         image_shape = (settings['camera']['height_value'],  settings['camera']['width_value']),
         pix_per_mm = settings['calibration']['pix_per_mm'],

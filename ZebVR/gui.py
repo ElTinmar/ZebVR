@@ -9,7 +9,6 @@ from array import array
 from enum import Enum
 from collections import deque
 
-import cv2
 import numpy as np
 from qtpy.QtWidgets import (
     QWidget, 
@@ -34,7 +33,6 @@ from .calibration import (
     registration,
     power_calibration
 )
-from .background import inpaint_background, static_background
 from .widgets import (
     CameraWidget, 
     CameraController,
@@ -42,7 +40,6 @@ from .widgets import (
     ProjectorController,
     RegistrationWidget,
     CalibrationWidget,
-    BackgroundWidget,
     IdentityWidget,
     SequencerWidget,
     SettingsWidget,
@@ -120,6 +117,7 @@ class MainGui(QMainWindow):
 
         self.camera_widget = CameraWidget()
         self.camera_controller = CameraController(self.camera_widget)
+        camera_handler = self.camera_controller.get_camera_handler()
         self.camera_controller.state_changed.connect(self.update_camera_settings)
 
         self.projector_widget = ProjectorWidget()
@@ -143,12 +141,9 @@ class MainGui(QMainWindow):
         self.calibration_widget.calibration_signal.connect(self.start_pix_per_mm)
         self.calibration_widget.check_calibration_signal.connect(self.start_check_pix_per_mm)
 
-        self.background_widget = BackgroundWidget()
-        self.background_widget.state_changed.connect(self.update_background_settings)
-        self.background_widget.background_signal.connect(self.start_background)
-
         self.identity_widget = IdentityWidget()
         self.identity_widget.state_changed.connect(self.update_identity_settings)
+        camera_handler.register_display_widget(self.identity_widget)
 
         self.sequencer_widget = SequencerWidget()
         self.sequencer_widget.state_changed.connect(self.update_sequencer_settings)
@@ -199,8 +194,7 @@ class MainGui(QMainWindow):
         self.tabs.addTab(self.daq_widget, "DAQs")
         self.tabs.addTab(self.registration_widget, "Registration")
         self.tabs.addTab(self.calibration_widget, "Calibration")
-        self.tabs.addTab(self.background_widget, "Background")
-        self.tabs.addTab(self.identity_widget, "Identity")
+        self.tabs.addTab(self.identity_widget, "ID and Background")
         self.tabs.addTab(self.sequencer_widget, "Protocol")
         self.tabs.addTab(self.settings_widget, "Settings")
         self.tabs.addTab(self.logs_widget, "Logs") 
@@ -208,7 +202,7 @@ class MainGui(QMainWindow):
         self.tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding) 
 
         self.start_button = QPushButton()
-        self.start_button.setText('start')
+        self.start_button.setText('interactive mode')
         self.start_button.clicked.connect(self.preview)
 
         self.stop_button = QPushButton()
@@ -216,7 +210,7 @@ class MainGui(QMainWindow):
         self.stop_button.clicked.connect(self.stop)
 
         self.record_button = QPushButton()
-        self.record_button.setText('record')
+        self.record_button.setText('run protocol')
         self.record_button.clicked.connect(self.record)
 
         self.recording_duration = LabeledDoubleSpinBox()
@@ -302,7 +296,6 @@ class MainGui(QMainWindow):
                 self.audio_widget, 
                 self.daq_widget,
                 self.calibration_widget, 
-                self.background_widget,
                 self.identity_widget, 
                 self.registration_widget,
                 self.sequencer_widget,
@@ -315,7 +308,6 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(True)
             self.settings_widget.force_videorecording(False)
             self.settings_widget.set_stim_output_visible(True)
-            self.identity_widget.set_open_loop_visible(False)
 
         elif self.open_loop_button.isChecked():
 
@@ -328,7 +320,6 @@ class MainGui(QMainWindow):
                 self.registration_widget,
                 self.sequencer_widget,
                 self.settings_widget,
-                self.background_widget,
                 self.identity_widget
             ]
 
@@ -338,7 +329,6 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(False)
             self.settings_widget.force_videorecording(False)
             self.settings_widget.set_stim_output_visible(True)
-            self.identity_widget.set_open_loop_visible(True)
 
         elif self.video_recording_button.isChecked():
 
@@ -352,7 +342,6 @@ class MainGui(QMainWindow):
                 self.audio_widget,
                 self.daq_widget,
                 self.calibration_widget, 
-                self.background_widget,
                 self.identity_widget,
                 self.registration_widget,
                 self.sequencer_widget
@@ -363,13 +352,11 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(False)
             self.settings_widget.force_videorecording(True)
             self.settings_widget.set_stim_output_visible(False)
-            self.identity_widget.set_open_loop_visible(False)
 
         elif self.tracking_button.isChecked():
             
             widgets_to_show = [
                 self.camera_widget,
-                self.background_widget, 
                 self.identity_widget,
                 self.settings_widget
             ]
@@ -388,7 +375,6 @@ class MainGui(QMainWindow):
             self.settings_widget.set_tracking_visible(True)
             self.settings_widget.force_videorecording(False)
             self.settings_widget.set_stim_output_visible(False)
-            self.identity_widget.set_open_loop_visible(False)
 
         else:
             raise RuntimeError    
@@ -418,7 +404,8 @@ class MainGui(QMainWindow):
             'projector.light_analysis.spectrometer.spectrometer_constructor',
             'projector.light_analysis.spectrometer.spectrometers',
             'sequencer.protocol',
-            'daq'
+            'daq',
+            'identity.background'
         }
         clean_state = make_json_safe(state, exclude_keys)
         with open(filename_correct_ext, 'w') as fp:
@@ -442,7 +429,6 @@ class MainGui(QMainWindow):
             'daq': self.daq_widget.set_state,
             'registration': self.registration_widget.set_state,
             'calibration': self.calibration_widget.set_state,
-            'background': self.background_widget.set_state,
             'identity': self.identity_widget.set_state,
             'settings': self.settings_widget.set_state,
             'logs': self.logs_widget.set_state,
@@ -486,11 +472,9 @@ class MainGui(QMainWindow):
         pix_per_mm = self.settings['calibration']['pix_per_mm']
         self.identity_widget.set_pix_per_mm(pix_per_mm)
 
-    def update_background_settings(self):
-        self.settings['background'] = self.background_widget.get_state()
-
     def update_identity_settings(self):
         self.settings['identity'] = self.identity_widget.get_state()
+        self.sequencer_widget.set_background_image(self.settings['identity']['background'])
 
     def update_settings(self):
         self.settings['settings'] = self.settings_widget.get_state()
@@ -519,7 +503,6 @@ class MainGui(QMainWindow):
         self.update_daq_settings()
         self.update_registration_settings()
         self.update_calibration_settings()
-        self.update_background_settings()
         self.update_identity_settings()
         self.update_settings()
         self.update_logs()
@@ -683,69 +666,6 @@ class MainGui(QMainWindow):
         process.join()
         self.process_timer.stop()
         self.busy_overlay.hide_overlay()
-        
-    def start_background(self):
-
-        self.camera_controller.set_preview(False)
-
-        if self.settings['background']['bckgsub_method'] == 'inpaint':
-            p = Process(
-                target = inpaint_background,
-                kwargs = {
-                    "camera_constructor": self.settings['camera']['camera_constructor'],
-                    "exposure_microsec": self.settings['camera']['exposure_value'],
-                    "cam_gain": self.settings['camera']['gain_value'],
-                    "cam_fps": self.settings['camera']['framerate_value'],
-                    "cam_height": self.settings['camera']['height_value'],
-                    "cam_width": self.settings['camera']['width_value'],
-                    "cam_offset_x": self.settings['camera']['offsetX_value'],
-                    "cam_offset_y": self.settings['camera']['offsetY_value'],
-                    "background_file": self.settings['background']['background_file'],
-                    "radius": self.settings['background']['inpaint_radius'],
-                    "algo": cv2.INPAINT_NS if self.settings['background']['inpaint_algo'] == 'navier-stokes' else cv2.INPAINT_TELEA
-                }
-            )
-        elif self.settings['background']['bckgsub_method'] == 'static':
-            p = Process(
-                target = static_background,
-                kwargs = {
-                    "camera_constructor": self.settings['camera']['camera_constructor'],
-                    "exposure_microsec": self.settings['camera']['exposure_value'],
-                    "cam_gain": self.settings['camera']['gain_value'],
-                    "cam_fps": self.settings['camera']['framerate_value'],
-                    "cam_height": self.settings['camera']['height_value'],
-                    "cam_width": self.settings['camera']['width_value'],
-                    "cam_offset_x": self.settings['camera']['offsetX_value'],
-                    "cam_offset_y": self.settings['camera']['offsetY_value'],
-                    "background_file": self.settings['background']['background_file'],
-                    "num_images": self.settings['background']['static_num_images'],
-                    "time_between_images": self.settings['background']['static_pause_duration']
-                }
-            )
-        else:
-            return
-        
-        self.busy_overlay.show_overlay()
-        p.start()
-        self.register_done_callback(lambda: self.background_done(p))
-
-    def background_done(self, process: Process):
-        
-        if process.is_alive():
-            return 
-    
-        process.join()
-        self.process_timer.stop()
-
-        # update background widget
-        image = np.load(self.settings['background']['background_file'])
-        self.settings['background']['image'] = image
-        self.background_widget.set_image(image)
-        self.sequencer_widget.set_background_image(image)
-        self.identity_widget.set_image(image)
-        self.identity_widget.reset()
-
-        self.busy_overlay.hide_overlay()
 
     def start_pix_per_mm(self):
 
@@ -841,6 +761,7 @@ class MainGui(QMainWindow):
         self.start_thread = WorkerThread(self.start_dag)
         self.start_thread.finished.connect(self._on_start_finished, Qt.UniqueConnection)
         self.start_thread.finished.connect(self.start_thread.deleteLater)
+        self.start_thread.exception.connect(print)
         self.start_thread.start()
 
     def _on_start_finished(self):
@@ -953,7 +874,6 @@ class MainGui(QMainWindow):
         self.daq_widget.close()
         self.registration_widget.close()
         self.calibration_widget.close()
-        self.background_widget.close()
         self.identity_widget.close()
         self.sequencer_widget.close()
         self.settings_widget.close()

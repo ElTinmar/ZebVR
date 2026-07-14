@@ -11,7 +11,7 @@ class TrackerGui(WorkerNode):
 
     def __init__(
             self,
-            n_animals: int,
+            identities: Dict,
             image_shape: Tuple[int, int],
             pix_per_mm: float = 30,
             settings_file: Union[Path, str] = Path('tracking.json'),
@@ -21,7 +21,8 @@ class TrackerGui(WorkerNode):
         ):
 
         super().__init__(*args, **kwargs)
-        self.n_animals = n_animals 
+        self.identities = identities
+        self.n_animals = len(identities) 
         self.image_shape = image_shape
         self.pix_per_mm = pix_per_mm
         self.settings_file = Path(settings_file)
@@ -37,7 +38,7 @@ class TrackerGui(WorkerNode):
                 image_shape = self.image_shape,
                 settings_file = self.settings_file,
                 pix_per_mm = self.pix_per_mm,
-                n_animals = self.n_animals
+                identities = self.identities
             )
         
         else:

@@ -18,6 +18,7 @@ from ..workers import (
     TemperatureLoggerWorker,
     DAQ_Worker,
     StimSaver,
+    ProtocolDisplayWorker,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -187,12 +188,7 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
 
     # visual stim ----------------------------------------------
     stim = GeneralStim(
-        ROI_identities = settings['identity']['ROIs'],
-        init_offset = (
-            settings['identity']['open_loop_x_offset'],
-            settings['identity']['open_loop_y_offset']
-        ),
-        init_heading = np.array(settings['identity']['open_loop_axes']), 
+        identities = settings['identity']['identities'],
         window_size = settings['projector']['resolution'],
         window_position = settings['projector']['offset'],
         window_decoration = False,
@@ -260,6 +256,15 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
         log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         receive_metadata_strategy = receive_strategy.POLL
+    )
+
+    protocol_display = ProtocolDisplayWorker(
+        recording_duration = settings['main']['recording_duration'],
+        name = 'protocol_display', 
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        log_level = Logger.ERROR,
+        receive_data_timeout = 1.0,
     )
 
     # connect DAG -----------------------------------------------------------------------
@@ -388,6 +393,14 @@ def open_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Proc
             name = 'audio_stim_logger'
         )
 
+    if settings['main']['record']:
+        dag.connect_metadata(
+            sender = stim_saver,
+            receiver = protocol_display,
+            queue = QueueMP(), 
+            name = 'protocol_display'
+        )
+        
     dag.add_node(queue_monitor_worker)
     if settings['temperature']['serial_port'] != '':
         dag.add_node(temperature_logger)

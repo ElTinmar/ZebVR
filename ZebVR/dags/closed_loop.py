@@ -25,6 +25,7 @@ from ..workers import (
     DAQ_Worker,
     LatencyDisplay,
     StimSaver,
+    ProtocolDisplayWorker,
     rgb_to_yuv420p,
     rgb_to_gray
 )
@@ -246,7 +247,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
     )
 
     cropper = CropWorker(
-        ROI_identities = settings['identity']['ROIs'],
+        identities = settings['identity']['identities'],
         name = f'crop', 
         logger = worker_logger, 
         logger_queues = queue_logger,
@@ -269,7 +270,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         tracker_worker_list.append(
             TrackerWorker(
                 tracker, 
-                background_image_file = settings['background']['background_file'],
+                background_image = settings['identity']['background'],
                 cam_fps = settings['camera']['framerate_value'],
                 cam_width = settings['camera']['width_value'],
                 cam_height = settings['camera']['height_value'],
@@ -287,7 +288,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         )
     
     tracker_control_worker = TrackerGui(
-        n_animals = settings['identity']['n_animals'],
+        identities = settings['identity']['identities'],
         settings_file = settings['settings']['tracking']['tracker_settings_file'],
         image_shape = (settings['camera']['height_value'], settings['camera']['width_value']),
         pix_per_mm = settings['calibration']['pix_per_mm'],
@@ -354,7 +355,7 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
 
     # visual stim ----------------------------------------------
     stim = GeneralStim(
-        ROI_identities = settings['identity']['ROIs'],
+        identities = settings['identity']['identities'],
         window_size = settings['projector']['resolution'],
         window_position = settings['projector']['offset'],
         window_decoration = False,
@@ -413,6 +414,15 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
         log_level = Logger.ERROR,
         receive_data_timeout = 1.0,
         receive_metadata_strategy = receive_strategy.POLL
+    )
+
+    protocol_display = ProtocolDisplayWorker(
+        recording_duration = settings['main']['recording_duration'],
+        name = 'protocol_display', 
+        logger = worker_logger, 
+        logger_queues = queue_logger,
+        log_level = Logger.ERROR,
+        receive_data_timeout = 1.0,
     )
 
     # connect DAG -----------------------------------------------------------------------
@@ -596,6 +606,14 @@ def closed_loop(settings: Dict, dag: Optional[ProcessingDAG] = None) -> Tuple[Pr
             receiver = stim_saver,
             queue = queue_stim_saver, 
             name = 'audio_stim_logger'
+        )
+        
+    if settings['main']['record']:
+        dag.connect_metadata(
+            sender = stim_saver,
+            receiver = protocol_display,
+            queue = QueueMP(), 
+            name = 'protocol_display'
         )
 
     # isolated nodes

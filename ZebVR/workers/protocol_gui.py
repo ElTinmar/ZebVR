@@ -1,5 +1,4 @@
 from dagline import WorkerNode
-from numpy.typing import NDArray
 from typing import Dict, Optional, List
 import time
 from ..widgets import StimWidget
