@@ -226,7 +226,6 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
     def __init__(self, stop_widget: StopWidget, *args, **kwargs):
         self.sub_widgets: List[ProtocolItemWidget] = []
         self._allowed_types: Dict[str, Type[ProtocolItemWidget]] = {}
-        
         super().__init__(stop_widget, *args, **kwargs)
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
 
@@ -241,7 +240,7 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self._on_tab_close_requested)
         
-        self.add_button = QPushButton("Add Protocol Item...", self)
+        self.add_button = QPushButton("Add", self)
         self.add_menu = QMenu(self)
         self.add_button.setMenu(self.add_menu)
         self._update_add_menu()
