@@ -219,6 +219,65 @@ class ProtocolItemWidget(QWidget):
         return ProtocolItem(**self._get_protocol_kwargs())
     
 
+
+class AddButtonTabWidget(QTabWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setTabsClosable(True)
+        
+        self.setStyleSheet("""
+            QTabBar::tab:disabled {
+                background: transparent;
+                border: none;
+                width: 35px; /* Give the dropdown menu button breathing room */
+            }
+            QTabBar QPushButton {
+                background: transparent;
+                border: none;
+                font-size: 24px;
+                padding-bottom: 2px;
+            }
+            QTabBar QPushButton::menu-indicator {
+                image: none; /* Hide the default tiny down-arrow if desired */
+            }
+            QTabBar QPushButton:hover {
+                color: #0078d7;
+            }
+        """)
+
+        self.add_button = QPushButton("+", self)
+        self.add_button.setFixedWidth(48)
+        
+        # 3. Append the invisible placeholder tab slot
+        self.addTab(QWidget(), "")
+        self.plus_index = self.count() - 1
+        self.setTabEnabled(self.plus_index, False)
+        
+        # 4. Dock the button into the placeholder tab
+        self.tabBar().setTabButton(self.plus_index, self.tabBar().LeftSide, self.add_button)
+        
+        # Try wiping default right-side close indicators from the plus tab
+        try:
+            self.tabBar().setTabButton(self.plus_index, self.tabBar().RightSide, None)
+        except Exception:
+            pass
+
+    def set_menu(self, menu: QMenu):
+        self.add_button.setMenu(menu)
+
+    def insert_real_tab(self, widget: QWidget, title: str) -> int:
+        target_index = self.count() - 1
+        if target_index < 0:
+            target_index = 0
+            
+        new_index = self.insertTab(target_index, widget, title)
+        return new_index
+
+    def is_plus_tab(self, index: int) -> bool:
+        return index == self.count() - 1
+    
+
 class CompositeProtocolItemWidget(ProtocolItemWidget):
     
     item_added = Signal(QWidget) 
@@ -236,13 +295,13 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
     def declare_components(self) -> None:
         super().declare_components()
         
-        self.tabs = QTabWidget(self)
-        self.tabs.setTabsClosable(True)
+        # Use our clean custom component
+        self.tabs = AddButtonTabWidget(self)
         self.tabs.tabCloseRequested.connect(self._on_tab_close_requested)
         
-        self.add_button = QPushButton("Add", self)
+        # Generate the context menu and pass it into the tab bar button
         self.add_menu = QMenu(self)
-        self.add_button.setMenu(self.add_menu)
+        self.tabs.set_menu(self.add_menu)
         self._update_add_menu()
 
     def _update_add_menu(self) -> None:
@@ -254,7 +313,6 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
     def layout_components(self) -> None:
         self.main_layout = QVBoxLayout(self)        
         self.main_layout.addWidget(self.stim_name)
-        self.main_layout.addWidget(self.add_button)
         self.main_layout.addWidget(self.tabs)
         self.main_layout.addWidget(self.stop_widget)
 
@@ -263,12 +321,16 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
         widget.stop_widget.hide()  
 
         tab_title = f"{len(self.sub_widgets)}: {display_name}"
-        new_index = self.tabs.addTab(widget, tab_title)
+        new_index = self.tabs.insert_real_tab(widget, tab_title)
         self.tabs.setCurrentIndex(new_index)          
+        
         widget.state_changed.connect(self.state_changed)
         self.state_changed.emit()
 
     def _on_tab_close_requested(self, index: int) -> None:
+        if self.tabs.is_plus_tab(index):
+            return
+
         widget = self.tabs.widget(index)
         if widget in self.sub_widgets:
             self.sub_widgets.remove(widget)
@@ -281,7 +343,9 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
         self.state_changed.emit()
 
     def _refresh_tab_titles(self) -> None:
-        for i in range(self.tabs.count()):
+        # Loop over only standard item tabs, ignoring the trailing plus tab
+        loop_limit = self.tabs.count() - 1
+        for i in range(loop_limit):
             current_title = self.tabs.tabText(i)
             if ":" in current_title:
                 suffix = current_title.split(":", 1)[1]
@@ -293,10 +357,7 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
             background_image=self.stop_widget.background_image
         )
         
-        # Watch out for DAQ_ProtocolItemWidget, pass a partial from stim widget?
         new_widget = widget_cls(stop_widget=new_stop_widget)
-
-        # Lookup friendly display string name from our registry map configuration
         display_name = [k for k, v in self._allowed_types.items() if v == widget_cls][0]
         
         self.add_sub_widget(new_widget, display_name)
@@ -308,3 +369,4 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
             sub_protocols=sub_protocols,
             **self._get_protocol_kwargs()
         )
+    
