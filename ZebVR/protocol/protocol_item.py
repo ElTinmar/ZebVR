@@ -5,13 +5,10 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import (
     QWidget, 
     QVBoxLayout,
-    QHBoxLayout,
     QPushButton,
-    QStyle,
     QSizePolicy,
     QMenu,
-    QTabWidget, 
-    QTabBar
+    QTabWidget
 )
 from qt_widgets import LabeledEditLine
 from ..utils import set_from_dict
