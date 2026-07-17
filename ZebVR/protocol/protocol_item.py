@@ -9,7 +9,9 @@ from qtpy.QtWidgets import (
     QPushButton,
     QStyle,
     QSizePolicy,
-    QMenu
+    QMenu,
+    QTabWidget, 
+    QTabBar
 )
 from qt_widgets import LabeledEditLine
 from ..utils import set_from_dict
@@ -229,77 +231,88 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
 
     def register_allowed_type(self, display_name: str, widget_cls: Type[ProtocolItemWidget]) -> None:
-        """Register sub-widget types that this composite manager can dynamically add."""
         self._allowed_types[display_name] = widget_cls
         self._update_add_menu()
 
     def declare_components(self) -> None:
         super().declare_components()
+        
+        # Create our primary structural Tab container
+        self.tabs = QTabWidget(self)
+        self.tabs.setTabsClosable(True)
+        self.tabs.tabCloseRequested.connect(self._on_tab_close_requested)
+        
+        # Configure our Add button and its dynamic dropdown action menu
         self.add_button = QPushButton("Add Protocol Item...", self)
         self.add_menu = QMenu(self)
         self.add_button.setMenu(self.add_menu)
         self._update_add_menu()
 
     def _update_add_menu(self) -> None:
-        if not hasattr(self, 'add_menu'):
-            return
         self.add_menu.clear()
-        
-        # If no custom sub-widgets registered yet, fall back to base
-        if not self._allowed_types:
-            action = self.add_menu.addAction("Base Protocol Item")
-            action.triggered.connect(lambda: self._on_add_item_triggered(ProtocolItemWidget))
-        else:
-            for name, widget_cls in self._allowed_types.items():
-                action = self.add_menu.addAction(name)
-                action.triggered.connect(lambda checked=False, cls=widget_cls: self._on_add_item_triggered(cls))
+        for name, widget_cls in self._allowed_types.items():
+            action = self.add_menu.addAction(name)
+            action.triggered.connect(lambda checked=False, cls=widget_cls: self._on_add_item_triggered(cls))
 
     def layout_components(self) -> None:
         self.main_layout = QVBoxLayout(self)
-        self.main_layout.setSizeConstraint(QVBoxLayout.SetMinAndMaxSize)
-
+        
+        # Layout top settings, then our button and our structural sub-tabs
         self.main_layout.addWidget(self.stim_name)
         self.main_layout.addWidget(self.add_button)
+        self.main_layout.addWidget(self.tabs)
         self.main_layout.addWidget(self.stop_widget)
 
-    def add_sub_widget(self, widget: ProtocolItemWidget) -> None:
+    def add_sub_widget(self, widget: ProtocolItemWidget, display_name: str = "Item") -> None:
         self.sub_widgets.append(widget)
-        widget.stop_widget.hide() 
+        widget.stop_widget.hide()  # Keep hiding the sub-stop conditions as requested
 
-        row_container = QWidget(self)
-        trash_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_TrashIcon)
-        delete_button = QPushButton(row_container)
-        delete_button.setIcon(trash_icon)
-        delete_button.setFixedWidth(24)
-        delete_button.clicked.connect(
-            lambda: self.remove_sub_widget(widget, row_container)
-        )
-
-        row_layout = QHBoxLayout(row_container)
-        row_layout.setContentsMargins(0, 0, 0, 0)
-        row_layout.addWidget(widget, stretch=1)
-        row_layout.addWidget(delete_button)
-
-        insert_index = max(0, self.main_layout.count() - 1)
-        self.main_layout.insertWidget(insert_index, row_container)
+        # Calculate a nice tab title (e.g., "Item 1: DARK")
+        tab_title = f"{len(self.sub_widgets)}: {display_name}"
+        
+        # Add directly into the QTabWidget structure
+        new_index = self.tabs.addTab(widget, tab_title)
+        self.tabs.setCurrentIndex(new_index)  # Jump view focus straight to the new item
+        
+        # Forward state change triggers up the chain so StimWidget handles layout constraints
+        widget.state_changed.connect(self.state_changed)
         self.state_changed.emit()
 
-    def remove_sub_widget(self, widget: ProtocolItemWidget, wrapper: QWidget) -> None:
+    def _on_tab_close_requested(self, index: int) -> None:
+        """Slot targeting closure events fired directly via the tab bar cross buttons."""
+        widget = self.tabs.widget(index)
         if widget in self.sub_widgets:
             self.sub_widgets.remove(widget)
-            self.main_layout.removeWidget(wrapper)
-            wrapper.setParent(None)
-            wrapper.deleteLater()
-
-        self.state_changed.emit()
+            
+        self.tabs.removeTab(index)
+        widget.setParent(None)
+        widget.deleteLater()
         
+        # Clean up item labels indices if needed, then sync size settings
+        self._refresh_tab_titles()
+        self.state_changed.emit()
+
+    def _refresh_tab_titles(self) -> None:
+        """Utility to ensure indexes (1:, 2:, etc) stay perfectly aligned after removals."""
+        for i in range(self.tabs.count()):
+            current_title = self.tabs.tabText(i)
+            if ":" in current_title:
+                suffix = current_title.split(":", 1)[1]
+                self.tabs.setTabText(i, f"{i + 1}:{suffix}")
+
     def _on_add_item_triggered(self, widget_cls: Type[ProtocolItemWidget]) -> None:
         new_stop_widget = StopWidget(
             debouncer=self.stop_widget.debouncer,
             background_image=self.stop_widget.background_image
         )
+        
+        # Watch out for DAQ_ProtocolItemWidget, pass a partial from stim widget?
         new_widget = widget_cls(stop_widget=new_stop_widget)
-        self.add_sub_widget(new_widget)
+
+        # Lookup friendly display string name from our registry map configuration
+        display_name = [k for k, v in self._allowed_types.items() if v == widget_cls][0]
+        
+        self.add_sub_widget(new_widget, display_name)
         self.item_added.emit(new_widget)
 
     def to_protocol_item(self) -> CompositeProtocolItem:
