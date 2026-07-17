@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, Tuple, Union, List
+from typing import Optional, Dict, Any, Tuple, Union, List, Type
 from abc import ABC
 from .stop_condition import StopCondition, Pause, StopWidget
 from qtpy.QtCore import Signal
@@ -8,7 +8,8 @@ from qtpy.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QStyle,
-    QSizePolicy
+    QSizePolicy,
+    QMenu
 )
 from qt_widgets import LabeledEditLine
 from ..utils import set_from_dict
@@ -214,20 +215,44 @@ class ProtocolItemWidget(QWidget):
 
     def to_protocol_item(self) -> ProtocolItem:
         return ProtocolItem(**self._get_protocol_kwargs())
+    
 
 class CompositeProtocolItemWidget(ProtocolItemWidget):
-
-    add = Signal()
+    
+    item_added = Signal(QWidget) 
 
     def __init__(self, stop_widget: StopWidget, *args, **kwargs):
         self.sub_widgets: List[ProtocolItemWidget] = []
+        self._allowed_types: Dict[str, Type[ProtocolItemWidget]] = {}
+        
         super().__init__(stop_widget, *args, **kwargs)
         self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
 
+    def register_allowed_type(self, display_name: str, widget_cls: Type[ProtocolItemWidget]) -> None:
+        """Register sub-widget types that this composite manager can dynamically add."""
+        self._allowed_types[display_name] = widget_cls
+        self._update_add_menu()
+
     def declare_components(self) -> None:
         super().declare_components()
-        self.add_button = QPushButton("Add Protocol Item", self)
-        self.add_button.clicked.connect(self.add)
+        self.add_button = QPushButton("Add Protocol Item...", self)
+        self.add_menu = QMenu(self)
+        self.add_button.setMenu(self.add_menu)
+        self._update_add_menu()
+
+    def _update_add_menu(self) -> None:
+        if not hasattr(self, 'add_menu'):
+            return
+        self.add_menu.clear()
+        
+        # If no custom sub-widgets registered yet, fall back to base
+        if not self._allowed_types:
+            action = self.add_menu.addAction("Base Protocol Item")
+            action.triggered.connect(lambda: self._on_add_item_triggered(ProtocolItemWidget))
+        else:
+            for name, widget_cls in self._allowed_types.items():
+                action = self.add_menu.addAction(name)
+                action.triggered.connect(lambda checked=False, cls=widget_cls: self._on_add_item_triggered(cls))
 
     def layout_components(self) -> None:
         self.main_layout = QVBoxLayout(self)
@@ -238,7 +263,6 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
         self.main_layout.addWidget(self.stop_widget)
 
     def add_sub_widget(self, widget: ProtocolItemWidget) -> None:
-
         self.sub_widgets.append(widget)
         widget.stop_widget.hide() 
 
@@ -252,7 +276,7 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
         )
 
         row_layout = QHBoxLayout(row_container)
-        row_layout.setContentsMargins(0, 0, 0, 0)  # Tight fit, no unnecessary padding
+        row_layout.setContentsMargins(0, 0, 0, 0)
         row_layout.addWidget(widget, stretch=1)
         row_layout.addWidget(delete_button)
 
@@ -261,41 +285,26 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
         self.state_changed.emit()
 
     def remove_sub_widget(self, widget: ProtocolItemWidget, wrapper: QWidget) -> None:
-
         if widget in self.sub_widgets:
             self.sub_widgets.remove(widget)
-            
             self.main_layout.removeWidget(wrapper)
             wrapper.setParent(None)
             wrapper.deleteLater()
 
         self.state_changed.emit()
         
-    def _on_add_button_clicked(self) -> None:
-
-        new_widget = ProtocolItemWidget(StopWidget(
+    def _on_add_item_triggered(self, widget_cls: Type[ProtocolItemWidget]) -> None:
+        new_stop_widget = StopWidget(
             debouncer=self.stop_widget.debouncer,
             background_image=self.stop_widget.background_image
-        ))
+        )
+        new_widget = widget_cls(stop_widget=new_stop_widget)
         self.add_sub_widget(new_widget)
+        self.item_added.emit(new_widget)
 
     def to_protocol_item(self) -> CompositeProtocolItem:
         sub_protocols = [widget.to_protocol_item() for widget in self.sub_widgets]
-        
         return CompositeProtocolItem(
             sub_protocols=sub_protocols,
             **self._get_protocol_kwargs()
         )
-    
-    def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
-        ...
-
-    def get_state(self):
-        ...
-
-    def set_state(self, state):
-        ...
-
-    def _get_protocol_kwargs(self) -> Dict[str, Any]:
-        ...
-

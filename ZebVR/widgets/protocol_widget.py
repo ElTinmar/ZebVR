@@ -1,6 +1,6 @@
 from typing import Dict, Optional, List
 from numpy.typing import NDArray
-from qtpy.QtCore import  Signal
+from qtpy.QtCore import Signal
 from qtpy.QtWidgets import (
     QWidget, 
     QStackedWidget, 
@@ -14,7 +14,8 @@ from ZebVR.protocol import (
     StopWidget,
     PROTOCOL_WIDGETS,
     DAQ_ProtocolItemWidget,
-    ProtocolItemWidget
+    ProtocolItemWidget,
+    CompositeProtocolItemWidget  
 )
 from daq_tools import (
     BoardInfo,
@@ -23,8 +24,8 @@ from daq_tools import (
 
 class StimWidget(QWidget):
 
-    state_changed =  Signal()
-    size_changed =  Signal()
+    state_changed = Signal()
+    size_changed = Signal()
 
     def __init__(
             self, 
@@ -50,11 +51,9 @@ class StimWidget(QWidget):
         self.stim_changed()
     
     def declare_components(self) -> None:
-    
         self.cmb_stim_select = QComboBox()
 
         for constructor, stim_type in PROTOCOL_WIDGETS:
-            
             stop_widget = StopWidget(self.debouncer, self.background_image)
             stop_widget.size_changed.connect(self.stim_changed)
             stop_widget.state_changed.connect(self.state_changed)
@@ -67,14 +66,29 @@ class StimWidget(QWidget):
             else:
                 widget = constructor(stop_widget = stop_widget)
             
+            if isinstance(widget, CompositeProtocolItemWidget):
+                for sub_constructor, sub_stim_type in PROTOCOL_WIDGETS:
+                    if not issubclass(sub_constructor, CompositeProtocolItemWidget):
+                        widget.register_allowed_type(str(sub_stim_type), sub_constructor)
+                
+                widget.item_added.connect(self._handle_composite_sub_widget)
+
             self.cmb_stim_select.addItem(str(stim_type))
             widget.state_changed.connect(self.on_change)
             self.protocol_item_widgets.append(widget)
         
         self.cmb_stim_select.currentIndexChanged.connect(self.stim_changed)
 
-    def layout_components(self) -> None:
+    def _handle_composite_sub_widget(self, new_sub_widget: ProtocolItemWidget) -> None:
+        """Connect structural alterations in child configurations to top-level sizing adjustments."""
+        new_sub_widget.state_changed.connect(self.on_change)
+        
+        if isinstance(new_sub_widget, DAQ_ProtocolItemWidget):
+            new_sub_widget.set_boards(self.daq_boards)
+            
+        self.on_change()
 
+    def layout_components(self) -> None:
         self.stack = QStackedWidget()
         for widget in self.protocol_item_widgets:
             self.stack.addWidget(widget) 
@@ -85,19 +99,25 @@ class StimWidget(QWidget):
         layout.addStretch()
 
     def set_daq_boards(self, daq_boards: Dict[BoardType, List[BoardInfo]]):
-
         self.daq_boards = daq_boards
         
         for widget in self.protocol_item_widgets:
+            
             if isinstance(widget, DAQ_ProtocolItemWidget):
                 widget.set_boards(daq_boards)
+
+            elif isinstance(widget, CompositeProtocolItemWidget):
+                for sub_w in widget.sub_widgets:
+                    if isinstance(sub_w, DAQ_ProtocolItemWidget):
+                        sub_w.set_boards(daq_boards)
 
         self.stim_changed()
         
     def set_background_image(self, image: NDArray) -> None:
         self.background_image = image
         current_widget = self.stack.currentWidget()
-        current_widget.stop_widget.set_background_image(image)
+        if current_widget and hasattr(current_widget, 'stop_widget'):
+            current_widget.stop_widget.set_background_image(image)
 
     def stim_changed(self):
         self.stack.setCurrentIndex(self.cmb_stim_select.currentIndex())
@@ -117,7 +137,7 @@ class StimWidget(QWidget):
     def is_updated(self) -> bool:
         return self.updated
     
-    def set_updated(self, updated:bool) -> None:
+    def set_updated(self, updated: bool) -> None:
         self.updated = updated
 
     def get_state(self) -> Dict:
@@ -146,4 +166,3 @@ class StimWidget(QWidget):
     def to_protocol_item(self) -> ProtocolItem:
         current_widget = self.stack.currentWidget()
         return current_widget.to_protocol_item()
-    
