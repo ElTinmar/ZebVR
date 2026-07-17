@@ -237,12 +237,10 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
     def declare_components(self) -> None:
         super().declare_components()
         
-        # Create our primary structural Tab container
         self.tabs = QTabWidget(self)
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self._on_tab_close_requested)
         
-        # Configure our Add button and its dynamic dropdown action menu
         self.add_button = QPushButton("Add Protocol Item...", self)
         self.add_menu = QMenu(self)
         self.add_button.setMenu(self.add_menu)
@@ -265,21 +263,15 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
 
     def add_sub_widget(self, widget: ProtocolItemWidget, display_name: str = "Item") -> None:
         self.sub_widgets.append(widget)
-        widget.stop_widget.hide()  # Keep hiding the sub-stop conditions as requested
+        widget.stop_widget.hide()  
 
-        # Calculate a nice tab title (e.g., "Item 1: DARK")
         tab_title = f"{len(self.sub_widgets)}: {display_name}"
-        
-        # Add directly into the QTabWidget structure
         new_index = self.tabs.addTab(widget, tab_title)
-        self.tabs.setCurrentIndex(new_index)  # Jump view focus straight to the new item
-        
-        # Forward state change triggers up the chain so StimWidget handles layout constraints
+        self.tabs.setCurrentIndex(new_index)          
         widget.state_changed.connect(self.state_changed)
         self.state_changed.emit()
 
     def _on_tab_close_requested(self, index: int) -> None:
-        """Slot targeting closure events fired directly via the tab bar cross buttons."""
         widget = self.tabs.widget(index)
         if widget in self.sub_widgets:
             self.sub_widgets.remove(widget)
@@ -288,12 +280,10 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
         widget.setParent(None)
         widget.deleteLater()
         
-        # Clean up item labels indices if needed, then sync size settings
         self._refresh_tab_titles()
         self.state_changed.emit()
 
     def _refresh_tab_titles(self) -> None:
-        """Utility to ensure indexes (1:, 2:, etc) stay perfectly aligned after removals."""
         for i in range(self.tabs.count()):
             current_title = self.tabs.tabText(i)
             if ":" in current_title:
