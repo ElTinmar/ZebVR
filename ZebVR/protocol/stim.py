@@ -38,8 +38,9 @@ class Stim(IntEnum):
 
     def __str__(self):
         return self.name
-    
-VISUAL_STIMS = [s for s in Stim if 0 <= s.value <= 99]
+
+# TODO add composite to all ?    
+VISUAL_STIMS = [s for s in Stim if 0 <= s.value <= 99] + [Stim.COMPOSITE]
 AUDIO_STIMS = [s for s in Stim if 100 <= s.value <= 199]
 DAQ_STIMS =  [s for s in Stim if 200 <= s.value <= 299]
 
