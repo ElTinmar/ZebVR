@@ -253,9 +253,7 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
             action.triggered.connect(lambda checked=False, cls=widget_cls: self._on_add_item_triggered(cls))
 
     def layout_components(self) -> None:
-        self.main_layout = QVBoxLayout(self)
-        
-        # Layout top settings, then our button and our structural sub-tabs
+        self.main_layout = QVBoxLayout(self)        
         self.main_layout.addWidget(self.stim_name)
         self.main_layout.addWidget(self.add_button)
         self.main_layout.addWidget(self.tabs)
