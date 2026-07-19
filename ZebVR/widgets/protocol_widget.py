@@ -22,6 +22,9 @@ from daq_tools import (
     BoardType
 )
 
+STIM_TO_WIDGET = {stim: cls for cls, stim in PROTOCOL_WIDGETS if stim !=Stim.COMPOSITE}
+WIDGET_TO_STIM = {cls: stim for cls, stim in PROTOCOL_WIDGETS if stim !=Stim.COMPOSITE}
+
 class StimWidget(QWidget):
 
     state_changed = Signal()
@@ -67,10 +70,7 @@ class StimWidget(QWidget):
                 widget = constructor(stop_widget = stop_widget)
             
             if isinstance(widget, CompositeProtocolItemWidget):
-                for sub_constructor, sub_stim_type in PROTOCOL_WIDGETS:
-                    if not issubclass(sub_constructor, CompositeProtocolItemWidget):
-                        widget.register_allowed_type(str(sub_stim_type), sub_constructor)
-                
+                widget.set_registry(STIM_TO_WIDGET, WIDGET_TO_STIM)                
                 widget.item_added.connect(self._handle_composite_sub_widget)
 
             self.cmb_stim_select.addItem(str(stim_type))
