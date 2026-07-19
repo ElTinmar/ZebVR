@@ -1,8 +1,8 @@
 from typing import List, Tuple, Type
 from . import visual, acoustic, daq
 from .stim import Stim
-from .protocol_item import ProtocolItemWidget, CompositeProtocolItemWidget
-from typing import List, Tuple, Type
+from .protocol_item import ProtocolItemWidget
+from .composite_widget import CompositeProtocolItemWidget
 
 PROTOCOL_WIDGETS: List[Tuple[Type[ProtocolItemWidget], Stim]] = [
     (visual.DarkWidget, Stim.DARK),
