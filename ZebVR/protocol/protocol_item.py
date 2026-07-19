@@ -14,7 +14,7 @@ from qt_widgets import LabeledEditLine
 from ..utils import set_from_dict
 from daq_tools import BoardType
 from .default import DEFAULT
-from .stim import CoordinateSystem
+from .stim import CoordinateSystem, Stim
 
 class ProtocolItem(ABC):
 
@@ -49,6 +49,8 @@ class ProtocolItem(ABC):
 
 
 class CompositeProtocolItem(ProtocolItem):
+
+    STIM_SELECT = Stim.COMPOSITE
 
     def __init__(
         self,
@@ -367,3 +369,11 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
             **self._get_protocol_kwargs()
         )
     
+    def get_state(self) -> Dict:
+        state = super().get_state()
+        for widget in self.sub_widgets:
+            state.update(widget.get_state())
+        return state
+    
+    def set_state(self, state: Dict) -> None:
+        super().set_state(state)
