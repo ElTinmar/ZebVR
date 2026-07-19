@@ -242,6 +242,33 @@ class SharedStimParameters:
             })
 
         return res
+    
+class SharedStimParameters_Composite(SharedStimParameters):
+
+    def __init__(self, max_num: int = 5):
+        super().__init__()
+        self.max_num = max_num
+        self.active_count = RawValue(c_ulong, 0)
+        self.sub_params = [SharedStimParameters() for _ in range(max_num)]
+
+    def from_dict(self, d: Dict) -> None:
+        super().from_dict(d)
+        
+        incoming_subs = d.get('sub_commands', [])
+        count = min(len(incoming_subs), self.max_num)
+        self.active_count.value = count
+        
+        for i in range(count):
+            self.sub_params[i].from_dict(incoming_subs[i])
+
+    def to_dict(self) -> Dict:
+        res = super().to_dict()
+        res['sub_commands'] = [
+            self.sub_params[i].to_dict() 
+            for i in range(self.active_count.value)
+        ]
+        
+        return res
 
 VERT_SHADER = """
 #version 120
@@ -830,7 +857,7 @@ class GeneralStim(VisualStim):
             self.bbox_axis_y_proj.append(axis_y_proj)
             self.bbox_axis_x_proj.append(axis_x_proj)
 
-        self.shared_stim_parameters = SharedStimParameters()
+        self.shared_stim_parameters = SharedStimParameters_Composite()
         self.stim_change_counter = 0
 
         self.refresh_rate = refresh_rate
@@ -915,7 +942,6 @@ class GeneralStim(VisualStim):
         self.program['u_image_res_px_per_mm'] = self.shared_stim_parameters.image_res_px_per_mm.value
         self.program['u_image_offset_mm'] = self.shared_stim_parameters.image_offset_mm[:]
         self.program['u_image_tiling'] = self.shared_stim_parameters.image_tiling.value
-
 
     def initialize(self):
         # this runs in the display process
