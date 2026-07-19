@@ -70,7 +70,7 @@ class CompositeProtocolItem(ProtocolItem):
         command = super().start()
         sub_commands = [sub.start() for sub in self.sub_protocols]
         command.update({
-            'composite': True,
+            'stim_select': self.STIM_SELECT,
             'sub_commands': sub_commands
         })
         return command

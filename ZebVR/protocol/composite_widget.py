@@ -169,7 +169,6 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
     
     def get_state(self) -> Dict:
         state = super().get_state()
-        state['composite'] = True
         state['sub_commands'] = []
         for stim, widget in self.sub_widgets:
             sub_state = {'stim_select': stim}
