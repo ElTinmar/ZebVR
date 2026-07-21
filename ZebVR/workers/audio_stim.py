@@ -60,9 +60,10 @@ def audio_file_generator(filename, samplerate, channels, blocksize):
     with av.open(filename) as container:
 
         audio_stream = container.streams.audio[0]
+        layout_name = "mono" if channels == 1 else "stereo" if channels == 2 else f"{channels} channels"
         resampler = av.audio.resampler.AudioResampler(
             format = 'flt',
-            layout = av.audio.layout.AudioLayout(channels),
+            layout = av.audio.layout.AudioLayout(layout_name),
             rate = samplerate
         )
 
