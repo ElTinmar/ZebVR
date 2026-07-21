@@ -11,6 +11,7 @@ from qtpy.QtWidgets import (
 )
 from .stim import Stim
 from .protocol_item import CompositeProtocolItem, ProtocolItemWidget
+from ZebVR import MAX_SHADERS
 
 class AddButtonTabWidget(QTabWidget):
 
@@ -69,8 +70,6 @@ class AddButtonTabWidget(QTabWidget):
     def is_plus_tab(self, index: int) -> bool:
         return index == self.count() - 1
     
-
-
 class CompositeProtocolItemWidget(ProtocolItemWidget):
     
     item_added = Signal(QWidget) 
@@ -92,19 +91,24 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
     def declare_components(self) -> None:
         super().declare_components()
         
-        # Use our clean custom component
         self.tabs = AddButtonTabWidget(self)
         self.tabs.tabCloseRequested.connect(self._on_tab_close_requested)
         
-        # Generate the context menu and pass it into the tab bar button
         self.add_menu = QMenu(self)
         self.tabs.set_menu(self.add_menu)
 
     def _update_add_menu(self) -> None:
         self.add_menu.clear()
+        
+        at_capacity = len(self.sub_widgets) >= MAX_SHADERS
+        self.tabs.add_button.setEnabled(not at_capacity)
+
         for widget_cls, stim_enum in self.widget_to_stim.items():                
             action = self.add_menu.addAction(str(stim_enum))
-            action.triggered.connect(lambda checked=False, cls=widget_cls, stim=stim_enum: self.add_item(cls, stim))
+            action.setEnabled(not at_capacity)
+            action.triggered.connect(
+                lambda checked=False, cls=widget_cls, stim=stim_enum: self.add_item(cls, stim)
+            )
 
     def layout_components(self) -> None:
         self.main_layout = QVBoxLayout(self)        
@@ -126,12 +130,14 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
         widget.deleteLater()
         
         self._refresh_tab_titles()
+        self._update_add_menu()  # Re-enable "+" button if dropping below MAX_SHADERS
         self.state_changed.emit()
 
     def clear(self):
         while self.sub_widgets:
             self._on_tab_close_requested(0)
         self.sub_widgets = []
+        self._update_add_menu()
 
     def _refresh_tab_titles(self) -> None:
         loop_limit = self.tabs.count() - 1
@@ -142,6 +148,9 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
                 self.tabs.setTabText(i, f"{i + 1}:{suffix}")
 
     def add_item(self, widget_cls: Type[ProtocolItemWidget], stim: Stim) -> None:
+        if len(self.sub_widgets) >= MAX_SHADERS:
+            return
+
         new_stop_widget = StopWidget(
             debouncer=self.stop_widget.debouncer,
             background_image=self.stop_widget.background_image
@@ -152,11 +161,11 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
         new_widget.state_changed.connect(self.state_changed) 
         self.sub_widgets.append((stim, new_widget)) 
 
-        # tab
         tab_title = f"{len(self.sub_widgets)}: {stim}"
         new_index = self.tabs.insert_real_tab(new_widget, tab_title)
         self.tabs.setCurrentIndex(new_index)          
         
+        self._update_add_menu()  # Refresh menu state (disables "+" if capacity reached)
         self.state_changed.emit()
         self.item_added.emit(new_widget)
 
@@ -181,12 +190,13 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
 
         super().set_state(state)
         sub_commands = state.get('sub_commands', [])
-        for command in sub_commands:
+        
+        for command in sub_commands[:MAX_SHADERS]:
             stim = command.get('stim_select', None)
             try:
                 widget_cls = self.stim_to_widget[stim]
                 self.add_item(widget_cls, stim)
                 _, new_widget = self.sub_widgets[-1]
                 new_widget.set_state(command)
-            except:
+            except Exception:
                 pass
