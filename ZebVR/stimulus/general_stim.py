@@ -6,7 +6,7 @@ import numpy as np
 from numpy.typing import NDArray
 from dataclasses import dataclass
 from geometry import AffineTransform2D
-from ZebVR import MAX_PREY
+from ZebVR import MAX_PREY, MAX_SHADERS
 from ZebVR.protocol import DEFAULT, Stim, VISUAL_STIMS
 import cv2
 from ZebVR.utils import SharedString, get_time_ns
@@ -32,7 +32,6 @@ class SharedFishState:
         
 
 class SharedStimParameters:
-    # TODO add index of fish to follow?
 
     def __init__(self):
 
@@ -243,31 +242,48 @@ class SharedStimParameters:
 
         return res
     
-class SharedStimParameters_Composite(SharedStimParameters):
+class MultiSharedStimParameters:
 
-    def __init__(self, max_num: int = 5):
+    def __init__(self, max_num: int = MAX_SHADERS):
         super().__init__()
         self.max_num = max_num
         self.active_count = RawValue(c_ulong, 0)
-        self.sub_params = [SharedStimParameters() for _ in range(max_num)]
+        self.sub_params = [SharedStimParameters() for _ in range(self.max_num)]
+
+        self.name = SharedString(initializer = DEFAULT['name'])
+        self.stim_change_counter = RawValue(c_double, 0) 
+        self.start_time_sec = RawValue(c_double, 0) 
+        self.stim_select = RawValue(c_double, Stim.DARK) 
 
     def from_dict(self, d: Dict) -> None:
-        super().from_dict(d)
+
+        self.stim_change_counter.value += 1
+        self.name.value = d.get('name', DEFAULT['name'])
+        self.start_time_sec.value = d.get('time_sec', 0)
+        self.stim_select.value = d.get('stim_select', Stim.DARK)
         
-        incoming_subs = d.get('sub_commands', [])
-        count = min(len(incoming_subs), self.max_num)
-        self.active_count.value = count
-        
-        for i in range(count):
-            self.sub_params[i].from_dict(incoming_subs[i])
+        if self.stim_select.value == Stim.COMPOSITE:
+            incoming_subs = d.get('sub_commands', [])
+            count = min(len(incoming_subs), self.max_num) # clamping down to max_num
+            self.active_count.value = count
+            for i in range(count):
+                self.sub_params[i].from_dict(incoming_subs[i])
+        else:
+            self.active_count.value = 1
+            self.sub_params[0].from_dict(d)
 
     def to_dict(self) -> Dict:
-        res = super().to_dict()
-        res['sub_commands'] = [
-            self.sub_params[i].to_dict() 
-            for i in range(self.active_count.value)
-        ]
         
+        if self.active_count.value == 1:
+            return self.sub_params[0].to_dict()
+        
+        res = {
+            'stim_select': self.stim_select.value,
+            'name': self.name.value,
+            'timestamp': get_time_ns(),
+            'start_time_sec': self.start_time_sec.value,
+            'sub_commands': [self.sub_params[i].to_dict() for i in range(self.active_count.value)]
+        }
         return res
 
 VERT_SHADER = """
@@ -857,7 +873,7 @@ class GeneralStim(VisualStim):
             self.bbox_axis_y_proj.append(axis_y_proj)
             self.bbox_axis_x_proj.append(axis_x_proj)
 
-        self.shared_stim_parameters = SharedStimParameters_Composite()
+        self.shared_stim_parameters = MultiSharedStimParameters()
         self.stim_change_counter = 0
 
         self.refresh_rate = refresh_rate
@@ -867,98 +883,113 @@ class GeneralStim(VisualStim):
     def update_shader_variables(self, time_s: float):
         # communication between CPU and GPU for every frame drawn
 
-        self.program['u_time_s'] = time_s
+        active_shader = self.shared_stim_parameters.active_count.value
 
-        # fish state 
-        # TODO send tail data to shader?        
+        for p in range(active_shader):
+
+            self.program[p]['u_time_s'] = time_s
+            
+            for i in range(self.n_animals):
+                self.program[p][f'u_fish_centroid[{i}]'] = self.shared_fish_state[i].fish_centroid[:] 
+                self.program[p][f'u_fish_caudorostral_axis[{i}]'] = self.shared_fish_state[i].fish_caudorostral_axis[:]
+                self.program[p][f'u_fish_mediolateral_axis[{i}]'] = self.shared_fish_state[i].fish_mediolateral_axis[:]
+                self.program[p][f'u_virtual_centroid[{i}]'] = self.shared_fish_state[i].virtual_centroid[:] 
+                self.program[p][f'u_virtual_caudorostral_axis[{i}]'] = self.shared_fish_state[i].virtual_caudorostral_axis[:]
+                self.program[p][f'u_virtual_mediolateral_axis[{i}]'] = self.shared_fish_state[i].virtual_mediolateral_axis[:]
+                self.program[p][f'u_left_eye_centroid[{i}]'] = self.shared_fish_state[i].left_eye_centroid[:]
+                self.program[p][f'u_left_eye_angle[{i}]'] = self.shared_fish_state[i].left_eye_angle.value
+                self.program[p][f'u_right_eye_centroid[{i}]'] = self.shared_fish_state[i].right_eye_centroid[:]
+                self.program[p][f'u_right_eye_angle[{i}]'] = self.shared_fish_state[i].right_eye_angle.value
         
-        for i in range(self.n_animals):
-            self.program[f'u_fish_centroid[{i}]'] = self.shared_fish_state[i].fish_centroid[:] 
-            self.program[f'u_fish_caudorostral_axis[{i}]'] = self.shared_fish_state[i].fish_caudorostral_axis[:]
-            self.program[f'u_fish_mediolateral_axis[{i}]'] = self.shared_fish_state[i].fish_mediolateral_axis[:]
-            self.program[f'u_virtual_centroid[{i}]'] = self.shared_fish_state[i].virtual_centroid[:] 
-            self.program[f'u_virtual_caudorostral_axis[{i}]'] = self.shared_fish_state[i].virtual_caudorostral_axis[:]
-            self.program[f'u_virtual_mediolateral_axis[{i}]'] = self.shared_fish_state[i].virtual_mediolateral_axis[:]
-            self.program[f'u_left_eye_centroid[{i}]'] = self.shared_fish_state[i].left_eye_centroid[:]
-            self.program[f'u_left_eye_angle[{i}]'] = self.shared_fish_state[i].left_eye_angle.value
-            self.program[f'u_right_eye_centroid[{i}]'] = self.shared_fish_state[i].right_eye_centroid[:]
-            self.program[f'u_right_eye_angle[{i}]'] = self.shared_fish_state[i].right_eye_angle.value
-    
-        # stim parameters
-        self.program['u_start_time_s'] = self.shared_stim_parameters.start_time_sec.value
-        self.program['u_foreground_color'] = self.shared_stim_parameters.foreground_color[:]
-        self.program['u_background_color'] = self.shared_stim_parameters.background_color[:]
-        self.program['u_fade_in_duration_sec'] = self.shared_stim_parameters.fade_in_duration_sec.value
-        self.program['u_fade_out_duration_sec'] = self.shared_stim_parameters.fade_out_duration_sec.value
-        self.program['u_stimulus_duration_sec'] = self.shared_stim_parameters.stimulus_duration_sec.value
-        self.program['u_coordinate_system'] = self.shared_stim_parameters.coordinate_system.value
-        self.program['u_stim_select'] = self.shared_stim_parameters.stim_select.value
-        self.program['u_phototaxis_polarity'] = self.shared_stim_parameters.phototaxis_polarity.value
-        self.program['u_phototaxis_transition_width_mm'] = self.shared_stim_parameters.phototaxis_transition_width_mm.value
-        self.program['u_omr_spatial_period_mm'] = self.shared_stim_parameters.omr_spatial_period_mm.value
-        self.program['u_omr_angle_deg'] = self.shared_stim_parameters.omr_angle_deg.value
-        self.program['u_omr_speed_mm_per_sec'] = self.shared_stim_parameters.omr_speed_mm_per_sec.value
-        self.program['u_turing_spatial_period_mm'] = self.shared_stim_parameters.turing_spatial_period_mm.value
-        self.program['u_turing_angle_deg'] = self.shared_stim_parameters.turing_angle_deg.value
-        self.program['u_turing_speed_mm_per_sec'] = self.shared_stim_parameters.turing_speed_mm_per_sec.value
-        self.program['u_turing_n_waves'] = self.shared_stim_parameters.turing_n_waves.value
-        self.program['u_concentric_spatial_period_mm'] = self.shared_stim_parameters.concentric_spatial_period_mm.value
-        self.program['u_concentric_speed_mm_per_sec'] = self.shared_stim_parameters.concentric_speed_mm_per_sec.value
-        self.program['u_okr_spatial_frequency_deg'] = self.shared_stim_parameters.okr_spatial_frequency_deg.value
-        self.program['u_okr_speed_deg_per_sec'] = self.shared_stim_parameters.okr_speed_deg_per_sec.value
-        self.program['u_looming_type'] = self.shared_stim_parameters.looming_type
-        self.program['u_looming_center_mm'] = self.shared_stim_parameters.looming_center_mm[:]
-        self.program['u_looming_period_sec'] = self.shared_stim_parameters.looming_period_sec.value
-        self.program['u_looming_expansion_time_sec'] = self.shared_stim_parameters.looming_expansion_time_sec.value
-        self.program['u_looming_expansion_speed_mm_per_sec'] = self.shared_stim_parameters.looming_expansion_speed_mm_per_sec.value
-        self.program['u_looming_expansion_speed_deg_per_sec'] = self.shared_stim_parameters.looming_expansion_speed_deg_per_sec.value
-        self.program['u_looming_angle_start_deg'] = self.shared_stim_parameters.looming_angle_start_deg.value
-        self.program['u_looming_angle_stop_deg'] = self.shared_stim_parameters.looming_angle_stop_deg.value
-        self.program['u_looming_size_to_speed_ratio_ms'] = self.shared_stim_parameters.looming_size_to_speed_ratio_ms.value
-        self.program['u_looming_distance_to_screen_mm'] = self.shared_stim_parameters.looming_distance_to_screen_mm.value
-        self.program['u_dot_center_mm'] = self.shared_stim_parameters.dot_center_mm[:]
-        self.program['u_dot_radius_mm'] = self.shared_stim_parameters.dot_radius_mm.value
-        self.program['u_prey_speed_mm_s'] = self.shared_stim_parameters.prey_speed_mm_s.value
-        self.program['u_prey_speed_deg_s'] = self.shared_stim_parameters.prey_speed_deg_s.value
-        self.program['u_prey_radius_mm'] = self.shared_stim_parameters.prey_radius_mm.value
-        self.program['u_prey_trajectory_radius_mm'] = self.shared_stim_parameters.prey_trajectory_radius_mm.value
-        self.program['u_prey_arc_start_deg'] = self.shared_stim_parameters.prey_arc_start_deg.value
-        self.program['u_prey_arc_stop_deg'] = self.shared_stim_parameters.prey_arc_stop_deg.value
-        self.program['u_prey_arc_phase_deg'] = self.shared_stim_parameters.prey_arc_phase_deg.value
-        self.program['u_prey_capture_type'] = self.shared_stim_parameters.prey_capture_type
-        self.program['u_prey_periodic_function'] = self.shared_stim_parameters.prey_periodic_function
-        self.program['u_n_preys'] = self.shared_stim_parameters.n_preys.value
-        self.program['u_ramp_duration_sec'] = self.shared_stim_parameters.ramp_duration_sec.value
-        self.program['u_ramp_powerlaw_exponent'] = self.shared_stim_parameters.ramp_powerlaw_exponent.value
-        self.program['u_ramp_type'] = self.shared_stim_parameters.ramp_type.value
+            # stim parameters
+            self.program[p]['u_start_time_s'] = self.shared_stim_parameters.sub_params[p].start_time_sec.value
+            self.program[p]['u_foreground_color'] = self.shared_stim_parameters.sub_params[p].foreground_color[:]
+            self.program[p]['u_background_color'] = self.shared_stim_parameters.sub_params[p].background_color[:]
+            self.program[p]['u_fade_in_duration_sec'] = self.shared_stim_parameters.sub_params[p].fade_in_duration_sec.value
+            self.program[p]['u_fade_out_duration_sec'] = self.shared_stim_parameters.sub_params[p].fade_out_duration_sec.value
+            self.program[p]['u_stimulus_duration_sec'] = self.shared_stim_parameters.sub_params[p].stimulus_duration_sec.value
+            self.program[p]['u_coordinate_system'] = self.shared_stim_parameters.sub_params[p].coordinate_system.value
+            self.program[p]['u_stim_select'] = self.shared_stim_parameters.sub_params[p].stim_select.value
+            self.program[p]['u_phototaxis_polarity'] = self.shared_stim_parameters.sub_params[p].phototaxis_polarity.value
+            self.program[p]['u_phototaxis_transition_width_mm'] = self.shared_stim_parameters.sub_params[p].phototaxis_transition_width_mm.value
+            self.program[p]['u_omr_spatial_period_mm'] = self.shared_stim_parameters.sub_params[p].omr_spatial_period_mm.value
+            self.program[p]['u_omr_angle_deg'] = self.shared_stim_parameters.sub_params[p].omr_angle_deg.value
+            self.program[p]['u_omr_speed_mm_per_sec'] = self.shared_stim_parameters.sub_params[p].omr_speed_mm_per_sec.value
+            self.program[p]['u_turing_spatial_period_mm'] = self.shared_stim_parameters.sub_params[p].turing_spatial_period_mm.value
+            self.program[p]['u_turing_angle_deg'] = self.shared_stim_parameters.sub_params[p].turing_angle_deg.value
+            self.program[p]['u_turing_speed_mm_per_sec'] = self.shared_stim_parameters.sub_params[p].turing_speed_mm_per_sec.value
+            self.program[p]['u_turing_n_waves'] = self.shared_stim_parameters.sub_params[p].turing_n_waves.value
+            self.program[p]['u_concentric_spatial_period_mm'] = self.shared_stim_parameters.sub_params[p].concentric_spatial_period_mm.value
+            self.program[p]['u_concentric_speed_mm_per_sec'] = self.shared_stim_parameters.sub_params[p].concentric_speed_mm_per_sec.value
+            self.program[p]['u_okr_spatial_frequency_deg'] = self.shared_stim_parameters.sub_params[p].okr_spatial_frequency_deg.value
+            self.program[p]['u_okr_speed_deg_per_sec'] = self.shared_stim_parameters.sub_params[p].okr_speed_deg_per_sec.value
+            self.program[p]['u_looming_type'] = self.shared_stim_parameters.sub_params[p].looming_type
+            self.program[p]['u_looming_center_mm'] = self.shared_stim_parameters.sub_params[p].looming_center_mm[:]
+            self.program[p]['u_looming_period_sec'] = self.shared_stim_parameters.sub_params[p].looming_period_sec.value
+            self.program[p]['u_looming_expansion_time_sec'] = self.shared_stim_parameters.sub_params[p].looming_expansion_time_sec.value
+            self.program[p]['u_looming_expansion_speed_mm_per_sec'] = self.shared_stim_parameters.sub_params[p].looming_expansion_speed_mm_per_sec.value
+            self.program[p]['u_looming_expansion_speed_deg_per_sec'] = self.shared_stim_parameters.sub_params[p].looming_expansion_speed_deg_per_sec.value
+            self.program[p]['u_looming_angle_start_deg'] = self.shared_stim_parameters.sub_params[p].looming_angle_start_deg.value
+            self.program[p]['u_looming_angle_stop_deg'] = self.shared_stim_parameters.sub_params[p].looming_angle_stop_deg.value
+            self.program[p]['u_looming_size_to_speed_ratio_ms'] = self.shared_stim_parameters.sub_params[p].looming_size_to_speed_ratio_ms.value
+            self.program[p]['u_looming_distance_to_screen_mm'] = self.shared_stim_parameters.sub_params[p].looming_distance_to_screen_mm.value
+            self.program[p]['u_dot_center_mm'] = self.shared_stim_parameters.sub_params[p].dot_center_mm[:]
+            self.program[p]['u_dot_radius_mm'] = self.shared_stim_parameters.sub_params[p].dot_radius_mm.value
+            self.program[p]['u_prey_speed_mm_s'] = self.shared_stim_parameters.sub_params[p].prey_speed_mm_s.value
+            self.program[p]['u_prey_speed_deg_s'] = self.shared_stim_parameters.sub_params[p].prey_speed_deg_s.value
+            self.program[p]['u_prey_radius_mm'] = self.shared_stim_parameters.sub_params[p].prey_radius_mm.value
+            self.program[p]['u_prey_trajectory_radius_mm'] = self.shared_stim_parameters.sub_params[p].prey_trajectory_radius_mm.value
+            self.program[p]['u_prey_arc_start_deg'] = self.shared_stim_parameters.sub_params[p].prey_arc_start_deg.value
+            self.program[p]['u_prey_arc_stop_deg'] = self.shared_stim_parameters.sub_params[p].prey_arc_stop_deg.value
+            self.program[p]['u_prey_arc_phase_deg'] = self.shared_stim_parameters.sub_params[p].prey_arc_phase_deg.value
+            self.program[p]['u_prey_capture_type'] = self.shared_stim_parameters.sub_params[p].prey_capture_type
+            self.program[p]['u_prey_periodic_function'] = self.shared_stim_parameters.sub_params[p].prey_periodic_function
+            self.program[p]['u_n_preys'] = self.shared_stim_parameters.sub_params[p].n_preys.value
+            self.program[p]['u_ramp_duration_sec'] = self.shared_stim_parameters.sub_params[p].ramp_duration_sec.value
+            self.program[p]['u_ramp_powerlaw_exponent'] = self.shared_stim_parameters.sub_params[p].ramp_powerlaw_exponent.value
+            self.program[p]['u_ramp_type'] = self.shared_stim_parameters.sub_params[p].ramp_type.value
 
-        if self._last_image_path != self.shared_stim_parameters.image_path.value:
-            img_bgr = cv2.imread(self.shared_stim_parameters.image_path.value)
-            img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-            self.program['u_image_texture'] = img_rgb
-            self.program['u_image_size'] = [img_rgb.shape[1], img_rgb.shape[0]]
-            self._last_image_path = self.shared_stim_parameters.image_path.value
+            if self._last_image_path != self.shared_stim_parameters.sub_params[p].image_path.value:
+                img_bgr = cv2.imread(self.shared_stim_parameters.sub_params[p].image_path.value)
+                img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+                self.program[p]['u_image_texture'] = img_rgb
+                self.program[p]['u_image_size'] = [img_rgb.shape[1], img_rgb.shape[0]]
+                self._last_image_path = self.shared_stim_parameters.sub_params[p].image_path.value
 
-        self.program['u_image_res_px_per_mm'] = self.shared_stim_parameters.image_res_px_per_mm.value
-        self.program['u_image_offset_mm'] = self.shared_stim_parameters.image_offset_mm[:]
-        self.program['u_image_tiling'] = self.shared_stim_parameters.image_tiling.value
+            self.program[p]['u_image_res_px_per_mm'] = self.shared_stim_parameters.sub_params[p].image_res_px_per_mm.value
+            self.program[p]['u_image_offset_mm'] = self.shared_stim_parameters.sub_params[p].image_offset_mm[:]
+            self.program[p]['u_image_tiling'] = self.shared_stim_parameters.sub_params[p].image_tiling.value
 
     def initialize(self):
         # this runs in the display process
 
         super().initialize()
-        
-        # init shader
+
         np.random.seed(0)
         x = np.random.randint(0, self.camera_resolution[0], MAX_PREY)
         y = np.random.randint(0, self.camera_resolution[1], MAX_PREY)
         theta = np.random.uniform(0, 2*np.pi, (MAX_PREY,1))
-        self.program['u_n_animals'] = self.n_animals
-        self.program['u_prey_position'] = self.transformation_matrix.transform_points(np.column_stack((x, y)).astype(np.float32)).squeeze()
-        self.program['u_prey_trajectory_angle'] = theta.astype(np.float32)
-        self.program['u_bounding_box'] = self.bbox_rect_cam
-        self.program['u_bounding_box_axis_y'] = self.bbox_axis_y_proj
-        self.program['u_bounding_box_axis_x'] = self.bbox_axis_x_proj
+
+        self.program: List[gloo.Program] = []
+
+        for i in range(MAX_SHADERS):
+        
+            self.program.append(gloo.Program(self.vertex_shader, self.fragment_shader))
+
+            self.program[i]['a_position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
+            self.program[i]['u_pixel_scaling'] = self.pixel_scaling
+            self.program[i]['u_cam_to_proj'] = self.transformation_matrix.T
+            self.program[i]['u_proj_to_cam'] = self.transformation_matrix.inv().T
+            self.program[i]['u_pix_per_mm'] = self.pix_per_mm
+            self.program[i]['u_pix_per_mm_proj'] = self.transformation_matrix.transform_vectors([self.pix_per_mm, self.pix_per_mm])
+            self.program[i]['u_proj_resolution'] = self.window_size
+            self.program[i]['u_cam_resolution'] = self.camera_resolution
+            self.program[i]['u_n_animals'] = self.n_animals
+            self.program[i]['u_prey_position'] = self.transformation_matrix.transform_points(np.column_stack((x, y)).astype(np.float32)).squeeze()
+            self.program[i]['u_prey_trajectory_angle'] = theta.astype(np.float32)
+            self.program[i]['u_bounding_box'] = self.bbox_rect_cam
+            self.program[i]['u_bounding_box_axis_y'] = self.bbox_axis_y_proj
+            self.program[i]['u_bounding_box_axis_x'] = self.bbox_axis_x_proj
 
         self.show()
         self.timer = app.Timer(1/self.refresh_rate, self.on_timer)
@@ -972,7 +1003,14 @@ class GeneralStim(VisualStim):
     def on_draw(self, event):
         super().on_draw(event)
         gloo.clear('black')
-        self.program.draw('triangle_strip')
+        gloo.set_state(
+            blend=True, 
+            blend_func=('src_alpha', 'one_minus_src_alpha')
+        )
+
+        active_shaders = self.shared_stim_parameters.active_count.value
+        for i in range(active_shaders):
+            self.program[i].draw('triangle_strip')
 
     def on_timer(self, event):
         # this runs in the display process

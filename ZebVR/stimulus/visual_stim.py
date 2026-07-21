@@ -53,18 +53,6 @@ class VisualStim(app.Canvas):
             always_on_top = True,
         )
 
-        self.program = gloo.Program(self.vertex_shader, self.fragment_shader)
-
-        # set attributes, these must be present in the vertex shader
-        self.program['a_position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
-        self.program['u_pixel_scaling'] = self.pixel_scaling
-        self.program['u_cam_to_proj'] = self.transformation_matrix.T
-        self.program['u_proj_to_cam'] = self.transformation_matrix.inv().T
-        self.program['u_pix_per_mm'] = self.pix_per_mm
-        self.program['u_pix_per_mm_proj'] = self.transformation_matrix.transform_vectors([self.pix_per_mm, self.pix_per_mm])
-        self.program['u_proj_resolution'] = self.window_size
-        self.program['u_cam_resolution'] = self.camera_resolution
-        
         #NOTE don't forget to call self.initialized.set() in subclass
 
     def set_log_queue(self, log_queue: Queue):
