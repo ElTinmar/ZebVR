@@ -819,6 +819,9 @@ class MainGui(QMainWindow):
         self.p_worker_logger.join()
         self.p_queue_logger.join()
 
+        # make sure shared mem can be freed
+        self.dag = None
+
 
     def stop(self):
 
