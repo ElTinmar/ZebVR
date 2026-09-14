@@ -199,6 +199,8 @@ class ProtocolItemWidget(QWidget):
             setter = self.stim_name.setText,
             default = ''
         )
+        # you may want to run in the base class:
+        # self.state_changed.emit() 
 
     def from_protocol_item(self, protocol_item: ProtocolItem) -> None:
         self.stop_widget.from_stop_condition(protocol_item.stop_condition)
