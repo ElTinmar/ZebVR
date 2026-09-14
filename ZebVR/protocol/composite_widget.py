@@ -195,7 +195,7 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
             stim = command.get('stim_select', None)
             try:
                 widget_cls = self.stim_to_widget[stim]
-                self.add_item(widget_cls, stim)
+                self.add_item(widget_cls, Stim(stim))
                 _, new_widget = self.sub_widgets[-1]
                 new_widget.set_state(command)
             except Exception:
