@@ -200,3 +200,6 @@ class CompositeProtocolItemWidget(ProtocolItemWidget):
                 new_widget.set_state(command)
             except Exception:
                 pass
+
+        self.tabs.updateGeometry()
+        self.state_changed.emit()
