@@ -48,40 +48,18 @@ from .widgets import (
     AudioWidget,
     DaqWidget
 )
-from .utils import append_timestamp_to_filename, serialize
+from .utils import append_timestamp_to_filename, save_state, load_state
 from .dags import closed_loop, open_loop, video_recording, tracking
 
-def make_json_safe(obj, exclude_keys, current_path=""):
-
-    if isinstance(obj, dict):
-        cleaned_dict = {}
-        for k, v in obj.items():
-            next_path = f"{current_path}.{k}" if current_path else k
-            if next_path in exclude_keys or k in exclude_keys:
-                continue
-            if callable(v):
-                continue
-            cleaned_dict[k] = make_json_safe(v, exclude_keys, next_path)
-        return cleaned_dict
-    
-    elif isinstance(obj, (list, tuple, deque)):
-        return [make_json_safe(item, exclude_keys, current_path) for item in obj]
-    
-    elif isinstance(obj, Path):
-        return obj.as_posix()
-        
-    elif isinstance(obj, np.ndarray):
-        return obj.tolist()
-
-    elif isinstance(obj, (str, int, float, bool, type(None))):
-        return obj
-    
-    else:
-        raise TypeError(
-            f"Unrecognized type '{type(obj).__name__}' in state dictionary. "
-            f"Value: {obj}. Please add handling or add its key to exclude_keys."
-        )
-
+SERIALIZE_EXCLUDE_KEYS = {
+    'camera.camera_constructor',
+    'projector.light_analysis.powermeter.powermeter_constructor',
+    'projector.light_analysis.powermeter.powermeters',
+    'projector.light_analysis.spectrometer.spectrometer_constructor',
+    'projector.light_analysis.spectrometer.spectrometers',
+    'sequencer.protocol',
+    'daq',
+}
 
 class State(Enum):
     IDLE = 0
@@ -384,32 +362,15 @@ class MainGui(QMainWindow):
     def load_settings(self):
         filename, _ = QFileDialog.getOpenFileName(self, 'Open file', '', 'VR Settings (*.vr *.metadata)')
         try:
-            with open(filename, 'r') as fp:
-                state = json.load(fp)
-            self.set_state(state)
-
+            self.set_state(load_state(filename))
         except FileNotFoundError:
             print(f"Error: The file '{filename}' does not exist.")
 
     def save_settings(self):
         state = self.get_state()
         filename, _ = QFileDialog.getSaveFileName(self, 'Save file', '', 'VR Settings (*.vr)')
-        filename_correct_ext = Path(filename).with_suffix('.vr')
-
-        # these are non serializable objects
-        exclude_keys = {
-            'camera.camera_constructor',
-            'projector.light_analysis.powermeter.powermeter_constructor',
-            'projector.light_analysis.powermeter.powermeters',
-            'projector.light_analysis.spectrometer.spectrometer_constructor',
-            'projector.light_analysis.spectrometer.spectrometers',
-            'sequencer.protocol',
-            'daq',
-            'identity.background'
-        }
-        clean_state = make_json_safe(state, exclude_keys)
-        with open(filename_correct_ext, 'w') as fp:
-            json.dump(clean_state, fp, indent=2)
+        filename = Path(filename).with_suffix('.vr')
+        save_state(state, filename, exclude_keys=SERIALIZE_EXCLUDE_KEYS)
 
     def set_main_state(self, state: Dict) -> None:
         self.recording_duration.setValue(state['recording_duration'])
@@ -741,17 +702,6 @@ class MainGui(QMainWindow):
         self.process_timer.stop()
         self.busy_overlay.hide_overlay()
 
-    def serialize_to_json(self, filename: Path):
-        serializers = { 
-            np.ndarray: lambda x: x.tolist(),
-            Path: lambda x: str(x),
-            Enum: lambda x: x.value,
-            array: lambda x: x.tolist(),
-        } 
-        filename.parent.mkdir(parents=True, exist_ok=True)
-        with open(filename, 'w') as f:
-            json.dump(serialize(self.settings, serializers), f)
-
     def start(self):
 
         self.busy_overlay.show_overlay()
@@ -784,7 +734,7 @@ class MainGui(QMainWindow):
         prefix = Path(self.settings['settings']['prefix'])
         filename = prefix.with_suffix('.metadata')
         filename = append_timestamp_to_filename(filename)       
-        self.serialize_to_json(filename)
+        save_state(self.settings, filename, exclude_keys=SERIALIZE_EXCLUDE_KEYS)
 
         if self.open_loop_button.isChecked():
             self.dag, self.worker_logger, self.queue_logger = open_loop(self.settings)
